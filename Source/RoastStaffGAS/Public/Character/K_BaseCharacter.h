@@ -4,26 +4,48 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "AbilitySystemInterface.h"
 #include "K_BaseCharacter.generated.h"
 
+class UGameplayAbility;
+class UAbilitySystemComponent;
+
+
 UCLASS()
-class ROASTSTAFFGAS_API AK_BaseCharacter : public ACharacter
+class ROASTSTAFFGAS_API AK_BaseCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
 	AK_BaseCharacter();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void PostInitializeComponents() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	
+public:
+	UFUNCTION(BlueprintImplementableEvent)
+	void MyPostInitailizeComponents();
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+protected:
+	/* //////////////////////
+	 * GAS Contents
+	 *///////////////////////
+	
+	//ASC
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AM|GAS")
+	TObjectPtr<class UAbilitySystemComponent> ASC;
+	
+	//Game Abilities
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AM|GAS")
+	TArray<TSubclassOf<UGameplayAbility>> InitialAbilities;
+	
+	//Attribute Sets
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AM|GAS")
+	int32 StartLevel;
+	
 };
