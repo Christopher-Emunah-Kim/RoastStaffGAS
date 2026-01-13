@@ -2,13 +2,21 @@
 
 
 #include "Character/K_BaseCharacter.h"
+#include "AbilitySystemComponent.h"
 
 // Sets default values
 AK_BaseCharacter::AK_BaseCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	//ASC
+	ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
 
+	//AttributeSet
+	
+	//Pawn
+	
+	
+	
+	StartLevel = 1;
 }
 
 // Called when the game starts or when spawned
@@ -18,17 +26,30 @@ void AK_BaseCharacter::BeginPlay()
 	
 }
 
-// Called every frame
-void AK_BaseCharacter::Tick(float DeltaTime)
+void AK_BaseCharacter::PossessedBy(AController* NewController)
 {
-	Super::Tick(DeltaTime);
-
+	Super::PossessedBy(NewController);
+	
+	for (const auto& eachAbility : InitialAbilities)
+	{
+		ASC->GiveAbility(FGameplayAbilitySpec(eachAbility));
+	}
 }
 
-// Called to bind functionality to input
-void AK_BaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void AK_BaseCharacter::PostInitializeComponents()
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
+	Super::PostInitializeComponents();
+	
+	MyPostInitailizeComponents();
+	
+	//AttributeSet Delegate Binding
+	
+	//DataTable Data Binding
 }
+
+UAbilitySystemComponent* AK_BaseCharacter::GetAbilitySystemComponent() const
+{
+	return ASC;
+}
+
 
