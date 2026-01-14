@@ -17,6 +17,7 @@
 // GameplayEffect 관련
 #include "GameplayEffect.h"
 #include "GameplayEffectTypes.h"
+#include "GameplayEffectExtension.h"
 
 // GameplayAbility 관련
 #include "Abilities/GameplayAbility.h"
