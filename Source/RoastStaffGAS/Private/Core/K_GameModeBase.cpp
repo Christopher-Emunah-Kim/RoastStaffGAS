@@ -3,8 +3,11 @@
 
 #include "Core/K_GameModeBase.h"
 #include "RoastStaffGAS.h"
+#include "AbilitySystem/Attributes/K_BaseAttributeSet.h"
+#include "AbilitySystem/GameplayTags/K_GameplayTags.h"
 #include "System/K_LoggingSystem.h"
-#include "GameplayTags/K_GameplayTags.h"
+#include "Kismet/GameplayStatics.h"
+#include "Character/K_PlayerCharacter.h"
 
 void AK_GameModeBase::BeginPlay()
 {
@@ -76,4 +79,38 @@ void AK_GameModeBase::TestGasModules()
 	KHS_INFO(TEXT("========================================"));
 	KHS_INFO(TEXT("GameplayTag Registration Complete! "));
 	KHS_INFO(TEXT("========================================"));
+	
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
+	{
+		APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+		if (!PC) return;
+        
+		AK_PlayerCharacter* PlayerChar = Cast<AK_PlayerCharacter>(PC->GetPawn());
+		if (!PlayerChar) return;
+        
+		KHS_INFO(TEXT(""));
+		KHS_INFO(TEXT("========================================"));
+		KHS_INFO(TEXT("AttributeSet Test"));
+		KHS_INFO(TEXT("========================================"));
+        
+		UAbilitySystemComponent* ASC = PlayerChar->GetAbilitySystemComponent();
+		if (ASC)
+		{
+			KHS_INFO(TEXT("[OK] ASC is valid"));
+		}
+        
+		UK_BaseAttributeSet* Attrs = PlayerChar->GetAttributeSet();
+		if (Attrs)
+		{
+			KHS_INFO(TEXT("[OK] AttributeSet is valid"));
+			KHS_INFO(TEXT("    Health: %.1f / %.1f"), Attrs->GetHealth(), Attrs->GetMaxHealth());
+			KHS_INFO(TEXT("    Mana: %.1f / %.1f"), Attrs->GetMana(), Attrs->GetMaxMana());
+		}
+        
+		KHS_INFO(TEXT("========================================"));
+		KHS_INFO(TEXT("AttributeSet Test Complete!"));
+		KHS_INFO(TEXT("========================================"));
+        
+	}, 1.0f, false);
 }
