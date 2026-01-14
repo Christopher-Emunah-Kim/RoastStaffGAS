@@ -9,7 +9,7 @@
 
 class UGameplayAbility;
 class UAbilitySystemComponent;
-
+class UK_BaseAttributeSet;
 
 UCLASS()
 class ROASTSTAFFGAS_API AK_BaseCharacter : public ACharacter, public IAbilitySystemInterface
@@ -24,12 +24,35 @@ protected:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void PostInitializeComponents() override;
 
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	//GAS 초기화
+	virtual void InitializeAbilitySystem();
 	
 public:
+	//IAbilitySystemInterface
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	
+	//AttributeSet Getter
+	UFUNCTION(BlueprintCallable, Category = "AM|GAS")
+	UK_BaseAttributeSet* GetAttributeSet() const {return BaseAttributeSet;}
+	
+	UFUNCTION(BlueprintCallable, Category = "AM|GAS|Attributes")
+	float GetHealth() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "AM|GAS|Attributes")
+	float GetMaxHealth() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "AM|GAS|Attributes")
+	float GetMana() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "AM|GAS|Attributes")
+	float GetMaxMana() const;
+	
 	UFUNCTION(BlueprintImplementableEvent)
 	void MyPostInitailizeComponents();
 
+private:
+	bool bASCInitialized;
+	
 protected:
 	/* //////////////////////
 	 * GAS Contents
@@ -39,13 +62,16 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AM|GAS")
 	TObjectPtr<class UAbilitySystemComponent> ASC;
 	
+	//Attribute Sets
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AM|GAS")
+	TObjectPtr<UK_BaseAttributeSet> BaseAttributeSet;
+	
 	//Game Abilities
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AM|GAS")
 	TArray<TSubclassOf<UGameplayAbility>> InitialAbilities;
 	
-	//Attribute Sets
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AM|GAS")
-	int32 StartLevel;
+	int32 CharacterLevel;
 	
 };
