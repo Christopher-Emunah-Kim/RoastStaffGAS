@@ -2,13 +2,15 @@
 
 
 #include "Character/K_PlayerCharacter.h"
+
+#include "AbilitySystem/Attributes/K_BaseAttributeSet.h"
 #include "Character/K_PlayerController.h"
+#include "System/K_LoggingSystem.h"
 
-#include "EnhancedInputComponent.h"
-
-#include "TwinStickAoEAttack.h"
 #include "TwinStickProjectile.h"
 
+#include "EnhancedInputComponent.h"
+#include "AbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -57,6 +59,14 @@ void AK_PlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	GetWorld()->GetTimerManager().ClearTimer(AutoFireTimer);
 }
 
+void AK_PlayerCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	
+	ASC->SetNumericAttributeBase(BaseAttributeSet->GetMaxHealthAttribute(), 200.f);
+	ASC->SetNumericAttributeBase(BaseAttributeSet->GetMaxManaAttribute(), 200.f);
+}
+
 void AK_PlayerCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -85,7 +95,9 @@ void AK_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		enhanced->BindAction(IA_Move, ETriggerEvent::Triggered, this, &AK_PlayerCharacter::OnMove);
 		enhanced->BindAction(IA_MouseAim, ETriggerEvent::Triggered, this, &AK_PlayerCharacter::OnMouseAim);
 		enhanced->BindAction(IA_Dash, ETriggerEvent::Triggered, this, &AK_PlayerCharacter::OnDash);
-		enhanced->BindAction(IA_Shoot, ETriggerEvent::Triggered, this, &AK_PlayerCharacter::OnShoot);
+		enhanced->BindAction(IA_Shoot, ETriggerEvent::Started, this, &AK_PlayerCharacter::OnShootStart);
+		enhanced->BindAction(IA_Shoot, ETriggerEvent::Completed, this, &AK_PlayerCharacter::OnShootStop);
+		enhanced->BindAction(IA_Shoot, ETriggerEvent::Canceled, this, &AK_PlayerCharacter::OnShootStop);
 		enhanced->BindAction(IA_FireBall, ETriggerEvent::Triggered, this, &AK_PlayerCharacter::OnFireballAttack);
 	}
 }
@@ -112,16 +124,6 @@ void AK_PlayerCharacter::OnMouseAim(const FInputActionValue& Value)
 	KPlayerController->SetShowMouseCursor(true);
 	
 	AimAngle = FMath::RadiansToDegrees(FMath::Atan2(inputVector.Y, inputVector.X));
-	
-	if (!bAutoFireActive)
-	{
-		bAutoFireActive = true;
-		
-		DoShoot();
-		
-		GetWorld()->GetTimerManager().SetTimer(AutoFireTimer, this, &AK_PlayerCharacter::ResetAutoShoot, AutoFireDelay, false);
-	}
-	
 }
 
 void AK_PlayerCharacter::OnDash(const FInputActionValue& Value)
@@ -134,20 +136,37 @@ void AK_PlayerCharacter::OnDash(const FInputActionValue& Value)
 	LaunchCharacter(LaunchDir * DashImpulse, true, true);
 }
 
-void AK_PlayerCharacter::OnShoot(const FInputActionValue& Value)
+void AK_PlayerCharacter::OnShootStart(const FInputActionValue& Value)
 {
 	DoShoot();
+	GetWorld()->GetTimerManager().SetTimer(AutoFireTimer, this, &AK_PlayerCharacter::DoShoot, AutoFireDelay, true);
+}
+
+void AK_PlayerCharacter::OnShootStop(const FInputActionValue& Value)
+{
+	GetWorld()->GetTimerManager().ClearTimer(AutoFireTimer);
 }
 
 void AK_PlayerCharacter::OnFireballAttack(const FInputActionValue& Value)
 {
-	const float gameTime = GetWorld()->GetTimeSeconds();
+	// const float gameTime = GetWorld()->GetTimeSeconds();
+	//
+	// if (gameTime - LastFireballAttackTime > FireballCooldownTime)
+	// {
+	// 	LastFireballAttackTime = gameTime;
+	// 	
+	// 	ATwinStickAoEAttack* AoE = GetWorld()->SpawnActor<ATwinStickAoEAttack>(FireballAttackClass, GetActorTransform());
+	// }
 	
-	if (gameTime - LastFireballAttackTime > FireballCooldownTime)
+	if (!ASC || !FireballAbilityClass)
 	{
-		LastFireballAttackTime = gameTime;
-		
-		ATwinStickAoEAttack* AoE = GetWorld()->SpawnActor<ATwinStickAoEAttack>(FireballAttackClass, GetActorTransform());
+		KHS_WARN(TEXT("ASC or FireballAbilityClass is not valid"));
+	}
+	
+	bool bSuccess = ASC->TryActivateAbilityByClass(FireballAbilityClass);
+	if (!bSuccess)
+	{
+		KHS_WARN(TEXT("Can't activate Ability for Fireball"));
 	}
 }
 
@@ -162,7 +181,3 @@ void AK_PlayerCharacter::DoShoot()
 	ATwinStickProjectile* Projectile = GetWorld()->SpawnActor<ATwinStickProjectile>(ProjectileClass, ProjectileTransform);
 }
 
-void AK_PlayerCharacter::ResetAutoShoot()
-{
-	bAutoFireActive = false;
-}

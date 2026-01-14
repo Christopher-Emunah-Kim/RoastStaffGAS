@@ -8,8 +8,8 @@
 
 class AK_PlayerController;
 class ATwinStickProjectile;
-class ATwinStickAoEAttack;
 class UInputAction;
+class UGameplayAbility;
 class USpringArmComponent;
 class UCameraComponent;
 struct FInputActionValue;
@@ -26,6 +26,7 @@ class ROASTSTAFFGAS_API AK_PlayerCharacter : public AK_BaseCharacter
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void PostInitializeComponents() override;
 	
 public:
 	virtual void Tick(float DeltaSeconds) override;
@@ -35,11 +36,11 @@ protected:
 	void OnMove(const FInputActionValue& Value);
 	void OnMouseAim(const FInputActionValue& Value);
 	void OnDash(const FInputActionValue& Value);
-	void OnShoot(const FInputActionValue& Value);
+	void OnShootStart(const FInputActionValue& Value);
+	void OnShootStop(const FInputActionValue& Value);
 	void OnFireballAttack(const FInputActionValue& Value);
 	
 	void DoShoot();
-	void ResetAutoShoot();
 	
 	
 private:
@@ -91,10 +92,6 @@ protected:
 	//발사체 발사 오프셋
 	UPROPERTY(EditAnywhere, Category="AM|Shooting", meta = (ClampMin = 0, ClampMax = 1000, Units = "cm"))
 	float ProjectileOffset = 100.0f;
-	
-	//AutoFire 플래그
-	bool bAutoFireActive = false;
-	
 	//AutoFire 타이머핸들
 	FTimerHandle AutoFireTimer;
 	
@@ -102,9 +99,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category="AM|Shooting", meta = (ClampMin = 0, ClampMax = 5, Units = "s"))
 	float AutoFireDelay = 0.2f;
 	
-	//Fireball 클래스
-	UPROPERTY(EditAnywhere, Category="AM|Fireball")
-	TSubclassOf<ATwinStickAoEAttack> FireballAttackClass;
+	//Fireball 어빌리티 클래스
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="AM|GAS|Ability")
+	TSubclassOf<UGameplayAbility> FireballAbilityClass;
 	
 	//Fireball 쿨타임
 	UPROPERTY(EditAnywhere, Category="AM|Fireball", meta = (ClampMin = 0, ClampMax = 10, Units = "s"))
