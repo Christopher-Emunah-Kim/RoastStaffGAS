@@ -14,4 +14,7 @@ class ROASTSTAFFGAS_API AK_GameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+	virtual void BeginPlay() override;
+	
+	void TestGasModules();
 };

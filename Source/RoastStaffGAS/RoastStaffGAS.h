@@ -11,6 +11,9 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 
+// AttributeSet 관련
+#include "AttributeSet.h"
+
 // GameplayEffect 관련
 #include "GameplayEffect.h"
 #include "GameplayEffectTypes.h"
