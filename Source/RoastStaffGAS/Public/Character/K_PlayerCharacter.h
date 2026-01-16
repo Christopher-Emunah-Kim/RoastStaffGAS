@@ -13,9 +13,23 @@ class UGameplayAbility;
 class USpringArmComponent;
 class UCameraComponent;
 struct FInputActionValue;
+class AK_PlayerState;
+
 /**
+ * K_PlayerCharacter
  * 
+ * 플레이어가 조종하는 캐릭터 클래스.
+ * 
+ * ASC 소유권: PlayerState
+ * - 이 클래스는 Avatar 역할만 수행
+ * - ASC는 PlayerState에서 소유하고 관리
+ * - GetAbilitySystemComponent()는 PlayerState의 ASC를 반환
+ * 
+ * 초기화 타이밍:
+ * - Server: PossessedBy()에서 PlayerState 확보 후 InitAbilityActorInfo 호출
+ * - Client: OnRep_PlayerState()에서 PlayerState 리플리케이션 후 InitAbilityActorInfo 호출
  */
+
 UCLASS()
 class ROASTSTAFFGAS_API AK_PlayerCharacter : public AK_BaseCharacter
 {
@@ -27,10 +41,18 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void PostInitializeComponents() override;
+	//Server - Controller가 Pawn을 possess할때 
+	virtual void PossessedBy(AController* NewController) override;
+	//Client - PlayerState가 리플리케이트 될때.
+	virtual void OnRep_PlayerState() override;
 	
 public:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	virtual UK_BaseAttributeSet* GetAttributeSet() const override;
+	virtual void InitializeAbilitySystem() override;
 	
 protected:
 	void OnMove(const FInputActionValue& Value);
@@ -42,6 +64,7 @@ protected:
 	
 	void DoShoot();
 	
+	AK_PlayerState* GetKPlayerState() const;
 	
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AM|Comp", meta = (AllowPrivateAccess = "true"))
@@ -67,7 +90,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AM|Input")
 	UInputAction* IA_FireBall;
 	
-	//플레이어 컨트롤러
+	//플레이어 컨트롤러 레퍼런스
 	UPROPERTY()
 	TObjectPtr<AK_PlayerController> KPlayerController;
 	
@@ -98,10 +121,6 @@ protected:
 	//AutoFire 딜레이 시간
 	UPROPERTY(EditAnywhere, Category="AM|Shooting", meta = (ClampMin = 0, ClampMax = 5, Units = "s"))
 	float AutoFireDelay = 0.2f;
-	
-	//Fireball 어빌리티 클래스
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="AM|GAS|Ability")
-	TSubclassOf<UGameplayAbility> FireballAbilityClass;
 	
 	//Fireball 쿨타임
 	UPROPERTY(EditAnywhere, Category="AM|Fireball", meta = (ClampMin = 0, ClampMax = 10, Units = "s"))

@@ -2,14 +2,15 @@
 
 
 #include "Character/K_PlayerController.h"
-
-#include "EnhancedInputSubsystems.h"
 #include "Character/K_PlayerCharacter.h"
-#include "GameFramework/PlayerStart.h"
-#include "Kismet/GameplayStatics.h"
+#include "Character/K_PlayerState.h"
 #include "System/K_LoggingSystem.h"
 #include "System/K_UIManagerSubsystem.h"
 #include "UI/K_HUDWidget.h"
+
+#include "EnhancedInputSubsystems.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/PlayerStart.h"
 
 void AK_PlayerController::BeginPlay()
 {
@@ -23,6 +24,7 @@ void AK_PlayerController::SetupInputComponent()
 	if (!IsLocalPlayerController())
 	{
 		KHS_WARN(TEXT("로컬 플레이어가 아님"));
+		return;
 	}
 	
 	UEnhancedInputLocalPlayerSubsystem* subsys = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
@@ -38,7 +40,9 @@ void AK_PlayerController::OnPossess(APawn* InPawn)
 	
 	InPawn->OnDestroyed.AddDynamic(this, &AK_PlayerController::OnPawnDestroyed);
 	
-	InitializePersistentUI();
+	//UI초기화를 약간 지연시켜야 PlayerState실행이 보장됨
+	//네트워크에 따라 PlayerState 리플리케이션이 늦어질수있음
+	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &AK_PlayerController::InitializePersistentUI);
 }
 
 void AK_PlayerController::InitializePersistentUI()
@@ -55,14 +59,15 @@ void AK_PlayerController::InitializePersistentUI()
 	UIManager->OpenUI<UK_HUDWidget>(HUDWidgetClass);
 	UK_HUDWidget* HUDUI = UIManager->GetOrCreateWidget<UK_HUDWidget>(HUDWidgetClass);
 	
-	auto* player = Cast<AK_PlayerCharacter>(GetPawn());
-	check(player);
+	//PlayerState에서 ASC가져오기
+	AK_PlayerState* ps = GetPlayerState<AK_PlayerState>();
+	check(ps);
 	
-	UAbilitySystemComponent* ASC = player->GetAbilitySystemComponent();
+	UAbilitySystemComponent* ASC = ps->GetAbilitySystemComponent();
 	check(ASC);
 	
 	HUDUI->BindToASC(ASC);
-	KHS_INFO(TEXT("[PlayerController] HUDWidget created and bound ASC"));
+	KHS_INFO(TEXT("[PlayerController] HUDWidget created and bound to PlayerState ASC"));
 }
 
 void AK_PlayerController::HandleUICloseRequest(class UK_BaseWidget* RequestingWidget)

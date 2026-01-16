@@ -9,15 +9,15 @@
 AK_BaseCharacter::AK_BaseCharacter()
 	: bASCInitialized(false), CharacterLevel(1)
 {
-	//ASC
+	//ASC  - NPC / AI 사용
+	//player에도 이 컴포넌트가 생성되나 미사용.
+	//조건부 생성하는 방법도 있으나 단순함을 위해 항상 생성.
 	ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
-
-	//AttributeSet
+	ASC->SetIsReplicated(true);
+	
+	//AttributeSet 생성 및 ASC등록
 	BaseAttributeSet = CreateDefaultSubobject<UK_BaseAttributeSet>(TEXT("BaseAttributeSet"));
 	ASC->AddAttributeSetSubobject<UK_BaseAttributeSet>(BaseAttributeSet);
-	
-	//Pawn
-	
 	
 	
 }
@@ -54,9 +54,10 @@ void AK_BaseCharacter::InitializeAbilitySystem()
 	if (bASCInitialized || !ASC)
 	{
 		KHS_WARN(TEXT("ASC is not valid or already initialized"));
+		return;
 	}
 	
-	//ASC 초기화
+	//ASC 초기화  - NPC / AI 사용
 	ASC->InitAbilityActorInfo(this, this);
 	
 	//초기 어빌리티 부여
@@ -77,26 +78,6 @@ void AK_BaseCharacter::InitializeAbilitySystem()
 UAbilitySystemComponent* AK_BaseCharacter::GetAbilitySystemComponent() const
 {
 	return ASC;
-}
-
-float AK_BaseCharacter::GetHealth() const
-{
-	return BaseAttributeSet? BaseAttributeSet->GetHealth() : 0.f;
-}
-
-float AK_BaseCharacter::GetMaxHealth() const
-{
-	return BaseAttributeSet? BaseAttributeSet->GetMaxHealth() : 0.f;
-}
-
-float AK_BaseCharacter::GetMana() const
-{
-	return BaseAttributeSet? BaseAttributeSet->GetMana() : 0.f;
-}
-
-float AK_BaseCharacter::GetMaxMana() const
-{
-	return BaseAttributeSet? BaseAttributeSet->GetMaxMana() : 0.f;
 }
 
 
