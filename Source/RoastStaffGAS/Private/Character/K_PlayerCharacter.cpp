@@ -149,15 +149,6 @@ void AK_PlayerCharacter::OnShootStop(const FInputActionValue& Value)
 
 void AK_PlayerCharacter::OnFireballAttack(const FInputActionValue& Value)
 {
-	// const float gameTime = GetWorld()->GetTimeSeconds();
-	//
-	// if (gameTime - LastFireballAttackTime > FireballCooldownTime)
-	// {
-	// 	LastFireballAttackTime = gameTime;
-	// 	
-	// 	ATwinStickAoEAttack* AoE = GetWorld()->SpawnActor<ATwinStickAoEAttack>(FireballAttackClass, GetActorTransform());
-	// }
-	
 	if (!ASC || !FireballAbilityClass)
 	{
 		KHS_WARN(TEXT("ASC or FireballAbilityClass is not valid"));
