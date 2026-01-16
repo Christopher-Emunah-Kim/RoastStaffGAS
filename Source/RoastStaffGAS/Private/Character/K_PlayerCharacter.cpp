@@ -11,7 +11,9 @@
 
 #include "EnhancedInputComponent.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystem/GameplayTags/K_GameplayTags.h"
 #include "Camera/CameraComponent.h"
+#include "Character/K_PlayerState.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -21,6 +23,7 @@ AK_PlayerCharacter::AK_PlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	
+	//Camera Setup
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->SetRelativeRotation(FRotator(-50.f, 0.f, 0.f));
@@ -34,6 +37,7 @@ AK_PlayerCharacter::AK_PlayerCharacter()
 	Camera->SetupAttachment(SpringArm);
 	Camera->SetFieldOfView(75.f);
 	
+	//Movement Setup
 	GetCharacterMovement()->GravityScale = 1.5f;
 	GetCharacterMovement()->MaxAcceleration = 1000.0f;
 	GetCharacterMovement()->BrakingFrictionFactor = 1.0f;
@@ -41,6 +45,11 @@ AK_PlayerCharacter::AK_PlayerCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 640.0f, 0.0f);
 	GetCharacterMovement()->bConstrainToPlane = true;
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;
+	
+	// NOTE: BaseCharacter 생성자에서 ASC와 BaseAttributeSet이 생성되지만,
+	// PlayerCharacter는 이들을 사용하지 않고 PlayerState의 것을 사용함.
+	// 이는 약간의 메모리 낭비지만, 코드 단순화를 위해 허용.
+	// 최적화가 필요하다면 BaseCharacter에서 조건부 생성하도록 수정 가능.
 }
 
 void AK_PlayerCharacter::BeginPlay()
@@ -63,8 +72,24 @@ void AK_PlayerCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 	
-	ASC->SetNumericAttributeBase(BaseAttributeSet->GetMaxHealthAttribute(), 200.f);
-	ASC->SetNumericAttributeBase(BaseAttributeSet->GetMaxManaAttribute(), 200.f);
+	//NOTE - 이 시점엔 Playerstate가 미생성 가능성 있음. 
+	//ASC기본설정은 이후에 처리.
+}
+
+void AK_PlayerCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController); //PlayerState설정 시점
+	
+	InitializeAbilitySystem(); //Server는 PossessedBy가 호출되므로 여기서 초기화
+	KHS_INFO(TEXT("[PlayerCharacter] PossessedBy called on Server"));
+}
+
+void AK_PlayerCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+	
+	InitializeAbilitySystem(); //클라는 PlyaerState리플리케이트 된 이후 초기화
+	KHS_INFO(TEXT("[PlayerCharacter] OnRep_PlayerState called on Client"));
 }
 
 void AK_PlayerCharacter::Tick(float DeltaSeconds)
@@ -100,6 +125,48 @@ void AK_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		enhanced->BindAction(IA_Shoot, ETriggerEvent::Canceled, this, &AK_PlayerCharacter::OnShootStop);
 		enhanced->BindAction(IA_FireBall, ETriggerEvent::Triggered, this, &AK_PlayerCharacter::OnFireballAttack);
 	}
+}
+
+UAbilitySystemComponent* AK_PlayerCharacter::GetAbilitySystemComponent() const
+{
+	const AK_PlayerState* ps = GetKPlayerState();
+	return ps? ps->GetAbilitySystemComponent() : nullptr;
+}
+
+UK_BaseAttributeSet* AK_PlayerCharacter::GetAttributeSet() const
+{
+	const AK_PlayerState* ps = GetKPlayerState();
+	return ps?ps->GetBaseAttributeSet() : nullptr;
+}
+
+void AK_PlayerCharacter::InitializeAbilitySystem()
+{
+	// PlayerState에서 ASC 초기화 위임
+	AK_PlayerState* PS = GetKPlayerState();
+	if (!PS)
+	{
+		KHS_WARN(TEXT("[PlayerCharacter] PlayerState not found, cannot initialize abilities"));
+		return;
+	}
+
+	// PlayerState에게 초기화 요청
+	// Owner: PlayerState, Avatar: this (PlayerCharacter)
+	PS->InitializeAbilities(this);
+
+	// Attribute 기본값 설정 (PlayerState의 ASC 사용)
+	UAbilitySystemComponent* AbilitySystem = PS->GetAbilitySystemComponent();
+	UK_BaseAttributeSet* AttributeSet = PS->GetBaseAttributeSet();
+
+	if (AbilitySystem && AttributeSet)
+	{
+		AbilitySystem->SetNumericAttributeBase(AttributeSet->GetMaxHealthAttribute(), 200.f);
+		AbilitySystem->SetNumericAttributeBase(AttributeSet->GetHealthAttribute(), 200.f);
+		AbilitySystem->SetNumericAttributeBase(AttributeSet->GetMaxManaAttribute(), 200.f);
+		AbilitySystem->SetNumericAttributeBase(AttributeSet->GetManaAttribute(), 200.f);
+	}
+
+	// 부모 클래스의 플래그 설정 (중복 방지용)
+	bASCInitialized = true;
 }
 
 
@@ -149,16 +216,19 @@ void AK_PlayerCharacter::OnShootStop(const FInputActionValue& Value)
 
 void AK_PlayerCharacter::OnFireballAttack(const FInputActionValue& Value)
 {
-	if (!ASC || !FireballAbilityClass)
+	UAbilitySystemComponent* abilityComp = GetAbilitySystemComponent();
+	
+	if (!abilityComp)
 	{
-		KHS_WARN(TEXT("ASC or FireballAbilityClass is not valid"));
+		KHS_WARN(TEXT("ASC is not valid"));
+		return;
 	}
 	
-	bool bSuccess = ASC->TryActivateAbilityByClass(FireballAbilityClass);
-	if (!bSuccess)
-	{
-		KHS_WARN(TEXT("Can't activate Ability for Fireball"));
-	}
+	//GameplayTag기반 능력 발동. 
+	//PlayerState의 InitialAbilities에 GA가 등록되어있어야함.
+	FGameplayTagContainer fireballTag;
+	fireballTag.AddTag(KTags::Ability_Skill_Fireball);
+	abilityComp->TryActivateAbilitiesByTag(fireballTag);
 }
 
 void AK_PlayerCharacter::DoShoot()
@@ -170,5 +240,10 @@ void AK_PlayerCharacter::DoShoot()
 	ProjectileTransform.SetLocation(ProjectileLocation);
 
 	ATwinStickProjectile* Projectile = GetWorld()->SpawnActor<ATwinStickProjectile>(ProjectileClass, ProjectileTransform);
+}
+
+AK_PlayerState* AK_PlayerCharacter::GetKPlayerState() const
+{
+	return GetPlayerState<AK_PlayerState>();
 }
 

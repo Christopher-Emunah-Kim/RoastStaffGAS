@@ -156,7 +156,7 @@ bool AK_FireballProjectile::ApplyGameplayEffectToTarget(UAbilitySystemComponent*
 		return false;
 	}
 	
-	//Create EffectContext
+	//Create EffectContext : "누가 누구에게" 정보
 	FGameplayEffectContextHandle contextHandle = OwnerASC->MakeEffectContext();
 	contextHandle.AddSourceObject(this); //발사체를 소스오브젝트로 설정
 	
@@ -164,14 +164,14 @@ bool AK_FireballProjectile::ApplyGameplayEffectToTarget(UAbilitySystemComponent*
 	AActor* owner = OwnerASC->GetAvatarActor();
 	if (owner)
 	{
-		contextHandle.AddInstigator(owner, this);
+		contextHandle.AddInstigator(owner, this); //플레이어가 가해자.
 	}
 	else
 	{
 		KHS_WARN(TEXT("[Fireball] Invalid AvatarActor for Instigator "));
 	}
 	
-	//Create Effect Spec
+	//Create Effect Spec : GE의 인스턴스 생성
 	FGameplayEffectSpecHandle specHandle = OwnerASC->MakeOutgoingSpec(EffectClass, 1.f, contextHandle);
 	if (!specHandle.IsValid())
 	{
@@ -179,14 +179,14 @@ bool AK_FireballProjectile::ApplyGameplayEffectToTarget(UAbilitySystemComponent*
 		return false;
 	}
 	
-	//SetByCaller 세팅
+	//SetByCaller 세팅 (SetByCaller값이 있으면 적용.)
 	if (SetByCallerTag.IsValid())
 	{
 		specHandle.Data->SetSetByCallerMagnitude(SetByCallerTag, Magnitude);
 		KHS_INFO(TEXT("[Fireball] SetByCaller - Tag : %s, Value : %.1f"), *SetByCallerTag.ToString(), Magnitude);
 	}
 	
-	//Apply GE (OwnerASC -> TargetASC)
+	//Apply GE (OwnerASC -> TargetASC) : Owner(플레이어)ASC가 Target(타겟) ASC에게 적용(핵심)
 	FActiveGameplayEffectHandle activeHandle = 
 		OwnerASC->ApplyGameplayEffectSpecToTarget(*specHandle.Data.Get(), TargetASC);
 	

@@ -23,8 +23,6 @@ void UK_GA_Fireball::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	
-	LogAbilityInfo(TEXT("Fireball ActivateAbility started"));
-	
 	//CommitAbility 호출(Cost/Cooldown 적용)
 	//내부에서 CommitCheck, CommitCost, CommitCooldown 체크
 	//이 함수가 false를 반환하면 스킬 사용할수없는 상태.
@@ -35,16 +33,12 @@ void UK_GA_Fireball::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 	
-	LogAbilityInfo(TEXT("Fireball CommitAbility completed"));
-	
 	AK_FireballProjectile* projectile = SpawnFireBall(*ActorInfo);
 	
 	if (!projectile)
 	{
 		LogAbilityInfo(TEXT("Fireball SpawnFireBall failed"));
 	}
-	
-	LogAbilityInfo(TEXT("Fireball SpawnFireBall completed"));
 	
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 }
