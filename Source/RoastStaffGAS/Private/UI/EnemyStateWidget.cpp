@@ -2,7 +2,7 @@
 
 
 #include "UI/EnemyStateWidget.h"
-
+#include "GameplayEffectTypes.h"
 #include "AbilitySystem/Attributes/K_BaseAttributeSet.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
