@@ -34,6 +34,11 @@ namespace KTags
 	//===============================================
 	// GA 식별 용도 및 상호작용 목적
 	
+	//기본 공격 GA태그
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Combat_BasicShoot);
+	//기본 공격 쿨타임 GA태그(선택적 사용)
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Combat_BasicShoot_Cooldown);
+	
 	//Fireball GA태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Fireball);
 	//Fireball 쿨다운 상태 태그
