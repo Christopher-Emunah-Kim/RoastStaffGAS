@@ -8,6 +8,8 @@
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "System/K_LoggingSystem.h"
+#include "System/K_UIManagerSubsystem.h"
+#include "UI/K_HUDWidget.h"
 
 void AK_PlayerController::BeginPlay()
 {
@@ -35,6 +37,46 @@ void AK_PlayerController::OnPossess(APawn* InPawn)
 	Super::OnPossess(InPawn);
 	
 	InPawn->OnDestroyed.AddDynamic(this, &AK_PlayerController::OnPawnDestroyed);
+	
+	InitializePersistentUI();
+}
+
+void AK_PlayerController::InitializePersistentUI()
+{
+	auto* UIManager = GetGameInstance()->GetSubsystem<UK_UIManagerSubsystem>();
+	check(UIManager);
+	
+	if (!ensureMsgf(HUDWidgetClass, TEXT("[PlayerController] Invalid HUD Widget class")))
+	{
+		return;
+	}
+	
+	//HUD Widget 생성 및 하위 위젯 ASC 바인딩
+	UIManager->OpenUI<UK_HUDWidget>(HUDWidgetClass);
+	UK_HUDWidget* HUDUI = UIManager->GetOrCreateWidget<UK_HUDWidget>(HUDWidgetClass);
+	
+	auto* player = Cast<AK_PlayerCharacter>(GetPawn());
+	check(player);
+	
+	UAbilitySystemComponent* ASC = player->GetAbilitySystemComponent();
+	check(ASC);
+	
+	HUDUI->BindToASC(ASC);
+	KHS_INFO(TEXT("[PlayerController] HUDWidget created and bound ASC"));
+}
+
+void AK_PlayerController::HandleUICloseRequest(class UK_BaseWidget* RequestingWidget)
+{
+	if (!ensureMsgf(RequestingWidget, TEXT("[PlayerController] Invalid RequestingWidget")))
+	{
+		return;
+	}
+	
+	auto* UIManager = GetGameInstance()->GetSubsystem<UK_UIManagerSubsystem>();
+	check(UIManager);
+	
+	UIManager->CloseUI(RequestingWidget);
+	RequestingWidget->OnCloseUIRequested.RemoveDynamic(this, &AK_PlayerController::HandleUICloseRequest);
 }
 
 void AK_PlayerController::OnPawnDestroyed(AActor* DestroyedActor)

@@ -22,14 +22,25 @@ protected:
 	virtual void SetupInputComponent() override;
 	virtual void OnPossess(APawn* InPawn) override;
 	
+private:
+	void InitializePersistentUI();
+	
+	UFUNCTION()
+	void HandleUICloseRequest(class UK_BaseWidget* RequestingWidget);
+	
+protected:
 	UFUNCTION()
 	void OnPawnDestroyed(AActor* DestroyedActor);
 	
+
+protected:
 	UPROPERTY(EditAnywhere, Category ="AM|Input")
 	TObjectPtr<UInputMappingContext> IMC;
 	
 	UPROPERTY(EditAnywhere, Category="AM|Respawn")
 	TSubclassOf<AK_PlayerCharacter> CharacterClass;
 	
+	UPROPERTY(EditDefaultsOnly, Category = "AM|UI")
+	TSubclassOf<class UK_HUDWidget> HUDWidgetClass;
 	
 };
