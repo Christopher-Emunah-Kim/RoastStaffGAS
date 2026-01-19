@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 
 // ============================================
-// GAS 공통 헤더(PCH) - 프로젝트 전역에서 사용(Pre-Compile Header)
+// 공통 헤더(PCH) - 프로젝트 전역에서 사용(Pre-Compile Header)
 // ============================================
 // GAS 
 #include "AbilitySystemComponent.h"
@@ -28,7 +28,11 @@
 // 유틸리티
 #include "AbilitySystemBlueprintLibrary.h"
 
+//네트워크 멀티플레이 용 헤더
+#include "Net/UnrealNetwork.h"
 
+//로그 시스템
+#include "System/K_LoggingSystem.h"
 
 /** Main log category used across the project */
 DECLARE_LOG_CATEGORY_EXTERN(LogRoastStaffGAS, Log, All);

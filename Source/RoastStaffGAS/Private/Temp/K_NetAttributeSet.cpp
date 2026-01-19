@@ -2,8 +2,7 @@
 
 
 #include "Temp/K_NetAttributeSet.h"
-
-#include "Net/UnrealNetwork.h"
+#include "RoastStaffGAS.h"
 
 UK_NetAttributeSet::UK_NetAttributeSet()
 {
@@ -24,6 +23,14 @@ void UK_NetAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallb
 {
 	Super::PostGameplayEffectExecute(Data);
 	
+	//ItemCount 변경값 확인
+	if (Data.EvaluatedData.Attribute == GetItemCountAttribute())
+	{
+		const float newValue = GetItemCount();
+		KHS_SCREEN_INFO(TEXT("[NetAttributeSet] ItemCount changed to: %.1f (Server)"), newValue);
+	}
+
+	
 	//이후 UI 구현시 필요하지않을까?
 }
 
@@ -37,4 +44,9 @@ void UK_NetAttributeSet::GetLifetimeReplicatedProps(TArray<class FLifetimeProper
 void UK_NetAttributeSet::OnRep_ItemCount(const FGameplayAttributeData& OldValue)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UK_NetAttributeSet, ItemCount, OldValue);
+	
+	//리플리케이션 확인용 로그
+	const float oldVal = OldValue.GetCurrentValue();
+	const float newVal = GetItemCount();
+	KHS_INFO(TEXT("[NetAttributeSet] ItemCount replicated: %.1f -> %.1f (Client)"), oldVal, newVal);
 }
