@@ -2,18 +2,15 @@
 
 
 #include "Character/K_PlayerCharacter.h"
-
-#include "AbilitySystem/Attributes/K_BaseAttributeSet.h"
 #include "Character/K_PlayerController.h"
+#include "Character/K_PlayerState.h"
 #include "System/K_LoggingSystem.h"
-
-#include "TwinStickProjectile.h"
+#include "AbilitySystem/Attributes/K_BaseAttributeSet.h"
+#include "AbilitySystem/GameplayTags/K_GameplayTags.h"
 
 #include "EnhancedInputComponent.h"
 #include "AbilitySystemComponent.h"
-#include "AbilitySystem/GameplayTags/K_GameplayTags.h"
 #include "Camera/CameraComponent.h"
-#include "Character/K_PlayerState.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -49,7 +46,7 @@ AK_PlayerCharacter::AK_PlayerCharacter()
 	// NOTE: BaseCharacter 생성자에서 ASC와 BaseAttributeSet이 생성되지만,
 	// PlayerCharacter는 이들을 사용하지 않고 PlayerState의 것을 사용함.
 	// 이는 약간의 메모리 낭비지만, 코드 단순화를 위해 허용.
-	// 최적화가 필요하다면 BaseCharacter에서 조건부 생성하도록 수정 가능.
+	// 최적화가 필요하다면 BaseCharacter에서 조건부 생성하도록 수정 예정.
 }
 
 void AK_PlayerCharacter::BeginPlay()
@@ -96,6 +93,7 @@ void AK_PlayerCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	
+	//쿼터뷰 - 마우스에임 따라 회전하도록 설정
 	const FRotator oldRot = GetActorRotation();
 	
 	if (KPlayerController)
@@ -120,6 +118,7 @@ void AK_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		enhanced->BindAction(IA_Move, ETriggerEvent::Triggered, this, &AK_PlayerCharacter::OnMove);
 		enhanced->BindAction(IA_MouseAim, ETriggerEvent::Triggered, this, &AK_PlayerCharacter::OnMouseAim);
 		enhanced->BindAction(IA_Dash, ETriggerEvent::Triggered, this, &AK_PlayerCharacter::OnDash);
+		
 		enhanced->BindAction(IA_Shoot, ETriggerEvent::Started, this, &AK_PlayerCharacter::OnShootStart);
 		enhanced->BindAction(IA_Shoot, ETriggerEvent::Completed, this, &AK_PlayerCharacter::OnShootStop);
 		enhanced->BindAction(IA_Shoot, ETriggerEvent::Canceled, this, &AK_PlayerCharacter::OnShootStop);
@@ -167,6 +166,8 @@ void AK_PlayerCharacter::InitializeAbilitySystem()
 
 	// 부모 클래스의 플래그 설정 (중복 방지용)
 	bASCInitialized = true;
+	
+	KHS_INFO(TEXT("[PlayerCharacter] AbilitySystem initialized via PlayerState"));
 }
 
 
@@ -205,8 +206,8 @@ void AK_PlayerCharacter::OnDash(const FInputActionValue& Value)
 
 void AK_PlayerCharacter::OnShootStart(const FInputActionValue& Value)
 {
-	DoShoot();
-	GetWorld()->GetTimerManager().SetTimer(AutoFireTimer, this, &AK_PlayerCharacter::DoShoot, AutoFireDelay, true);
+	TryActivateBasicShoot();
+	GetWorld()->GetTimerManager().SetTimer(AutoFireTimer, this, &AK_PlayerCharacter::TryActivateBasicShoot, AutoFireDelay, true);
 }
 
 void AK_PlayerCharacter::OnShootStop(const FInputActionValue& Value)
@@ -215,6 +216,33 @@ void AK_PlayerCharacter::OnShootStop(const FInputActionValue& Value)
 }
 
 void AK_PlayerCharacter::OnFireballAttack(const FInputActionValue& Value)
+{
+	TryActivateFireball();
+}
+
+void AK_PlayerCharacter::TryActivateBasicShoot()
+{
+	UAbilitySystemComponent* abilityComp = GetAbilitySystemComponent();
+	
+	if (!abilityComp)
+	{
+		KHS_WARN(TEXT("ASC is not valid"));
+		return;
+	}
+	
+	//GameplayTag기반 능력 발동. 
+	//PlayerState의 InitialAbilities에 GA가 등록되어있어야함.
+	FGameplayTagContainer basicShootTags;
+	basicShootTags.AddTag(KTags::Ability_Combat_BasicShoot);
+	bool bSuccess = abilityComp->TryActivateAbilitiesByTag(basicShootTags);
+	
+	if (!bSuccess)
+	{
+		KHS_INFO(TEXT("[PlyaerCharacter] BasicShoot activation failed"));
+	}
+}
+
+void AK_PlayerCharacter::TryActivateFireball()
 {
 	UAbilitySystemComponent* abilityComp = GetAbilitySystemComponent();
 	
@@ -228,19 +256,14 @@ void AK_PlayerCharacter::OnFireballAttack(const FInputActionValue& Value)
 	//PlayerState의 InitialAbilities에 GA가 등록되어있어야함.
 	FGameplayTagContainer fireballTag;
 	fireballTag.AddTag(KTags::Ability_Skill_Fireball);
-	abilityComp->TryActivateAbilitiesByTag(fireballTag);
+	bool bSuccess = abilityComp->TryActivateAbilitiesByTag(fireballTag);
+	
+	if (!bSuccess)
+	{
+		KHS_INFO(TEXT("[PlyaerCharacter] Fireball activation failed"));
+	}
 }
 
-void AK_PlayerCharacter::DoShoot()
-{
-	FTransform ProjectileTransform = GetActorTransform();
-
-	// apply the projectile spawn offset
-	FVector ProjectileLocation = ProjectileTransform.GetLocation() + ProjectileTransform.GetRotation().RotateVector(FVector::ForwardVector * ProjectileOffset);
-	ProjectileTransform.SetLocation(ProjectileLocation);
-
-	ATwinStickProjectile* Projectile = GetWorld()->SpawnActor<ATwinStickProjectile>(ProjectileClass, ProjectileTransform);
-}
 
 AK_PlayerState* AK_PlayerCharacter::GetKPlayerState() const
 {

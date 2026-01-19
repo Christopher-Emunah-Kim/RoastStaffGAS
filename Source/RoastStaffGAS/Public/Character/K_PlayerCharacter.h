@@ -55,6 +55,7 @@ public:
 	virtual void InitializeAbilitySystem() override;
 	
 protected:
+	//입력 핸들러
 	void OnMove(const FInputActionValue& Value);
 	void OnMouseAim(const FInputActionValue& Value);
 	void OnDash(const FInputActionValue& Value);
@@ -62,7 +63,12 @@ protected:
 	void OnShootStop(const FInputActionValue& Value);
 	void OnFireballAttack(const FInputActionValue& Value);
 	
-	void DoShoot();
+	//GAS 기반 공격함수
+	UFUNCTION(BlueprintCallable, Category="AM|Combat")
+	void TryActivateBasicShoot();
+	
+	UFUNCTION(BlueprintCallable, Category="AM|Combat")
+	void TryActivateFireball();
 	
 	AK_PlayerState* GetKPlayerState() const;
 	
@@ -74,6 +80,9 @@ private:
 	UCameraComponent* Camera;
 	
 protected:
+	//============================================================================
+	//입력처리
+	//============================================================================
 	//Input Actions
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AM|Input")
 	UInputAction* IA_Move;
@@ -90,10 +99,16 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AM|Input")
 	UInputAction* IA_FireBall;
 	
+	//============================================================================
+	//레퍼런스
+	//============================================================================
 	//플레이어 컨트롤러 레퍼런스
 	UPROPERTY()
 	TObjectPtr<AK_PlayerController> KPlayerController;
 	
+	//============================================================================
+	//이동/에임
+	//============================================================================
 	//마지막 이동입력 캐싱
 	FVector2D LastMoveInput;
 	
@@ -108,13 +123,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category="AM|Input")
 	TEnumAsByte<ETraceTypeQuery> MouseAimTraceChannel;
 	
-	//발사체 클래스
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AM|Shooting")
-	TSubclassOf<ATwinStickProjectile> ProjectileClass;
 	
-	//발사체 발사 오프셋
-	UPROPERTY(EditAnywhere, Category="AM|Shooting", meta = (ClampMin = 0, ClampMax = 1000, Units = "cm"))
-	float ProjectileOffset = 100.0f;
+	//============================================================================
+	// 공격
+	//============================================================================
 	//AutoFire 타이머핸들
 	FTimerHandle AutoFireTimer;
 	
