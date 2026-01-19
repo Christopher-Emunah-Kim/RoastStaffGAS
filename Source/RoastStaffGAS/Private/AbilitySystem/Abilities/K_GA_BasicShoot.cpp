@@ -2,16 +2,18 @@
 
 
 #include "AbilitySystem/Abilities/K_GA_BasicShoot.h"
-
-#include "TwinStickProjectile.h"
 #include "AbilitySystem/GameplayTags/K_GameplayTags.h"
 #include "Character/K_BaseCharacter.h"
+#include "Projectile/K_BasicShootProjectile.h"
 #include "System/K_LoggingSystem.h"
+
 
 UK_GA_BasicShoot::UK_GA_BasicShoot()
 {
 	//AbilityTag/BlockedTag 설정
-	AbilityTags.AddTag(KTags::Ability_Combat_BasicShoot);
+	FGameplayTagContainer tag;
+	tag.AddTag(KTags::Ability_Combat_BasicShoot);
+	SetAssetTags(tag);
 	ActivationBlockedTags.AddTag(KTags::Ability_Combat_BasicShoot);
 }
 
@@ -30,8 +32,7 @@ void UK_GA_BasicShoot::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 	
 	//발사체 스폰
-	//TODO 나중에 발사체 구현후 수정
-	ATwinStickProjectile* projectile = SpawnBasicProjectile(*ActorInfo);
+	AK_BasicShootProjectile* projectile = SpawnBasicProjectile(*ActorInfo);
 	if (!ensureMsgf(projectile, TEXT("projectile spawn is failed")))
 	{
 		//발사체 생성 실패해도 일단 정상 종료까지 진행(Commit에서 Cost차감했음)
@@ -48,7 +49,7 @@ void UK_GA_BasicShoot::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 	
 }
 
-ATwinStickProjectile* UK_GA_BasicShoot::SpawnBasicProjectile(const FGameplayAbilityActorInfo& ActorInfo)
+AK_BasicShootProjectile* UK_GA_BasicShoot::SpawnBasicProjectile(const FGameplayAbilityActorInfo& ActorInfo)
 {
 	//TODO 이후 발사체 클래스 만들고 변경
 	if (!ensureMsgf(ProjectileClass, TEXT("[BasicShoot] ProjectileClass is not set in Blueprint!")))
@@ -84,15 +85,14 @@ ATwinStickProjectile* UK_GA_BasicShoot::SpawnBasicProjectile(const FGameplayAbil
 	spawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 	//Spawn
-	ATwinStickProjectile* projectile = world->SpawnActor<ATwinStickProjectile>(ProjectileClass, spawnTransform, spawnInfo);
+	AK_BasicShootProjectile* projectile = world->SpawnActor<AK_BasicShootProjectile>(ProjectileClass, spawnTransform, spawnInfo);
 	if (!ensureMsgf(projectile, TEXT("[BasicShoot] failed to spawn projectile")))
 	{
 		return nullptr;
 	}
 	
 	UAbilitySystemComponent* ownerASC = character->GetAbilitySystemComponent();
-	//TODO 발사체 구현후 주석 풀기
-	//projectile->SetDamageInfo(BaseDamage, ownerASC);
+	projectile->SetDamageInfo(BaseDamage, ownerASC);
 	
 	KHS_INFO(TEXT("[BasicShoot] Projectile spawned - Damage: %.1f"), BaseDamage);
 	

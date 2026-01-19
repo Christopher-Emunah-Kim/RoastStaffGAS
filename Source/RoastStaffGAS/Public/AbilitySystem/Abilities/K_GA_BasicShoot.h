@@ -6,7 +6,7 @@
 #include "AbilitySystem/Abilities/K_BaseGameplayAbility.h"
 #include "K_GA_BasicShoot.generated.h"
 
-class ATwinStickProjectile;
+class AK_BasicShootProjectile;
 /**
  * 기본 사격 어빌리티
  */
@@ -23,12 +23,12 @@ protected:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	
 	UFUNCTION(BlueprintCallable, Category = "AM|GAS")
-	ATwinStickProjectile* SpawnBasicProjectile(const FGameplayAbilityActorInfo& ActorInfo);
+	AK_BasicShootProjectile* SpawnBasicProjectile(const FGameplayAbilityActorInfo& ActorInfo);
 	
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "AM|GAS")
-	TSubclassOf<ATwinStickProjectile> ProjectileClass;
+	TSubclassOf<AK_BasicShootProjectile> ProjectileClass;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "AM|GAS")
 	float SpawnOffset = 100.f;
