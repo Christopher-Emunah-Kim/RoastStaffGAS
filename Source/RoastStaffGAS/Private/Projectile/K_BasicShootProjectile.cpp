@@ -140,9 +140,8 @@ bool AK_BasicShootProjectile::ApplyDamageToTarget(UAbilitySystemComponent* Targe
 	
 	//activeHandle 유효성 확인해서 GE 적용성공여부 확인
 	const bool bSuccess = activeHandle.IsValid();
-	return bSuccess;
-	
 	KHS_INFO(TEXT("[BasicProjectile] ApplyGE Result : %s"), bSuccess? TEXT("Success") : TEXT("Failed"));
+	return bSuccess;
 }
 
 void AK_BasicShootProjectile::SetDamageInfo(float InBaseDamage, UAbilitySystemComponent* InOwnerASC)

@@ -48,9 +48,6 @@ namespace KTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Movement_Dash);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Movement_Dash_Cooldown);
 	
-	//Jump GA태그
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Movement_Jump);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Movement_Jump_Cooldown);
 	
 	//===============================================
 	// 상태 태그(State.*)
@@ -65,8 +62,6 @@ namespace KTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dead);
 	//대시 상태(Dashing)
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dashing);
-	//점프 상태(Jumping)
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Jumping);
 	
 	
 	//===============================================

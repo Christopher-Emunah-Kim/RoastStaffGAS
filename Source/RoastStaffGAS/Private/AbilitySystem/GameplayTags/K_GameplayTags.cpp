@@ -12,14 +12,11 @@ namespace KTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_Fireball_Cooldown, "Ability.Skill.Fireball.Cooldown");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Movement_Dash, "Ability.Movement.Dash");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Movement_Dash_Cooldown, "Ability.Movement.Dash.Cooldown");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Movement_Jump, "Ability.Movement.Jump");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Movement_Jump_Cooldown, "Ability.Movement.Jump.Cooldown");
 	
 	//상태 태그
 	UE_DEFINE_GAMEPLAY_TAG(State_Debuff_Burning, "State.Debuff.Burning");
 	UE_DEFINE_GAMEPLAY_TAG(State_Dead, "State.Dead");
 	UE_DEFINE_GAMEPLAY_TAG(State_Dashing, "State.Dashing");
-	UE_DEFINE_GAMEPLAY_TAG(State_Jumping, "State.Jumping");
 	
 	//데이터 태그
 	UE_DEFINE_GAMEPLAY_TAG(Data_Damage, "Data.Damage");
