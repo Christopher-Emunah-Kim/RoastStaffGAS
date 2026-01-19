@@ -34,10 +34,10 @@ UCLASS()
 class ROASTSTAFFGAS_API AK_PlayerCharacter : public AK_BaseCharacter
 {
 	GENERATED_BODY()
-	
+
+protected:
 	AK_PlayerCharacter();
 	
-protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void PostInitializeComponents() override;
