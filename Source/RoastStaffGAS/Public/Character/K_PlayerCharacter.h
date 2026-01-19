@@ -63,14 +63,22 @@ protected:
 	void OnShootStop(const FInputActionValue& Value);
 	void OnFireballAttack(const FInputActionValue& Value);
 	
-	//GAS 기반 공격함수
+	//GAS 기반 Activate 함수
+	UFUNCTION(BlueprintCallable, Category="AM|Movement")
+	void TryActivateDash();
+	
 	UFUNCTION(BlueprintCallable, Category="AM|Combat")
 	void TryActivateBasicShoot();
 	
 	UFUNCTION(BlueprintCallable, Category="AM|Combat")
 	void TryActivateFireball();
 	
+	
+	
 	AK_PlayerState* GetKPlayerState() const;
+	
+public:
+	FVector GetDashDirection() const;
 	
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AM|Comp", meta = (AllowPrivateAccess = "true"))

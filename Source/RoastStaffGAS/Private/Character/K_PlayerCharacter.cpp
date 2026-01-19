@@ -196,12 +196,7 @@ void AK_PlayerCharacter::OnMouseAim(const FInputActionValue& Value)
 
 void AK_PlayerCharacter::OnDash(const FInputActionValue& Value)
 {
-	FVector LaunchDir = FVector::ZeroVector;
-
-	LaunchDir.X = FMath::Clamp(LastMoveInput.X, -1.0f, 1.0f);
-	LaunchDir.Y = FMath::Clamp(LastMoveInput.Y, -1.0f, 1.0f);
-
-	LaunchCharacter(LaunchDir * DashImpulse, true, true);
+	TryActivateDash();
 }
 
 void AK_PlayerCharacter::OnShootStart(const FInputActionValue& Value)
@@ -218,6 +213,28 @@ void AK_PlayerCharacter::OnShootStop(const FInputActionValue& Value)
 void AK_PlayerCharacter::OnFireballAttack(const FInputActionValue& Value)
 {
 	TryActivateFireball();
+}
+
+void AK_PlayerCharacter::TryActivateDash()
+{
+	UAbilitySystemComponent* abilityComp = GetAbilitySystemComponent();
+	
+	if (!abilityComp)
+	{
+		KHS_WARN(TEXT("ASC is not valid"));
+		return;
+	}
+	
+	//GameplayTag기반 능력 발동. 
+	//PlayerState의 InitialAbilities에 GA가 등록되어있어야함.
+	FGameplayTagContainer dashTags;
+	dashTags.AddTag(KTags::Ability_Movement_Dash);
+	bool bSuccess = abilityComp->TryActivateAbilitiesByTag(dashTags);
+	
+	if (!bSuccess)
+	{
+		KHS_INFO(TEXT("[PlyaerCharacter] BasicShoot activation failed"));
+	}
 }
 
 void AK_PlayerCharacter::TryActivateBasicShoot()
@@ -260,7 +277,7 @@ void AK_PlayerCharacter::TryActivateFireball()
 	
 	if (!bSuccess)
 	{
-		KHS_INFO(TEXT("[PlyaerCharacter] Fireball activation failed"));
+		KHS_INFO(TEXT("[PlayerCharacter] Fireball activation failed"));
 	}
 }
 
@@ -268,5 +285,17 @@ void AK_PlayerCharacter::TryActivateFireball()
 AK_PlayerState* AK_PlayerCharacter::GetKPlayerState() const
 {
 	return GetPlayerState<AK_PlayerState>();
+}
+
+FVector AK_PlayerCharacter::GetDashDirection() const
+{
+	if (LastMoveInput.IsZero())
+	{
+		return GetActorForwardVector();
+	}
+	
+	FVector dashDirection = FVector(LastMoveInput.X, LastMoveInput.Y, 0.0f);
+	
+	return dashDirection.GetSafeNormal();
 }
 
