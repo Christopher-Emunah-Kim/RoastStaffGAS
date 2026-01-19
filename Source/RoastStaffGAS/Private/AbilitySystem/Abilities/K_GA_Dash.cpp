@@ -16,7 +16,6 @@ UK_GA_Dash::UK_GA_Dash()
 	SetAssetTags(tag);
 	ActivationBlockedTags.AddTag(KTags::Ability_Movement_Dash_Cooldown);
 	ActivationBlockedTags.AddTag(KTags::State_Dashing);
-	ActivationBlockedTags.AddTag(KTags::State_Jumping);
 }
 
 void UK_GA_Dash::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
