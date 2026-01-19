@@ -75,7 +75,7 @@ protected:
 	TObjectPtr<UWidgetComponent> StateWidgetComp;
 	
 	//Widget Class
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AM|UI")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AM|UI")
 	TSubclassOf<UEnemyStateWidget> StateWidgetClass;
 	
 	//Widget Instance
