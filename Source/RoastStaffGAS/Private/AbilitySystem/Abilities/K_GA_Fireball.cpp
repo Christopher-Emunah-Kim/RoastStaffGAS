@@ -13,7 +13,9 @@
 UK_GA_Fireball::UK_GA_Fireball()
 {
 	//GA 태그 설정
-	AbilityTags.AddTag(KTags::Ability_Skill_Fireball);
+	FGameplayTagContainer tag;
+	tag.AddTag(KTags::Ability_Skill_Fireball);
+	SetAssetTags(tag);
 	ActivationBlockedTags.AddTag(KTags::Ability_Skill_Fireball_Cooldown);
 }
 
