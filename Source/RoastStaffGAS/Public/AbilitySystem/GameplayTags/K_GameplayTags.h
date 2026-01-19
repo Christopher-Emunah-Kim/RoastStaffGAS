@@ -44,6 +44,14 @@ namespace KTags
 	//Fireball 쿨다운 상태 태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Fireball_Cooldown);
 	
+	//Dash GA태그
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Movement_Dash);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Movement_Dash_Cooldown);
+	
+	//Jump GA태그
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Movement_Jump);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Movement_Jump_Cooldown);
+	
 	//===============================================
 	// 상태 태그(State.*)
 	// State.Buff / State.Debuff / State.CC
@@ -55,6 +63,11 @@ namespace KTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Burning);
 	//사망 상태(Dead) <- 체력 0이면 부여
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dead);
+	//대시 상태(Dashing)
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dashing);
+	//점프 상태(Jumping)
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Jumping);
+	
 	
 	//===============================================
 	// 데이터 태그(Data.*)
