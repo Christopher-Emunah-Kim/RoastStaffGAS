@@ -7,7 +7,7 @@
 #include "System/K_LoggingSystem.h"
 
 AK_BaseCharacter::AK_BaseCharacter()
-	: bASCInitialized(false), CharacterLevel(1)
+	: CharacterLevel(1), bASCInitialized(false)
 {
 	//ASC  - NPC / AI 사용
 	//player에도 이 컴포넌트가 생성되나 미사용.

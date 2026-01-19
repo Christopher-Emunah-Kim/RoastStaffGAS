@@ -20,7 +20,7 @@ AK_PlayerState::AK_PlayerState()
 	ASC->AddAttributeSetSubobject<UK_BaseAttributeSet>(BaseAttributeSet);
 	
 	//PlayerState의 넷업데이트 빈도를 ASC사용해야하니까 높여주기
-	NetUpdateFrequency = 100.f;
+	SetNetUpdateFrequency(100.f);
 }
 
 UAbilitySystemComponent* AK_PlayerState::GetAbilitySystemComponent() const

@@ -85,9 +85,9 @@ void UK_BaseAttributeSet::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 	
 	//RPC 등록
 	DOREPLIFETIME_CONDITION_NOTIFY(UK_BaseAttributeSet, Health, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UK_BaseAttributeSet, MaxHealth, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UK_BaseAttributeSet, MaxHealth, COND_None, REPNOTIFY_OnChanged);
 	DOREPLIFETIME_CONDITION_NOTIFY(UK_BaseAttributeSet, Mana, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UK_BaseAttributeSet, MaxMana, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UK_BaseAttributeSet, MaxMana, COND_None, REPNOTIFY_OnChanged);
 }
 
 void UK_BaseAttributeSet::OnRep_Health(const FGameplayAttributeData& OldValue)
