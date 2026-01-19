@@ -39,7 +39,7 @@ void ANet_PlayerCharacter::InitializeAbilitySystem()
 	
 	if (AbilitySystem && AttributeSet)
 	{
-		AbilitySystem->SetNumericAttributeBase(AttributeSet->GetItemCountAttribute(), 1.f);
+		AbilitySystem->SetNumericAttributeBase(AttributeSet->GetItemCountAttribute(), 0.f);
 	}
 }
 
@@ -111,4 +111,5 @@ void ANet_PlayerCharacter::AddPickUp_Implementation()
 	
 	//AcitvateHandle값을 반환하지만 지금은 쓸곳없으니 무시
 	(void)abilityComp->ApplyGameplayEffectSpecToSelf(*specHandle.Data.Get());
+	
 }
