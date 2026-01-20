@@ -69,7 +69,7 @@ void ANet_Spawner::SpawnPickup()
 		return;
 	}
 	
-	KHS_INFO(TEXT("Spawned pickup item"));
+	//KHS_INFO(TEXT("Spawned pickup item"));
 }
 
 
