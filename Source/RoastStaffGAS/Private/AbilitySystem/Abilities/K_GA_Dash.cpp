@@ -59,7 +59,7 @@ void UK_GA_Dash::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	
 	character->LaunchCharacter(launchVelocity, true, true);
 	
-	LogAbilityInfo(TEXT("Dash activated"));
+	//LogAbilityInfo(TEXT("Dash activated"));
 	
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }

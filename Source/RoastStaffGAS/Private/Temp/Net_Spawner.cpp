@@ -26,7 +26,7 @@ void ANet_Spawner::BeginPlay()
 			SpawnTimer, this, &ANet_Spawner::SpawnPickup, SpawnInterval, true);
 	}
 	
-	KHS_INFO(TEXT("[NetSpawner] Started spawning every %.1f seconds"), SpawnInterval);
+	KHS_INFO(TEXT("Started spawning every %.1f seconds"), SpawnInterval);
 }
 
 void ANet_Spawner::EndPlay(const EEndPlayReason::Type EndPlayReason)

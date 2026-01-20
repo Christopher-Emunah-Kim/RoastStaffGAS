@@ -48,6 +48,6 @@ void UK_BaseGameplayAbility::LogAbilityInfo(const FString& msg) const
 {
 	if (bLogActivated)
 	{
-		KHS_SCREEN_INFO(TEXT("[%s] %s"), *GetName(), *msg);
+		KHS_INFO(TEXT("[%s] %s"), *GetName(), *msg);
 	}
 }

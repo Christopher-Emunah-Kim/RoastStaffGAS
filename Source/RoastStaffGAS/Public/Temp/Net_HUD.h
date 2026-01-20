@@ -32,22 +32,22 @@ protected:
 	
 	void OnPlayerScoreChanged(const FOnAttributeChangeData& Data);
 
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "HUD")
-	void ShowGameResult(int32 WinnerIndex);
-	
 private:
 	void BindToPlayerState(APlayerState* ps);
 	void BindToGameState();
 	void UnbindFromGameState();
 	void UpdatePlayerScore();
 	
+public:
+	UFUNCTION(BlueprintImplementableEvent, Category = "HUD")
+	void ShowGameResult(int32 WinnerIndex);
+	
 protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> txt_Timer;
 	
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UTextBlock> txt_Result;
+	// UPROPERTY(meta = (BindWidget))
+	// TObjectPtr<UTextBlock> txt_Result;
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> txt_Player1Score;

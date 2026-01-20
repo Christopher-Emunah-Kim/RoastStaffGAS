@@ -58,15 +58,13 @@ void UNet_HUD::OnTimeChanged(int32 NewTime)
 void UNet_HUD::OnPlayerAdded(APlayerState* NewPlayer)
 {
 	KHS_INFO(TEXT("New Player Detected. binding to ASC"));
-	
 	BindToPlayerState(NewPlayer);
-	
 	UpdatePlayerScore();
 }
 
 void UNet_HUD::OnPlayerScoreChanged(const FOnAttributeChangeData& Data)
 {
-	KHS_INFO(TEXT("Score changed: %.1f -> %.1f"), Data.OldValue, Data.NewValue);
+	//KHS_INFO(TEXT("Score changed: %.1f -> %.1f"), Data.OldValue, Data.NewValue);
 	UpdatePlayerScore();
 }
 
@@ -92,7 +90,7 @@ void UNet_HUD::BindToPlayerState(APlayerState* ps)
 		
 	ASC->GetGameplayAttributeValueChangeDelegate(attrs->GetItemCountAttribute()).AddUObject(this, &UNet_HUD::OnPlayerScoreChanged);
 	
-	KHS_INFO(TEXT(" Bound to new player's ASC"));
+	//KHS_INFO(TEXT(" Bound to new player's ASC"));
 }
 
 void UNet_HUD::BindToGameState()
@@ -111,7 +109,7 @@ void UNet_HUD::BindToGameState()
 		BindToPlayerState(ps);
 	}
 	
-	KHS_INFO(TEXT("Bound to GameState events"));
+	//KHS_INFO(TEXT("Bound to GameState events"));
 }
 
 void UNet_HUD::UnbindFromGameState()
@@ -148,13 +146,13 @@ void UNet_HUD::UnbindFromGameState()
 		ASC->GetGameplayAttributeValueChangeDelegate(attrs->GetItemCountAttribute()).RemoveAll(this);
 	}
 	
-	KHS_INFO(TEXT("Bound to GameState events"));
+	//KHS_INFO(TEXT("Bound to GameState events"));
 }
 
 void UNet_HUD::UpdatePlayerScore()
 {
 	const auto& playerArray = NetGameState->PlayerArray;
-	KHS_INFO(TEXT("UpdatePlayerScores - player array size : %d"), playerArray.Num());
+	//KHS_INFO(TEXT("UpdatePlayerScores - player array size : %d"), playerArray.Num());
 	
 	for (int32 i = 0; i < FMath::Min(2, playerArray.Num()); ++i)
 	{
@@ -175,12 +173,12 @@ void UNet_HUD::UpdatePlayerScore()
 		if (i == 0 && txt_Player1Score)
 		{
 			txt_Player1Score->SetText(FText::FromString(scoreText));
-			KHS_INFO(TEXT("Updated Player1 text: %s"), *scoreText);
+			//KHS_INFO(TEXT("Updated Player1 text: %s"), *scoreText);
 		}
 		else if (i == 1 && txt_Player2Score)
 		{
 			txt_Player2Score->SetText(FText::FromString(scoreText));
-			KHS_INFO(TEXT("Updated Player2 text: %s"), *scoreText);
+			//KHS_INFO(TEXT("Updated Player2 text: %s"), *scoreText);
 		}
 	}
 }

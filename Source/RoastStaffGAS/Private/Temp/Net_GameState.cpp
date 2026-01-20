@@ -4,7 +4,9 @@
 #include "Temp/Net_GameState.h"
 #include "Net/UnrealNetwork.h"
 #include "RoastStaffGAS.h"
+#include "Character/K_PlayerController.h"
 #include "GameFramework/PlayerState.h"
+#include "Temp/Net_HUD.h"
 
 ANet_GameState::ANet_GameState()
 {
@@ -53,5 +55,7 @@ void ANet_GameState::GameOverRPC_Implementation(int32 WinnerPlayerIdx)
 {
 	KHS_INFO(TEXT("Game Over! Winner: Player %d"), WinnerPlayerIdx);
     
-	//TODO 이후 UI에 승패 표시
+	AK_PlayerController* pc = CastChecked<AK_PlayerController>(GetWorld()->GetFirstPlayerController());
+	UNet_HUD* HUD = CastChecked<UNet_HUD>(pc->GetNetHUD());
+	HUD->ShowGameResult(WinnerPlayerIdx);
 }

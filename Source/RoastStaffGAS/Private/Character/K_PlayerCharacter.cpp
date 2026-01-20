@@ -78,7 +78,7 @@ void AK_PlayerCharacter::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController); //PlayerState설정 시점
 	
 	InitializeAbilitySystem(); //Server는 PossessedBy가 호출되므로 여기서 초기화
-	KHS_INFO(TEXT("[PlayerCharacter] PossessedBy called on Server"));
+	//KHS_INFO(TEXT("[PlayerCharacter] PossessedBy called on Server"));
 }
 
 void AK_PlayerCharacter::OnRep_PlayerState()
@@ -86,7 +86,7 @@ void AK_PlayerCharacter::OnRep_PlayerState()
 	Super::OnRep_PlayerState();
 	
 	InitializeAbilitySystem(); //클라는 PlyaerState리플리케이트 된 이후 초기화
-	KHS_INFO(TEXT("[PlayerCharacter] OnRep_PlayerState called on Client"));
+	//KHS_INFO(TEXT("[PlayerCharacter] OnRep_PlayerState called on Client"));
 }
 
 void AK_PlayerCharacter::Tick(float DeltaSeconds)
@@ -167,7 +167,7 @@ void AK_PlayerCharacter::InitializeAbilitySystem()
 	// 부모 클래스의 플래그 설정 (중복 방지용)
 	bASCInitialized = true;
 	
-	KHS_INFO(TEXT("[PlayerCharacter] AbilitySystem initialized via PlayerState"));
+	//KHS_INFO(TEXT("[PlayerCharacter] AbilitySystem initialized via PlayerState"));
 }
 
 
