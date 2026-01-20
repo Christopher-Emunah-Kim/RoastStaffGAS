@@ -47,6 +47,9 @@ protected:
 	TObjectPtr<UTextBlock> txt_Timer;
 	
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> txt_Result;
+	
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> txt_Player1Score;
 	
 	UPROPERTY(meta = (BindWidget))
