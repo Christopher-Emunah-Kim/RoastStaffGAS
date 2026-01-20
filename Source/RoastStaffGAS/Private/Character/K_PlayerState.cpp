@@ -33,13 +33,13 @@ void AK_PlayerState::InitializeAbilities(AActor* AvatarActor)
 	//중복 초기화 방지
 	if (bAbilitiesInitialized)
 	{
-		KHS_WARN(TEXT("[PlayerState] Abilities already initialized"));
+		KHS_INFO(TEXT("Abilities already initialized"));
 		return;
 	}
 
 	if (!ASC || !AvatarActor)
 	{
-		KHS_WARN(TEXT("[PlayerState] ASC or AvatarActor is not valid"));
+		KHS_WARN(TEXT("ASC or AvatarActor is not valid"));
 		return;
 	}
 	
@@ -59,11 +59,11 @@ void AK_PlayerState::InitializeAbilities(AActor* AvatarActor)
 			}
 		}
 		
-		KHS_INFO(TEXT("[PlayerState] Abilities granted on server: %d"), InitialAbilities.Num());
+		KHS_INFO(TEXT("Abilities granted on server: %d"), InitialAbilities.Num());
 	}
 	
 	bAbilitiesInitialized = true;
-	KHS_INFO(TEXT("[PlayerState] AbilitySystem initialized. Owner: %s, Avatar: %s"), 
-		*GetName(), *AvatarActor->GetName());
+	//KHS_INFO(TEXT("AbilitySystem initialized. Owner: %s, Avatar: %s"), 
+	//	*GetName(), *AvatarActor->GetName());
 }
 

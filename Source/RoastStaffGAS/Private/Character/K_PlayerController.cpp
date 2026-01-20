@@ -61,7 +61,7 @@ void AK_PlayerController::InitializePersistentUI()
 	auto* UIManager = GetGameInstance()->GetSubsystem<UK_UIManagerSubsystem>();
 	check(UIManager);
 	
-	if (!ensureMsgf(HUDWidgetClass, TEXT("[PlayerController] Invalid HUD Widget class")))
+	if (!ensureMsgf(HUDWidgetClass, TEXT("Invalid HUD Widget class")))
 	{
 		return;
 	}
@@ -78,12 +78,12 @@ void AK_PlayerController::InitializePersistentUI()
 	check(ASC);
 	
 	HUDUI->BindToASC(ASC);
-	KHS_INFO(TEXT("[PlayerController] HUDWidget created and bound to PlayerState ASC"));
+	KHS_INFO(TEXT("HUDWidget created and bound to PlayerState ASC"));
 }
 
 void AK_PlayerController::HandleUICloseRequest(class UK_BaseWidget* RequestingWidget)
 {
-	if (!ensureMsgf(RequestingWidget, TEXT("[PlayerController] Invalid RequestingWidget")))
+	if (!ensureMsgf(RequestingWidget, TEXT("Invalid RequestingWidget")))
 	{
 		return;
 	}
