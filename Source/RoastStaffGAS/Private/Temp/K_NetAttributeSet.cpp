@@ -41,7 +41,7 @@ void UK_NetAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallb
 	
 		FOnAttributeChangeData changedData;
 		changedData.Attribute = GetItemCountAttribute();
-		changedData.OldValue = Data.EvaluatedData.Magnitude;
+		changedData.OldValue = newValue-Data.EvaluatedData.Magnitude;
 		changedData.NewValue = newValue;
 	
 		KHS_INFO(TEXT("[%s] Manually broadcasted ItemCount change in PostGE"), 
