@@ -21,7 +21,7 @@ void ANet_GameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 void ANet_GameState::OnRep_RemainingTime()
 {
 	OnRemainingTimeChanged.Broadcast(RemainingTime);
-	KHS_INFO(TEXT("RemainingTime Updated : %d"), RemainingTime);
+	//KHS_INFO(TEXT("RemainingTime Updated : %d"), RemainingTime);
 }
 
 void ANet_GameState::SetRemainingTime(int32 NewTime)

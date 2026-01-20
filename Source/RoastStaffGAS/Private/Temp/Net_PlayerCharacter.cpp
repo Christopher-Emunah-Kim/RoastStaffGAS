@@ -112,4 +112,7 @@ void ANet_PlayerCharacter::AddPickUp_Implementation()
 	//AcitvateHandle값을 반환하지만 지금은 쓸곳없으니 무시
 	(void)abilityComp->ApplyGameplayEffectSpecToSelf(*specHandle.Data.Get());
 	
+	UK_NetAttributeSet* attrs = GetNetAttributeSet();
+	KHS_SCREEN_INFO(TEXT("[AddPickup] After GE - ItemCount: %.1f"), 
+		attrs ? attrs->GetItemCount() : -1.f);
 }

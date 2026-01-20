@@ -130,6 +130,7 @@ void UNet_HUD::UnbindFromGameState()
 void UNet_HUD::UpdatePlayerScore()
 {
 	const auto& playerArray = NetGameState->PlayerArray;
+	KHS_INFO(TEXT("UpdatePlayerScores - player array size : %d"), playerArray.Num());
 	
 	for (int32 i = 0; i < FMath::Min(2, playerArray.Num()); ++i)
 	{
@@ -150,10 +151,12 @@ void UNet_HUD::UpdatePlayerScore()
 		if (i == 0 && txt_Player1Score)
 		{
 			txt_Player1Score->SetText(FText::FromString(scoreText));
+			KHS_INFO(TEXT("Updated Player1 text: %s"), *scoreText);
 		}
 		else if (i == 1 && txt_Player2Score)
 		{
 			txt_Player2Score->SetText(FText::FromString(scoreText));
+			KHS_INFO(TEXT("Updated Player2 text: %s"), *scoreText);
 		}
 	}
 }
