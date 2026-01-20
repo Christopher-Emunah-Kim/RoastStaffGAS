@@ -8,6 +8,7 @@
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRemainingTimeChanged, int32, NewTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerAdded, APlayerState*, NewPlayerState);
 
 class ANet_PlayerState;
 /**
@@ -23,6 +24,8 @@ public:
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	virtual void AddPlayerState(APlayerState* PlayerState) override;
 	
 	UFUNCTION()
 	void OnRep_RemainingTime();
@@ -43,5 +46,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category= "AM|Events")
 	FOnRemainingTimeChanged OnRemainingTimeChanged;
 	
+	UPROPERTY(BlueprintAssignable, Category= "AM|Events")
+	FOnPlayerAdded OnPlayerAdded;
 	
 };

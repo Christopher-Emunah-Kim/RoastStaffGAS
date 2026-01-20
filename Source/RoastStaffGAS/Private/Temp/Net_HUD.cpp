@@ -14,6 +14,8 @@ void UNet_HUD::NativeConstruct()
 	NetGameState = Cast<ANet_GameState>(UGameplayStatics::GetGameState(this));
 	check(NetGameState);
 	
+	NetGameState->OnPlayerAdded.AddDynamic(this, &UNet_HUD::OnPlayerAdded);
+	
 	FTimerHandle DelayHandle;
 	GetWorld()->GetTimerManager().SetTimer(DelayHandle, [this]()
 	{
@@ -26,6 +28,12 @@ void UNet_HUD::NativeConstruct()
 void UNet_HUD::NativeDestruct()
 {
 	UnbindFromGameState();
+	
+	if (NetGameState)
+	{
+		NetGameState->OnPlayerAdded.RemoveDynamic(this, &UNet_HUD::OnPlayerAdded);
+	}
+	
 	Super::NativeDestruct();
 }
 
@@ -47,10 +55,44 @@ void UNet_HUD::OnTimeChanged(int32 NewTime)
 	}
 }
 
+void UNet_HUD::OnPlayerAdded(APlayerState* NewPlayer)
+{
+	KHS_INFO(TEXT("New Player Detected. binding to ASC"));
+	
+	BindToPlayerState(NewPlayer);
+	
+	UpdatePlayerScore();
+}
+
 void UNet_HUD::OnPlayerScoreChanged(const FOnAttributeChangeData& Data)
 {
 	KHS_INFO(TEXT("Score changed: %.1f -> %.1f"), Data.OldValue, Data.NewValue);
 	UpdatePlayerScore();
+}
+
+void UNet_HUD::BindToPlayerState(APlayerState* ps)
+{
+	ANet_PlayerState* netPS = Cast<ANet_PlayerState>(ps);
+	if (!ensureMsgf(netPS, TEXT("Failed to get NetPlayerState")))
+	{
+		return;
+	}
+		
+	UAbilitySystemComponent* ASC = netPS->GetAbilitySystemComponent();
+	if (!ensureMsgf(ASC, TEXT("Failed to get ASC")))
+	{
+		return;
+	}
+		
+	UK_NetAttributeSet* attrs = netPS->GetNetAttributeSet();
+	if (!ensureMsgf(attrs, TEXT("Failed to get NetAttributeSet")))
+	{
+		return;
+	}
+		
+	ASC->GetGameplayAttributeValueChangeDelegate(attrs->GetItemCountAttribute()).AddUObject(this, &UNet_HUD::OnPlayerScoreChanged);
+	
+	KHS_INFO(TEXT(" Bound to new player's ASC"));
 }
 
 void UNet_HUD::BindToGameState()
@@ -66,25 +108,7 @@ void UNet_HUD::BindToGameState()
 	//플레이어별 item count Attribute 변경 감지 구독
 	for (APlayerState* ps : NetGameState->PlayerArray)
 	{
-		ANet_PlayerState* netPS = Cast<ANet_PlayerState>(ps);
-		if (!ensureMsgf(netPS, TEXT("Failed to get NetPlayerState")))
-		{
-			continue;
-		}
-		
-		UAbilitySystemComponent* ASC = netPS->GetAbilitySystemComponent();
-		if (!ensureMsgf(ASC, TEXT("Failed to get ASC")))
-		{
-			continue;
-		}
-		
-		UK_NetAttributeSet* attrs = netPS->GetNetAttributeSet();
-		if (!ensureMsgf(attrs, TEXT("Failed to get NetAttributeSet")))
-		{
-			continue;
-		}
-		
-		ASC->GetGameplayAttributeValueChangeDelegate(attrs->GetItemCountAttribute()).AddUObject(this, &UNet_HUD::OnPlayerScoreChanged);
+		BindToPlayerState(ps);
 	}
 	
 	KHS_INFO(TEXT("Bound to GameState events"));

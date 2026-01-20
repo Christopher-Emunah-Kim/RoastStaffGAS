@@ -4,6 +4,7 @@
 #include "Temp/Net_GameState.h"
 #include "Net/UnrealNetwork.h"
 #include "RoastStaffGAS.h"
+#include "GameFramework/PlayerState.h"
 
 ANet_GameState::ANet_GameState()
 {
@@ -16,6 +17,17 @@ void ANet_GameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(ANet_GameState, RemainingTime);
+}
+
+void ANet_GameState::AddPlayerState(APlayerState* PlayerState)
+{
+	Super::AddPlayerState(PlayerState);
+	
+	if (PlayerState)
+	{
+		KHS_INFO(TEXT("New player added : %s"), *PlayerState->GetName());
+		OnPlayerAdded.Broadcast(PlayerState);
+	}
 }
 
 void ANet_GameState::OnRep_RemainingTime()

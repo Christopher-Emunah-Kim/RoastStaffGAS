@@ -9,6 +9,7 @@
 
 struct FOnAttributeChangeData;
 class ANet_GameState;
+class APlayerState;
 class UTextBlock;
 
 /**
@@ -26,13 +27,17 @@ protected:
 	
 	UFUNCTION()
 	void OnTimeChanged(int32 NewTime);
+	UFUNCTION()
+	void OnPlayerAdded(APlayerState* NewPlayer);
 	
 	void OnPlayerScoreChanged(const FOnAttributeChangeData& Data);
-	
+
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "HUD")
 	void ShowGameResult(int32 WinnerIndex);
 	
 private:
+	void BindToPlayerState(APlayerState* ps);
 	void BindToGameState();
 	void UnbindFromGameState();
 	void UpdatePlayerScore();
