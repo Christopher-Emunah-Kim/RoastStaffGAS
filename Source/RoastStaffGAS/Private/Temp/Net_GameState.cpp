@@ -20,8 +20,21 @@ void ANet_GameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 void ANet_GameState::OnRep_RemainingTime()
 {
-	//TODO 이후 HUD 위젯에서 구독해서 갱신
+	OnRemainingTimeChanged.Broadcast(RemainingTime);
 	KHS_INFO(TEXT("RemainingTime Updated : %d"), RemainingTime);
+}
+
+void ANet_GameState::SetRemainingTime(int32 NewTime)
+{
+	//서버의 경우 직접 RemainingTime 변경
+	if (RemainingTime == NewTime)
+	{
+		return;
+	}
+	
+	RemainingTime = NewTime;
+		
+	OnRemainingTimeChanged.Broadcast(RemainingTime);
 }
 
 void ANet_GameState::GameOverRPC_Implementation(int32 WinnerPlayerIdx)

@@ -3,11 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayEffectTypes.h"
 #include "Blueprint/UserWidget.h"
 #include "Net_HUD.generated.h"
 
+struct FOnAttributeChangeData;
 class ANet_GameState;
 class UTextBlock;
+
 /**
  * 
  */
@@ -18,13 +21,21 @@ class ROASTSTAFFGAS_API UNet_HUD : public UUserWidget
 	
 protected:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	
-	void UpdateTimer();
-	void UpdateScores();
+	UFUNCTION()
+	void OnTimeChanged(int32 NewTime);
+	
+	void OnPlayerScoreChanged(const FOnAttributeChangeData& Data);
 	
 	UFUNCTION(BlueprintImplementableEvent, Category = "HUD")
 	void ShowGameResult(int32 WinnerIndex);
+	
+private:
+	void BindToGameState();
+	void UnbindFromGameState();
+	void UpdatePlayerScore();
 	
 protected:
 	UPROPERTY(meta = (BindWidget))
