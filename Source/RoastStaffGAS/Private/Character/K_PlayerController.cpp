@@ -51,9 +51,22 @@ void AK_PlayerController::OnPossess(APawn* InPawn)
 	
 	InPawn->OnDestroyed.AddDynamic(this, &AK_PlayerController::OnPawnDestroyed);
 	
-	//UI초기화를 약간 지연시켜야 PlayerState실행이 보장됨
-	//네트워크에 따라 PlayerState 리플리케이션이 늦어질수있음
-	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &AK_PlayerController::InitializePersistentUI);
+	//UI초기화를 약간 지연시켜야 PlayerState실행이 보장됨(서버에서만 실행)
+	//네트워크에 따라 PlayerState 리플리케이션이 늦어질수있음 
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		GetWorld()->GetTimerManager().SetTimerForNextTick(
+			this, &AK_PlayerController::InitializePersistentUI);
+	}
+}
+
+void AK_PlayerController::AcknowledgePossession(class APawn* P)
+{
+	Super::AcknowledgePossession(P);
+	
+	//Client에서만 실행됨.
+	GetWorld()->GetTimerManager().SetTimerForNextTick(
+			this, &AK_PlayerController::InitializePersistentUI);
 }
 
 void AK_PlayerController::InitializePersistentUI()

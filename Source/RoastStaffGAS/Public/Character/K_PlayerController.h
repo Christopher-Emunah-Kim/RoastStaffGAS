@@ -21,6 +21,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 	virtual void OnPossess(APawn* InPawn) override;
+	virtual void AcknowledgePossession(class APawn* P) override;
 	
 private:
 	void InitializePersistentUI();
