@@ -54,7 +54,7 @@ void ANet_PickupItem::NotifyActorBeginOverlap(AActor* OtherActor)
 	}
 	player->AddPickUp();
 	
-	KHS_INFO(TEXT("[Net_PickupItem] Picked up by %s"), *player->GetName());
+	//KHS_INFO(TEXT("Picked up by %s"), *player->GetName());
 	
 	//TODO : GC 재생
 	

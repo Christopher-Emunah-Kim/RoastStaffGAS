@@ -113,6 +113,5 @@ void ANet_PlayerCharacter::AddPickUp_Implementation()
 	(void)abilityComp->ApplyGameplayEffectSpecToSelf(*specHandle.Data.Get());
 	
 	UK_NetAttributeSet* attrs = GetNetAttributeSet();
-	KHS_SCREEN_INFO(TEXT("[AddPickup] After GE - ItemCount: %.1f"), 
-		attrs ? attrs->GetItemCount() : -1.f);
+	//KHS_INFO(TEXT("After GE - ItemCount: %.1f"), attrs ? attrs->GetItemCount() : -1.f);
 }

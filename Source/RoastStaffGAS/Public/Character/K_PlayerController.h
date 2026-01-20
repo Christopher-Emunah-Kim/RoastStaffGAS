@@ -8,7 +8,7 @@
 
 class UInputMappingContext;
 class AK_PlayerCharacter;
-
+class UNet_HUD;
 /**
  * 
  */
@@ -32,7 +32,9 @@ protected:
 	UFUNCTION()
 	void OnPawnDestroyed(AActor* DestroyedActor);
 	
-
+public:
+	UNet_HUD* GetNetHUD() const {return TempHUDUI;}
+	
 protected:
 	UPROPERTY(EditAnywhere, Category ="AM|Input")
 	TObjectPtr<UInputMappingContext> IMC;
@@ -44,7 +46,7 @@ protected:
 	TSubclassOf<class UK_HUDWidget> HUDWidgetClass;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "AM|Temp")
-	TSubclassOf<class UNet_HUD> TempHUDClass;
+	TSubclassOf<UNet_HUD> TempHUDClass;
 	
 	UPROPERTY()
 	TObjectPtr< UNet_HUD> TempHUDUI;
