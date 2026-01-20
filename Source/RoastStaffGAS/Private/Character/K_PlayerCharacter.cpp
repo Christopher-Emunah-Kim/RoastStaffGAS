@@ -297,9 +297,9 @@ AK_PlayerState* AK_PlayerCharacter::GetKPlayerState() const
 FVector AK_PlayerCharacter::GetDashDirection() const
 {
 	//Server로직
-	if (GetLocalRole() == ROLE_Authority&& !CachedDashDirection.IsNearlyZero())
+	if (GetLocalRole() == ROLE_Authority&& !IsLocallyControlled())
 	{
-		return CachedDashDirection;
+		return CachedDashDirection.IsNearlyZero()? GetActorForwardVector(): CachedDashDirection;
 	}
 	
 	//Client로직
