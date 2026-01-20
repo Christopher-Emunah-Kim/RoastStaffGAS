@@ -37,7 +37,7 @@ void ANet_Spawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void ANet_Spawner::SpawnPickup()
 {
-	if (!ensureMsgf(PickUpClass, TEXT("[NetSpawner] Pickup Class is not set on BP")))
+	if (!ensureMsgf(PickUpClass, TEXT("Pickup Class is not set on BP")))
 	{
 		return;
 	}
@@ -45,7 +45,7 @@ void ANet_Spawner::SpawnPickup()
 	FVector randomLocation;
 	UNavigationSystemV1* navSys = UNavigationSystemV1::GetCurrent(GetWorld());
 	
-	if (!ensureMsgf(navSys, TEXT("[NetSpawner] Failed to get current navigation system")))
+	if (!ensureMsgf(navSys, TEXT("Failed to get current navigation system")))
 	{
 		return;
 	}
@@ -54,7 +54,7 @@ void ANet_Spawner::SpawnPickup()
 	
 	if (!bSuccess)
 	{
-		KHS_WARN(TEXT("[NetSpawner] Failed to get random spawn location"));
+		KHS_WARN(TEXT("Failed to get random spawn location"));
 		return;
 	}
 	
@@ -64,12 +64,12 @@ void ANet_Spawner::SpawnPickup()
 	ANet_PickupItem* pickUp = GetWorld()->SpawnActor<ANet_PickupItem>(
 		PickUpClass, randomLocation, FRotator::ZeroRotator, spawnParams);
 	
-	if (!ensureMsgf(pickUp, TEXT("[NetSpawner] failed to spawn pickup item")))
+	if (!ensureMsgf(pickUp, TEXT("failed to spawn pickup item")))
 	{
 		return;
 	}
 	
-	KHS_INFO(TEXT("[NetSpawner] Spawned pickup item"));
+	KHS_INFO(TEXT("Spawned pickup item"));
 }
 
 
