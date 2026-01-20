@@ -6,6 +6,9 @@
 #include "GameFramework/GameStateBase.h"
 #include "Net_GameState.generated.h"
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRemainingTimeChanged, int32, NewTime);
+
 class ANet_PlayerState;
 /**
  * 
@@ -27,11 +30,18 @@ protected:
 public:
 	UFUNCTION(NetMulticast, Reliable)
 	void GameOverRPC(int32 WinnerPlayerIdx);
+
+	void SetRemainingTime(int32 NewTime);
 	
 	FORCEINLINE int32 GetRemainingTime() const { return RemainingTime; }
 	
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "AM|Variable", ReplicatedUsing=OnRep_RemainingTime)
 	int32 RemainingTime;
+	
+public:
+	UPROPERTY(BlueprintAssignable, Category= "AM|Events")
+	FOnRemainingTimeChanged OnRemainingTimeChanged;
+	
 	
 };

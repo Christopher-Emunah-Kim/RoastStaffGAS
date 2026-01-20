@@ -39,6 +39,11 @@ void ANet_GameMode::Tick(float DeltaTime)
 	int32 Time = NetGameState->GetRemainingTime();
 	Time = FMath::Max(0, Time-FMath::FloorToInt(DeltaTime));
 	
+	if (Time != NetGameState->GetRemainingTime())
+	{
+		NetGameState->SetRemainingTime(Time);
+	}
+	
 	if (Time <= 0)
 	{
 		EndGame();

@@ -43,4 +43,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "AM|UI")
 	TSubclassOf<class UK_HUDWidget> HUDWidgetClass;
 	
+	UPROPERTY(EditDefaultsOnly, Category = "AM|Temp")
+	TSubclassOf<class UNet_HUD> TempHUDClass;
+	
+	UPROPERTY()
+	TObjectPtr< UNet_HUD> TempHUDUI;
+	
 };
