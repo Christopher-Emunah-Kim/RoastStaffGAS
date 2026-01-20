@@ -30,6 +30,7 @@ protected:
 	UPROPERTY()
 	TObjectPtr<ANet_GameState> NetGameState;
 	
+	float TimeAccumulator;
 	bool bGameEnded;
 	
 };
