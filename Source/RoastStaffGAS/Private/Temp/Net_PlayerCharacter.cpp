@@ -18,7 +18,7 @@ void ANet_PlayerCharacter::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 	
 	InitializeAbilitySystem();
-	KHS_INFO(TEXT("[Net_PlayerCharacter] PossessedBy called on Server"));
+	KHS_INFO(TEXT(" PossessedBy called on Server"));
 }
 
 void ANet_PlayerCharacter::InitializeAbilitySystem()
@@ -28,7 +28,7 @@ void ANet_PlayerCharacter::InitializeAbilitySystem()
 	ANet_PlayerState* ps = Cast<ANet_PlayerState>(GetKPlayerState());
 	if (!ps)
 	{
-		KHS_WARN(TEXT("[Net_PlayerCharacter] NetPlayerState not found, cannot initialize abilities"));
+		KHS_WARN(TEXT("NetPlayerState not found, cannot initialize abilities"));
 		return;
 	}
 	
@@ -48,7 +48,7 @@ void ANet_PlayerCharacter::OnRep_PlayerState()
 	Super::OnRep_PlayerState();
 	
 	InitializeAbilitySystem();
-	KHS_INFO(TEXT("[Net_PlayerCharacter] OnRep_PlayerState called on Client"));
+	KHS_INFO(TEXT(" OnRep_PlayerState called on Client"));
 }
 
 UK_NetAttributeSet* ANet_PlayerCharacter::GetNetAttributeSet() const
@@ -56,7 +56,7 @@ UK_NetAttributeSet* ANet_PlayerCharacter::GetNetAttributeSet() const
 	ANet_PlayerState* ps = Cast<ANet_PlayerState>(GetKPlayerState());
 	if (!ps)
 	{
-		KHS_WARN(TEXT("[Net_PlayerCharacter] NetPlayerState not found"));
+		KHS_WARN(TEXT(" NetPlayerState not found"));
 		return nullptr;
 	}
 	
@@ -64,7 +64,7 @@ UK_NetAttributeSet* ANet_PlayerCharacter::GetNetAttributeSet() const
 	
 	if (!AttributeSet)
 	{
-		KHS_WARN(TEXT("[Net_PlayerCharacter] Invalid AttributeSet"));
+		KHS_WARN(TEXT("Invalid AttributeSet"));
 		return nullptr;
 	}
 	
@@ -80,12 +80,12 @@ void ANet_PlayerCharacter::AddPickUp_Implementation()
 	}
 	
 	UAbilitySystemComponent* abilityComp = GetAbilitySystemComponent();
-	if (!ensureMsgf(abilityComp, TEXT("[Net_PlayerCharacter] Invalid ASC")))
+	if (!ensureMsgf(abilityComp, TEXT("Invalid ASC")))
 	{
 		return;
 	}
 	
-	if (!ensureMsgf(PickUpEffect, TEXT("[Net_PlayerCharacter] PickUpEffect is not set on BP")))
+	if (!ensureMsgf(PickUpEffect, TEXT("PickUpEffect is not set on BP")))
 	{
 		return;
 	}
@@ -98,14 +98,14 @@ void ANet_PlayerCharacter::AddPickUp_Implementation()
 	}
 	else
 	{
-		KHS_WARN(TEXT("[Net_PlayerCharacter] Invalid AvatarActor for Instigator "));
+		KHS_WARN(TEXT(" Invalid AvatarActor for Instigator "));
 	}
 	
 	//Create Effect Spec : GE의 인스턴스 생성
 	FGameplayEffectSpecHandle specHandle = abilityComp->MakeOutgoingSpec(PickUpEffect, 1.f, contextHandle);
 	if (!specHandle.IsValid())
 	{
-		KHS_WARN(TEXT("[Net_PlayerCharacter] Failed to make outgoing spec for effect : %s"), *PickUpEffect->GetName());
+		KHS_WARN(TEXT("Failed to make outgoing spec for effect : %s"), *PickUpEffect->GetName());
 		return;
 	}
 	

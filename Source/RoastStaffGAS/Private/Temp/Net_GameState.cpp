@@ -21,12 +21,12 @@ void ANet_GameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 void ANet_GameState::OnRep_RemainingTime()
 {
 	//TODO 이후 HUD 위젯에서 구독해서 갱신
-	KHS_INFO(TEXT("[Net_GameState] RemainingTime Updated : %d"), RemainingTime);
+	KHS_INFO(TEXT("RemainingTime Updated : %d"), RemainingTime);
 }
 
 void ANet_GameState::GameOverRPC_Implementation(int32 WinnerPlayerIdx)
 {
-	KHS_INFO(TEXT("[Net_GameState] Game Over! Winner: Player %d"), WinnerPlayerIdx);
+	KHS_INFO(TEXT("Game Over! Winner: Player %d"), WinnerPlayerIdx);
     
 	//TODO 이후 UI에 승패 표시
 }

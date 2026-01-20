@@ -27,7 +27,7 @@ void UK_NetAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallb
 	if (Data.EvaluatedData.Attribute == GetItemCountAttribute())
 	{
 		const float newValue = GetItemCount();
-		KHS_SCREEN_INFO(TEXT("[NetAttributeSet] ItemCount changed to: %.1f (Server)"), newValue);
+		KHS_SCREEN_INFO(TEXT("ItemCount changed to: %.1f (Server)"), newValue);
 	}
 
 	
@@ -48,5 +48,5 @@ void UK_NetAttributeSet::OnRep_ItemCount(const FGameplayAttributeData& OldValue)
 	//리플리케이션 확인용 로그
 	const float oldVal = OldValue.GetCurrentValue();
 	const float newVal = GetItemCount();
-	KHS_INFO(TEXT("[NetAttributeSet] ItemCount replicated: %.1f -> %.1f (Client)"), oldVal, newVal);
+	KHS_INFO(TEXT("ItemCount replicated: %.1f -> %.1f (Client)"), oldVal, newVal);
 }

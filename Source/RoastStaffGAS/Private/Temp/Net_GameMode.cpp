@@ -23,7 +23,7 @@ void ANet_GameMode::BeginPlay()
 	
 	if (NetGameState)
 	{
-		KHS_INFO(TEXT("[Net_GameMode] GameState Initialized. Starting 60 sec timer"));
+		KHS_INFO(TEXT(" GameState Initialized. Starting 60 sec timer"));
 	}
 }
 
@@ -56,7 +56,7 @@ int32 ANet_GameMode::DetermineWinner()
 	
 	if (playerArray.Num() < 2)
 	{
-		KHS_WARN(TEXT("[NetGameMode] Not enough player for multiplay"));
+		KHS_WARN(TEXT(" Not enough player for multiplay"));
 		return -1;
 	}
 	
@@ -70,7 +70,7 @@ int32 ANet_GameMode::DetermineWinner()
 		ensure(netAttributeSet);
 		
 		float itemCount = netAttributeSet->GetItemCount();
-		KHS_INFO(TEXT("[NetGameMode] PlayerId %d, ItemCount %.1f"), i, itemCount);
+		KHS_INFO(TEXT("PlayerId %d, ItemCount %.1f"), i, itemCount);
 		
 		if (itemCount > maxItemCount)
 		{
@@ -88,7 +88,7 @@ void ANet_GameMode::EndGame()
 	
 	int32 winnerIdx = DetermineWinner();
 	
-	KHS_INFO(TEXT("[Net_GameMode] GameOver! Winner Index: %d"), winnerIdx);
+	KHS_INFO(TEXT(" GameOver! Winner Index: %d"), winnerIdx);
 	
 	if (NetGameState)
 	{
