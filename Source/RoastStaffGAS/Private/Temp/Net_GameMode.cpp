@@ -8,7 +8,7 @@
 #include "Temp/Net_PlayerState.h"
 
 ANet_GameMode::ANet_GameMode()
-	: bGameEnded(false)
+	: TimeAccumulator(0.f), bGameEnded(false)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	
@@ -36,18 +36,23 @@ void ANet_GameMode::Tick(float DeltaTime)
 		return;
 	}
 	
-	int32 Time = NetGameState->GetRemainingTime();
-	Time = FMath::Max(0, Time-FMath::FloorToInt(DeltaTime));
+	TimeAccumulator += DeltaTime;
 	
-	if (Time != NetGameState->GetRemainingTime())
+	if (TimeAccumulator >= 1.f)
 	{
+		TimeAccumulator -= 1.f;
+		
+		int32 Time = NetGameState->GetRemainingTime() - 1;
+		Time = FMath::Max(0, Time);
+		
 		NetGameState->SetRemainingTime(Time);
+		
+		if (Time <= 0)
+		{
+			EndGame();
+		}
 	}
 	
-	if (Time <= 0)
-	{
-		EndGame();
-	}
 }
 
 int32 ANet_GameMode::DetermineWinner()

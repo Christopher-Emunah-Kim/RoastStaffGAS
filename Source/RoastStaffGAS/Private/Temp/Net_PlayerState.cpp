@@ -8,6 +8,12 @@
 
 ANet_PlayerState::ANet_PlayerState()
 {
+	if (ASC)
+	{
+		ASC->SetIsReplicated(true);
+		ASC->SetReplicationMode(EGameplayEffectReplicationMode::Full);
+	}
+	
 	NetAttributeSet = CreateDefaultSubobject<UK_NetAttributeSet>(TEXT("NetAttributeSet"));
 	if (ASC)
 	{
