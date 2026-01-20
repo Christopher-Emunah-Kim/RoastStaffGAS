@@ -225,6 +225,13 @@ void AK_PlayerCharacter::TryActivateDash()
 		return;
 	}
 	
+	//Client 방향을 Server에 캐싱
+	if (IsLocallyControlled())
+	{
+		FVector dashDirection = GetDashDirection();
+		ServerDash(dashDirection);
+	}
+	
 	//GameplayTag기반 능력 발동. 
 	//PlayerState의 InitialAbilities에 GA가 등록되어있어야함.
 	FGameplayTagContainer dashTags;
@@ -289,6 +296,13 @@ AK_PlayerState* AK_PlayerCharacter::GetKPlayerState() const
 
 FVector AK_PlayerCharacter::GetDashDirection() const
 {
+	//Server로직
+	if (GetLocalRole() == ROLE_Authority&& !CachedDashDirection.IsNearlyZero())
+	{
+		return CachedDashDirection;
+	}
+	
+	//Client로직
 	if (LastMoveInput.IsZero())
 	{
 		return GetActorForwardVector();
@@ -297,5 +311,10 @@ FVector AK_PlayerCharacter::GetDashDirection() const
 	FVector dashDirection = FVector(LastMoveInput.X, LastMoveInput.Y, 0.0f);
 	
 	return dashDirection.GetSafeNormal();
+}
+
+void AK_PlayerCharacter::ServerDash_Implementation(FVector Direction)
+{
+	CachedDashDirection = Direction;
 }
 

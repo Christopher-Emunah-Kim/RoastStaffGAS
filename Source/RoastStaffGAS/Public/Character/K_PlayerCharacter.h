@@ -80,6 +80,9 @@ protected:
 public:
 	FVector GetDashDirection() const;
 	
+	UFUNCTION(Server, Reliable)
+	void ServerDash(FVector Direction);
+	
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AM|Comp", meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* SpringArm;
@@ -119,6 +122,7 @@ protected:
 	//============================================================================
 	//마지막 이동입력 캐싱
 	FVector2D LastMoveInput;
+	FVector CachedDashDirection;
 	
 	//대시 파워
 	UPROPERTY(EditAnywhere, Category="AM|Dash", meta = (ClampMin = 0, ClampMax = 10000, Units = "cm/s"))
