@@ -49,7 +49,10 @@ void AK_PlayerController::OnPossess(APawn* InPawn)
 
 	Super::OnPossess(InPawn);
 	
-	InPawn->OnDestroyed.AddDynamic(this, &AK_PlayerController::OnPawnDestroyed);
+	if (InPawn && InPawn->IsValidLowLevel())
+	{
+		InPawn->OnDestroyed.AddDynamic(this, &AK_PlayerController::OnPawnDestroyed);
+	}
 	
 	//UI초기화를 약간 지연시켜야 PlayerState실행이 보장됨(서버에서만 실행)
 	//네트워크에 따라 PlayerState 리플리케이션이 늦어질수있음 
@@ -110,6 +113,24 @@ void AK_PlayerController::HandleUICloseRequest(class UK_BaseWidget* RequestingWi
 
 void AK_PlayerController::OnPawnDestroyed(AActor* DestroyedActor)
 {
+	//서버가 아니면 리턴.
+	if (!HasAuthority())
+	{
+		return;
+	}
+	
+	//현재 월드나 컨트롤러가 파괴 중(맵 이동 중)이라면 리스폰하지 않음
+	if (!GetWorld() || IsPendingKillPending() || HasAnyFlags(RF_BeginDestroyed))
+	{
+		return;
+	}
+	
+	//파괴된 액터가 유효한지 체크
+	if (!DestroyedActor || !DestroyedActor->IsValidLowLevelFast())
+	{
+		return;
+	}
+	
 	TArray<AActor*> actorLists;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), actorLists);
 	
