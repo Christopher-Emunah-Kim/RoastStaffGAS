@@ -11,21 +11,20 @@
 #include "EnhancedInputSubsystems.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
-#include "Temp/Net_HUD.h"
 
 void AK_PlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (IsLocalController() && TempHUDClass)
-	{
-		TempHUDUI = CreateWidget<UNet_HUD>(GetWorld(), TempHUDClass);
-		if (TempHUDUI)
-		{
-			TempHUDUI->AddToViewport();
-			KHS_INFO(TEXT("Temp HUD created for local player"));
-		}
-	}
+	// if (IsLocalController() && TempHUDClass)
+	// {
+	// 	TempHUDUI = CreateWidget<UNet_HUD>(GetWorld(), TempHUDClass);
+	// 	if (TempHUDUI)
+	// 	{
+	// 		TempHUDUI->AddToViewport();
+	// 		KHS_INFO(TEXT("Temp HUD created for local player"));
+	// 	}
+	// }
 }
 
 void AK_PlayerController::SetupInputComponent()
