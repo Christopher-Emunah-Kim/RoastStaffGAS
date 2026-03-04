@@ -153,6 +153,7 @@ void ARSPlayerCharacter::HandleDeath()
 	if (!PC)
 	{
 		KHS_WARN(TEXT("PlayerController is NULL."));
+		return;
 	}
 	
 	PC->SetIgnoreMoveInput(true);

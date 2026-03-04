@@ -58,3 +58,26 @@ struct FWeaponEquipData
 	UPROPERTY(BlueprintReadOnly) 
 	EExpireCondition ExpireCondition;
 };
+
+// -------------------------------------------------------------------------
+// 슬롯 런타임 데이터 — EquipmentComponent가 직접 관리
+// -------------------------------------------------------------------------
+USTRUCT()
+struct FWeaponSlotInstanceData
+{
+	GENERATED_BODY()
+
+	// GDS에서 받아온 정적 데이터
+	FWeaponEquipData EquipData;
+
+	// 런타임 가변 상태
+	FGameplayAbilitySpecHandle AbilitySpecHandle;
+	
+	int32 SlotIndex = -1;
+	float CooldownRemaining; //자동발사시 쿨타임 관리
+	bool bIsActive;
+	
+	FTimerHandle AutoFireTimerHandle;
+
+	bool IsEmpty() const { return EquipData.WeaponID.IsNone(); }
+};
