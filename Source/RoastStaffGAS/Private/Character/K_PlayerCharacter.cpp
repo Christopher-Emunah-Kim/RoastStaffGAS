@@ -235,7 +235,7 @@ void AK_PlayerCharacter::TryActivateDash()
 	//GameplayTag기반 능력 발동. 
 	//PlayerState의 InitialAbilities에 GA가 등록되어있어야함.
 	FGameplayTagContainer dashTags;
-	dashTags.AddTag(KTags::Ability_Movement_Dash);
+	dashTags.AddTag(KTags::Ability_Movement_Dash1);
 	bool bSuccess = abilityComp->TryActivateAbilitiesByTag(dashTags);
 	
 	if (!bSuccess)
@@ -257,7 +257,7 @@ void AK_PlayerCharacter::TryActivateBasicShoot()
 	//GameplayTag기반 능력 발동. 
 	//PlayerState의 InitialAbilities에 GA가 등록되어있어야함.
 	FGameplayTagContainer basicShootTags;
-	basicShootTags.AddTag(KTags::Ability_Combat_BasicShoot);
+	basicShootTags.AddTag(KTags::Ability_Combat_BasicShoot1);
 	bool bSuccess = abilityComp->TryActivateAbilitiesByTag(basicShootTags);
 	
 	if (!bSuccess)
@@ -279,7 +279,7 @@ void AK_PlayerCharacter::TryActivateFireball()
 	//GameplayTag기반 능력 발동. 
 	//PlayerState의 InitialAbilities에 GA가 등록되어있어야함.
 	FGameplayTagContainer fireballTag;
-	fireballTag.AddTag(KTags::Ability_Skill_Fireball);
+	fireballTag.AddTag(KTags::Ability_Skill_Fireball1);
 	bool bSuccess = abilityComp->TryActivateAbilitiesByTag(fireballTag);
 	
 	if (!bSuccess)

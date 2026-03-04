@@ -12,9 +12,9 @@ UK_GA_BasicShoot::UK_GA_BasicShoot()
 {
 	//AbilityTag/BlockedTag 설정
 	FGameplayTagContainer tag;
-	tag.AddTag(KTags::Ability_Combat_BasicShoot);
+	tag.AddTag(KTags::Ability_Combat_BasicShoot1);
 	SetAssetTags(tag);
-	ActivationBlockedTags.AddTag(KTags::Ability_Combat_BasicShoot);
+	ActivationBlockedTags.AddTag(KTags::Ability_Combat_BasicShoot1);
 }
 
 void UK_GA_BasicShoot::ActivateAbility(const FGameplayAbilitySpecHandle Handle,

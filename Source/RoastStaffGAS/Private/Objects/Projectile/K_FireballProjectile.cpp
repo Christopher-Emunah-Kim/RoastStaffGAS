@@ -103,7 +103,7 @@ void AK_FireballProjectile::ApplyDamageAndBurn(AActor* TargetActor, UAbilitySyst
 	}
 	
 	//Burning 상태 체크
-	const bool bIsBurning = TargetASC->HasMatchingGameplayTag(KTags::State_Debuff_Burn);
+	const bool bIsBurning = TargetASC->HasMatchingGameplayTag(KTags::State_Debuff_Burn001);
 	
 	float FinalDamage = BaseDamage;
 	if (bIsBurning)
@@ -119,7 +119,7 @@ void AK_FireballProjectile::ApplyDamageAndBurn(AActor* TargetActor, UAbilitySyst
 	//ApplyDamage(ImpactDamage)
 	if (ImpactDamageEffect)
 	{
-		ApplyGameplayEffectToTarget(TargetASC, ImpactDamageEffect, KTags::Data_Damage, FinalDamage);
+		ApplyGameplayEffectToTarget(TargetASC, ImpactDamageEffect, KTags::Data_Damage001, FinalDamage);
 	}
 	else
 	{

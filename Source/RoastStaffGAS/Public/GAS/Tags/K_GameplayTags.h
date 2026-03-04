@@ -32,28 +32,23 @@ namespace KTags
 	// GA 식별 용도 및 상호작용 목적
 	
 	// 범용 GA 트리거 태그 — SendGameplayEvent로 발동
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Projectile);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Summon);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Projectile1);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Summon1);
 	
 	//기본 공격 GA태그
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Combat_BasicShoot);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Combat_BasicShoot1);
 	//기본 공격 쿨타임 GA태그(선택적 사용)
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Combat_BasicShoot_Cooldown);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Combat_BasicShoot_Cooldown1);
 	
 	//Fireball GA태그
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Fireball);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Fireball1);
 	//Fireball 쿨다운 상태 태그
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Fireball_Cooldown);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Fireball_Cooldown1);
 	
 	//Dash GA태그
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Movement_Dash);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Movement_Dash_Cooldown);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Movement_Dash1);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Movement_Dash_Cooldown1);
 	
-	//===============================================
-	// 팀 태그 (Team.*)
-	//===============================================
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Team_Player);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Team_Enemy);
 	
 	//===============================================
 	// 상태 태그(State.*)
@@ -63,19 +58,19 @@ namespace KTags
 	// ASC->HasMatchingGameplayTag() 조회 목적
 	
 	// 사망
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dead);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dead001);
 
 	// 디버프 
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Burn);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Freeze);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Shock);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Slow);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Burn001);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Freeze001);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Shock001);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Slow001Slow);
 
 	// 슬롯 상태
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Slot_Active);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Slot_Active001);
 	
 	
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dashing);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dashing001);
 	
 	//===============================================
 	// 데이터 태그(Data.*)
@@ -86,7 +81,7 @@ namespace KTags
 	// 이때 동적값 전달받을 GE에는 "SetByCaller" 타입으로 Modifier에 세팅 후
 	// Data Tag에 Data.*타입 세팅 잊지말기
 	
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Damage);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Damage001);
 	
 	//===============================================
 	// GC 태그(GameplayCue.*)
@@ -95,27 +90,27 @@ namespace KTags
 	// ASC의 ExecuteGameplayCue(Tag, param)으로 발동 (수동 트리거)
 	
 	//화상 이펙트(Burn VFX)
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Combat_Burn);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Combat_Burn001Burn);
 	
 	//Fireball 발사 이펙트
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Combat_Fireball_Launch);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Combat_Fireball_Launch001);
 	
 	//Fireball 피격 이펙트
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Combat_Fireball_Impact);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Combat_Fireball_Impact001);
 	
 	
 	//===============================================
 	// GE 태그(GameplayEffect.*)
 	//===============================================
 	
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Combat_Death);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Combat_TakeDamage);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Weapon_Equipped);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Weapon_Unequipped);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_LevelUp);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Combat_Death001);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Combat_TakeDamage001);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Weapon_Equipped001);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Weapon_Unequipped001);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_LevelUp001);
 	
 	//Hitcheck
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Montage_HitCheck);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Montage_HitCheck001);
 	
 	
 	

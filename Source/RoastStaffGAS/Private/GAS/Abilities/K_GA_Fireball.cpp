@@ -13,9 +13,9 @@ UK_GA_Fireball::UK_GA_Fireball()
 {
 	//GA 태그 설정
 	FGameplayTagContainer tag;
-	tag.AddTag(KTags::Ability_Skill_Fireball);
+	tag.AddTag(KTags::Ability_Skill_Fireball1);
 	SetAssetTags(tag);
-	ActivationBlockedTags.AddTag(KTags::Ability_Skill_Fireball_Cooldown);
+	ActivationBlockedTags.AddTag(KTags::Ability_Skill_Fireball_Cooldown1);
 }
 
 void UK_GA_Fireball::ActivateAbility(const FGameplayAbilitySpecHandle Handle,

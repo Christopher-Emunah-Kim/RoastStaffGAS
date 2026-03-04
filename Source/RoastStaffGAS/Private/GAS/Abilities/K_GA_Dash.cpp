@@ -12,10 +12,10 @@
 UK_GA_Dash::UK_GA_Dash()
 {
 	FGameplayTagContainer tag;
-	tag.AddTag(KTags::Ability_Movement_Dash);
+	tag.AddTag(KTags::Ability_Movement_Dash1);
 	SetAssetTags(tag);
-	ActivationBlockedTags.AddTag(KTags::Ability_Movement_Dash_Cooldown);
-	ActivationBlockedTags.AddTag(KTags::State_Dashing);
+	ActivationBlockedTags.AddTag(KTags::Ability_Movement_Dash_Cooldown1);
+	ActivationBlockedTags.AddTag(KTags::State_Dashing001);
 }
 
 void UK_GA_Dash::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,

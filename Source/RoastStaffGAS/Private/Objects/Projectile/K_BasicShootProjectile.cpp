@@ -132,7 +132,7 @@ bool AK_BasicShootProjectile::ApplyDamageToTarget(UAbilitySystemComponent* Targe
 	}
 	
 	//SetByCaller로 값 설정
-	specHandle.Data->SetSetByCallerMagnitude(KTags::Data_Damage, BaseDamage); 
+	specHandle.Data->SetSetByCallerMagnitude(KTags::Data_Damage001, BaseDamage); 
 	
 	//GE 적용 (성공하면 activeHandle생성)
 	FActiveGameplayEffectHandle activeHandle = OwnerASC->ApplyGameplayEffectSpecToTarget(

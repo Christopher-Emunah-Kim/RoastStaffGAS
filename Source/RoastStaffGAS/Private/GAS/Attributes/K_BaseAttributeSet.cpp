@@ -124,7 +124,7 @@ void UK_BaseAttributeSet::HandleDeath(const FGameplayEffectModCallbackData& Data
 	eventData.Target = targetActor; 
 	
 	//타겟 액터에 이벤트에 따른 태그 전달
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(targetActor, KTags::Event_Combat_Death, eventData);
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(targetActor, KTags::Event_Combat_Death001, eventData);
 	
 	KHS_WARN(TEXT("[%s] Death event sent. Instigator : %s"), *targetActor->GetName(), eventData.Instigator? *eventData.Instigator.GetName() : TEXT("NONE"));
 }
@@ -144,5 +144,5 @@ void UK_BaseAttributeSet::BroadcastDamageEvent(const FGameplayEffectModCallbackD
 	eventData.EventMagnitude = Damage;
 	
 	//타겟 액터에 이벤트에 따른 태그 전달
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(targetActor, KTags::Event_Combat_TakeDamage, eventData);
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(targetActor, KTags::Event_Combat_TakeDamage001, eventData);
 }
