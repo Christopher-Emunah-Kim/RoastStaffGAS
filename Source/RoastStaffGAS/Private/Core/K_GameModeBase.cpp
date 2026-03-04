@@ -64,14 +64,14 @@ void AK_GameModeBase::TestGasModules()
 		}
 	};
 	
-	TestTag(KTags::Ability_Skill_Fireball, TEXT("Fireball Ability"));
-	TestTag(KTags::Ability_Skill_Fireball_Cooldown, TEXT("Fireball Ability Cooldown"));
-	TestTag(KTags::State_Debuff_Burn, TEXT("Debuff Burning"));
-	TestTag(KTags::Data_Damage, TEXT("Data Damage"));
-	TestTag(KTags::GameplayCue_Combat_Fireball_Impact, TEXT("GC_Combat_Fireball_Impact"));
+	TestTag(KTags::Ability_Skill_Fireball1, TEXT("Fireball Ability"));
+	TestTag(KTags::Ability_Skill_Fireball_Cooldown1, TEXT("Fireball Ability Cooldown"));
+	TestTag(KTags::State_Debuff_Burn001, TEXT("Debuff Burning"));
+	TestTag(KTags::Data_Damage001, TEXT("Data Damage"));
+	TestTag(KTags::GameplayCue_Combat_Fireball_Impact001, TEXT("GC_Combat_Fireball_Impact"));
 	
 	FGameplayTag debuffParent = FGameplayTag::RequestGameplayTag(FName("State.Debuff"));
-	if (KTags::State_Debuff_Burn.GetTag().MatchesTag(debuffParent))
+	if (KTags::State_Debuff_Burn001.GetTag().MatchesTag(debuffParent))
 	{
 		KHS_INFO(TEXT("[OK] Hierarchy Test : Burning matches State.Debuff"));
 	}

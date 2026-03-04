@@ -74,8 +74,8 @@ void AK_EnemyCharacter::InitializeAbilitySystem()
 	
 	check(ASC);
 	
-	ASC->GenericGameplayEventCallbacks.FindOrAdd(KTags::Event_Combat_Death).AddUObject(this, &AK_EnemyCharacter::OnDeathEvent);
-	ASC->GenericGameplayEventCallbacks.FindOrAdd(KTags::Event_Combat_TakeDamage).AddUObject(this, &AK_EnemyCharacter::OnTakeDamageEvent);
+	ASC->GenericGameplayEventCallbacks.FindOrAdd(KTags::Event_Combat_Death001).AddUObject(this, &AK_EnemyCharacter::OnDeathEvent);
+	ASC->GenericGameplayEventCallbacks.FindOrAdd(KTags::Event_Combat_TakeDamage001).AddUObject(this, &AK_EnemyCharacter::OnTakeDamageEvent);
 	
 	KHS_SCREEN_INFO(TEXT("[%s] Enemy ASC initialized, event callbacks registered"), *GetName());
 }
@@ -162,7 +162,7 @@ void AK_EnemyCharacter::HandleDeath_Implementation()
 	//ASC태그부여
 	check(ASC);
 	ASC->CancelAbilities();
-	ASC->AddLooseGameplayTag(KTags::State_Dead);
+	ASC->AddLooseGameplayTag(KTags::State_Dead001);
 	
 	if (StateWidgetComp)
 	{
