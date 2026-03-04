@@ -9,7 +9,7 @@
 class ARSPlayerState;
 class USpringArmComponent;
 class UCameraComponent;
-//class UEquipmentComponent;
+class UEquipmentComponent;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
@@ -46,7 +46,9 @@ private:
     void OnMove(const FInputActionValue& Value);
     void OnDash(const FInputActionValue& Value);
     void OnShootStart(const FInputActionValue& Value);
-    void OnShootStop(const FInputActionValue& Value);
+    void OnSlotActivate1(const FInputActionValue& Value);
+    void OnSlotActivate2(const FInputActionValue& Value);
+    void OnSlotActivate3(const FInputActionValue& Value);
 
 protected:
     // 컴포넌트
@@ -54,8 +56,8 @@ protected:
     TObjectPtr<USpringArmComponent> SpringArm;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MY|Camera")
     TObjectPtr<UCameraComponent> Camera;
-    //UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MY|Combat")
-    //TObjectPtr<UEquipmentComponent> EquipmentComp;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MY|Combat")
+    TObjectPtr<UEquipmentComponent> EquipmentComp;
     // 입력 에셋
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MY|Input")
     TObjectPtr<UInputMappingContext> IMC;
@@ -65,14 +67,14 @@ protected:
     TObjectPtr<UInputAction> IA_Dash;
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MY|Input")
     TObjectPtr<UInputAction> IA_Attack;
-
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MY|Input")
+    TObjectPtr<UInputAction> IA_Slot1;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MY|Input")
+    TObjectPtr<UInputAction> IA_Slot2;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MY|Input")
+    TObjectPtr<UInputAction> IA_Slot3;
+    
     // 런타임 상태
-    
-    UPROPERTY(EditDefaultsOnly, Category = "MY|Combat")
-    float AutoFireDelay = 0.2f;
-    
-    // 자동 발사 타이머
-    FTimerHandle AutoFireTimer;
     // 마지막 이동 입력 — 대시 방향 계산용
     FVector2D LastMoveInput = FVector2D::ZeroVector;
     // 에임 각도 (Yaw)

@@ -3,16 +3,18 @@
 
 #include "Character/RSPlayerCharacter.h"
 #include "Character/RSPlayerState.h"
+#include "Component/EquipmentComponent.h"
 #include "GAS/Attributes/PlayerAttributeSet.h"
+#include "GAS/Tags/RSGameplayTags.h"
+#include "System/LoggingSystem.h"
+
 #include "AbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Engine/LocalPlayer.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "TimerManager.h"
-#include "Engine/LocalPlayer.h"
-#include "GAS/Tags/RSGameplayTags.h"
-#include "System/LoggingSystem.h"
 
 ARSPlayerCharacter::ARSPlayerCharacter()
 {
@@ -24,6 +26,8 @@ ARSPlayerCharacter::ARSPlayerCharacter()
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
+	
+	EquipmentComp = CreateDefaultSubobject<UEquipmentComponent>(TEXT("EquipmentComp"));
 }
 
 void ARSPlayerCharacter::BeginPlay()
@@ -96,8 +100,9 @@ void ARSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	EIC->BindAction(IA_Move,  ETriggerEvent::Triggered, this, &ARSPlayerCharacter::OnMove);
 	EIC->BindAction(IA_Dash,  ETriggerEvent::Triggered, this, &ARSPlayerCharacter::OnDash);
 	EIC->BindAction(IA_Attack, ETriggerEvent::Started,   this, &ARSPlayerCharacter::OnShootStart);
-	EIC->BindAction(IA_Attack, ETriggerEvent::Completed, this, &ARSPlayerCharacter::OnShootStop);
-	EIC->BindAction(IA_Attack, ETriggerEvent::Canceled,  this, &ARSPlayerCharacter::OnShootStop);
+	EIC->BindAction(IA_Slot1, ETriggerEvent::Started, this, &ARSPlayerCharacter::OnSlotActivate1);
+	EIC->BindAction(IA_Slot2, ETriggerEvent::Started, this, &ARSPlayerCharacter::OnSlotActivate2);
+	EIC->BindAction(IA_Slot3, ETriggerEvent::Started, this, &ARSPlayerCharacter::OnSlotActivate3);
 }
 
 UAbilitySystemComponent* ARSPlayerCharacter::GetAbilitySystemComponent() const
@@ -127,9 +132,8 @@ UBaseAttributeSet* ARSPlayerCharacter::GetBaseAttributeSet() const
 void ARSPlayerCharacter::InitializeAbilitySystem()
 {
 	ARSPlayerState* PS = GetRSPlayerState();
-	if (!PS)
+	if (!ensureMsgf(PS, TEXT("PS is null")))
 	{
-		KHS_WARN(TEXT("PlayerState IS NULL."));
 		return;
 	}
 
@@ -139,6 +143,13 @@ void ARSPlayerCharacter::InitializeAbilitySystem()
 	// AS 델리게이트 바인딩
 	BindAttributeDelegates();
 
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	if (!ensureMsgf(ASC, TEXT("ASC is null")))
+	{
+		return;
+	}
+	EquipmentComp->InitializeWithASC(ASC);
+	
 	KHS_INFO(TEXT("GAS 초기화 완료."));
 }
 
@@ -159,8 +170,11 @@ void ARSPlayerCharacter::HandleDeath()
 	PC->SetIgnoreMoveInput(true);
 	PC->SetIgnoreLookInput(true);
 
-	//자동 발사 타이머 정리
-	GetWorld()->GetTimerManager().ClearTimer(AutoFireTimer);
+	// 무기 발사 모두 중지
+	if (EquipmentComp)
+	{
+		EquipmentComp->StopAllFire();
+	}
 
 	// TODO : 스테이지 시스템 생기면 사망 이벤트 전달
 	// TODO : 결과 화면 전환
@@ -203,11 +217,41 @@ void ARSPlayerCharacter::OnDash(const FInputActionValue& Value)
 
 void ARSPlayerCharacter::OnShootStart(const FInputActionValue& Value)
 {
-	//TODO : EquipmentComponent 구현 후 연결
-	// EquipmentComp->RequestActivateSlot(0);
+	if (!ensureMsgf(EquipmentComp, TEXT("EquipmentComp is null")))
+	{
+		return;
+	}
+
+	EquipmentComp->OnAttackInput();
 }
 
-void ARSPlayerCharacter::OnShootStop(const FInputActionValue& Value)
+
+void ARSPlayerCharacter::OnSlotActivate1(const FInputActionValue& Value)
 {
-	GetWorld()->GetTimerManager().ClearTimer(AutoFireTimer);
+	if (!ensureMsgf(EquipmentComp, TEXT("EquipmentComp is null")))
+	{
+		return;
+	}
+
+	EquipmentComp->RequestSlotActivate(0);
+}
+
+void ARSPlayerCharacter::OnSlotActivate2(const FInputActionValue& Value)
+{
+	if (!ensureMsgf(EquipmentComp, TEXT("EquipmentComp is null")))
+	{
+		return;
+	}
+
+	EquipmentComp->RequestSlotActivate(1);
+}
+
+void ARSPlayerCharacter::OnSlotActivate3(const FInputActionValue& Value)
+{
+	if (!ensureMsgf(EquipmentComp, TEXT("EquipmentComp is null")))
+	{
+		return;
+	}
+
+	EquipmentComp->RequestSlotActivate(2);
 }

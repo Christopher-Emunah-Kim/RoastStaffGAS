@@ -42,22 +42,6 @@ void UEquipmentComponent::FireSlot(int32 SlotIndex)
         GetOwner(), RSTags::Event_Weapon_Fire,Payload
     );
 
-    // 쿨타임 시작
-    Slot.CooldownRemaining = Slot.EquipData.Cooldown;
-    GetWorld()->GetTimerManager().SetTimer(
-        Slot.AutoFireTimerHandle,
-        [this, SlotIndex]()
-        {
-            Slots[SlotIndex].CooldownRemaining = 0.f;
-            
-            if (!Slots[SlotIndex].bIsActive)
-            {
-                FireSlot(SlotIndex); // 자동공격: 쿨타임 만료 시 즉시 재발사
-            }
-        },
-        Slot.EquipData.Cooldown, false
-    );
-
     KHS_INFO(TEXT("Slot %d: %s 발사! CD: %.2fs"),
         SlotIndex, *Slot.EquipData.SkillID.ToString(), Slot.EquipData.Cooldown);
 }
@@ -85,7 +69,6 @@ void UEquipmentComponent::StartAutoFire(int32 SlotIndex)
 void UEquipmentComponent::StopAutoFire(int32 SlotIndex)
 {
     GetWorld()->GetTimerManager().ClearTimer(Slots[SlotIndex].AutoFireTimerHandle);
-
 }
 
 void UEquipmentComponent::SetSlotActive(int32 SlotIndex)
@@ -279,5 +262,18 @@ void UEquipmentComponent::OnAttackInput()
     FWeaponSlotInstanceData& Slot = Slots[ActiveSlotIndex];
 
     FireSlot(ActiveSlotIndex); //액티브는 쿨타임없이 발사가능.
+}
+
+void UEquipmentComponent::StopAllFire()
+{
+    for (FWeaponSlotInstanceData& Slot : Slots)
+    {
+        if (Slot.AutoFireTimerHandle.IsValid())
+        {
+            GetWorld()->GetTimerManager().ClearTimer(Slot.AutoFireTimerHandle);
+        }
+    }
+
+    KHS_INFO(TEXT("모든 슬롯 자동발사 타이머 클리어."));
 }
 
