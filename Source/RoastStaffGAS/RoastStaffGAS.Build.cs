@@ -35,10 +35,6 @@ public class RoastStaffGAS : ModuleRules
 
 		PublicIncludePaths.AddRange(new string[] {
 			"RoastStaffGAS",
-			"RoastStaffGAS/Variant_TwinStick",
-			"RoastStaffGAS/Variant_TwinStick/AI",
-			"RoastStaffGAS/Variant_TwinStick/Gameplay",
-			"RoastStaffGAS/Variant_TwinStick/UI"
 		});
 
 		// Uncomment if you are using Slate UI

@@ -34,7 +34,6 @@ protected:
 	void OnPawnDestroyed(AActor* DestroyedActor);
 	
 public:
-	UNet_HUD* GetNetHUD() const {return TempHUDUI;}
 	
 protected:
 	UPROPERTY(EditAnywhere, Category ="AM|Input")
@@ -46,10 +45,5 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "AM|UI")
 	TSubclassOf<class UK_HUDWidget> HUDWidgetClass;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "AM|Temp")
-	TSubclassOf<UNet_HUD> TempHUDClass;
-	
-	UPROPERTY()
-	TObjectPtr< UNet_HUD> TempHUDUI;
 	
 };
