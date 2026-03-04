@@ -3,7 +3,7 @@
 
 #include "Character/K_BaseCharacter.h"
 #include "AbilitySystemComponent.h"
-#include "AbilitySystem/Attributes/K_BaseAttributeSet.h"
+#include "GAS/Attributes/K_BaseAttributeSet.h"
 #include "System/K_LoggingSystem.h"
 
 AK_BaseCharacter::AK_BaseCharacter()

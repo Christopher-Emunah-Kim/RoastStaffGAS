@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Abilities/K_BaseGameplayAbility.h"
+#include "GAS/Abilities/K_BaseGameplayAbility.h"
 #include "K_GA_Dash.generated.h"
 
 class UGameplayEffect;

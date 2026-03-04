@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AbilitySystem/Abilities/K_GA_Dash.h"
+#include "GAS/Abilities/K_GA_Dash.h"
 
-#include "AbilitySystem/GameplayTags/K_GameplayTags.h"
+#include "GAS/Tags/K_GameplayTags.h"
 #include "Character/K_PlayerCharacter.h"
 #include "EntitySystem/MovieSceneEntitySystemRunner.h"
 #include "System/K_LoggingSystem.h"

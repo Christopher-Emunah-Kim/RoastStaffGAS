@@ -3,36 +3,38 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Abilities/K_BaseGameplayAbility.h"
-#include "K_GA_Fireball.generated.h"
+#include "GAS/Abilities/K_BaseGameplayAbility.h"
+#include "K_GA_BasicShoot.generated.h"
 
-class AK_FireballProjectile;
+class AK_BasicShootProjectile;
 /**
- * 
+ * 기본 사격 어빌리티
  */
 UCLASS()
-class ROASTSTAFFGAS_API UK_GA_Fireball : public UK_BaseGameplayAbility
+class ROASTSTAFFGAS_API UK_GA_BasicShoot : public UK_BaseGameplayAbility
 {
 	GENERATED_BODY()
+
 public:
-	UK_GA_Fireball();
+	UK_GA_BasicShoot();
 	
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	
-	UFUNCTION(BlueprintCallable, Category = "AM|Ability|Fireball")
-	AK_FireballProjectile* SpawnFireBall(const FGameplayAbilityActorInfo& ActorInfo);
+	UFUNCTION(BlueprintCallable, Category = "AM|GAS")
+	AK_BasicShootProjectile* SpawnBasicProjectile(const FGameplayAbilityActorInfo& ActorInfo);
 	
 	
-	UPROPERTY(EditDefaultsOnly, Category = "AM|Ability|Fireball")
-	TSubclassOf<AK_FireballProjectile> ProjectileClass;
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "AM|GAS")
+	TSubclassOf<AK_BasicShootProjectile> ProjectileClass;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "AM|Ability|Fireball")
+	UPROPERTY(EditDefaultsOnly, Category = "AM|GAS")
 	float SpawnOffset = 100.f;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "AM|Ability|Fireball")
-	float BaseFireballDamage = 10.f;
+	UPROPERTY(EditDefaultsOnly, Category = "AM|GAS")
+	float BaseDamage = 5.f;
 	
 	
 };

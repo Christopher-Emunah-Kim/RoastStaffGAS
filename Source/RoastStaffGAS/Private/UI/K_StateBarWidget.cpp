@@ -2,7 +2,7 @@
 
 
 #include "UI/K_StateBarWidget.h"
-#include "AbilitySystem/Attributes/K_BaseAttributeSet.h"
+#include "GAS/Attributes/K_BaseAttributeSet.h"
 #include "System/K_LoggingSystem.h"
 
 #include "AbilitySystemComponent.h"

@@ -1,13 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AbilitySystem/Abilities/K_GA_Fireball.h"
+#include "GAS/Abilities/K_GA_Fireball.h"
 
 #include <filesystem>
 
-#include "AbilitySystem/GameplayTags/K_GameplayTags.h"
-#include "Projectile/K_FireballProjectile.h"
-#include "AbilitySystem/GameplayTags/K_GameplayTags.h"
+#include "GAS/Tags/K_GameplayTags.h"
+#include "Objects/Projectile/K_FireballProjectile.h"
 #include "Character/K_BaseCharacter.h"
 
 UK_GA_Fireball::UK_GA_Fireball()
