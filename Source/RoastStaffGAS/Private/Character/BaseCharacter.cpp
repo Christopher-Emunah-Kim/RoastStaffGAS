@@ -4,6 +4,7 @@
 #include "Character/BaseCharacter.h"
 #include "AbilitySystemComponent.h"
 #include "GAS/Attributes/BaseAttributeSet.h"
+#include "GAS/Tags/RSGameplayTags.h"
 #include "System/LoggingSystem.h"
 
 ABaseCharacter::ABaseCharacter()
@@ -39,6 +40,11 @@ void ABaseCharacter::HandleDeath()
 	ASC->RemoveActiveEffectsWithTags(
 		FGameplayTagContainer(FGameplayTag::RequestGameplayTag(TEXT("Duration.Infinite")))
 	);
+	
+	//사망 상태 태그 부여
+	FGameplayTagContainer DeadTag;
+	DeadTag.AddTag(RSTags::State_Dead);
+	ASC->AddLooseGameplayTags(DeadTag);
 
 	//충돌 비활성화 — 사망 후 투사체가 시체에 맞지 않도록
 	SetActorEnableCollision(false);
