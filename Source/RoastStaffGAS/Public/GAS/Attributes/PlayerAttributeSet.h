@@ -30,38 +30,38 @@ class ROASTSTAFFGAS_API UPlayerAttributeSet : public UBaseAttributeSet
 	// -------------------------------------------------------------------------
 	// 어트리뷰트
 	// -------------------------------------------------------------------------
-    UPROPERTY(BlueprintReadOnly, Category = "Vanguard|Attribute|Player")
+    UPROPERTY(BlueprintReadOnly, Category = "MY|Attribute|Player")
     FGameplayAttributeData ATK;
     ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, ATK)
 
-    UPROPERTY(BlueprintReadOnly, Category = "Vanguard|Attribute|Player")
+    UPROPERTY(BlueprintReadOnly, Category = "MY|Attribute|Player")
     FGameplayAttributeData DEF;
     ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, DEF)
 
-    UPROPERTY(BlueprintReadOnly, Category = "Vanguard|Attribute|Player")
+    UPROPERTY(BlueprintReadOnly, Category = "MY|Attribute|Player")
     FGameplayAttributeData AttackSpeed;
     ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, AttackSpeed)
 
-    UPROPERTY(BlueprintReadOnly, Category = "Vanguard|Attribute|Player")
+    UPROPERTY(BlueprintReadOnly, Category = "MY|Attribute|Player")
     FGameplayAttributeData CastingSpeed;
     ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, CastingSpeed)
 
     /** 치명타 확률 (0.0 ~ 1.0) */
-    UPROPERTY(BlueprintReadOnly, Category = "Vanguard|Attribute|Player")
+    UPROPERTY(BlueprintReadOnly, Category = "MY|Attribute|Player")
     FGameplayAttributeData CriticalRate;
     ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, CriticalRate)
 
     /** 치명타 배율 (기본 1.5) */
-    UPROPERTY(BlueprintReadOnly, Category = "Vanguard|Attribute|Player")
+    UPROPERTY(BlueprintReadOnly, Category = "MY|Attribute|Player")
     FGameplayAttributeData CriticalDamage;
     ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, CriticalDamage)
 
-    UPROPERTY(BlueprintReadOnly, Category = "Vanguard|Attribute|Player")
+    UPROPERTY(BlueprintReadOnly, Category = "MY|Attribute|Player")
     FGameplayAttributeData EXP;
     ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, EXP)
 
     /** GE를 통한 레벨 관리. 정수지만 GAS 호환을 위해 float 사용 */
-    UPROPERTY(BlueprintReadOnly, Category = "Vanguard|Attribute|Player")
+    UPROPERTY(BlueprintReadOnly, Category = "MY|Attribute|Player")
     FGameplayAttributeData Level;
     ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, Level)
 
