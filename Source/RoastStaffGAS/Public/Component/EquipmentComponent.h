@@ -51,6 +51,8 @@ public:
 	void RequestSlotActivate(int32 SlotIndex);
 	// 수동 발사 — 마우스 클릭 시 호출 (액티브 슬롯만)
 	void OnAttackInput();
+	// 모든 슬롯 발사 중지 - 사망 시
+	void StopAllFire();
 	
 private:
 	UPROPERTY()
