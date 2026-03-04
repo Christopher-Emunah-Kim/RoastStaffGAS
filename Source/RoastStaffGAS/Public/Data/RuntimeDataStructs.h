@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "EnumTypes.h"
 #include "Abilities/GameplayAbility.h"
+#include "RuntimeDataStructs.generated.h"
 
 /**
  * 

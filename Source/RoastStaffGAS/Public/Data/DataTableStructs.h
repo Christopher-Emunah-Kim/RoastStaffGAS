@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "EnumTypes.h"
 #include "Abilities/GameplayAbility.h"
+#include "Engine/DataTable.h" 
+#include "DataTableStructs.generated.h"
 
 // ============================================================================
 // DataTable 구조체
