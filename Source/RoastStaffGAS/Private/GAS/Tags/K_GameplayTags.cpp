@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AbilitySystem/GameplayTags/K_GameplayTags.h"
+#include "GAS/Tags/K_GameplayTags.h"
 
 namespace KTags
 {

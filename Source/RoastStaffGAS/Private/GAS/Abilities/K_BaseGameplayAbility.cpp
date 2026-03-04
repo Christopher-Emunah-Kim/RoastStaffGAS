@@ -1,10 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AbilitySystem/Abilities/K_BaseGameplayAbility.h"
+#include "GAS/Abilities/K_BaseGameplayAbility.h"
 #include "RoastStaffGAS.h"
 #include "Character/K_BaseCharacter.h"
-#include "AbilitySystem/Attributes/K_BaseAttributeSet.h"
+#include "GAS/Attributes/K_BaseAttributeSet.h"
 #include "System/K_LoggingSystem.h"
 
 UK_BaseGameplayAbility::UK_BaseGameplayAbility()

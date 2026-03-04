@@ -5,8 +5,8 @@
 
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbilityTypes.h"
-#include "AbilitySystem/Attributes/K_BaseAttributeSet.h"
-#include "AbilitySystem/GameplayTags/K_GameplayTags.h"
+#include "GAS/Attributes/K_BaseAttributeSet.h"
+#include "GAS/Tags/K_GameplayTags.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"

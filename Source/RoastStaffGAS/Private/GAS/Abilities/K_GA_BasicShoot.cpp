@@ -1,10 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AbilitySystem/Abilities/K_GA_BasicShoot.h"
-#include "AbilitySystem/GameplayTags/K_GameplayTags.h"
+#include "GAS/Abilities/K_GA_BasicShoot.h"
+#include "GAS/Tags/K_GameplayTags.h"
 #include "Character/K_BaseCharacter.h"
-#include "Projectile/K_BasicShootProjectile.h"
+#include "Objects/Projectile/K_BasicShootProjectile.h"
 #include "System/K_LoggingSystem.h"
 
 

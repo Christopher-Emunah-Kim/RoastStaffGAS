@@ -5,8 +5,8 @@
 #include "Character/K_PlayerController.h"
 #include "Character/K_PlayerState.h"
 #include "System/K_LoggingSystem.h"
-#include "AbilitySystem/Attributes/K_BaseAttributeSet.h"
-#include "AbilitySystem/GameplayTags/K_GameplayTags.h"
+#include "GAS/Attributes/K_BaseAttributeSet.h"
+#include "GAS/Tags/K_GameplayTags.h"
 
 #include "EnhancedInputComponent.h"
 #include "AbilitySystemComponent.h"

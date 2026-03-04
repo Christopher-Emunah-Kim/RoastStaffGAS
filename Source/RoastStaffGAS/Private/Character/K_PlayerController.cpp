@@ -5,7 +5,7 @@
 #include "Character/K_PlayerCharacter.h"
 #include "Character/K_PlayerState.h"
 #include "System/K_LoggingSystem.h"
-#include "System/K_UIManagerSubsystem.h"
+#include "Subsystems/K_UIManagerSubsystem.h"
 #include "UI/K_HUDWidget.h"
 
 #include "EnhancedInputSubsystems.h"

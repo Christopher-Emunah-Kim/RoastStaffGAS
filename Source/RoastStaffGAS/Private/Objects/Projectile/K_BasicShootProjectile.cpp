@@ -1,13 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Projectile/K_BasicShootProjectile.h"
+#include "Objects/Projectile/K_BasicShootProjectile.h"
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayEffectTypes.h"
 #include "NavigationSystemTypes.h"
-#include "AbilitySystem/GameplayTags/K_GameplayTags.h"
+#include "GAS/Tags/K_GameplayTags.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "System/K_LoggingSystem.h"
