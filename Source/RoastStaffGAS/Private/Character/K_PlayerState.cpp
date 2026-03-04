@@ -4,7 +4,7 @@
 #include "Character/K_PlayerState.h"
 #include "AbilitySystemComponent.h"
 #include "GAS/Attributes/K_BaseAttributeSet.h"
-#include "System//K_LoggingSystem.h"
+#include "System/LoggingSystem.h"
 
 AK_PlayerState::AK_PlayerState()
 {

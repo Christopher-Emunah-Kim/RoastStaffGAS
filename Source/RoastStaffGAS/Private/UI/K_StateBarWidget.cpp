@@ -3,7 +3,7 @@
 
 #include "UI/K_StateBarWidget.h"
 #include "GAS/Attributes/K_BaseAttributeSet.h"
-#include "System/K_LoggingSystem.h"
+#include "System/LoggingSystem.h"
 
 #include "AbilitySystemComponent.h"
 #include "Components/ProgressBar.h"

@@ -10,7 +10,7 @@
 #include "GAS/Tags/K_GameplayTags.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "System/K_LoggingSystem.h"
+#include "System/LoggingSystem.h"
 
 // Sets default values
 AK_BasicShootProjectile::AK_BasicShootProjectile()

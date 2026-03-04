@@ -5,7 +5,7 @@
 #include "GAS/Tags/K_GameplayTags.h"
 #include "Character/K_BaseCharacter.h"
 #include "Objects/Projectile/K_BasicShootProjectile.h"
-#include "System/K_LoggingSystem.h"
+#include "System/LoggingSystem.h"
 
 
 UK_GA_BasicShoot::UK_GA_BasicShoot()

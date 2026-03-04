@@ -32,7 +32,7 @@
 #include "Net/UnrealNetwork.h"
 
 //로그 시스템
-#include "System/K_LoggingSystem.h"
+#include "System/LoggingSystem.h"
 
 /** Main log category used across the project */
 DECLARE_LOG_CATEGORY_EXTERN(LogRoastStaffGAS, Log, All);

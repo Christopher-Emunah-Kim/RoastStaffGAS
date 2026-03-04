@@ -6,7 +6,7 @@
 #include "GAS/Attributes/K_BaseAttributeSet.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
-#include "System/K_LoggingSystem.h"
+#include "System/LoggingSystem.h"
 
 void UEnemyStateWidget::NativeConstruct()
 {
