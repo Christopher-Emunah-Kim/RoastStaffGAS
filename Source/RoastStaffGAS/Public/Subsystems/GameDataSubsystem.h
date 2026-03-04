@@ -30,29 +30,29 @@ public:
     // -------------------------------------------------------------------------
     // 초기화 상태 확인
     // -------------------------------------------------------------------------
-    UFUNCTION(BlueprintCallable, Category = "Vanguard|GDS")
+    UFUNCTION(BlueprintCallable, Category = "MY|GDS")
     bool IsDataReady() const { return bIsDataReady; }
 
     // -------------------------------------------------------------------------
     // 무기 조회
     // -------------------------------------------------------------------------
-    UFUNCTION(BlueprintCallable, Category = "Vanguard|GDS|Weapon")
+    UFUNCTION(BlueprintCallable, Category = "MY|GDS|Weapon")
     bool GetWeaponData(FName WeaponID, FWeaponStaticData& OutData) const;
 
     /** WeaponLevel 기준 무기 ID 목록 반환. 레벨업 시 무기 풀 구성에 사용 */
-    UFUNCTION(BlueprintCallable, Category = "Vanguard|GDS|Weapon")
+    UFUNCTION(BlueprintCallable, Category = "MY|GDS|Weapon")
     TArray<FName> GetWeaponIDsByLevel(int32 WeaponLevel) const;
 
     // -------------------------------------------------------------------------
     // 스킬 조회
     // -------------------------------------------------------------------------
-    UFUNCTION(BlueprintCallable, Category = "Vanguard|GDS|Skill")
+    UFUNCTION(BlueprintCallable, Category = "MY|GDS|Skill")
     bool GetSkillData(FName SkillID, FSkillStaticData& OutData) const;
 
-    UFUNCTION(BlueprintCallable, Category = "Vanguard|GDS|Skill")
+    UFUNCTION(BlueprintCallable, Category = "MY|GDS|Skill")
     bool GetSkillEffectData(FName SkillEffectID, FSkillEffectData& OutData) const;
 
-    UFUNCTION(BlueprintCallable, Category = "Vanguard|GDS|Skill")
+    UFUNCTION(BlueprintCallable, Category = "MY|GDS|Skill")
     bool GetSkillSpawnData(FName SkillEffectID, FSkillSpawnData& OutData) const;
 
     // FlightData 템플릿 조회
