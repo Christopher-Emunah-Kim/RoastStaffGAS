@@ -13,16 +13,13 @@
  * - 전역에서 일관된 참조
  * - 리팩토링 시 이름 변경 용이하게
  * 
- * [사용법]
- * #include "GameplayTags/K_GameplayTags.h"
+* [사용법]
+ * #include "AbilitySystem/Tags/K_GameplayTags.h"
  * 
- * //태그비교시
- * if(ASC->HasMatchingGameplayTag(KTags::State_Debuff_Burning))
- * {
- *		Damage *= 2.f;
- * }
+ * // 태그 비교
+ * if (ASC->HasMatchingGameplayTag(KTags::State_Debuff_Burn)) { ... }
  * 
- * //SetByCaller 데이터 전달 시
+ * // SetByCaller 데이터 전달
  * Spec.Data->SetByCallerMagnitude(KTags::Data_Damage, 10.f);
  */
 
@@ -33,6 +30,10 @@ namespace KTags
 	// 어빌리티 태그(Ability.*)
 	//===============================================
 	// GA 식별 용도 및 상호작용 목적
+	
+	// 범용 GA 트리거 태그 — SendGameplayEvent로 발동
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Projectile);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Summon);
 	
 	//기본 공격 GA태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Combat_BasicShoot);
@@ -48,6 +49,11 @@ namespace KTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Movement_Dash);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Movement_Dash_Cooldown);
 	
+	//===============================================
+	// 팀 태그 (Team.*)
+	//===============================================
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Team_Player);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Team_Enemy);
 	
 	//===============================================
 	// 상태 태그(State.*)
@@ -56,13 +62,20 @@ namespace KTags
 	// GE에서 GrantedTags 사용 목적. 
 	// ASC->HasMatchingGameplayTag() 조회 목적
 	
-	//화상 상태(Burning) <- GE_Burn이 화상상태 부여
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Burning);
-	//사망 상태(Dead) <- 체력 0이면 부여
+	// 사망
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dead);
-	//대시 상태(Dashing)
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dashing);
+
+	// 디버프 
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Burn);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Freeze);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Shock);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Slow);
+
+	// 슬롯 상태
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Slot_Active);
 	
+	
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dashing);
 	
 	//===============================================
 	// 데이터 태그(Data.*)
@@ -95,14 +108,15 @@ namespace KTags
 	// GE 태그(GameplayEffect.*)
 	//===============================================
 	
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Combat_Death);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Combat_TakeDamage);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Weapon_Equipped);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Weapon_Unequipped);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_LevelUp);
+	
 	//Hitcheck
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Montage_HitCheck);
 	
-	//사망 시
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Combat_Death);
-	
-	//데미지 입을 시
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Combat_TakeDamage);
 	
 	
 }
