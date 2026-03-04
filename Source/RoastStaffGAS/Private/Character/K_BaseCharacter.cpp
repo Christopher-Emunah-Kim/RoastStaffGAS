@@ -4,7 +4,7 @@
 #include "Character/K_BaseCharacter.h"
 #include "AbilitySystemComponent.h"
 #include "GAS/Attributes/K_BaseAttributeSet.h"
-#include "System/K_LoggingSystem.h"
+#include "System/LoggingSystem.h"
 
 AK_BaseCharacter::AK_BaseCharacter()
 	: CharacterLevel(1), bASCInitialized(false)

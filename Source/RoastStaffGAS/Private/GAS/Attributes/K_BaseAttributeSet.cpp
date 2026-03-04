@@ -4,7 +4,7 @@
 #include "GAS/Attributes/K_BaseAttributeSet.h"
 #include "GAS/Tags/K_GameplayTags.h"
 #include "Net/UnrealNetwork.h"
-#include "System/K_LoggingSystem.h"
+#include "System/LoggingSystem.h"
 
 UK_BaseAttributeSet::UK_BaseAttributeSet()
 {

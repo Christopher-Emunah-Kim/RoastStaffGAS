@@ -7,7 +7,7 @@
 #include "Engine/DataTable.h"
 #include "Data/DataTableStructs.h"
 #include "Data/RuntimeDataStructs.h"
-#include "System/K_LoggingSystem.h"
+#include "System/LoggingSystem.h"
 #include "GameDataSubsystem.generated.h"
 
 /**

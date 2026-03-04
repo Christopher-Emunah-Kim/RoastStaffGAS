@@ -11,7 +11,7 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "System/K_LoggingSystem.h"
+#include "System/LoggingSystem.h"
 
 AK_EnemyCharacter::AK_EnemyCharacter()
 {

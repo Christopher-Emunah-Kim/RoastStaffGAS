@@ -6,7 +6,7 @@
 #include "GAS/Tags/K_GameplayTags.h"
 #include "Character/K_PlayerCharacter.h"
 #include "EntitySystem/MovieSceneEntitySystemRunner.h"
-#include "System/K_LoggingSystem.h"
+#include "System/LoggingSystem.h"
 
 
 UK_GA_Dash::UK_GA_Dash()

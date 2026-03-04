@@ -4,7 +4,7 @@
 #include "Character/K_PlayerCharacter.h"
 #include "Character/K_PlayerController.h"
 #include "Character/K_PlayerState.h"
-#include "System/K_LoggingSystem.h"
+#include "System/LoggingSystem.h"
 #include "GAS/Attributes/K_BaseAttributeSet.h"
 #include "GAS/Tags/K_GameplayTags.h"
 
