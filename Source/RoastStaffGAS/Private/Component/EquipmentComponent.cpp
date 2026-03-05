@@ -27,6 +27,8 @@ void UEquipmentComponent::BeginPlay()
 	Super::BeginPlay();
 }
 
+
+
 void UEquipmentComponent::FireSlot(int32 SlotIndex)
 {
     FWeaponSlotInstanceData& Slot = Slots[SlotIndex];
@@ -34,17 +36,22 @@ void UEquipmentComponent::FireSlot(int32 SlotIndex)
     // GA 트리거 이벤트 전송 — 에임 좌표를 페이로드에 포함
     FGameplayEventData Payload;
     Payload.Instigator = GetOwner();
-    Payload.Target     = GetOwner();
-    Payload.TargetData = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(GetOwner());
+    Payload.Target     = nullptr;
+    //Payload.TargetData = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(GetOwner());
 
     // 에임 월드 좌표를 EventMagnitude 대신 TargetData로 전달
     // TODO: FGameplayAbilityTargetData_SingleTargetHit으로 에임 좌표 포함 — GA 구현 시 확정
-    UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
-        GetOwner(), RSTags::Event_Weapon_Fire,Payload
-    );
+    
+    const FGameplayTag EventTag = GetEventTag(Slot);
+    if (EventTag == FGameplayTag::EmptyTag)
+    {
+        KHS_WARN(TEXT("Invalid EventTag. Check for SlotData!"));
+        return;
+    }
+    
+    UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(GetOwner(), EventTag,Payload);
 
-    KHS_INFO(TEXT("Slot %d: %s 발사! CD: %.2fs"),
-        SlotIndex, *Slot.EquipData.SkillID.ToString(), Slot.EquipData.Cooldown);
+    KHS_INFO(TEXT("Slot %d: %s 발사! CD: %.2fs"), SlotIndex, *Slot.EquipData.SkillID.ToString(), Slot.EquipData.Cooldown);
 }
 
 void UEquipmentComponent::StartAutoFire(int32 SlotIndex)
@@ -281,3 +288,21 @@ void UEquipmentComponent::StopAllFire()
     KHS_INFO(TEXT("모든 슬롯 자동발사 타이머 클리어."));
 }
 
+FGameplayTag UEquipmentComponent::GetEventTag(FWeaponSlotInstanceData& Slot)
+{
+    switch (Slot.EquipData.SkillType)
+    {
+    case ESkillType::PROJECTILE:
+        return RSTags::Event_Weapon_Fire_Projectile;
+        break;
+    case ESkillType::SUMMON:
+        return RSTags::Event_Weapon_Fire_Summon;
+        break;
+    default:
+        {
+            KHS_WARN(TEXT("Invalid GameplayTag"));
+        }
+    }
+    
+    return FGameplayTag::EmptyTag;
+}

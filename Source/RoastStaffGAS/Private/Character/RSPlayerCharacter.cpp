@@ -15,6 +15,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "TimerManager.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 ARSPlayerCharacter::ARSPlayerCharacter()
 {
@@ -23,9 +24,23 @@ ARSPlayerCharacter::ARSPlayerCharacter()
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->bUsePawnControlRotation = false;
+	SpringArm->SetRelativeRotation(FRotator(-50.f, 0.f, 0.f));
+	SpringArm->TargetArmLength = 2200.f;
+	SpringArm->bDoCollisionTest = false;
+	SpringArm->bInheritYaw = false;
+	SpringArm->bEnableCameraLag = true;
+	SpringArm->CameraLagSpeed = 0.5f;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
+	Camera->SetFieldOfView(75.f);
+	
+	GetCharacterMovement()->GravityScale = 1.5f;
+	GetCharacterMovement()->MaxAcceleration = 1000.0f;
+	GetCharacterMovement()->bCanWalkOffLedges = false;
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 640.0f, 0.0f);
+	GetCharacterMovement()->bConstrainToPlane = true;
+	GetCharacterMovement()->bSnapToPlaneAtStart = true;
 	
 	EquipmentComp = CreateDefaultSubobject<UEquipmentComponent>(TEXT("EquipmentComp"));
 }
@@ -57,6 +72,12 @@ void ARSPlayerCharacter::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 	
 	InitializeAbilitySystem();
+	
+	// [임시 테스트 코드 — 이후 레벨업 시스템으로 교체]
+    if (EquipmentComp)
+    {
+        EquipmentComp->EquipWeapon(FName("WPN_FIRESTAFF_Lv1"));
+    }
 }
 
 bool ARSPlayerCharacter::HandleMouseAim()
@@ -98,6 +119,7 @@ void ARSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	UEnhancedInputComponent* EIC = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 
 	EIC->BindAction(IA_Move,  ETriggerEvent::Triggered, this, &ARSPlayerCharacter::OnMove);
+	EIC->BindAction(IA_MouseAim, ETriggerEvent::Triggered, this, &ARSPlayerCharacter::OnMouseAim);
 	EIC->BindAction(IA_Dash,  ETriggerEvent::Triggered, this, &ARSPlayerCharacter::OnDash);
 	EIC->BindAction(IA_Attack, ETriggerEvent::Started,   this, &ARSPlayerCharacter::OnShootStart);
 	EIC->BindAction(IA_Slot1, ETriggerEvent::Started, this, &ARSPlayerCharacter::OnSlotActivate1);
@@ -208,6 +230,20 @@ void ARSPlayerCharacter::OnMove(const FInputActionValue& Value)
 
 	AddMovementInput(FVector::ForwardVector, Input.X);
 	AddMovementInput(FVector::RightVector,   Input.Y);
+}
+
+void ARSPlayerCharacter::OnMouseAim(const FInputActionValue& Value)
+{
+	FVector2D inputVector = Value.Get<FVector2D>();
+	
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (!PC)
+	{
+		KHS_WARN(TEXT("PlayerController is NULL."));
+		return;
+	}
+	
+	AimAngle = FMath::RadiansToDegrees(FMath::Atan2(inputVector.Y, inputVector.X));
 }
 
 void ARSPlayerCharacter::OnDash(const FInputActionValue& Value)
