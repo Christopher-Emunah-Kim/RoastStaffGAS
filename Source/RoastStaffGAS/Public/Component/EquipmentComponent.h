@@ -41,12 +41,17 @@ private:
 	FVector GetAimWorldLocation() const;
 	// 슬롯 인덱스 유효성
 	bool IsValidSlotIndex(int32 SlotIndex) const;
+	// 트리거 이벤트 태그 반환	
+	FGameplayTag GetEventTag(FWeaponSlotInstanceData& Slot);
 
 public:
 	// PlayerCharacter 초기화 시 ASC 주입
 	void InitializeWithASC(UAbilitySystemComponent* InASC);
+	
 	// 무기 장착 — 레벨업 시 호출
+	UFUNCTION(BlueprintCallable, Category="Component")
 	void EquipWeapon(const FName& WeaponID);
+	
 	// 슬롯 액티브 모드 전환 — Num1/2/3 입력 시 호출
 	void RequestSlotActivate(int32 SlotIndex);
 	// 수동 발사 — 마우스 클릭 시 호출 (액티브 슬롯만)

@@ -14,7 +14,7 @@ class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
 
-UCLASS()
+UCLASS(PrioritizeCategories = ("MY|Input"))
 class ROASTSTAFFGAS_API ARSPlayerCharacter : public ABaseCharacter
 {
 	GENERATED_BODY()
@@ -44,6 +44,7 @@ private:
     bool HandleMouseAim();
     
     void OnMove(const FInputActionValue& Value);
+    void OnMouseAim(const FInputActionValue& Value);
     void OnDash(const FInputActionValue& Value);
     void OnShootStart(const FInputActionValue& Value);
     void OnSlotActivate1(const FInputActionValue& Value);
@@ -52,17 +53,19 @@ private:
 
 protected:
     // 컴포넌트
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MY|Camera")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<USpringArmComponent> SpringArm;
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MY|Camera")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<UCameraComponent> Camera;
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MY|Combat")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<UEquipmentComponent> EquipmentComp;
     // 입력 에셋
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MY|Input")
     TObjectPtr<UInputMappingContext> IMC;
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MY|Input")
     TObjectPtr<UInputAction> IA_Move;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MY|Input")
+    TObjectPtr<UInputAction> IA_MouseAim;
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MY|Input")
     TObjectPtr<UInputAction> IA_Dash;
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MY|Input")
