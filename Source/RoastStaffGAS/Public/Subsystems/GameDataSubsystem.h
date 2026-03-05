@@ -66,6 +66,23 @@ public:
     bool GetFlightData(FName SkillEffectID, T& OutData) const;
 
     // -------------------------------------------------------------------------
+    // 에너미 조회
+    // -------------------------------------------------------------------------
+    UFUNCTION(BlueprintCallable, Category = "MY|GDS|Enemy")
+    bool GetEnemyData(FName EnemyID, FEnemyStaticData& OutData) const;
+
+    // -------------------------------------------------------------------------
+    // 스테이지 / 웨이브 조회
+    // -------------------------------------------------------------------------
+    UFUNCTION(BlueprintCallable, Category = "MY|GDS|Stage")
+    bool GetStageData(FName StageID, FStageStaticData& OutData) const;
+
+    /** StageID에 속한 웨이브 목록 반환(WaveIndex 오름차순)  */
+    UFUNCTION(BlueprintCallable, Category = "MY|GDS|Stage")
+    TArray<FWaveStaticData> GetWaveDataByStage(FName StageID) const;
+    
+    
+    // -------------------------------------------------------------------------
     // 복합 조회
     // -------------------------------------------------------------------------
     /**
@@ -124,6 +141,12 @@ private:
     UDataTable* LoadedFlightPierceTable = nullptr;
     UPROPERTY()
     UDataTable* LoadedFlightExplodeTable = nullptr;
+    UPROPERTY()
+    UDataTable* LoadedEnemyTable = nullptr;
+    UPROPERTY()
+    UDataTable* LoadedStageTable = nullptr;
+    UPROPERTY()
+    UDataTable* LoadedWaveTable = nullptr;
 
     // -------------------------------------------------------------------------
     // 캐시 (ID → 구조체)
@@ -142,18 +165,26 @@ private:
     TMap<FName, FFlightPierceData> FlightPierceCache;
     UPROPERTY()
     TMap<FName, FFlightExplodeData> FlightExplodeCache;
+    UPROPERTY()
+    TMap<FName, FEnemyStaticData> EnemyCache;
+    UPROPERTY()
+    TMap<FName, FStageStaticData> StageCache;
+    UPROPERTY()
+    TMap<FName, FWaveStaticData> WaveCache;
 
     // -------------------------------------------------------------------------
     // 보조 인덱스
     // -------------------------------------------------------------------------
     /** WeaponLevel → WeaponID 목록. GetWeaponIDsByLevel() 전용 */
     TMap<int32, TArray<FName>> WeaponByLevelIndex;
+    //  StageID → 해당 스테이지의 웨이브 목록
+    TMap<FName, TArray<FWaveStaticData>> WaveByStageIndex;
     
 };
 
 
 // =============================================================================
-// 템플릿 구현부 (헤더에 위치해야 컴파일 가능)
+// 템플릿 구현부
 // =============================================================================
 
 template<typename T>

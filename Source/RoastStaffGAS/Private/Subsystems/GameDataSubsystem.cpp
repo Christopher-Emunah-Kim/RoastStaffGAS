@@ -26,6 +26,10 @@ void UGameDataSubsystem::Deinitialize()
     FlightPierceCache.Empty();
     FlightExplodeCache.Empty();
     WeaponByLevelIndex.Empty();
+    EnemyCache.Empty();
+    StageCache.Empty();
+    WaveCache.Empty();
+    WaveByStageIndex.Empty();
 
     bIsDataReady = false;
     Super::Deinitialize();
@@ -53,6 +57,9 @@ void UGameDataSubsystem::LoadDataTables()
     LoadDataTable<FFlightArcData>   (Config->FlightArcTable,   LoadedFlightArcTable,   TEXT("DT_Flight_Arc"));          //궤도형 투사체 데이터
     LoadDataTable<FFlightPierceData>(Config->FlightPierceTable,LoadedFlightPierceTable,TEXT("DT_Flight_Pierce"));       //관통형 투사체 데이터
     LoadDataTable<FFlightExplodeData>(Config->FlightExplodeTable,LoadedFlightExplodeTable,TEXT("DT_Flight_Explode"));   //폭발형 투사체 데이터
+    LoadDataTable<FEnemyStaticData> (Config->EnemyTable,  LoadedEnemyTable,  TEXT("DT_Enemy"));                         //적 데이터
+    LoadDataTable<FStageStaticData> (Config->StageTable,  LoadedStageTable,  TEXT("DT_Stage"));                         //스테이지 스폰 데이터
+    LoadDataTable<FWaveStaticData>  (Config->WaveTable,   LoadedWaveTable,   TEXT("DT_WaveData"));                      //스폰 웨이브 데이터
     
     if (!Config->BaseStatCurveTable.IsNull()) //레벨별 스탯 커브 데이터
     {
@@ -72,6 +79,9 @@ void UGameDataSubsystem::CacheAllData()
     CacheDataTable<FFlightArcData>   (LoadedFlightArcTable,    FlightArcCache,   &FFlightArcData::SkillEffectID,  TEXT("DT_Flight_Arc"));
     CacheDataTable<FFlightPierceData>(LoadedFlightPierceTable, FlightPierceCache,&FFlightPierceData::SkillEffectID,TEXT("DT_Flight_Pierce"));
     CacheDataTable<FFlightExplodeData>(LoadedFlightExplodeTable,FlightExplodeCache,&FFlightExplodeData::SkillEffectID,TEXT("DT_Flight_Explode"));
+    CacheDataTable<FEnemyStaticData>(LoadedEnemyTable, EnemyCache, &FEnemyStaticData::EnemyID, TEXT("DT_Enemy"));
+    CacheDataTable<FStageStaticData>(LoadedStageTable, StageCache, &FStageStaticData::StageID, TEXT("DT_Stage"));
+    CacheDataTable<FWaveStaticData> (LoadedWaveTable,  WaveCache,  &FWaveStaticData::StageID,  TEXT("DT_WaveData"));
 }
 
 // -----------------------------------------------------------------------------
@@ -86,8 +96,32 @@ void UGameDataSubsystem::BuildSecondaryIndex()
         int32 Level = Pair.Value.WeaponLevel;
         WeaponByLevelIndex.FindOrAdd(Level).Add(Pair.Key);
     }
-
+    
     KHS_INFO(TEXT("WeaponByLevel 보조 인덱스 구성 완료 (%d개 레벨)"),WeaponByLevelIndex.Num());
+    
+    // WaveByStage 보조 인덱스 구성
+    WaveByStageIndex.Empty();
+    for (const FName& RowName : LoadedWaveTable->GetRowNames())
+    {
+        FWaveStaticData* Row = LoadedWaveTable->FindRow<FWaveStaticData>(RowName, TEXT(""));
+        if (!Row)
+        {
+            KHS_WARN(TEXT("CANNOT FIND ROWNAME"));
+            continue;
+        }
+        WaveByStageIndex.FindOrAdd(Row->StageID).Add(*Row);
+    }
+
+    // 각 스테이지의 웨이브 목록을 WaveIndex 오름차순 정렬
+    for (auto& Pair : WaveByStageIndex)
+    {
+        Pair.Value.Sort([](const FWaveStaticData& A, const FWaveStaticData& B)
+        {
+            return A.WaveIndex < B.WaveIndex;
+        });
+    }
+
+    KHS_INFO(TEXT("WaveByStage 보조 인덱스 구성 완료 (%d개 스테이지)"), WaveByStageIndex.Num());
 }
 
 bool UGameDataSubsystem::GetLevelCurveValue(FName CurveName, int32 Level, float& OutValue) const
@@ -151,6 +185,42 @@ bool UGameDataSubsystem::GetSkillEffectData(FName SkillEffectID, FSkillEffectDat
 bool UGameDataSubsystem::GetSkillSpawnData(FName SkillEffectID, FSkillSpawnData& OutData) const
 {
     return GetCachedData(SpawnCache, SkillEffectID, OutData, TEXT("FSkillSpawnData"));
+}
+
+// -----------------------------------------------------------------------------
+// 에너미 조회
+// -----------------------------------------------------------------------------
+
+bool UGameDataSubsystem::GetEnemyData(FName EnemyID, FEnemyStaticData& OutData) const
+{
+    return GetCachedData(EnemyCache, EnemyID, OutData, TEXT("FEnemyStaticData"));
+}
+
+// -----------------------------------------------------------------------------
+// 스테이지 / 웨이브 조회
+// -----------------------------------------------------------------------------
+
+bool UGameDataSubsystem::GetStageData(FName StageID, FStageStaticData& OutData) const
+{
+    return GetCachedData(StageCache, StageID, OutData, TEXT("FStageStaticData"));
+}
+
+TArray<FWaveStaticData> UGameDataSubsystem::GetWaveDataByStage(FName StageID) const
+{
+    if (!bIsDataReady)
+    {
+        KHS_WARN(TEXT("GDS 초기화 미완료 상태에서 웨이브 조회 요청 — StageID: %s"), *StageID.ToString());
+        return {};
+    }
+
+    const TArray<FWaveStaticData>* Found = WaveByStageIndex.Find(StageID);
+    if (!Found)
+    {
+        KHS_WARN(TEXT("웨이브 데이터 조회 실패 — StageID: %s"), *StageID.ToString());
+        return {};
+    }
+
+    return *Found;
 }
 
 // -----------------------------------------------------------------------------
