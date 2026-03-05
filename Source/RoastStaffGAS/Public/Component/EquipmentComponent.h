@@ -16,6 +16,7 @@
 class UAbilitySystemComponent;
 class UGameplayAbility;
 class UGameplayEffect;
+class URSSkillData;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ROASTSTAFFGAS_API UEquipmentComponent : public UActorComponent
@@ -62,6 +63,8 @@ public:
 private:
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> ASC;
+	UPROPERTY()
+	TArray<TObjectPtr<URSSkillData>> SkillDataObjects; //GC 방지
 	
 	static constexpr int32 SLOT_COUNT = 3;
 	FWeaponSlotInstanceData Slots[SLOT_COUNT];
