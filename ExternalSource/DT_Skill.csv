@@ -1,0 +1,2 @@
+---,SkillID,SkillEffectID,ResourceID,GAClass,ProjectileClass,DamageGEClass,StatusGEClass,CooldownGE,CostGE,Tags
+SKILL_FIREBALL,"SKILL_FIREBALL","EFFECT_FIREBALL","RESOURCE_FIREBALL","None","None","None","None","None","None","(GameplayTags=((TagName=""Ability.Skill.Fireball"")))"

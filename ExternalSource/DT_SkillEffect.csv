@@ -1,0 +1,2 @@
+﻿---,SkillEffectID,SkillType,FlightType,HitType,Damage,Speed,Lifetime,ExpireCondition,Cooldown,StatusEffectID
+EFFECT_FIREBALL,EFFECT_FIREBALL,PROJECTILE,LINEAR,SINGLE,30.0,800.0,5.0,OnHit,2.0,

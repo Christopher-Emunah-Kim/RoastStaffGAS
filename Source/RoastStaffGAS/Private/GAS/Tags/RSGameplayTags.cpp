@@ -45,6 +45,8 @@ namespace RSTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_Weapon_Equipped, "Event.Weapon.Equipped");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Weapon_Unequipped, "Event.Weapon.Unequipped");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Weapon_Fire, "Event.Weapon.Fire");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Weapon_Fire_Projectile, "Event.Weapon.Fire.Projectile");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Weapon_Fire_Summon, "Event.Weapon.Fire.Summon");
 	UE_DEFINE_GAMEPLAY_TAG(Event_LevelUp, "Event.LevelUp");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Montage_HitCheck, "Event.Montage.HitCheck");
 	
