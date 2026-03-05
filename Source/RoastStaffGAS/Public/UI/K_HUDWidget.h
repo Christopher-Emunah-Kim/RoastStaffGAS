@@ -21,7 +21,7 @@ class ROASTSTAFFGAS_API UK_HUDWidget : public UK_BaseWidget
 public:
 	void BindToASC(UAbilitySystemComponent* InASC);
 	
-private:
-	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<UK_StateBarWidget> WBP_StateBar;
+// private:
+// 	UPROPERTY(meta = (BindWidgetOptional))
+// 	TObjectPtr<UK_StateBarWidget> WBP_StateBar;
 };
