@@ -36,7 +36,7 @@ protected:
     virtual void HandleDeath() override; // 고유 사망 처리
     
     // GA 발동 헬퍼
-    void TryActivateDash();
+    //void TryActivateDash();
     
 private:
     ARSPlayerState* GetRSPlayerState() const;
@@ -46,7 +46,7 @@ private:
     
     void OnMove(const FInputActionValue& Value);
     void OnMouseAim(const FInputActionValue& Value);
-    void OnDash(const FInputActionValue& Value);
+    //void OnDash(const FInputActionValue& Value);
     void OnShootStart(const FInputActionValue& Value);
     void OnSlotActivate1(const FInputActionValue& Value);
     void OnSlotActivate2(const FInputActionValue& Value);
@@ -70,8 +70,8 @@ protected:
     TObjectPtr<UInputAction> IA_Move;
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MY|Input")
     TObjectPtr<UInputAction> IA_MouseAim;
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MY|Input")
-    TObjectPtr<UInputAction> IA_Dash;
+    //UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MY|Input")
+    //TObjectPtr<UInputAction> IA_Dash;
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MY|Input")
     TObjectPtr<UInputAction> IA_Attack;
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MY|Input")

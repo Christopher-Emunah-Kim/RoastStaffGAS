@@ -124,7 +124,7 @@ void ARSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 	EIC->BindAction(IA_Move,  ETriggerEvent::Triggered, this, &ARSPlayerCharacter::OnMove);
 	EIC->BindAction(IA_MouseAim, ETriggerEvent::Triggered, this, &ARSPlayerCharacter::OnMouseAim);
-	EIC->BindAction(IA_Dash,  ETriggerEvent::Triggered, this, &ARSPlayerCharacter::OnDash);
+	//EIC->BindAction(IA_Dash,  ETriggerEvent::Triggered, this, &ARSPlayerCharacter::OnDash);
 	EIC->BindAction(IA_Attack, ETriggerEvent::Started,   this, &ARSPlayerCharacter::OnShootStart);
 	EIC->BindAction(IA_Slot1, ETriggerEvent::Started, this, &ARSPlayerCharacter::OnSlotActivate1);
 	EIC->BindAction(IA_Slot2, ETriggerEvent::Started, this, &ARSPlayerCharacter::OnSlotActivate2);
@@ -209,19 +209,19 @@ void ARSPlayerCharacter::HandleDeath()
 	KHS_INFO(TEXT("플레이어 고유 사망 처리 완료."));
 }
 
-void ARSPlayerCharacter::TryActivateDash()
-{
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
-	if (!ASC)
-	{
-		KHS_WARN(TEXT("ASC IS NULL"));
-		return;
-	}
-
-	FGameplayTagContainer TempTags;
-	TempTags.AddTag(RSTags::Ability_Movement_Dash);
-	ASC->TryActivateAbilitiesByTag(TempTags);
-}
+// void ARSPlayerCharacter::TryActivateDash()
+// {
+// 	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+// 	if (!ASC)
+// 	{
+// 		KHS_WARN(TEXT("ASC IS NULL"));
+// 		return;
+// 	}
+//
+// 	FGameplayTagContainer TempTags;
+// 	TempTags.AddTag(RSTags::Ability_Movement_Dash);
+// 	ASC->TryActivateAbilitiesByTag(TempTags);
+// }
 
 ARSPlayerState* ARSPlayerCharacter::GetRSPlayerState() const
 {
@@ -252,10 +252,10 @@ void ARSPlayerCharacter::OnMouseAim(const FInputActionValue& Value)
 	AimAngle = FMath::RadiansToDegrees(FMath::Atan2(inputVector.Y, inputVector.X));
 }
 
-void ARSPlayerCharacter::OnDash(const FInputActionValue& Value)
-{
-	TryActivateDash();
-}
+// void ARSPlayerCharacter::OnDash(const FInputActionValue& Value)
+// {
+// 	TryActivateDash();
+// }
 
 void ARSPlayerCharacter::OnShootStart(const FInputActionValue& Value)
 {
