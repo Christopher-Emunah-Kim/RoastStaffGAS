@@ -28,7 +28,6 @@ void UEquipmentComponent::BeginPlay()
 }
 
 
-
 void UEquipmentComponent::FireSlot(int32 SlotIndex)
 {
     FWeaponSlotInstanceData& Slot = Slots[SlotIndex];
@@ -214,6 +213,7 @@ void UEquipmentComponent::EquipWeapon(const FName& WeaponID)
     // ASC에 GA 부여(SkillDataObj로 SkillID 정보 전달)
     URSSkillData* SkillDataObj = NewObject<URSSkillData>(GetOwner());
     SkillDataObj->SkillID = EquipData.SkillID;
+    SkillDataObjects.Add(SkillDataObj); //GC에 weakPtr인 sourceObject로 들어간 SkilLData가 수거당하는거 방지. 
     
     FGameplayAbilitySpec Spec(GAClass, 1, INDEX_NONE, SkillDataObj);
     FGameplayAbilitySpecHandle Handle = ASC->GiveAbility(Spec);

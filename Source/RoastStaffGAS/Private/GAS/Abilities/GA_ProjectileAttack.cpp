@@ -13,7 +13,7 @@ UGA_ProjectileAttack::UGA_ProjectileAttack()
 {
 	// Event_Weapon_Fire 태그로 트리거되도록 등록
 	FAbilityTriggerData TriggerData;
-	TriggerData.TriggerTag    = RSTags::Event_Weapon_Fire;
+	TriggerData.TriggerTag    = RSTags::Event_Weapon_Fire_Projectile;
 	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 	AbilityTriggers.Add(TriggerData);
 }
