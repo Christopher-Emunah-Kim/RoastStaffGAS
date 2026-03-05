@@ -77,6 +77,8 @@ void ARSPlayerCharacter::PossessedBy(AController* NewController)
     if (EquipmentComp)
     {
         EquipmentComp->EquipWeapon(FName("WPN_FIRESTAFF_Lv1"));
+        EquipmentComp->EquipWeapon(FName("WPN_FIRESTAFF_Lv1"));
+        EquipmentComp->EquipWeapon(FName("WPN_FIRESTAFF_Lv1"));
     }
 }
 
@@ -242,6 +244,7 @@ void ARSPlayerCharacter::OnMouseAim(const FInputActionValue& Value)
 		KHS_WARN(TEXT("PlayerController is NULL."));
 		return;
 	}
+	PC->SetShowMouseCursor(true);
 	
 	AimAngle = FMath::RadiansToDegrees(FMath::Atan2(inputVector.Y, inputVector.X));
 }
