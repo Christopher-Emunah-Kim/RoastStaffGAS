@@ -10,6 +10,7 @@
 #include "System/LoggingSystem.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "Objects/Data/RSSkillData.h"
 
 UEquipmentComponent::UEquipmentComponent()
 {
@@ -201,8 +202,11 @@ void UEquipmentComponent::EquipWeapon(const FName& WeaponID)
         }
     }
 
-    // ASC에 GA 부여
-    FGameplayAbilitySpec Spec(GAClass, 1, INDEX_NONE, GetOwner());
+    // ASC에 GA 부여(SkillDataObj로 SkillID 정보 전달)
+    URSSkillData* SkillDataObj = NewObject<URSSkillData>(GetOwner());
+    SkillDataObj->SkillID = EquipData.SkillID;
+    
+    FGameplayAbilitySpec Spec(GAClass, 1, INDEX_NONE, SkillDataObj);
     FGameplayAbilitySpecHandle Handle = ASC->GiveAbility(Spec);
     if (!Handle.IsValid())
     {
