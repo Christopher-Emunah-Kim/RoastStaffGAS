@@ -49,8 +49,10 @@ void UEquipmentComponent::FireSlot(int32 SlotIndex)
         return;
     }
     
-    UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(GetOwner(), EventTag,Payload);
-
+    //UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(GetOwner(), EventTag, Payload);
+    ASC->TriggerAbilityFromGameplayEvent(Slot.AbilitySpecHandle, ASC->AbilityActorInfo.Get(),
+            EventTag, &Payload,*ASC);
+    
     KHS_INFO(TEXT("Slot %d: %s 발사! CD: %.2fs"), SlotIndex, *Slot.EquipData.SkillID.ToString(), Slot.EquipData.Cooldown);
 }
 

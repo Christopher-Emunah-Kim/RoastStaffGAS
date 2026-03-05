@@ -12,10 +12,14 @@ namespace RSTags
 	
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Combat_BasicShoot, "Ability.Combat.BasicShoot");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Combat_BasicShoot_Cooldown, "Ability.Combat.BasicShoot.Cooldown");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_Fireball, "Ability.Skill.Fireball");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_Fireball_Cooldown, "Ability.Skill.Fireball.Cooldown");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Movement_Dash, "Ability.Movement.Dash");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Movement_Dash_Cooldown, "Ability.Movement.Dash.Cooldown");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_Fireball, "Ability.Skill.Fireball");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_Fireball_Cooldown, "Ability.Skill.Fireball.Cooldown");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_Iceball, "Ability.Skill.Iceball");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_Thunder, "Ability.Skill.Thunder");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_Poison, "Ability.Skill.Poison");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_Shadow, "Ability.Skill.Shadow");
 	
 	//팀 태그
 	UE_DEFINE_GAMEPLAY_TAG(Team_Player, "Team.Player");

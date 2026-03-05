@@ -77,8 +77,8 @@ void ARSPlayerCharacter::PossessedBy(AController* NewController)
     if (EquipmentComp)
     {
         EquipmentComp->EquipWeapon(FName("WPN_FIRESTAFF_Lv1"));
-        EquipmentComp->EquipWeapon(FName("WPN_FIRESTAFF_Lv1"));
-        EquipmentComp->EquipWeapon(FName("WPN_FIRESTAFF_Lv1"));
+        EquipmentComp->EquipWeapon(FName("WPN_ICESTAFF_Lv1"));
+        EquipmentComp->EquipWeapon(FName("WPN_POISON_Lv1"));
     }
 }
 
