@@ -10,6 +10,7 @@ class ARSPlayerState;
 class USpringArmComponent;
 class UCameraComponent;
 class UEquipmentComponent;
+class ULevelUpComponent;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
@@ -59,6 +60,9 @@ protected:
     TObjectPtr<UCameraComponent> Camera;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<UEquipmentComponent> EquipmentComp;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    TObjectPtr<ULevelUpComponent> LevelUpComp;
+    
     // 입력 에셋
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MY|Input")
     TObjectPtr<UInputMappingContext> IMC;

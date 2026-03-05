@@ -4,6 +4,7 @@
 #include "Character/RSPlayerCharacter.h"
 #include "Character/RSPlayerState.h"
 #include "Component/EquipmentComponent.h"
+#include "Component/LevelUpComponent.h"
 #include "GAS/Attributes/PlayerAttributeSet.h"
 #include "GAS/Tags/RSGameplayTags.h"
 #include "System/LoggingSystem.h"
@@ -43,6 +44,7 @@ ARSPlayerCharacter::ARSPlayerCharacter()
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;
 	
 	EquipmentComp = CreateDefaultSubobject<UEquipmentComponent>(TEXT("EquipmentComp"));
+	LevelUpComp = CreateDefaultSubobject<ULevelUpComponent>(TEXT("LevelUpComp"));
 }
 
 void ARSPlayerCharacter::BeginPlay()
@@ -74,12 +76,12 @@ void ARSPlayerCharacter::PossessedBy(AController* NewController)
 	InitializeAbilitySystem();
 	
 	// [임시 테스트 코드 — 이후 레벨업 시스템으로 교체]
-    if (EquipmentComp)
-    {
-        EquipmentComp->EquipWeapon(FName("WPN_FIRESTAFF_Lv1"));
-        EquipmentComp->EquipWeapon(FName("WPN_ICESTAFF_Lv1"));
-        EquipmentComp->EquipWeapon(FName("WPN_POISON_Lv1"));
-    }
+    // if (EquipmentComp)
+    // {
+    //     EquipmentComp->EquipWeapon(FName("WPN_FIRESTAFF_Lv1"));
+    //     EquipmentComp->EquipWeapon(FName("WPN_ICESTAFF_Lv1"));
+    //     EquipmentComp->EquipWeapon(FName("WPN_POISON_Lv1"));
+    // }
 }
 
 bool ARSPlayerCharacter::HandleMouseAim()
@@ -173,6 +175,7 @@ void ARSPlayerCharacter::InitializeAbilitySystem()
 		return;
 	}
 	EquipmentComp->InitializeWithASC(ASC);
+	LevelUpComp->Initialize(ASC, PS->GetPlayerAttributeSet(),EquipmentComp);
 	
 	KHS_INFO(TEXT("GAS 초기화 완료."));
 }
