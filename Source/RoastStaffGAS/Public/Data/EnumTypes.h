@@ -61,6 +61,15 @@ UENUM(BlueprintType)
 enum class ESpawnPattern : uint8
 {
 	SINGLE		UMETA(DisplayName = "Single"),
-	SPREAD	UMETA(DisplayName = "FanSpread"),
+	SPREAD		UMETA(DisplayName = "FanSpread"),
 	CIRCLE		UMETA(DisplayName = "Circle")
+};
+
+/** 에너미 AI 행동 패턴 타입 */
+UENUM(BlueprintType)
+enum class EAIType : uint8
+{
+	CHASE	UMETA(DisplayName = "Chase"),
+	RANGED	UMETA(DisplayName = "Ranged"),
+	ELITE	UMETA(DisplayName = "Elite")
 };
