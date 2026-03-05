@@ -103,18 +103,15 @@ namespace RSTags
 	
 	//화상 이펙트(Burn VFX)
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Combat_Burn);
-	
 	//Fireball 발사 이펙트
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Combat_Fireball_Launch);
-	
 	//Fireball 피격 이펙트
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Combat_Fireball_Impact);
 	
 	
 	//===============================================
-	// GE 태그(GameplayEffect.*)
+	// 이벤트 태그
 	//===============================================
-	
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Combat_Death);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Combat_TakeDamage);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Weapon_Equipped);
@@ -126,7 +123,9 @@ namespace RSTags
 	
 	//Hitcheck
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Montage_HitCheck);
-	
+	// 에너미 이벤트
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Enemy_Spawned); 
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Enemy_Killed); 
 	
 	
 }
