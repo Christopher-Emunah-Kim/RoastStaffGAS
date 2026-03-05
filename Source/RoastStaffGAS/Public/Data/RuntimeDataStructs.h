@@ -59,6 +59,50 @@ struct FWeaponEquipData
 	EExpireCondition ExpireCondition;
 };
 
+// ----------------------------------------------------------------------------
+// FRSSkillInitData — GA → 투사체로 전달되는 초기화 데이터.
+// GA가 GDS에서 조회한 결과를 채워서 SpawnProjectiles에 전달
+// ----------------------------------------------------------------------------
+
+USTRUCT(BlueprintType)
+struct FRSSkillInitData
+{
+	GENERATED_BODY()
+
+	// 스킬 식별
+	UPROPERTY() 
+	FName SkillID;
+	UPROPERTY() 
+	FName SkillEffectID;
+
+	// GE 클래스
+	UPROPERTY() 
+	TSubclassOf<UGameplayEffect> DamageGEClass;
+	UPROPERTY() 
+	TSubclassOf<UGameplayEffect> StatusGEClass;   // 없으면 nullptr
+
+	// 발사자 ASC 
+	UPROPERTY() 
+	TObjectPtr<UAbilitySystemComponent> InstigatorASC;
+
+	// 투사체 파라미터
+	UPROPERTY() 
+	float Damage;
+	UPROPERTY() 
+	float Speed;
+	UPROPERTY() 
+	float Lifetime;
+
+	// 스폰 파라미터
+	UPROPERTY() 
+	ESpawnPattern SpawnPattern;
+	UPROPERTY() 
+	int32 ProjectileCount;
+	UPROPERTY() 
+	float SpreadAngle;
+};
+
+
 // -------------------------------------------------------------------------
 // 슬롯 런타임 데이터 — EquipmentComponent가 직접 관리
 // -------------------------------------------------------------------------
