@@ -41,13 +41,15 @@ namespace RSTags
 	
 	//기본 공격 GA태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Combat_BasicShoot);
-	//기본 공격 쿨타임 GA태그(선택적 사용)
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Combat_BasicShoot_Cooldown);
 	
-	//Fireball GA태그
+	//스킬 GA태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Fireball);
-	//Fireball 쿨다운 상태 태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Fireball_Cooldown);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Iceball);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Thunder);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Poison);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Shadow);
 	
 	//Dash GA태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Movement_Dash);
