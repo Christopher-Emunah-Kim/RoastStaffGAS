@@ -15,10 +15,11 @@ UCLASS()
 class ROASTSTAFFGAS_API UGameDataConfig : public UDataAsset
 {
 	GENERATED_BODY()
+	
 public:
-	// -------------------------------------------------------------------------
-	// Sprint1 MVP — 7개 테이블
-	// -------------------------------------------------------------------------
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level")
+	TSoftObjectPtr<UCurveTable> BaseStatCurveTable;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 	TSoftObjectPtr<UDataTable> WeaponTable;
 

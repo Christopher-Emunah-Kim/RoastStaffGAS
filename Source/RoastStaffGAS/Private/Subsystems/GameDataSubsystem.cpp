@@ -46,13 +46,18 @@ void UGameDataSubsystem::LoadDataTables()
         return;
     }
 
-    LoadDataTable<FWeaponStaticData>(Config->WeaponTable,      LoadedWeaponTable,      TEXT("DT_Weapon"));
-    LoadDataTable<FSkillStaticData> (Config->SkillTable,       LoadedSkillTable,       TEXT("DT_Skill"));
-    LoadDataTable<FSkillEffectData> (Config->SkillEffectTable, LoadedSkillEffectTable, TEXT("DT_SkillEffect"));
-    LoadDataTable<FSkillSpawnData>  (Config->SpawnTable,       LoadedSpawnTable,       TEXT("DT_Spawn"));
-    LoadDataTable<FFlightArcData>   (Config->FlightArcTable,   LoadedFlightArcTable,   TEXT("DT_Flight_Arc"));
-    LoadDataTable<FFlightPierceData>(Config->FlightPierceTable,LoadedFlightPierceTable,TEXT("DT_Flight_Pierce"));
-    LoadDataTable<FFlightExplodeData>(Config->FlightExplodeTable,LoadedFlightExplodeTable,TEXT("DT_Flight_Explode"));
+    LoadDataTable<FWeaponStaticData>(Config->WeaponTable,      LoadedWeaponTable,      TEXT("DT_Weapon"));              //무기 데이터
+    LoadDataTable<FSkillStaticData> (Config->SkillTable,       LoadedSkillTable,       TEXT("DT_Skill"));               //스킬 데이터
+    LoadDataTable<FSkillEffectData> (Config->SkillEffectTable, LoadedSkillEffectTable, TEXT("DT_SkillEffect"));         //스킬 효과 데이터
+    LoadDataTable<FSkillSpawnData>  (Config->SpawnTable,       LoadedSpawnTable,       TEXT("DT_Spawn"));               //스킬 소환 데이터
+    LoadDataTable<FFlightArcData>   (Config->FlightArcTable,   LoadedFlightArcTable,   TEXT("DT_Flight_Arc"));          //궤도형 투사체 데이터
+    LoadDataTable<FFlightPierceData>(Config->FlightPierceTable,LoadedFlightPierceTable,TEXT("DT_Flight_Pierce"));       //관통형 투사체 데이터
+    LoadDataTable<FFlightExplodeData>(Config->FlightExplodeTable,LoadedFlightExplodeTable,TEXT("DT_Flight_Explode"));   //폭발형 투사체 데이터
+    
+    if (!Config->BaseStatCurveTable.IsNull()) //레벨별 스탯 커브 데이터
+    {
+        LoadedCurveTable = Config->BaseStatCurveTable.LoadSynchronous();
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -83,6 +88,25 @@ void UGameDataSubsystem::BuildSecondaryIndex()
     }
 
     KHS_INFO(TEXT("WeaponByLevel 보조 인덱스 구성 완료 (%d개 레벨)"),WeaponByLevelIndex.Num());
+}
+
+bool UGameDataSubsystem::GetLevelCurveValue(FName CurveName, int32 Level, float& OutValue) const
+{
+    if (!LoadedCurveTable)
+    {
+        KHS_WARN(TEXT("CurveTable is null"));
+        return false;
+    }
+
+    const FRealCurve* Curve = LoadedCurveTable->FindCurve(CurveName, TEXT(""));
+    if (!Curve)
+    {
+        KHS_WARN(TEXT("커브 조회 실패 — CurveName: %s"), *CurveName.ToString());
+        return false;
+    }
+
+    OutValue = Curve->Eval(static_cast<float>(Level));
+    return true;
 }
 
 // -----------------------------------------------------------------------------
