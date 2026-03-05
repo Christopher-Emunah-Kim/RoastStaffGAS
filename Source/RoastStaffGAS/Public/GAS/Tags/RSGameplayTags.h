@@ -93,6 +93,7 @@ namespace RSTags
 	// Data Tag에 Data.*타입 세팅 잊지말기
 	
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Damage);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_EXP);
 	
 	//===============================================
 	// GC 태그(GameplayCue.*)

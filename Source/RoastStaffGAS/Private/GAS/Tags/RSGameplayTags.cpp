@@ -37,6 +37,7 @@ namespace RSTags
 	
 	//데이터 태그
 	UE_DEFINE_GAMEPLAY_TAG(Data_Damage, "Data.Damage");
+	UE_DEFINE_GAMEPLAY_TAG(Data_EXP, "Data.EXP");
 	
 	//GC 태그
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Combat_Burn, "GameplayCue.Combat.Burn");
