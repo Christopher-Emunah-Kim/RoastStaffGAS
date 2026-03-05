@@ -41,5 +41,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Flight")
 	TSoftObjectPtr<UDataTable> FlightExplodeTable;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
+	TSoftObjectPtr<UDataTable> EnemyTable;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage")
+	TSoftObjectPtr<UDataTable> StageTable;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage")
+	TSoftObjectPtr<UDataTable> WaveTable;
 	
 };
