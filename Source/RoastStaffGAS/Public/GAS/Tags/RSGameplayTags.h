@@ -117,6 +117,8 @@ namespace RSTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Weapon_Equipped);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Weapon_Unequipped);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Weapon_Fire);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Weapon_Fire_Projectile);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Weapon_Fire_Summon);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_LevelUp);
 	
 	//Hitcheck
