@@ -21,6 +21,8 @@ AMeleeEnemy::AMeleeEnemy()
 void AMeleeEnemy::BeginPlay()
 {
 	Super::BeginPlay();
+	//TODO [테스트] 임시
+	InitializeEnemy(TEXT("ENM_Melee_01"));
 	
 	AttackRangeSphere->OnComponentBeginOverlap.AddDynamic(this, &AMeleeEnemy::OnAttackRangeBeginOverlap);
 	AttackRangeSphere->OnComponentEndOverlap.AddDynamic(this, &AMeleeEnemy::OnAttackRangeEndOverlap);

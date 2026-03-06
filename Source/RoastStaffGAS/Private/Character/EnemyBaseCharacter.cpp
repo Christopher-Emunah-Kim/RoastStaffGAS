@@ -3,6 +3,7 @@
 
 #include "Character/EnemyBaseCharacter.h"
 #include "AbilitySystemComponent.h"
+#include "Character/Enemy/EnemyAIController.h"
 #include "GAS/Attributes/EnemyAttributeSet.h"
 #include "Subsystems/GameDataSubsystem.h"
 #include "Data/DataTableStructs.h"
@@ -62,6 +63,22 @@ void AEnemyBaseCharacter::InitializeEnemy(FName InEnemyID)
 	}
 	MoveComp->MaxWalkSpeed = EnemyData.MoveSpeed;
 
+	AEnemyAIController* EnemyAIC = Cast<AEnemyAIController>(GetController());
+	if (!ensureMsgf(EnemyAIC, TEXT("%s — CANNOT FINT EnemyAIController."), *GetName()))
+	{
+		return;
+	}
+
+	UBehaviorTree* BTAsset = EnemyData.BehaviorTree.LoadSynchronous();
+	if (!BTAsset)
+	{
+		KHS_WARN(TEXT("%s — BehaviorTree 로드 실패. EnemyID: %s"), *GetName(), *EnemyID.ToString());
+		check(false);
+		return;
+	}
+
+	EnemyAIC->StartAI(BTAsset);
+	
 	bIsInitialized = true;
 
 	KHS_INFO(TEXT("%s — 초기화 완료. EnemyID: %s / HP: %.0f / Speed: %.0f"), *GetName(), *EnemyID.ToString(), EnemyData.MaxHP, EnemyData.MoveSpeed);
