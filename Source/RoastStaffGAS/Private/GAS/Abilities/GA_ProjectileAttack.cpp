@@ -30,6 +30,24 @@ void UGA_ProjectileAttack::OnAbilityActivated(const FGameplayAbilitySpecHandle H
         return;
     }
 
+    TSubclassOf<ABaseProjectile> ProjectileClass;
+    FRSSkillInitData InitData;
+    
+    if (!PrepareProjectileData(SkillData, ProjectileClass, InitData))
+    {
+        EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+        return;
+    }
+    
+    //투사체 스폰
+    SpawnProjectiles(ProjectileClass, InitData);
+
+    EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+}
+
+bool UGA_ProjectileAttack::PrepareProjectileData(const URSSkillData* SkillData, TSubclassOf<ABaseProjectile>& OutClass, FRSSkillInitData& OutInitData)
+{
+	
     const FName SkillID = SkillData->SkillID;
 
     // GDS 조회 
@@ -42,25 +60,22 @@ void UGA_ProjectileAttack::OnAbilityActivated(const FGameplayAbilitySpecHandle H
     if (!GDS->GetSkillData(SkillID, SkillStaticData))
     {
         KHS_WARN(TEXT("SkillID 조회 실패: %s"),*SkillID.ToString());
-        EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-        return;
+        return false;
     }
 
     FSkillEffectData EffectData;
     if (!GDS->GetSkillEffectData(SkillStaticData.SkillEffectID, EffectData))
     {
        KHS_WARN(TEXT("SkillEffectID 조회 실패: %s"), *SkillStaticData.SkillEffectID.ToString() );
-       EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-       return;
+       return false;
     }
     
     // 투사체 클래스 로드 
-    TSubclassOf<ABaseProjectile> ProjectileClass = Cast<UClass>(SkillStaticData.ProjectileClass.LoadSynchronous());
+    OutClass = Cast<UClass>(SkillStaticData.ProjectileClass.LoadSynchronous());
 
-    if (!ensureMsgf(ProjectileClass, TEXT("ProjectileClass 로드 실패: %s"), *SkillID.ToString()))
+    if (!ensureMsgf(OutClass, TEXT("ProjectileClass 로드 실패: %s"), *SkillID.ToString()))
     {
-        EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-        return;
+        return false;
     }
 
     //데미지 GE 로드 - 실패시 리턴
@@ -68,8 +83,7 @@ void UGA_ProjectileAttack::OnAbilityActivated(const FGameplayAbilitySpecHandle H
 
     if (!ensureMsgf(DamageGEClass, TEXT("DamageGE 로드 실패: %s"), *SkillID.ToString()))
     {
-        EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-        return;
+        return false;
     }
     
     //상태이상 GE 로드 - 실패시 스킵
@@ -84,24 +98,20 @@ void UGA_ProjectileAttack::OnAbilityActivated(const FGameplayAbilitySpecHandle H
     }
 
     // InitData 채우기 
-    FRSSkillInitData InitData;
-    InitData.SkillID        = SkillID;
-    InitData.SkillEffectID  = SkillStaticData.SkillEffectID;
-    InitData.DamageGEClass  = DamageGEClass;
-    InitData.StatusGEClass  = StatusGEClass;
-    InitData.InstigatorASC  = GetOwnerASC();
-    InitData.Damage         = EffectData.Damage;
-    InitData.Speed          = EffectData.Speed;
-    InitData.Lifetime       = EffectData.Lifetime;
+    OutInitData.SkillID        = SkillID;
+    OutInitData.SkillEffectID  = SkillStaticData.SkillEffectID;
+    OutInitData.DamageGEClass  = DamageGEClass;
+    OutInitData.StatusGEClass  = StatusGEClass;
+    OutInitData.InstigatorASC  = GetOwnerASC();
+    OutInitData.Damage         = EffectData.Damage;
+    OutInitData.Speed          = EffectData.Speed;
+    OutInitData.Lifetime       = EffectData.Lifetime;
 
-    // SpawnData는 GDS에서 별도 조회 
+    // TODO : SpawnData는 GDS에서 별도 조회 
     // 일단SINGLE 모드만 사용
-    InitData.SpawnPattern    = ESpawnPattern::SINGLE;
-    InitData.ProjectileCount = 1;
-    InitData.SpreadAngle     = 0.f;
-
-    //투사체 스폰
-    SpawnProjectiles(ProjectileClass, InitData);
-
-    EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+    OutInitData.SpawnPattern    = ESpawnPattern::SINGLE;
+    OutInitData.ProjectileCount = 1;
+    OutInitData.SpreadAngle     = 0.f;
+	
+    return true; 
 }

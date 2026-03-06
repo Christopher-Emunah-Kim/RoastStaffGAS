@@ -48,16 +48,18 @@ void ABaseProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UP
 	{
 		KHS_INFO(TEXT("Base Projectile OnHit! - %s"), *OtherActor->GetName());
 		
+		UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
+		
 		// 기본 단일 타격 처리
 		if (InitData.DamageGEClass)
 		{
-			ApplyEffectToTarget(OtherActor, InitData.DamageGEClass, InitData.Damage);
+			ApplyEffectToTarget(TargetASC, InitData.DamageGEClass, InitData.Damage);
 		}
 
 		// 상태이상 처리
 		if (InitData.StatusGEClass)
 		{
-			ApplyEffectToTarget(OtherActor, InitData.StatusGEClass, 0.f);
+			ApplyEffectToTarget(TargetASC, InitData.StatusGEClass, 0.f);
 		}
 
 		GetWorldTimerManager().ClearTimer(LifetimeTimerHandle);
@@ -65,22 +67,15 @@ void ABaseProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UP
 	}
 }
 
-void ABaseProjectile::ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> EffectClass,
+void ABaseProjectile::ApplyEffectToTarget(UAbilitySystemComponent* TargetASC,  TSubclassOf<UGameplayEffect> EffectClass,
 	float DamageValue)
 {
-	if (!TargetActor || !EffectClass || !InitData.InstigatorASC)
+	if (!TargetASC || !EffectClass || !InitData.InstigatorASC)
 	{
 		KHS_WARN(TEXT("유효하지 않은 파라미터"));
 		return;
 	}
-
-	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
-
-	if (!TargetASC)
-	{
-		return; // ASC 없는 액터 — 무시
-	}
-
+	
 	FGameplayEffectContextHandle Context = InitData.InstigatorASC->MakeEffectContext();
 	Context.AddInstigator(GetInstigator(), this);
 

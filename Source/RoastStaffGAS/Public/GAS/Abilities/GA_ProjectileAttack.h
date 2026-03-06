@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GAS/Abilities/GA_Base.h"
+#include "Objects/Data/RSSkillData.h"
 #include "GA_ProjectileAttack.generated.h"
 
 /**
@@ -22,9 +23,15 @@ class ROASTSTAFFGAS_API UGA_ProjectileAttack : public UGA_Base
 public:
 	UGA_ProjectileAttack();
 
+private:
+	//투사체 생성 헬퍼
+	bool PrepareProjectileData(const URSSkillData* SkillData, TSubclassOf<ABaseProjectile>& OutClass,  FRSSkillInitData& OutInitData);
+	
 protected:
 	virtual void OnAbilityActivated(
 		const FGameplayAbilitySpecHandle Handle,
 		const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo) override;
+	
+	
 };

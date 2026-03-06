@@ -126,9 +126,9 @@ void ARSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	EIC->BindAction(IA_MouseAim, ETriggerEvent::Triggered, this, &ARSPlayerCharacter::OnMouseAim);
 	//EIC->BindAction(IA_Dash,  ETriggerEvent::Triggered, this, &ARSPlayerCharacter::OnDash);
 	EIC->BindAction(IA_Attack, ETriggerEvent::Started,   this, &ARSPlayerCharacter::OnShootStart);
-	EIC->BindAction(IA_Slot1, ETriggerEvent::Started, this, &ARSPlayerCharacter::OnSlotActivate1);
-	EIC->BindAction(IA_Slot2, ETriggerEvent::Started, this, &ARSPlayerCharacter::OnSlotActivate2);
-	EIC->BindAction(IA_Slot3, ETriggerEvent::Started, this, &ARSPlayerCharacter::OnSlotActivate3);
+	EIC->BindAction(IA_Slot1, ETriggerEvent::Started, this, &ARSPlayerCharacter::OnSlotActivate, 0);
+	EIC->BindAction(IA_Slot2, ETriggerEvent::Started, this, &ARSPlayerCharacter::OnSlotActivate, 1);
+	EIC->BindAction(IA_Slot3, ETriggerEvent::Started, this, &ARSPlayerCharacter::OnSlotActivate, 2);
 }
 
 UAbilitySystemComponent* ARSPlayerCharacter::GetAbilitySystemComponent() const
@@ -268,32 +268,12 @@ void ARSPlayerCharacter::OnShootStart(const FInputActionValue& Value)
 }
 
 
-void ARSPlayerCharacter::OnSlotActivate1(const FInputActionValue& Value)
+void ARSPlayerCharacter::OnSlotActivate(const FInputActionValue& Value, int32 SlotIndex)
 {
 	if (!ensureMsgf(EquipmentComp, TEXT("EquipmentComp is null")))
 	{
 		return;
 	}
 
-	EquipmentComp->RequestSlotActivate(0);
-}
-
-void ARSPlayerCharacter::OnSlotActivate2(const FInputActionValue& Value)
-{
-	if (!ensureMsgf(EquipmentComp, TEXT("EquipmentComp is null")))
-	{
-		return;
-	}
-
-	EquipmentComp->RequestSlotActivate(1);
-}
-
-void ARSPlayerCharacter::OnSlotActivate3(const FInputActionValue& Value)
-{
-	if (!ensureMsgf(EquipmentComp, TEXT("EquipmentComp is null")))
-	{
-		return;
-	}
-
-	EquipmentComp->RequestSlotActivate(2);
+	EquipmentComp->RequestSlotActivate(SlotIndex);
 }

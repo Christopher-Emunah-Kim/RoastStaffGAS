@@ -40,7 +40,7 @@ private:
 	// 레벨업 판정 및 처리
 	void CheckLevelUp(float NewEXP, int32 CurrentLevel);
 	// 무기 후보 3종 랜덤 선정
-	void SelectWeaponCandidates(int32 NewLevel);
+	void SelectWeaponCandidates();
 	// 레벨 어트리뷰트 GE로 증가
 	void ApplyLevelUp(int32 CurrentLevel, float OverflowEXP);
 
