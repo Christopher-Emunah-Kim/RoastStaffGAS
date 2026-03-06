@@ -1,0 +1,3 @@
+﻿---,EnemyID,MaxHP,MoveSpeed,AttackDamage,AttackCooldown,AttackRange,AIType,BehaviorTree,SpawnWeight,DropEXP
+ENM_Melee_01,ENM_Melee_01,100,300,10,1.5,120,Chase,,1.0,10
+ENM_Melee_02,ENM_Melee_02,200,250,20,1.5,120,Chase,,0.5,25
