@@ -132,6 +132,19 @@ bool UEquipmentComponent::IsValidSlotIndex(int32 SlotIndex) const
     return SlotIndex >= 0 && SlotIndex < SLOT_COUNT;
 }
 
+int32 UEquipmentComponent::GetEmptySlotIndex() const
+{
+    for (int32 i = 0; i < SLOT_COUNT; ++i)
+    {
+        if (Slots[i].IsEmpty())
+        {
+            return i; 
+        }
+    }
+
+    return INDEX_NONE;
+}
+
 void UEquipmentComponent::InitializeWithASC(UAbilitySystemComponent* InASC)
 {
 	check(InASC);
@@ -155,17 +168,9 @@ void UEquipmentComponent::EquipWeapon(const FName& WeaponID)
         return;
     }
 
-    int32 TargetSlot = -1;
-    for (int32 i = 0; i < SLOT_COUNT; ++i)
-    {
-        if (Slots[i].IsEmpty())
-        {
-            TargetSlot = i;
-            break;
-        }
-    }
-
-    if (TargetSlot == -1)
+    // 장착 슬롯 탐색
+    int32 TargetSlot = GetEmptySlotIndex();
+    if (TargetSlot == INDEX_NONE)
     {
         KHS_INFO(TEXT("빈 슬롯 없음. 무기 획득 불가: %s"), *WeaponID.ToString());
         return;
@@ -213,7 +218,7 @@ void UEquipmentComponent::EquipWeapon(const FName& WeaponID)
     // ASC에 GA 부여(SkillDataObj로 SkillID 정보 전달)
     URSSkillData* SkillDataObj = NewObject<URSSkillData>(GetOwner());
     SkillDataObj->SkillID = EquipData.SkillID;
-    SkillDataObjects.Add(SkillDataObj); //GC에 weakPtr인 sourceObject로 들어간 SkilLData가 수거당하는거 방지. 
+    SkillDataObjects.Add(SkillDataObj); //sourceObject는 weakPtr이라 GC 수거 방지 
     
     FGameplayAbilitySpec Spec(GAClass, 1, INDEX_NONE, SkillDataObj);
     FGameplayAbilitySpecHandle Handle = ASC->GiveAbility(Spec);
@@ -296,15 +301,12 @@ FGameplayTag UEquipmentComponent::GetEventTag(FWeaponSlotInstanceData& Slot)
     {
     case ESkillType::PROJECTILE:
         return RSTags::Event_Weapon_Fire_Projectile;
-        break;
     case ESkillType::SUMMON:
         return RSTags::Event_Weapon_Fire_Summon;
-        break;
     default:
         {
             KHS_WARN(TEXT("Invalid GameplayTag"));
+            return FGameplayTag::EmptyTag;
         }
     }
-    
-    return FGameplayTag::EmptyTag;
 }

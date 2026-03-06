@@ -11,6 +11,7 @@
 #include "System/LoggingSystem.h"
 #include "Engine/GameInstance.h"
 #include "GameplayEffect.h"
+#include "Algo/RandomShuffle.h"
 
 
 ULevelUpComponent::ULevelUpComponent()
@@ -93,53 +94,37 @@ void ULevelUpComponent::OnEXPChanged(float NewEXP, int32 CurrentLevel)
 
 void ULevelUpComponent::CheckLevelUp(float NewEXP, int32 CurrentLevel)
 {
-	if (bIsLevelingUp)
+	if (bIsLevelingUp || CurrentLevel >= MAX_LEVEL)
 	{
 		return;
 	}
-
-	if (CurrentLevel >= MAX_LEVEL)
-	{
-		return;
-	}
-
+	
 	UGameInstance* GI = GetWorld()->GetGameInstance();
 	check(GI);
 	UGameDataSubsystem* GDS = GI->GetSubsystem<UGameDataSubsystem>();
 	check(GDS);
 
+	float CurrentExpToProcess = NewEXP;
+	int32 LevelToProcess = CurrentLevel;
 	float RequiredExp = 0.f;
-	if (!GDS->GetLevelCurveValue(FName("RequiredEXP"), CurrentLevel + 1, RequiredExp))
+	
+	// while문을 통해 경험치가 요구량보다 많은 동안 계속 레벨업 처리 
+	while (LevelToProcess < MAX_LEVEL && GDS->GetLevelCurveValue(FName("RequiredEXP"), LevelToProcess + 1, RequiredExp) && CurrentExpToProcess >= RequiredExp)
 	{
-		KHS_WARN(TEXT("다음 레벨 커브 조회 실패 — Level: %d"), CurrentLevel + 1);
-		return;
+		CurrentExpToProcess -= RequiredExp; // 잉여 EXP 갱신
+		
+		bIsLevelingUp = true;
+		KHS_INFO(TEXT("레벨업! %d → %d (남은EXP: %.0f)"), LevelToProcess, LevelToProcess + 1, CurrentExpToProcess);
+
+		ApplyLevelUp(LevelToProcess, CurrentExpToProcess);
+		SelectWeaponCandidates();
+		bIsLevelingUp = false;
+
+		LevelToProcess++; // 다음 레벨 검사를 위해 레벨 증가
 	}
-
-	if (NewEXP < RequiredExp)
-	{
-		return; // 레벨업 조건 미달
-	}
-
-	// 잉여 EXP 계산
-	const float OverflowEXP = NewEXP - RequiredExp;
-
-	bIsLevelingUp = true;
-
-	KHS_INFO(TEXT("레벨업! %d → %d (잉여EXP: %.0f)"), CurrentLevel, CurrentLevel + 1, OverflowEXP);
-
-	// Level +1, EXP 잉여분으로 재세팅
-	ApplyLevelUp(CurrentLevel, OverflowEXP);
-
-	// 무기 후보 선정
-	SelectWeaponCandidates(CurrentLevel + 1);
-
-	bIsLevelingUp = false;
-
-	// 연속 레벨업 체크 (잉여 EXP로 즉시 레벨업 가능한 경우)
-	CheckLevelUp(OverflowEXP, CurrentLevel + 1);
 }
 
-void ULevelUpComponent::SelectWeaponCandidates(int32 NewLevel)
+void ULevelUpComponent::SelectWeaponCandidates()
 {
 	UGameInstance* GI = GetWorld()->GetGameInstance();
 	check(GI);
@@ -155,21 +140,16 @@ void ULevelUpComponent::SelectWeaponCandidates(int32 NewLevel)
 		return;
 	}
 
+	//원본 배열 무작위 섞기
+	Algo::RandomShuffle(WeaponPool);
 	TArray<FName> Candidates;
-	constexpr int32 CANDIDATE_COUNT = 3;
-
-	//랜덤으로 3개 뽑되, 중복방지(이미 후보에 들어간 무기있으면 뽑기 재반복)
-	while (Candidates.Num() < CANDIDATE_COUNT)
+	const int32 CANDIDATE_COUNT = 3;
+	
+	//풀 크기랑 요구 갯수중 더 작은 값만 앞에서부터 추출.
+	const int32 PickCount = FMath::Min(WeaponPool.Num(), CANDIDATE_COUNT);
+	for (int32 i = 0; i < PickCount; i++)
 	{
-		int32 Retry = 0;
-		FName Picked;
-		do
-		{
-			Picked = WeaponPool[FMath::RandRange(0, WeaponPool.Num() - 1)];
-			Retry++;
-		} while (Candidates.Contains(Picked));
-
-		Candidates.Add(Picked);
+		Candidates.Add(WeaponPool[i]);
 	}
 
 	KHS_INFO(TEXT("무기 후보 선정 완료: %s / %s / %s"),

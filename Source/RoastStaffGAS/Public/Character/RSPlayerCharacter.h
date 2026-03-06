@@ -48,9 +48,7 @@ private:
     void OnMouseAim(const FInputActionValue& Value);
     //void OnDash(const FInputActionValue& Value);
     void OnShootStart(const FInputActionValue& Value);
-    void OnSlotActivate1(const FInputActionValue& Value);
-    void OnSlotActivate2(const FInputActionValue& Value);
-    void OnSlotActivate3(const FInputActionValue& Value);
+    void OnSlotActivate(const FInputActionValue& Value, int32 SlotIndex);
 
 protected:
     // 컴포넌트

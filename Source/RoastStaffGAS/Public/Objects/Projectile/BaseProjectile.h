@@ -45,7 +45,7 @@ protected:
 		UPrimitiveComponent* OtherComp,	FVector NormalImpulse,	const FHitResult& Hit);
 	
 	// GE 적용 헬퍼
-	void ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> EffectClass,	float DamageValue);
+	void ApplyEffectToTarget(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass,	float DamageValue);
 	
 	// 수명 만료 처리
 	void OnLifetimeExpired();

@@ -42,6 +42,8 @@ private:
 	FVector GetAimWorldLocation() const;
 	// 슬롯 인덱스 유효성
 	bool IsValidSlotIndex(int32 SlotIndex) const;
+	// 빈 슬롯 조회 헬퍼
+	int32 GetEmptySlotIndex() const;
 	// 트리거 이벤트 태그 반환	
 	FGameplayTag GetEventTag(FWeaponSlotInstanceData& Slot);
 
