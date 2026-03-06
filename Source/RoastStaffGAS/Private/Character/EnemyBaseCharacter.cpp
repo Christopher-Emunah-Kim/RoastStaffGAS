@@ -8,6 +8,7 @@
 #include "Subsystems/GameDataSubsystem.h"
 #include "Data/DataTableStructs.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GAS/Tags/RSGameplayTags.h"
 #include "System/LoggingSystem.h"
 
 AEnemyBaseCharacter::AEnemyBaseCharacter()
@@ -110,6 +111,11 @@ void AEnemyBaseCharacter::InitializeAbilitySystem()
 
 	// 델리게이트 바인딩 (BaseCharacter 공통)
 	BindAttributeDelegates();
+	
+	// 에너미 팀 태그 부여
+	FGameplayTagContainer EnemyTag;
+	EnemyTag.AddTag(RSTags::Team_Enemy);
+	ASC->AddLooseGameplayTags(EnemyTag);
 
 	KHS_INFO(TEXT("%s — ASC 초기화 완료"), *GetName());
 }

@@ -4,6 +4,7 @@
 #include "Character/RSPlayerState.h"
 #include "AbilitySystemComponent.h"
 #include "GAS/Attributes/PlayerAttributeSet.h"
+#include "GAS/Tags/RSGameplayTags.h"
 #include "System/LoggingSystem.h"
 
 ARSPlayerState::ARSPlayerState()
@@ -70,6 +71,11 @@ void ARSPlayerState::InitializeAbilitySystem(AActor* AvatarActor)
 
 	// 스탯 기본값 주입
 	ApplyBaseStats();
+	
+	// 플레이어 팀 태그 부여 
+	FGameplayTagContainer PlayerTag;
+	PlayerTag.AddTag(RSTags::Team_Player);
+	ASC->AddLooseGameplayTags(PlayerTag);
 
 	bIsInitialized = true;
 
