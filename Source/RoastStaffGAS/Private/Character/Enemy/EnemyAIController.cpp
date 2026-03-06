@@ -62,8 +62,7 @@ bool AEnemyAIController::UpdatePlayerInfo()
 	if (!bDead)
 	{
 		BB->SetValueAsVector(BBKey_PlayerLocation, CachedPlayerPawn->GetActorLocation());
-		KHS_INFO(TEXT("BB PlayerLocation 갱신: %s"), *CachedPlayerPawn->GetActorLocation().ToString());
-	}
+	} 
 	return true;
 }
 

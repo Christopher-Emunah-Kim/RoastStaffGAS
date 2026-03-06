@@ -40,15 +40,20 @@ void ABaseProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UP
 	{
 		return;
 	}
-
+	
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
+	
+	if (!TargetASC) //GAS오브젝트가 아님.
+	{
+		return;
+	}
+	
+	const bool bHasEnemyTag = TargetASC->HasMatchingGameplayTag(RSTags::Team_Enemy);
 	// 자식 충돌 처리 — true 반환 시 베이스가 GE처리하고 Destroy
 	const bool bShouldDestroy = OnProjectileHit(OtherActor, Hit);
 
-	if (bShouldDestroy)
+	if (bHasEnemyTag && bShouldDestroy)
 	{
-		KHS_INFO(TEXT("Base Projectile OnHit! - %s"), *OtherActor->GetName());
-		
-		UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
 		
 		// 기본 단일 타격 처리
 		if (InitData.DamageGEClass)
