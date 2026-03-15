@@ -28,6 +28,10 @@
 // 유틸리티
 #include "AbilitySystemBlueprintLibrary.h"
 
+//엔진 제공
+#include "Algo/RandomShuffle.h"
+#include "Engine/GameInstance.h"
+
 //네트워크 멀티플레이 용 헤더
 #include "Net/UnrealNetwork.h"
 

@@ -122,6 +122,7 @@ void AMeleeEnemy::TryAttack(AActor* Target)
 	if (!SpecHandle.IsValid())
 	{
 		KHS_WARN(TEXT("%s — GE Spec 생성 실패."), *GetName());
+		
 		return;
 	}
 

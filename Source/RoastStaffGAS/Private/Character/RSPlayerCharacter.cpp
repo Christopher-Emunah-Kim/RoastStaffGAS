@@ -17,6 +17,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "TimerManager.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Subsystems/EquipmentSubsystem.h"
+#include "Subsystems/LevelUpSubsystem.h"
 
 ARSPlayerCharacter::ARSPlayerCharacter()
 {
@@ -44,7 +46,6 @@ ARSPlayerCharacter::ARSPlayerCharacter()
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;
 	
 	EquipmentComp = CreateDefaultSubobject<UEquipmentComponent>(TEXT("EquipmentComp"));
-	LevelUpComp = CreateDefaultSubobject<ULevelUpComponent>(TEXT("LevelUpComp"));
 }
 
 void ARSPlayerCharacter::BeginPlay()
@@ -75,13 +76,6 @@ void ARSPlayerCharacter::PossessedBy(AController* NewController)
 	
 	InitializeAbilitySystem();
 	
-	// [임시 테스트 코드 — 이후 레벨업 시스템으로 교체]
-    // if (EquipmentComp)
-    // {
-    //     EquipmentComp->EquipWeapon(FName("WPN_FIRESTAFF_Lv1"));
-    //     EquipmentComp->EquipWeapon(FName("WPN_ICESTAFF_Lv1"));
-    //     EquipmentComp->EquipWeapon(FName("WPN_POISON_Lv1"));
-    // }
 }
 
 bool ARSPlayerCharacter::HandleMouseAim()
@@ -101,15 +95,19 @@ bool ARSPlayerCharacter::HandleMouseAim()
 		const FRotator LookAt =	(HitResult.Location - GetActorLocation()).Rotation();
 		AimAngle = LookAt.Yaw;
 		SetActorRotation(FRotator(0.f, AimAngle, 0.f));
+		
+		CachedAimLocation = HitResult.Location;
 	}
+	
 	return true;
 }
+
 
 void ARSPlayerCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	
-	// 쿼터뷰 — 마우스 커서 방향으로 캐릭터 회전
+	// 쿼터뷰 — 마우스 커서 방향으로 캐릭터 회전 / 마우스 좌표 캐싱
 	if (!HandleMouseAim())
 	{
 		return;
@@ -174,8 +172,14 @@ void ARSPlayerCharacter::InitializeAbilitySystem()
 	{
 		return;
 	}
-	EquipmentComp->InitializeWithASC(ASC);
-	LevelUpComp->Initialize(ASC, PS->GetPlayerAttributeSet(),EquipmentComp);
+	
+	UEquipmentSubsystem* EquipSys = GetGameInstance()->GetSubsystem<UEquipmentSubsystem>();
+	check(EquipSys);
+	EquipSys->InitializeSubsystem(ASC);
+
+	ULevelUpSubsystem* LevelUpSys = GetGameInstance()->GetSubsystem<ULevelUpSubsystem>();
+	check(LevelUpSys);
+	LevelUpSys->InitializeSubsystem(ASC, PS->GetPlayerAttributeSet(), AddEXPEffectClass);
 	
 	KHS_INFO(TEXT("GAS 초기화 완료."));
 }
@@ -198,9 +202,10 @@ void ARSPlayerCharacter::HandleDeath()
 	PC->SetIgnoreLookInput(true);
 
 	// 무기 발사 모두 중지
-	if (EquipmentComp)
+	UEquipmentSubsystem* EquipSys = GetGameInstance()->GetSubsystem<UEquipmentSubsystem>();
+	if (EquipSys)
 	{
-		EquipmentComp->StopAllFire();
+		EquipSys->StopAllFire();
 	}
 
 	// TODO : 스테이지 시스템 생기면 사망 이벤트 전달
@@ -259,21 +264,23 @@ void ARSPlayerCharacter::OnMouseAim(const FInputActionValue& Value)
 
 void ARSPlayerCharacter::OnShootStart(const FInputActionValue& Value)
 {
-	if (!ensureMsgf(EquipmentComp, TEXT("EquipmentComp is null")))
+	UEquipmentSubsystem* EquipSys = GetGameInstance()->GetSubsystem<UEquipmentSubsystem>();
+	if (!ensureMsgf(EquipSys, TEXT("EquipmentSubsystem is null")))
 	{
 		return;
 	}
 
-	EquipmentComp->OnAttackInput();
+	EquipSys->RequestManualFire(CachedAimLocation);
 }
 
 
 void ARSPlayerCharacter::OnSlotActivate(const FInputActionValue& Value, int32 SlotIndex)
 {
-	if (!ensureMsgf(EquipmentComp, TEXT("EquipmentComp is null")))
+	UEquipmentSubsystem* EquipSys = GetGameInstance()->GetSubsystem<UEquipmentSubsystem>();
+	if (!ensureMsgf(EquipSys, TEXT("EquipmentSubsystem is null")))
 	{
 		return;
 	}
 
-	EquipmentComp->RequestSlotActivate(SlotIndex);
+	EquipSys->RequestSlotActivate(SlotIndex);
 }
