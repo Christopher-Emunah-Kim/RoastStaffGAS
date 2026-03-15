@@ -10,7 +10,6 @@ class ARSPlayerState;
 class USpringArmComponent;
 class UCameraComponent;
 class UEquipmentComponent;
-class ULevelUpComponent;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
@@ -41,7 +40,6 @@ protected:
 private:
     ARSPlayerState* GetRSPlayerState() const;
     
-    // 입력 핸들러
     bool HandleMouseAim();
     
     void OnMove(const FInputActionValue& Value);
@@ -58,8 +56,6 @@ protected:
     TObjectPtr<UCameraComponent> Camera;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<UEquipmentComponent> EquipmentComp;
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    TObjectPtr<ULevelUpComponent> LevelUpComp;
     
     // 입력 에셋
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MY|Input")
@@ -79,9 +75,15 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MY|Input")
     TObjectPtr<UInputAction> IA_Slot3;
     
+    //캐릭터 경험치 GE
+    UPROPERTY(EditDefaultsOnly, Category = "MY|LevelUp")
+    TSubclassOf<UGameplayEffect> AddEXPEffectClass;
+    
     // 런타임 상태
     // 마지막 이동 입력 — 대시 방향 계산용
     FVector2D LastMoveInput = FVector2D::ZeroVector;
+    // 에임 좌표 캐시 — RequestManualFire 시 전달
+    FVector CachedAimLocation = FVector::ZeroVector;
     // 에임 각도 (Yaw)
     float AimAngle = 0.f;
     
