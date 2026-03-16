@@ -8,11 +8,8 @@
 
 // -------------------------------------------------------------------------
 // UEquipmentComponent
-// 슬롯UI 표현 전담
 // -------------------------------------------------------------------------
 
-class UEquipmentSubsystem;
-class URSHUDWidget;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ROASTSTAFFGAS_API UEquipmentComponent : public UActorComponent
@@ -22,24 +19,4 @@ class ROASTSTAFFGAS_API UEquipmentComponent : public UActorComponent
 public:
 	UEquipmentComponent();
 
-protected:
-	virtual void BeginPlay() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;	
-
-private:
-	// EquipmentSubsystem::OnSlotUpdatedDel 수신 → 해당 슬롯 UI 갱신
-	UFUNCTION()
-	void OnSlotUpdated(int32 SlotIndex);
-
-	// TODO: 슬롯 UI 위젯 연결 후 실제 갱신 로직 구현
-	void RefreshSlotUI(int32 SlotIndex);
-	
-protected:
-	UPROPERTY(EditAnywhere, Category = "UI")
-	TSubclassOf<URSHUDWidget> HUDWidgetClass;
-
-	UPROPERTY()
-	TObjectPtr<URSHUDWidget> CachedHUDUI;
-
-	
 };
