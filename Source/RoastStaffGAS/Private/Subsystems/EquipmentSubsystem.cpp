@@ -8,6 +8,7 @@
 #include "GAS/Tags/RSGameplayTags.h"
 #include "Objects/Data/RSSkillData.h"
 #include "System/LoggingSystem.h"
+#include "Objects/Projectile/BaseProjectile.h"
 
 void UEquipmentSubsystem::InitializeSubsystem(UAbilitySystemComponent* InASC)
 {
@@ -148,6 +149,10 @@ void UEquipmentSubsystem::FireSlot(int32 SlotIndex, const FVector& AimLocation)
 	ASC->TriggerAbilityFromGameplayEvent(Slot.AbilitySpecHandle,
 		ASC->AbilityActorInfo.Get(), EventTag, &Payload,*ASC);
 
+	//UI업데이트
+	Slot.CooldownRemaining = Slot.EquipData.Cooldown;
+	OnSlotUpdatedDel.Broadcast(SlotIndex);
+	
 	KHS_INFO(TEXT("Slot %d: %s 발사! CD: %.2fs"), SlotIndex, *Slot.EquipData.SkillID.ToString(), Slot.EquipData.Cooldown);
 }
 
@@ -296,8 +301,10 @@ void UEquipmentSubsystem::CommitSlot(int32 TargetSlot, const FName& WeaponID, co
 	//슬롯 런타임 데이터 관리(GA랑 슬롯은 서로 모르니까)
 	FWeaponSlotInstanceData& Slot  = Slots[TargetSlot];
 	Slot.EquipData.WeaponID        = WeaponID;
+	Slot.EquipData.WeaponName	   = EquipData.WeaponName;
 	Slot.EquipData.SkillID         = EquipData.SkillID;
 	Slot.EquipData.Cooldown        = EquipData.Cooldown;
+	Slot.EquipData.SkillIcon	   = EquipData.SkillIcon;
 	Slot.EquipData.GAClass         = Classes.GAClass;
 	Slot.EquipData.ProjectileClass = Classes.ProjectileClass;
 	Slot.EquipData.DamageGEClass   = Classes.DamageGEClass;

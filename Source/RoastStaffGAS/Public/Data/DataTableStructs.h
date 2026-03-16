@@ -68,6 +68,9 @@ struct FSkillStaticData : public FTableRowBase
 	/** DT_SkillResource FK (FX용) */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
 	FName ResourceID;
+	/** 스킬 아이콘 텍스처 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
+	TSoftObjectPtr<UTexture2D> SkillIcon;
 	/** GA 클래스 에셋 경로 (데이터 드리븐 로딩용) */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
 	TSoftClassPtr<UGameplayAbility> GAClass;
