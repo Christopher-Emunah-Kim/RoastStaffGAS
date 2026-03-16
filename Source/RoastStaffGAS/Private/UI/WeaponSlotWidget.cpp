@@ -7,7 +7,7 @@
 #include "Components/Image.h"
 #include "System/LoggingSystem.h"
 
-
+const FName UWeaponSlotWidget::CooldownPercentParam = FName("Percent");
 
 void UWeaponSlotWidget::InitSlot(int32 InSlotIndex)
 {
@@ -54,8 +54,8 @@ void UWeaponSlotWidget::UpdateSlot(const FWeaponSlotInstanceData* SlotData)
 		TotalCooldown = SlotData->EquipData.Cooldown;
 		LocalCooldownRemaining = SlotData->CooldownRemaining;
 		bIsCooldownActive = true;
-		Img_CooldownOverlay->SetVisibility(ESlateVisibility::Visible);
-		Txt_CooldownRemaining->SetVisibility(ESlateVisibility::Visible);
+		Img_CooldownOverlay->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		Txt_CooldownRemaining->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	}
 
 }
@@ -89,7 +89,7 @@ void UWeaponSlotWidget::UpdateCooldown(float InDeltaTime)
 	if (CooldownMID && TotalCooldown > 0.f)
 	{
 		float Percent = FMath::Clamp(LocalCooldownRemaining / TotalCooldown, 0.0f, 1.0f);
-		CooldownMID->SetScalarParameterValue(FName("Percent"), Percent);
+		CooldownMID->SetScalarParameterValue(CooldownPercentParam, Percent);
 	}
 	
 	if (LocalCooldownRemaining <= 0.f)

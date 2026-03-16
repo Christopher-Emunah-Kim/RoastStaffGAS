@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Character/EnemyBaseCharacter.h"
+#include "Character/Enemy/EnemyBaseCharacter.h"
 #include "RoastStaffGAS.h"
 #include "AbilitySystemComponent.h"
 #include "Character/Enemy/EnemyAIController.h"

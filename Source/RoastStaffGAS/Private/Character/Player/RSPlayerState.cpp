@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Character/RSPlayerState.h"
+#include "Character/Player/RSPlayerState.h"
 #include "AbilitySystemComponent.h"
 #include "GAS/Attributes/PlayerAttributeSet.h"
 #include "GAS/Tags/RSGameplayTags.h"

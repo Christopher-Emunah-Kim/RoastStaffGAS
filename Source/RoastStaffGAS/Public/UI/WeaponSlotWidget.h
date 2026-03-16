@@ -53,5 +53,6 @@ private:
 	float TotalCooldown = 0.f;
 	float LocalCooldownRemaining = 0.f;
 	bool bIsCooldownActive = false;
+	static const FName CooldownPercentParam;
 	
 };
