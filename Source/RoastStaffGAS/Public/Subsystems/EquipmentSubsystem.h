@@ -6,6 +6,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "GameplayAbilitySpec.h"
 #include "Data/RuntimeDataStructs.h"
+#include "System/LoggingSystem.h"
 #include "EquipmentSubsystem.generated.h"
 
 
@@ -14,6 +15,14 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSlotUpdated, int32, SlotIndex);
 
 class UAbilitySystemComponent;
 class URSSkillData;
+
+struct FLoadedEquipClasses //EquipWeapon 내부헬퍼
+{
+	TSubclassOf<UGameplayAbility> GAClass;
+	TSubclassOf<UGameplayEffect>  DamageGEClass;
+	TSubclassOf<UGameplayEffect>  StatusGEClass;  // 없으면 nullptr
+	TSubclassOf<AActor>           ProjectileClass; // 없으면 nullptr
+};
 
 UCLASS()
 class ROASTSTAFFGAS_API UEquipmentSubsystem : public UGameInstanceSubsystem
@@ -44,6 +53,12 @@ private:
 	int32 GetEmptySlotIndex() const;
 	FGameplayTag GetEventTag(const FWeaponSlotInstanceData& Slot) const;
 
+	//EquipWeapon 내부 헬퍼
+	bool LoadEquipData(const FName& WeaponID, FWeaponEquipData& OutData) const;
+	bool LoadEquipClasses(const FWeaponEquipData& EquipData, FLoadedEquipClasses& OutClasses) const;
+	bool RegisterAbility(const FWeaponEquipData& EquipData, const FLoadedEquipClasses& Classes, FGameplayAbilitySpecHandle& OutHandle);
+	void CommitSlot(int32 TargetSlot, const FName& WeaponID, const FWeaponEquipData& EquipData, const FLoadedEquipClasses& Classes, const FGameplayAbilitySpecHandle& Handle);
+	
 	template<typename T>
 	bool LoadRequiredClass(const TSoftClassPtr<T>& SoftPtr, TSubclassOf<T>& OutClass, const FName& ContextID) const;
 	template<typename T>

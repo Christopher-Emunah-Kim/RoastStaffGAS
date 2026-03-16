@@ -71,71 +71,39 @@ void UEquipmentSubsystem::EquipWeapon(const FName& WeaponID)
     {
         return;
     }
-
-	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
 	
-    FWeaponEquipData EquipData;
-    if (!GDS->GetWeaponEquipData(WeaponID, EquipData))
-    {
-        KHS_WARN(TEXT("WeaponID 조회 실패: %s"), *WeaponID.ToString());
-        return;
-    }
-
-    int32 TargetSlot = GetEmptySlotIndex();
-    if (TargetSlot == INDEX_NONE)
-    {
-        KHS_INFO(TEXT("빈 슬롯 없음. 무기 획득 불가: %s"), *WeaponID.ToString());
-        return;
-    }
-
-	//GA/GE클래스 로드
-    TSubclassOf<UGameplayAbility> GAClass;
-	if (!LoadRequiredClass(EquipData.GAClass, GAClass, WeaponID))
+	int32 TargetSlot = GetEmptySlotIndex();
+	if (TargetSlot == INDEX_NONE)
 	{
+		KHS_INFO(TEXT("빈 슬롯 없음. 무기 획득 불가: %s"), *WeaponID.ToString());
 		return;
 	}
 	
-	TSubclassOf<UGameplayEffect> DamageGEClass;
-	if (!LoadRequiredClass(EquipData.DamageGEClass, DamageGEClass, WeaponID))
+	//무기 정보 로드
+	FWeaponEquipData EquipData;
+	if (!LoadEquipData(WeaponID, EquipData))
 	{
 		return;
 	}
-	
-	TSubclassOf<UGameplayEffect> StatusGEClass = LoadOptionalClass(EquipData.StatusGEClass, WeaponID);
-	TSubclassOf<AActor> ProjectileClass = LoadOptionalClass(EquipData.ProjectileClass, WeaponID);
-	
 
-	//GA 이벤트 발동 시 SkillID 함께 전달하기 위한 DTO추가
-    URSSkillData* SkillDataObj = NewObject<URSSkillData>(this);
-    SkillDataObj->SkillID = EquipData.SkillID;
-    SkillDataObjects.Add(SkillDataObj);
+	//필요 클래스 로드
+	FLoadedEquipClasses Classes;
+	if (!LoadEquipClasses(EquipData, Classes))
+	{
+		return;
+	}
 
-    FGameplayAbilitySpec Spec(GAClass, 1, INDEX_NONE, SkillDataObj);
-    FGameplayAbilitySpecHandle Handle = ASC->GiveAbility(Spec);
-    if (!ensureMsgf(Handle.IsValid(), TEXT("GiveAbility 실패: %s"), *WeaponID.ToString()))
-    {
-        return;
-    }
+	//어빌리티 등록
+    FGameplayAbilitySpecHandle Handle;
+	if (!RegisterAbility(EquipData, Classes, Handle))
+	{
+		return;
+	}
+    
 
-	//슬롯데이터 관리.(GA와 슬롯은 서로 모르니까)
-    FWeaponSlotInstanceData& Slot  = Slots[TargetSlot];
-    Slot.EquipData.WeaponID        = WeaponID;
-    Slot.EquipData.SkillID         = EquipData.SkillID;
-    Slot.AbilitySpecHandle         = Handle;
-    Slot.EquipData.Cooldown        = EquipData.Cooldown;
-    Slot.CooldownRemaining         = 0.f;
-    Slot.bIsActive                 = false;
-    Slot.EquipData.GAClass         = GAClass;
-    Slot.EquipData.ProjectileClass = ProjectileClass;
-    Slot.EquipData.DamageGEClass   = DamageGEClass;
-    Slot.EquipData.StatusGEClass   = StatusGEClass;
-
-    KHS_INFO(TEXT("무기 장착 완료: %s → Slot %d"), *WeaponID.ToString(), TargetSlot);
-
-    StartAutoFire(TargetSlot);
-	
-	//이벤트 발행
-    OnSlotUpdatedDel.Broadcast(TargetSlot);
+	//슬롯데이터 등록/발사시작
+	CommitSlot(TargetSlot, WeaponID, EquipData, Classes, Handle);
+    
 }
 
 void UEquipmentSubsystem::StopAllFire()
@@ -273,4 +241,75 @@ FGameplayTag UEquipmentSubsystem::GetEventTag(const FWeaponSlotInstanceData& Slo
 			return FGameplayTag::EmptyTag;
 		}
 	}
+}
+
+bool UEquipmentSubsystem::LoadEquipData(const FName& WeaponID, FWeaponEquipData& OutData) const
+{
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
+	
+	if (!GDS->GetWeaponEquipData(WeaponID, OutData))
+	{
+		KHS_WARN(TEXT("WeaponID 조회 실패: %s"), *WeaponID.ToString());
+		return false;
+	}
+	
+	return true;
+}
+
+bool UEquipmentSubsystem::LoadEquipClasses(const FWeaponEquipData& EquipData, FLoadedEquipClasses& OutClasses) const
+{
+	if (!LoadRequiredClass(EquipData.GAClass, OutClasses.GAClass, EquipData.WeaponID))
+	{
+		return false;
+	}
+	
+	if (!LoadRequiredClass(EquipData.DamageGEClass, OutClasses.DamageGEClass, EquipData.WeaponID))
+	{
+		return false;
+	}
+	
+	OutClasses.StatusGEClass = LoadOptionalClass(EquipData.StatusGEClass, EquipData.WeaponID);
+	OutClasses.ProjectileClass = LoadOptionalClass(EquipData.ProjectileClass, EquipData.WeaponID);
+	
+	return true;
+}
+
+bool UEquipmentSubsystem::RegisterAbility(const FWeaponEquipData& EquipData, const FLoadedEquipClasses& Classes, FGameplayAbilitySpecHandle& OutHandle)
+{
+	URSSkillData* SkillDataObj = NewObject<URSSkillData>(this);
+	SkillDataObj->SkillID = EquipData.SkillID;
+	SkillDataObjects.Add(SkillDataObj);
+
+	FGameplayAbilitySpec Spec(Classes.GAClass, 1, INDEX_NONE, SkillDataObj);
+	OutHandle = ASC->GiveAbility(Spec);
+	
+	if (!ensureMsgf(OutHandle.IsValid(), TEXT("GiveAbility 실패: %s"), *EquipData.WeaponID.ToString()))
+	{
+		return false;
+	}
+	
+	return true;
+}
+
+void UEquipmentSubsystem::CommitSlot(int32 TargetSlot, const FName& WeaponID, const FWeaponEquipData& EquipData, const FLoadedEquipClasses& Classes, const FGameplayAbilitySpecHandle& Handle)
+{
+	//슬롯 런타임 데이터 관리(GA랑 슬롯은 서로 모르니까)
+	FWeaponSlotInstanceData& Slot  = Slots[TargetSlot];
+	Slot.EquipData.WeaponID        = WeaponID;
+	Slot.EquipData.SkillID         = EquipData.SkillID;
+	Slot.EquipData.Cooldown        = EquipData.Cooldown;
+	Slot.EquipData.GAClass         = Classes.GAClass;
+	Slot.EquipData.ProjectileClass = Classes.ProjectileClass;
+	Slot.EquipData.DamageGEClass   = Classes.DamageGEClass;
+	Slot.EquipData.StatusGEClass   = Classes.StatusGEClass;
+	Slot.AbilitySpecHandle         = Handle;
+	Slot.CooldownRemaining         = 0.f;
+	Slot.bIsActive                 = false;
+
+	KHS_INFO(TEXT("무기 장착 완료: %s → Slot %d"), *WeaponID.ToString(), TargetSlot);
+
+	StartAutoFire(TargetSlot);
+	
+	//이벤트 발행
+	OnSlotUpdatedDel.Broadcast(TargetSlot);
 }

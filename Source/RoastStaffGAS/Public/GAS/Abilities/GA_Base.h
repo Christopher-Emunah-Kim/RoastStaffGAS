@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+#include "System/LoggingSystem.h"
 #include "GA_Base.generated.h"
 
 

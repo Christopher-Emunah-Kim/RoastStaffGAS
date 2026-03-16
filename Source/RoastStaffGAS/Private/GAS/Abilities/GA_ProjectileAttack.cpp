@@ -44,28 +44,57 @@ void UGA_ProjectileAttack::OnAbilityActivated(const FGameplayAbilitySpecHandle H
     EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
+bool UGA_ProjectileAttack::LoadSkillData(const FName SkillID, FSkillStaticData& OutSkillData, FSkillEffectData& OutEffectData) const
+{
+	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());
+
+	if (!GDS->GetSkillData(SkillID, OutSkillData))
+	{
+		KHS_WARN(TEXT("SkillID 조회 실패: %s"),*SkillID.ToString());
+		return false;
+	}
+
+	if (!GDS->GetSkillEffectData(OutSkillData.SkillEffectID, OutEffectData))
+	{
+		KHS_WARN(TEXT("SkillEffectID 조회 실패: %s"), *OutSkillData.SkillEffectID.ToString() );
+		return false;
+	}
+	
+	return true;
+}
+
+void UGA_ProjectileAttack::BuildInitData(const FSkillStaticData& SkillData, const FSkillEffectData& EffectData,
+	TSubclassOf<UGameplayEffect> DamageGEClass, TSubclassOf<UGameplayEffect> StatusGEClass,	FRSSkillInitData& OutInitData) const
+{
+	// InitData 채우기 
+	OutInitData.SkillID        = SkillData.SkillID;
+	OutInitData.SkillEffectID  = SkillData.SkillEffectID;
+	OutInitData.DamageGEClass  = DamageGEClass;
+	OutInitData.StatusGEClass  = StatusGEClass;
+	OutInitData.InstigatorASC  = GetOwnerASC();
+	OutInitData.Damage         = EffectData.Damage;
+	OutInitData.Speed          = EffectData.Speed;
+	OutInitData.Lifetime       = EffectData.Lifetime;
+
+	// TODO : SpawnData는 GDS에서 별도 조회 
+	// 일단SINGLE 모드만 사용
+	OutInitData.SpawnPattern    = ESpawnPattern::SINGLE;
+	OutInitData.ProjectileCount = 1;
+	OutInitData.SpreadAngle     = 0.f;	
+}
+
 bool UGA_ProjectileAttack::PrepareProjectileData(const URSSkillData* SkillData, TSubclassOf<ABaseProjectile>& OutClass, FRSSkillInitData& OutInitData)
 {
-	
     const FName SkillID = SkillData->SkillID;
 
     // GDS 조회 
-    GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());
-
     FSkillStaticData SkillStaticData;
-    if (!GDS->GetSkillData(SkillID, SkillStaticData))
+    FSkillEffectData EffectData;
+    if (!LoadSkillData(SkillID, SkillStaticData, EffectData))
     {
-        KHS_WARN(TEXT("SkillID 조회 실패: %s"),*SkillID.ToString());
-        return false;
+	    return false;
     }
 
-    FSkillEffectData EffectData;
-    if (!GDS->GetSkillEffectData(SkillStaticData.SkillEffectID, EffectData))
-    {
-       KHS_WARN(TEXT("SkillEffectID 조회 실패: %s"), *SkillStaticData.SkillEffectID.ToString() );
-       return false;
-    }
-	
     // 투사체/데미지GE/상태이상 GE 로드 
     if (!LoadRequiredClass(SkillStaticData.ProjectileClass, OutClass, SkillID))
     {
@@ -78,22 +107,8 @@ bool UGA_ProjectileAttack::PrepareProjectileData(const URSSkillData* SkillData, 
     }
     TSubclassOf<UGameplayEffect> StatusGEClass = LoadOptionalClass(SkillStaticData.StatusGEClass, SkillID);
 	
-	
-    // InitData 채우기 
-    OutInitData.SkillID        = SkillID;
-    OutInitData.SkillEffectID  = SkillStaticData.SkillEffectID;
-    OutInitData.DamageGEClass  = DamageGEClass;
-    OutInitData.StatusGEClass  = StatusGEClass;
-    OutInitData.InstigatorASC  = GetOwnerASC();
-    OutInitData.Damage         = EffectData.Damage;
-    OutInitData.Speed          = EffectData.Speed;
-    OutInitData.Lifetime       = EffectData.Lifetime;
-
-    // TODO : SpawnData는 GDS에서 별도 조회 
-    // 일단SINGLE 모드만 사용
-    OutInitData.SpawnPattern    = ESpawnPattern::SINGLE;
-    OutInitData.ProjectileCount = 1;
-    OutInitData.SpreadAngle     = 0.f;
+	//InitData 구성
+	BuildInitData(SkillStaticData, EffectData, DamageGEClass, StatusGEClass, OutInitData);
 	
     return true; 
 }

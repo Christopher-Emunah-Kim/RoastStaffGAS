@@ -6,7 +6,6 @@
 #include "Data/EnumTypes.h"
 #include "Objects/Data/RSSkillData.h"
 #include "Objects/Projectile/BaseProjectile.h"
-#include "System/LoggingSystem.h"
 
 
 UGA_Base::UGA_Base()
