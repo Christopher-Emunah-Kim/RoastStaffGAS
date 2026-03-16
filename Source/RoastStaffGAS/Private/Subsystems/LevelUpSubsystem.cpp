@@ -7,8 +7,6 @@
 #include "Subsystems/GameDataSubsystem.h"
 #include "Subsystems/EquipmentSubsystem.h"
 #include "GAS/Tags/RSGameplayTags.h"
-#include "Data/DataTableStructs.h"
-#include "System/LoggingSystem.h"
 
 void ULevelUpSubsystem::InitializeSubsystem(UAbilitySystemComponent* InASC, UPlayerAttributeSet* InAttributeSet,TSubclassOf<UGameplayEffect> InAddEXPEffectClass)
 {
@@ -36,9 +34,6 @@ void ULevelUpSubsystem::InitializeSubsystem(UAbilitySystemComponent* InASC, UPla
 
 void ULevelUpSubsystem::AddEXP(float Amount)
 {
-	KHS_INFO(TEXT("AddEXP 호출됨. Amount: %.0f / bIsInitialized: %d / ASC: %d"),
-		Amount, bIsInitialized, ASC != nullptr);
-	
 	if (!ensureMsgf(ASC, TEXT("ASC가 null")))
 	{
 		return;
@@ -89,15 +84,14 @@ void ULevelUpSubsystem::CheckLevelUp(float NewEXP, int32 CurrentLevel)
 		return;
 	}
 
-	UGameDataSubsystem* GDS = GetGameInstance()->GetSubsystem<UGameDataSubsystem>();
-	check(GDS);
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
 
 	float CurrentExpToProcess  = NewEXP;
 	int32 LevelToProcess       = CurrentLevel;
 	float RequiredExp		   = 0.f;
-	const bool bSuccessLoadExp = GDS->GetLevelCurveValue(FName("RequiredEXP"), LevelToProcess + 1, RequiredExp);
 	
-	while (LevelToProcess < MAX_LEVEL && bSuccessLoadExp && CurrentExpToProcess >= RequiredExp)
+	//잔여경험치를 반복 처리(레벨업 여러번일 경우)
+	while (LevelToProcess < MAX_LEVEL && GDS->GetLevelCurveValue(FName("RequiredEXP"), LevelToProcess + 1, RequiredExp) && CurrentExpToProcess >= RequiredExp)
 	{
 		CurrentExpToProcess -= RequiredExp;
 
@@ -116,8 +110,7 @@ void ULevelUpSubsystem::CheckLevelUp(float NewEXP, int32 CurrentLevel)
 
 void ULevelUpSubsystem::SelectWeaponCandidates()
 {
-	UGameDataSubsystem* GDS = GetGameInstance()->GetSubsystem<UGameDataSubsystem>();
-	check(GDS);
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
 
 	TArray<FName> WeaponPool = GDS->GetWeaponIDsByLevel(1); //1레벨 무기만.
 
@@ -128,6 +121,7 @@ void ULevelUpSubsystem::SelectWeaponCandidates()
 		return;
 	}
 
+	//셔플해서 앞에서 N개까지만 뽑기
 	Algo::RandomShuffle(WeaponPool);
 
 	TArray<FName> Candidates;
@@ -138,17 +132,13 @@ void ULevelUpSubsystem::SelectWeaponCandidates()
 		Candidates.Add(WeaponPool[i]);
 	}
 
-	KHS_INFO(TEXT("무기 후보 선정 완료: %s / %s / %s"),
-		*Candidates[0].ToString(),
-		*Candidates[1].ToString(),
-		*Candidates[2].ToString());
+	KHS_INFO(TEXT("무기 후보 선정 완료: %s / %s / %s"), *Candidates[0].ToString(),	*Candidates[1].ToString(), *Candidates[2].ToString());
 
-	// UI 미구현 구간 — 첫 번째 후보 자동 장착
-	UEquipmentSubsystem* EquipSys = GetGameInstance()->GetSubsystem<UEquipmentSubsystem>();
-	check(EquipSys);
+	// UI 미구현 — 첫 번째 후보 자동 장착
+	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys);
 	EquipSys->EquipWeapon(Candidates[0]);
 
-	// 델리게이트 발행 — UI 연동 후 위 임시 코드 제거하고 여기서 처리
+	//TODO  델리게이트 발행 — UI 연동 후 위 임시 코드 제거하고 여기서 처리
 	OnWeaponCandidatesReadyDel.Broadcast(Candidates);
 }
 

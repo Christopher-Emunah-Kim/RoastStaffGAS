@@ -16,23 +16,15 @@ void UEquipmentComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	UEquipmentSubsystem* EquipSys = GetWorld()->GetGameInstance()->GetSubsystem<UEquipmentSubsystem>();
-	if (!ensureMsgf(EquipSys, TEXT("EquipmentSubsystem을 찾을 수 없음")))
-	{
-		return;
-	}
-
+	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetWorld()->GetGameInstance());
 	EquipSys->OnSlotUpdatedDel.AddDynamic(this, &UEquipmentComponent::OnSlotUpdated);
 	KHS_INFO(TEXT("OnSlotUpdatedDel 구독 완료"));
 }
 
 void UEquipmentComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	UEquipmentSubsystem* EquipSys = GetWorld()->GetGameInstance()->GetSubsystem<UEquipmentSubsystem>();
-	if (EquipSys)
-	{
-		EquipSys->OnSlotUpdatedDel.RemoveDynamic(this, &UEquipmentComponent::OnSlotUpdated);
-	}
+	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetWorld()->GetGameInstance());
+	EquipSys->OnSlotUpdatedDel.RemoveDynamic(this, &UEquipmentComponent::OnSlotUpdated);
 	
     Super::EndPlay(EndPlayReason);
 }
@@ -44,11 +36,7 @@ void UEquipmentComponent::OnSlotUpdated(int32 SlotIndex)
 
 void UEquipmentComponent::RefreshSlotUI(int32 SlotIndex)
 {
-	UEquipmentSubsystem* EquipSys = GetWorld()->GetGameInstance()->GetSubsystem<UEquipmentSubsystem>();
-	if (!EquipSys)
-	{
-		return;
-	}
+	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetWorld()->GetGameInstance());
 
 	const FWeaponSlotInstanceData* SlotData = EquipSys->GetSlotData(SlotIndex);
 	if (!SlotData)
