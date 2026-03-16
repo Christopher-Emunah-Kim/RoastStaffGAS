@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/DataTableStructs.h"
 #include "GAS/Abilities/GA_Base.h"
 #include "Objects/Data/RSSkillData.h"
 #include "GA_ProjectileAttack.generated.h"
@@ -26,12 +27,12 @@ public:
 private:
 	//투사체 생성 헬퍼
 	bool PrepareProjectileData(const URSSkillData* SkillData, TSubclassOf<ABaseProjectile>& OutClass,  FRSSkillInitData& OutInitData);
-	
+	//투사체 생성 내부 헬퍼
+	bool LoadSkillData(FName SkillID, FSkillStaticData& OutSkilLData, FSkillEffectData& OutEffectData) const;
+	void BuildInitData(const FSkillStaticData& SkillData,  const FSkillEffectData& EffectData,  TSubclassOf<UGameplayEffect> DamageGEClass, 
+		TSubclassOf<UGameplayEffect> StatusGEClass, FRSSkillInitData& OutInitData) const;
+
 protected:
-	virtual void OnAbilityActivated(
-		const FGameplayAbilitySpecHandle Handle,
-		const FGameplayAbilityActorInfo* ActorInfo,
-		const FGameplayAbilityActivationInfo ActivationInfo) override;
-	
+	virtual void OnAbilityActivated(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	
 };
