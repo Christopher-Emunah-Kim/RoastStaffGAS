@@ -44,6 +44,11 @@ private:
 	int32 GetEmptySlotIndex() const;
 	FGameplayTag GetEventTag(const FWeaponSlotInstanceData& Slot) const;
 
+	template<typename T>
+	bool LoadRequiredClass(const TSoftClassPtr<T>& SoftPtr, TSubclassOf<T>& OutClass, const FName& ContextID) const;
+	template<typename T>
+	TSubclassOf<T> LoadOptionalClass(const TSoftClassPtr<T>& SoftPtr, const FName& ContextID) const;
+	
 public:
 	// 슬롯 상태 변경 델리게이트
 	UPROPERTY(BlueprintAssignable, Category = "MY|Equipment")
@@ -62,3 +67,27 @@ private:
 
 	bool bIsInitialized = false;
 };
+
+template<typename T>
+bool UEquipmentSubsystem::LoadRequiredClass(const TSoftClassPtr<T>& SoftPtr,  TSubclassOf<T>& OutClass, const FName& ContextID) const
+{
+	OutClass = SoftPtr.LoadSynchronous();
+	return ensureMsgf(OutClass,	TEXT("필수 클래스 로드 실패 — ID: %s / Class: %s"),	*ContextID.ToString(), *SoftPtr.ToString());
+}
+
+template<typename T>
+TSubclassOf<T> UEquipmentSubsystem::LoadOptionalClass(const TSoftClassPtr<T>& SoftPtr, const FName& ContextID) const
+{
+	if (SoftPtr.IsNull())
+	{
+		return nullptr;
+	}
+
+	TSubclassOf<T> Result = SoftPtr.LoadSynchronous();
+	if (!Result)
+	{
+		KHS_WARN(TEXT("선택 클래스 로드 실패 — 스킵. ID: %s / Class: %s"),*ContextID.ToString(),	*SoftPtr.ToString());
+	}
+
+	return Result;
+}

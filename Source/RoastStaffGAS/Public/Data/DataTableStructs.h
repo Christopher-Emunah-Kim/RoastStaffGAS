@@ -9,6 +9,8 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "DataTableStructs.generated.h"
 
+
+
 // ============================================================================
 // DataTable 구조체
 // ============================================================================
@@ -50,6 +52,8 @@ struct FWeaponStaticData : public FTableRowBase
 // ----------------------------------------------------------------------------
 // DT_Skill — 스킬 기본 데이터 (GA/GE 클래스 매핑)
 // ----------------------------------------------------------------------------
+class ABaseProjectile;
+
 USTRUCT(BlueprintType)
 struct FSkillStaticData : public FTableRowBase
 {
@@ -69,7 +73,7 @@ struct FSkillStaticData : public FTableRowBase
 	TSoftClassPtr<UGameplayAbility> GAClass;
 	/** 투사체 액터 클래스 경로. 소환형은 nullptr */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
-	TSoftClassPtr<AActor> ProjectileClass;
+	TSoftClassPtr<ABaseProjectile> ProjectileClass;
 	/** 데미지 GE 클래스 경로 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
 	TSoftClassPtr<UGameplayEffect> DamageGEClass;
