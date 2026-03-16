@@ -73,3 +73,13 @@ Plugins/**/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+# ============================================
+# Claude Code CLI
+# ============================================
+.claude/
+
+# ============================================
+# Design Documents (기획서, 핸드오프)
+# ============================================
+_Design/
