@@ -49,6 +49,11 @@ protected:
 	// GA 오너의 ASC 반환
 	UAbilitySystemComponent* GetOwnerASC() const;
 
+	template<typename T>
+	bool LoadRequiredClass(const TSoftClassPtr<T>& SoftPtr, TSubclassOf<T>& OutClass, const FName& ContextID);
+	template<typename T>
+	TSubclassOf<T> LoadOptionalClass(const TSoftClassPtr<T>& SoftPtr, const FName& ContextID) const;
+	
 protected:
 	const float SPAWN_OFFSET = 200.f;
 	
@@ -57,3 +62,28 @@ protected:
 	TObjectPtr<const ABaseCharacter> CachedInstigator;
 	
 };
+
+template<typename T>
+bool UGA_Base::LoadRequiredClass(const TSoftClassPtr<T>& SoftPtr, TSubclassOf<T>& OutClass, const FName& ContextID)
+{
+	OutClass = SoftPtr.LoadSynchronous();
+	return ensureMsgf(OutClass,	TEXT("필수 클래스 로드 실패 — ID: %s / Class: %s"),	*ContextID.ToString(), *SoftPtr.ToString());
+}
+
+
+template<typename T>
+TSubclassOf<T> UGA_Base::LoadOptionalClass(const TSoftClassPtr<T>& SoftPtr, const FName& ContextID) const
+{
+	if (SoftPtr.IsNull())
+	{
+		return nullptr;
+	}
+
+	TSubclassOf<T> Result = SoftPtr.LoadSynchronous();
+	if (!Result)
+	{
+		KHS_WARN(TEXT("선택 클래스 로드 실패 — 스킵. ID: %s / Class: %s"),	*ContextID.ToString(),	*SoftPtr.ToString());
+	}
+
+	return Result;
+}

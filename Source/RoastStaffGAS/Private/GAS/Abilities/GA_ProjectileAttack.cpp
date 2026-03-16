@@ -65,34 +65,20 @@ bool UGA_ProjectileAttack::PrepareProjectileData(const URSSkillData* SkillData, 
        KHS_WARN(TEXT("SkillEffectID 조회 실패: %s"), *SkillStaticData.SkillEffectID.ToString() );
        return false;
     }
-    
-    // 투사체 클래스 로드 
-    OutClass = Cast<UClass>(SkillStaticData.ProjectileClass.LoadSynchronous());
-
-    if (!ensureMsgf(OutClass, TEXT("ProjectileClass 로드 실패: %s"), *SkillID.ToString()))
+	
+    // 투사체/데미지GE/상태이상 GE 로드 
+    if (!LoadRequiredClass(SkillStaticData.ProjectileClass, OutClass, SkillID))
     {
         return false;
     }
-
-    //데미지 GE 로드 - 실패시 리턴
-    TSubclassOf<UGameplayEffect> DamageGEClass = Cast<UClass>(SkillStaticData.DamageGEClass.LoadSynchronous());
-
-    if (!ensureMsgf(DamageGEClass, TEXT("DamageGE 로드 실패: %s"), *SkillID.ToString()))
+    TSubclassOf<UGameplayEffect> DamageGEClass;
+    if (!LoadRequiredClass(SkillStaticData.DamageGEClass, DamageGEClass, SkillID))
     {
         return false;
     }
-    
-    //상태이상 GE 로드 - 실패시 스킵
-    TSubclassOf<UGameplayEffect> StatusGEClass = nullptr;
-    if (!SkillStaticData.StatusGEClass.IsNull())
-    {
-        StatusGEClass = Cast<UClass>(SkillStaticData.StatusGEClass.LoadSynchronous());
-        if (!StatusGEClass)
-        {
-            KHS_WARN(TEXT("StatusGE 로드 실패 — 스킵: %s"), *SkillID.ToString());
-        }
-    }
-
+    TSubclassOf<UGameplayEffect> StatusGEClass = LoadOptionalClass(SkillStaticData.StatusGEClass, SkillID);
+	
+	
     // InitData 채우기 
     OutInitData.SkillID        = SkillID;
     OutInitData.SkillEffectID  = SkillStaticData.SkillEffectID;

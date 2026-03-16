@@ -88,37 +88,22 @@ void UEquipmentSubsystem::EquipWeapon(const FName& WeaponID)
         return;
     }
 
-    TSubclassOf<UGameplayAbility> GAClass = EquipData.GAClass.LoadSynchronous();
-    if (!ensureMsgf(GAClass, TEXT("GA 클래스 로드 실패: %s"), *WeaponID.ToString()))
-    {
-        return;
-    }
-
-    TSubclassOf<UGameplayEffect> DamageGEClass = EquipData.DamageGEClass.LoadSynchronous();
-    if (!ensureMsgf(DamageGEClass, TEXT("DamageGE 클래스 로드 실패: %s"), *WeaponID.ToString()))
-    {
-        return;
-    }
-
-    TSubclassOf<UGameplayEffect> StatusGEClass = nullptr;
-    if (!EquipData.StatusGEClass.IsNull())
-    {
-        StatusGEClass = EquipData.StatusGEClass.LoadSynchronous();
-        if (!StatusGEClass)
-        {
-            KHS_WARN(TEXT("StatusGE 로드 실패. 스킵: %s"), *WeaponID.ToString());
-        }
-    }
-
-    TSubclassOf<AActor> ProjectileClass = nullptr;
-    if (!EquipData.ProjectileClass.IsNull())
-    {
-        ProjectileClass = EquipData.ProjectileClass.LoadSynchronous();
-        if (!ensureMsgf(ProjectileClass, TEXT("투사체 클래스 로드 실패: %s"), *WeaponID.ToString()))
-        {
-            return;
-        }
-    }
+	//GA/GE클래스 로드
+    TSubclassOf<UGameplayAbility> GAClass;
+	if (!LoadRequiredClass(EquipData.GAClass, GAClass, WeaponID))
+	{
+		return;
+	}
+	
+	TSubclassOf<UGameplayEffect> DamageGEClass;
+	if (!LoadRequiredClass(EquipData.DamageGEClass, DamageGEClass, WeaponID))
+	{
+		return;
+	}
+	
+	TSubclassOf<UGameplayEffect> StatusGEClass = LoadOptionalClass(EquipData.StatusGEClass, WeaponID);
+	TSubclassOf<AActor> ProjectileClass = LoadOptionalClass(EquipData.ProjectileClass, WeaponID);
+	
 
 	//GA 이벤트 발동 시 SkillID 함께 전달하기 위한 DTO추가
     URSSkillData* SkillDataObj = NewObject<URSSkillData>(this);
@@ -132,7 +117,7 @@ void UEquipmentSubsystem::EquipWeapon(const FName& WeaponID)
         return;
     }
 
-	//슬롯데이터 관리.
+	//슬롯데이터 관리.(GA와 슬롯은 서로 모르니까)
     FWeaponSlotInstanceData& Slot  = Slots[TargetSlot];
     Slot.EquipData.WeaponID        = WeaponID;
     Slot.EquipData.SkillID         = EquipData.SkillID;
