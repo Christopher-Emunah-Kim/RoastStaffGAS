@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UI/RSBaseWidget.h"
+#include "Blueprint/UserWidget.h"
 #include "WeaponSlotWidget.generated.h"
 
 /**
@@ -11,6 +11,7 @@
  */
 
 struct FWeaponSlotInstanceData;
+class UMaterialInstanceDynamic;
 class UTextBlock;
 class UImage;
 
@@ -19,8 +20,6 @@ UCLASS()
 class ROASTSTAFFGAS_API UWeaponSlotWidget : public UUserWidget
 {
 	GENERATED_BODY()
-	
-	UWeaponSlotWidget();
 	
 public:
 	void InitSlot(int32 InSlotIndex);
@@ -38,11 +37,20 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> Img_CooldownOverlay;
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> Img_SkillIcon;
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> Txt_CooldownRemaining;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> Img_ActiveBorder;
 
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> CooldownMID;
+	UPROPERTY()
+	TObjectPtr<UTexture2D> LoadedSkillIcon;
+
+
 	int32 SlotIndex = -1;
+	float TotalCooldown = 0.f;
 	float LocalCooldownRemaining = 0.f;
 	bool bIsCooldownActive = false;
 	
