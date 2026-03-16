@@ -12,6 +12,7 @@
 // -------------------------------------------------------------------------
 
 class UEquipmentSubsystem;
+class URSHUDWidget;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ROASTSTAFFGAS_API UEquipmentComponent : public UActorComponent
@@ -32,5 +33,13 @@ private:
 
 	// TODO: 슬롯 UI 위젯 연결 후 실제 갱신 로직 구현
 	void RefreshSlotUI(int32 SlotIndex);
+	
+protected:
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<URSHUDWidget> HUDWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<URSHUDWidget> CachedHUDUI;
+
 	
 };

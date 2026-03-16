@@ -45,7 +45,10 @@ struct FWeaponEquipData
 	// 쿨타임 (DT_SkillEffect에서 가져옴)
 	UPROPERTY(BlueprintReadOnly) 
 	float Cooldown;
-
+	// 스킬 아이콘	
+	UPROPERTY(BlueprintReadOnly)
+	TSoftObjectPtr<UTexture2D> SkillIcon;
+	
 	// 투사체 공통 파라미터 (GA가 사용)
 	UPROPERTY(BlueprintReadOnly) 
 	float Damage;

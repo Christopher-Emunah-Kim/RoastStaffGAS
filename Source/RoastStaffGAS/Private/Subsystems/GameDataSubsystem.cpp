@@ -263,6 +263,7 @@ bool UGameDataSubsystem::GetWeaponEquipData(FName WeaponID, FWeaponEquipData& Ou
     OutData.DamageGEClass   = SkillData.DamageGEClass;
     OutData.StatusGEClass   = SkillData.StatusGEClass;
     OutData.Cooldown        = EffectData.Cooldown;
+    OutData.SkillIcon       = SkillData.SkillIcon;
     OutData.Damage          = EffectData.Damage;            
     OutData.Speed           = EffectData.Speed;             
     OutData.Lifetime        = EffectData.Lifetime;          
