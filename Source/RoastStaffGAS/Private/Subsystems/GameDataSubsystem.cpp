@@ -256,6 +256,7 @@ bool UGameDataSubsystem::GetWeaponEquipData(FName WeaponID, FWeaponEquipData& Ou
     OutData.WeaponID        = WeaponID;
     OutData.SkillID         = WeaponData.SkillID;
     OutData.SkillEffectID   = SkillData.SkillEffectID;
+    OutData.WeaponName      = WeaponData.WeaponName;
     OutData.SlotType        = WeaponData.SlotType;          
     OutData.GAClass         = SkillData.GAClass;
     OutData.ProjectileClass = SkillData.ProjectileClass;

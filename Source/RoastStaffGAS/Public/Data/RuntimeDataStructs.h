@@ -14,6 +14,8 @@
 // FWeaponEquipData — 무기 장착 시 필요한 데이터를 한 번에 전달하는 구조체
 // GDS의 GetWeaponEquipData()가 반환
 // ----------------------------------------------------------------------------
+class ABaseProjectile;
+
 USTRUCT(BlueprintType)
 struct FWeaponEquipData
 {
@@ -26,13 +28,15 @@ struct FWeaponEquipData
 	UPROPERTY(BlueprintReadOnly) 
 	FName SkillEffectID;
 	UPROPERTY(BlueprintReadOnly) 
+	FName WeaponName;
+	UPROPERTY(BlueprintReadOnly) 
 	EWeaponSlotType SlotType;
 
 	// GA/투사체/GE 클래스 경로 (TSoftClassPtr — 장착 시점에 LoadSynchronous)
 	UPROPERTY(BlueprintReadOnly) 
 	TSoftClassPtr<UGameplayAbility> GAClass;
 	UPROPERTY(BlueprintReadOnly) 
-	TSoftClassPtr<AActor> ProjectileClass;
+	TSoftClassPtr<ABaseProjectile> ProjectileClass;
 	UPROPERTY(BlueprintReadOnly) 
 	TSoftClassPtr<UGameplayEffect> DamageGEClass;
 	UPROPERTY(BlueprintReadOnly) 

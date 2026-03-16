@@ -38,13 +38,13 @@ struct FWeaponStaticData : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 	EWeaponSlotType SlotType;
 	/** 강화 시 다음 단계 무기 ID. 최대 레벨이면 None */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Future")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 	FName NextLevelWeaponID;
 	/** DT_String FK — 무기 이름 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Future")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 	FName WeaponName;
 	/** DT_String FK — 무기 설명 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Future")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 	FName Description;
 };
 
