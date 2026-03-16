@@ -2,22 +2,16 @@
 
 
 #include "UI/WeaponSlotWidget.h"
-  #include "Data/RuntimeDataStructs.h"
-  #include "Components/TextBlock.h"
-  #include "Components/Image.h"
-  #include "System/LoggingSystem.h"
+#include "Data/RuntimeDataStructs.h"
+#include "Components/TextBlock.h"
+#include "Components/Image.h"
+#include "System/LoggingSystem.h"
 
 
-
-UWeaponSlotWidget::UWeaponSlotWidget()
-{
-	
-}
 
 void UWeaponSlotWidget::InitSlot(int32 InSlotIndex)
 {
 	SlotIndex = InSlotIndex;
-
 }
 
 void UWeaponSlotWidget::UpdateSlot(const FWeaponSlotInstanceData* SlotData)
@@ -27,27 +21,41 @@ void UWeaponSlotWidget::UpdateSlot(const FWeaponSlotInstanceData* SlotData)
 		Txt_WeaponName->SetText(FText::FromString(TEXT("EMPTY")));
 		Img_CooldownOverlay->SetVisibility(ESlateVisibility::Collapsed);
 		Txt_CooldownRemaining->SetVisibility(ESlateVisibility::Collapsed);
+		Img_SkillIcon->SetVisibility(ESlateVisibility::Collapsed);
 		Img_ActiveBorder->SetVisibility(ESlateVisibility::Collapsed);
 		bIsCooldownActive = false;
 		return;
 	}
 
-	Txt_WeaponName->SetText(FText::FromName(SlotData->EquipData.WeaponName));
-	Img_ActiveBorder->SetVisibility(SlotData->bIsActive ? ESlateVisibility::Visible : ESlateVisibility::Collapsed); // 액티브 모드 여부
+	FName DisplayName = SlotData->EquipData.WeaponName.IsNone()? SlotData->EquipData.WeaponID : SlotData->EquipData.WeaponName;
+	Txt_WeaponName->SetText(FText::FromName(DisplayName));
 
-	// 쿨타임
-	if (SlotData->CooldownRemaining > 0.f)
+	Img_ActiveBorder->SetVisibility(SlotData->bIsActive ? ESlateVisibility::Visible : ESlateVisibility::Collapsed); // 액티브 모드 여부
+	
+	//스킬 아이콘 세팅
+	if (!SlotData->EquipData.SkillIcon.IsNull())
 	{
-		LocalCooldownRemaining = SlotData->CooldownRemaining;
-		bIsCooldownActive = true;
-		Img_CooldownOverlay->SetVisibility(ESlateVisibility::Visible);
-		Txt_CooldownRemaining->SetVisibility(ESlateVisibility::Visible);
+		LoadedSkillIcon = SlotData->EquipData.SkillIcon.LoadSynchronous();
+		if (LoadedSkillIcon)
+		{
+			Img_SkillIcon->SetBrushFromTexture(LoadedSkillIcon);
+		}
 	}
-	else
+	
+	// 쿨타임
+	if (SlotData->bIsActive || SlotData->CooldownRemaining <= 0.f)
 	{
 		bIsCooldownActive = false;
 		Img_CooldownOverlay->SetVisibility(ESlateVisibility::Collapsed);
 		Txt_CooldownRemaining->SetVisibility(ESlateVisibility::Collapsed);
+	}
+	else
+	{
+		TotalCooldown = SlotData->EquipData.Cooldown;
+		LocalCooldownRemaining = SlotData->CooldownRemaining;
+		bIsCooldownActive = true;
+		Img_CooldownOverlay->SetVisibility(ESlateVisibility::Visible);
+		Txt_CooldownRemaining->SetVisibility(ESlateVisibility::Visible);
 	}
 
 }
@@ -56,10 +64,17 @@ void UWeaponSlotWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 	
-	ensureMsgf(Txt_WeaponName,        TEXT("Txt_WeaponName BindWidget 누락"));
-	ensureMsgf(Img_CooldownOverlay,    TEXT("Img_CooldownOverlay BindWidget 누락"));
+	ensureMsgf(Txt_WeaponName, TEXT("Txt_WeaponName BindWidget 누락"));
+	ensureMsgf(Img_CooldownOverlay, TEXT("Img_CooldownOverlay BindWidget 누락"));
+	ensureMsgf(Img_SkillIcon, TEXT("Img_SkillIcon BindWidget 누락"));
 	ensureMsgf(Txt_CooldownRemaining, TEXT("Txt_CooldownRemaining BindWidget 누락"));
-	ensureMsgf(Img_ActiveBorder,       TEXT("Img_ActiveBorder BindWidget 누락"));
+	ensureMsgf(Img_ActiveBorder, TEXT("Img_ActiveBorder BindWidget 누락"));
+
+	// MID 생성 — BP에서 Img_CooldownOverlay에 머티리얼 할당 후 동작
+	if (Img_CooldownOverlay)
+	{
+		CooldownMID = Img_CooldownOverlay->GetDynamicMaterial();
+	}
 
 }
 
@@ -71,7 +86,12 @@ void UWeaponSlotWidget::UpdateCooldown(float InDeltaTime)
 	}
 
 	LocalCooldownRemaining -= InDeltaTime;
-
+	if (CooldownMID && TotalCooldown > 0.f)
+	{
+		float Percent = FMath::Clamp(LocalCooldownRemaining / TotalCooldown, 0.0f, 1.0f);
+		CooldownMID->SetScalarParameterValue(FName("Percent"), Percent);
+	}
+	
 	if (LocalCooldownRemaining <= 0.f)
 	{
 		LocalCooldownRemaining = 0.f;
