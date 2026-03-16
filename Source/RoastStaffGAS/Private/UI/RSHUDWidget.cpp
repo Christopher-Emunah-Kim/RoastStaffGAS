@@ -2,6 +2,7 @@
 
 
 #include "UI/RSHUDWidget.h"
+#include "UI/WeaponSlotContainerWidget.h"
 
 URSHUDWidget::URSHUDWidget()
 {
@@ -10,6 +11,6 @@ URSHUDWidget::URSHUDWidget()
 void URSHUDWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-	//ensureMsgf(WBP_SlotContainer, TEXT("SlotContainerWidget BindWidget 누락"));
+	ensureMsgf(WBP_SlotContainer, TEXT("SlotContainerWidget BindWidget 누락"));
 
 }
