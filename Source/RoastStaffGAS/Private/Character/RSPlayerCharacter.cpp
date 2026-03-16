@@ -15,6 +15,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "RoastStaffGAS.h"
 #include "TimerManager.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Subsystems/EquipmentSubsystem.h"
@@ -173,12 +174,10 @@ void ARSPlayerCharacter::InitializeAbilitySystem()
 		return;
 	}
 	
-	UEquipmentSubsystem* EquipSys = GetGameInstance()->GetSubsystem<UEquipmentSubsystem>();
-	check(EquipSys);
+	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys);
 	EquipSys->InitializeSubsystem(ASC);
 
-	ULevelUpSubsystem* LevelUpSys = GetGameInstance()->GetSubsystem<ULevelUpSubsystem>();
-	check(LevelUpSys);
+	GET_GI_SUBSYSTEM(ULevelUpSubsystem, LevelUpSys);
 	LevelUpSys->InitializeSubsystem(ASC, PS->GetPlayerAttributeSet(), AddEXPEffectClass);
 	
 	KHS_INFO(TEXT("GAS 초기화 완료."));
@@ -202,11 +201,8 @@ void ARSPlayerCharacter::HandleDeath()
 	PC->SetIgnoreLookInput(true);
 
 	// 무기 발사 모두 중지
-	UEquipmentSubsystem* EquipSys = GetGameInstance()->GetSubsystem<UEquipmentSubsystem>();
-	if (EquipSys)
-	{
-		EquipSys->StopAllFire();
-	}
+	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys);
+	EquipSys->StopAllFire();
 
 	// TODO : 스테이지 시스템 생기면 사망 이벤트 전달
 	// TODO : 결과 화면 전환
@@ -264,23 +260,13 @@ void ARSPlayerCharacter::OnMouseAim(const FInputActionValue& Value)
 
 void ARSPlayerCharacter::OnShootStart(const FInputActionValue& Value)
 {
-	UEquipmentSubsystem* EquipSys = GetGameInstance()->GetSubsystem<UEquipmentSubsystem>();
-	if (!ensureMsgf(EquipSys, TEXT("EquipmentSubsystem is null")))
-	{
-		return;
-	}
-
+	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys);
 	EquipSys->RequestManualFire(CachedAimLocation);
 }
 
 
 void ARSPlayerCharacter::OnSlotActivate(const FInputActionValue& Value, int32 SlotIndex)
 {
-	UEquipmentSubsystem* EquipSys = GetGameInstance()->GetSubsystem<UEquipmentSubsystem>();
-	if (!ensureMsgf(EquipSys, TEXT("EquipmentSubsystem is null")))
-	{
-		return;
-	}
-
+	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys);
 	EquipSys->RequestSlotActivate(SlotIndex);
 }

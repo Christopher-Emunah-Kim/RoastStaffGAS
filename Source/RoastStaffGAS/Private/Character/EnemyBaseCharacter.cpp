@@ -2,6 +2,7 @@
 
 
 #include "Character/EnemyBaseCharacter.h"
+#include "RoastStaffGAS.h"
 #include "AbilitySystemComponent.h"
 #include "Character/Enemy/EnemyAIController.h"
 #include "GAS/Attributes/EnemyAttributeSet.h"
@@ -9,7 +10,6 @@
 #include "Data/DataTableStructs.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GAS/Tags/RSGameplayTags.h"
-#include "System/LoggingSystem.h"
 
 AEnemyBaseCharacter::AEnemyBaseCharacter()
 {
@@ -35,11 +35,7 @@ void AEnemyBaseCharacter::InitializeEnemy(FName InEnemyID)
 	InitializeAbilitySystem();
 
 	//  GDS에서 DT_Enemy 조회
-	UGameDataSubsystem* GDS = GetGameInstance()->GetSubsystem<UGameDataSubsystem>();
-	if (!ensureMsgf(GDS, TEXT("%s — GDS를 찾을 수 없습니다."), *GetName()))
-	{
-		return;
-	}
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
 
 	FEnemyStaticData EnemyData;
 	if (!GDS->GetEnemyData(EnemyID, EnemyData))

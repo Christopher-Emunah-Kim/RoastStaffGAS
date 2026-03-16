@@ -2,12 +2,11 @@
 
 
 #include "GAS/Abilities/GA_ProjectileAttack.h"
+#include "RoastStaffGAS.h"
 #include "GAS/Tags/RSGameplayTags.h"
 #include "Objects/Data/RSSkillData.h"
 #include "Subsystems/GameDataSubsystem.h"
-#include "AbilitySystemComponent.h"
 #include "Objects/Projectile/BaseProjectile.h"
-#include "System/LoggingSystem.h"
 
 UGA_ProjectileAttack::UGA_ProjectileAttack()
 {
@@ -51,10 +50,7 @@ bool UGA_ProjectileAttack::PrepareProjectileData(const URSSkillData* SkillData, 
     const FName SkillID = SkillData->SkillID;
 
     // GDS 조회 
-    UGameInstance* GI = GetWorld()->GetGameInstance();
-    check(GI);
-    UGameDataSubsystem* GDS = GI->GetSubsystem<UGameDataSubsystem>();
-    check(GDS);
+    GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());
 
     FSkillStaticData SkillStaticData;
     if (!GDS->GetSkillData(SkillID, SkillStaticData))

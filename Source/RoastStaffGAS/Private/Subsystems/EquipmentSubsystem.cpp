@@ -67,11 +67,13 @@ void UEquipmentSubsystem::RequestSlotActivate(int32 SlotIndex)
 
 void UEquipmentSubsystem::EquipWeapon(const FName& WeaponID)
 {
-	check(ASC);
+	if (!ensureMsgf(ASC, TEXT("ASC IS NULL")))
+    {
+        return;
+    }
 
-    UGameDataSubsystem* GDS = GetGameInstance()->GetSubsystem<UGameDataSubsystem>();
-    check(GDS);
-
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
+	
     FWeaponEquipData EquipData;
     if (!GDS->GetWeaponEquipData(WeaponID, EquipData))
     {
@@ -146,6 +148,7 @@ void UEquipmentSubsystem::EquipWeapon(const FName& WeaponID)
     KHS_INFO(TEXT("무기 장착 완료: %s → Slot %d"), *WeaponID.ToString(), TargetSlot);
 
     StartAutoFire(TargetSlot);
+	
 	//이벤트 발행
     OnSlotUpdatedDel.Broadcast(TargetSlot);
 }
@@ -189,12 +192,8 @@ void UEquipmentSubsystem::FireSlot(int32 SlotIndex, const FVector& AimLocation)
 		return;
 	}
 
-	ASC->TriggerAbilityFromGameplayEvent(
-		Slot.AbilitySpecHandle,
-		ASC->AbilityActorInfo.Get(),
-		EventTag,
-		&Payload,
-		*ASC);
+	ASC->TriggerAbilityFromGameplayEvent(Slot.AbilitySpecHandle,
+		ASC->AbilityActorInfo.Get(), EventTag, &Payload,*ASC);
 
 	KHS_INFO(TEXT("Slot %d: %s 발사! CD: %.2fs"), SlotIndex, *Slot.EquipData.SkillID.ToString(), Slot.EquipData.Cooldown);
 }
