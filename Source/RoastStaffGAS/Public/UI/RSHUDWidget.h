@@ -7,7 +7,7 @@
 #include "RSHUDWidget.generated.h"
 
 
-//class URSSlotContainerWidget;
+class UWeaponSlotContainerWidget;
 
 /**
  * 
@@ -22,11 +22,12 @@ class ROASTSTAFFGAS_API URSHUDWidget : public URSBaseWidget
 protected:
 	virtual void NativeConstruct() override;
 	
-	//FORCEINLINE URSSlotContainerWidget* GetSlotContainerWidget() const  { return WBP_SlotContainer; }
+public:
+	FORCEINLINE UWeaponSlotContainerWidget* GetSlotContainerWidget() const  { return WBP_SlotContainer; }
 	
 private:
-	//UPROPERTY(meta = (BindWidget))
-	//TObjectPtr<URSSlotContainerWidget> WBP_SlotContainer;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UWeaponSlotContainerWidget> WBP_SlotContainer;
 
 	
 };
