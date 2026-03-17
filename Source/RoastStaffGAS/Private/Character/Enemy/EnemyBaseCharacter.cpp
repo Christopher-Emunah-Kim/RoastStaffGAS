@@ -21,6 +21,27 @@ AEnemyBaseCharacter::AEnemyBaseCharacter()
 	ASC->AddAttributeSetSubobject<UEnemyAttributeSet>(EnemyAttributeSet);
 }
 
+
+bool AEnemyBaseCharacter::StartEnemyAI(FEnemyStaticData EnemyData)
+{
+	AEnemyAIController* EnemyAIC = Cast<AEnemyAIController>(GetController());
+	if (!ensureMsgf(EnemyAIC, TEXT("%s — CANNOT FIND EnemyAIController."), *GetName()))
+	{
+		return false;
+	}
+
+	UBehaviorTree* BTAsset = EnemyData.BehaviorTree.LoadSynchronous();
+	if (!BTAsset)
+	{
+		KHS_WARN(TEXT("%s — BehaviorTree 로드 실패. EnemyID: %s"), *GetName(), *EnemyID.ToString());
+		check(false);
+		return false;
+	}
+
+	EnemyAIC->StartAI(BTAsset);
+	return true;
+}
+
 void AEnemyBaseCharacter::InitializeEnemy(FName InEnemyID)
 {
 	if (bIsInitialized)
@@ -29,52 +50,22 @@ void AEnemyBaseCharacter::InitializeEnemy(FName InEnemyID)
 		return;
 	}
 
-	EnemyID = InEnemyID;
-
 	// ASC 초기화
+	EnemyID = InEnemyID;
 	InitializeAbilitySystem();
 
-	//  GDS에서 DT_Enemy 조회
-	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
-
+	// 스탯 주입
 	FEnemyStaticData EnemyData;
-	if (!GDS->GetEnemyData(EnemyID, EnemyData))
-	{
-		// 조회 실패 시 크래시
-		KHS_WARN(TEXT("%s — DT_Enemy 조회 실패. EnemyID: %s"), *GetName(), *EnemyID.ToString());
-		check(false);
-		return;
-	}
-
-	// 기본 스탯 주입
-	ASC->SetNumericAttributeBase(EnemyAttributeSet->GetMaxHPAttribute(),    EnemyData.MaxHP);
-	ASC->SetNumericAttributeBase(EnemyAttributeSet->GetCurrentHPAttribute(),EnemyData.MaxHP);
-	ASC->SetNumericAttributeBase(EnemyAttributeSet->GetMoveSpeedAttribute(),EnemyData.MoveSpeed);
-
-	// 이동 속도 반영
-	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
-	if (!MoveComp)
-	{
-		KHS_WARN(TEXT("Invalid Movecomp"));
-		return;
-	}
-	MoveComp->MaxWalkSpeed = EnemyData.MoveSpeed;
-
-	AEnemyAIController* EnemyAIC = Cast<AEnemyAIController>(GetController());
-	if (!ensureMsgf(EnemyAIC, TEXT("%s — CANNOT FINT EnemyAIController."), *GetName()))
+	if (!ApplyStatData(EnemyData))
 	{
 		return;
 	}
 
-	UBehaviorTree* BTAsset = EnemyData.BehaviorTree.LoadSynchronous();
-	if (!BTAsset)
+	// AI BT 시작
+	if (!StartEnemyAI(EnemyData))
 	{
-		KHS_WARN(TEXT("%s — BehaviorTree 로드 실패. EnemyID: %s"), *GetName(), *EnemyID.ToString());
-		check(false);
 		return;
 	}
-
-	EnemyAIC->StartAI(BTAsset);
 	
 	bIsInitialized = true;
 
@@ -128,4 +119,34 @@ void AEnemyBaseCharacter::HandleDeath()
 	SetLifeSpan(2.f);
 
 	KHS_INFO(TEXT("%s — 에너미 사망 처리 완료. EnemyID: %s"), *GetName(), *EnemyID.ToString());
+}
+
+
+bool AEnemyBaseCharacter::ApplyStatData(FEnemyStaticData& EnemyData)
+{
+	//  GDS에서 DT_Enemy 조회
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
+
+	if (!GDS->GetEnemyData(EnemyID, EnemyData))
+	{
+		// 조회 실패 시 크래시
+		KHS_WARN(TEXT("%s — DT_Enemy 조회 실패. EnemyID: %s"), *GetName(), *EnemyID.ToString());
+		check(false);
+		return false;
+	}
+
+	// 기본 스탯 주입
+	ASC->SetNumericAttributeBase(EnemyAttributeSet->GetMaxHPAttribute(),    EnemyData.MaxHP);
+	ASC->SetNumericAttributeBase(EnemyAttributeSet->GetCurrentHPAttribute(),EnemyData.MaxHP);
+	ASC->SetNumericAttributeBase(EnemyAttributeSet->GetMoveSpeedAttribute(),EnemyData.MoveSpeed);
+
+	// 이동 속도 반영
+	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
+	if (!MoveComp)
+	{
+		KHS_WARN(TEXT("Invalid MoveComp"));
+		return false;
+	}
+	MoveComp->MaxWalkSpeed = EnemyData.MoveSpeed;
+	return true;
 }

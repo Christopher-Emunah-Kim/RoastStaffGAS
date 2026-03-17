@@ -9,14 +9,12 @@
 #include "Character/Player/RSPlayerState.h"
 #include "Component/EquipmentComponent.h"
 #include "GAS/Attributes/PlayerAttributeSet.h"
-#include "GAS/Tags/RSGameplayTags.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "EnhancedInputSubsystems.h"
 #include "TimerManager.h"
 
 ARSPlayerCharacter::ARSPlayerCharacter()
@@ -45,12 +43,6 @@ ARSPlayerCharacter::ARSPlayerCharacter()
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;
 	
 	EquipmentComp = CreateDefaultSubobject<UEquipmentComponent>(TEXT("EquipmentComp"));
-}
-
-void ARSPlayerCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-	
 }
 
 void ARSPlayerCharacter::PossessedBy(AController* NewController)

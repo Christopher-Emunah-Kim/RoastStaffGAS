@@ -2,13 +2,12 @@
 
 
 #include "Character/Player/RSPlayerController.h"
-
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+
 #include "RoastStaffGAS.h"
 #include "Subsystems/EquipmentSubsystem.h"
 #include "Subsystems/UIManagerSubsystem.h"
-
 #include "UI/RSHUDWidget.h"
 #include "UI/WeaponSlotContainerWidget.h"
 #include "UI/WeaponSlotWidget.h"
@@ -23,8 +22,10 @@ void ARSPlayerController::BeginPlay()
 	if (!Subsys || !IMC)
 	{
 		KHS_WARN(TEXT("EnhancedInput 시스템 로딩 실패 / IMC 에섯 미할당"));
+		return;
 	}
 	Subsys->AddMappingContext(IMC, 0);
+	SetShowMouseCursor(true);
 
 	//슬롯 델리게이트 구독
 	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance());
@@ -34,13 +35,18 @@ void ARSPlayerController::BeginPlay()
 	KHS_INFO(TEXT("OnSlotUpdatedDel 구독 완료 "));
 
 	//HUD UI오픈
-	if (HUDWidgetClass)
+	if (!HUDWidgetClass)
 	{
-		CachedHUDUI = UMS->OpenUI<URSHUDWidget>(HUDWidgetClass);
+		KHS_WARN(TEXT("HUD WBP 미할당"));
+		return;
 	}
-	else
+	
+	CachedHUDUI = UMS->OpenUI<URSHUDWidget>(HUDWidgetClass);
+	
+	if (!CachedHUDUI)
 	{
-		KHS_WARN(TEXT("HUDWidgetClass BP 미할당"));
+		KHS_WARN(TEXT("HUD Widget 생성 실패"));
+		return;
 	}
 }
 
@@ -59,8 +65,6 @@ void ARSPlayerController::SetupInputComponent()
 	UEnhancedInputComponent* EIC = CastChecked<UEnhancedInputComponent>(InputComponent);
 
 	EIC->BindAction(IA_Move,  ETriggerEvent::Triggered, this, &ARSPlayerController::OnMove);
-	EIC->BindAction(IA_MouseAim, ETriggerEvent::Triggered, this, &ARSPlayerController::OnMouseAim);
-	//EIC->BindAction(IA_Dash,  ETriggerEvent::Triggered, this, &ARSPlayerController::OnDash);
 	EIC->BindAction(IA_Attack, ETriggerEvent::Started,   this, &ARSPlayerController::OnShootStart);
 	EIC->BindAction(IA_Slot1, ETriggerEvent::Started, this, &ARSPlayerController::OnSlotActivate, 0);
 	EIC->BindAction(IA_Slot2, ETriggerEvent::Started, this, &ARSPlayerController::OnSlotActivate, 1);
@@ -84,21 +88,7 @@ void ARSPlayerController::OnSlotUpdated(int32 SlotIndex)
 
 void ARSPlayerController::RefreshSlotUI(int32 SlotIndex)
 {
-	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance());
 	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetGameInstance());
-
-	if (!HUDWidgetClass)
-	{
-		KHS_WARN(TEXT("HUD WBP 미할당"));
-		return;
-	}
-
-	CachedHUDUI = UMS->GetOrCreateWidget<URSHUDWidget>(HUDWidgetClass);
-	if (!CachedHUDUI)
-	{
-		KHS_WARN(TEXT("HUD Widget 생성 실패"));
-		return;
-	}
 
 	UWeaponSlotContainerWidget* SlotContainer = CachedHUDUI->GetSlotContainerWidget();
 	if (!SlotContainer)
@@ -158,14 +148,6 @@ void ARSPlayerController::OnMove(const FInputActionValue& Value)
 	ControlledPawn->AddMovementInput(FVector::ForwardVector, Input.X);
 	ControlledPawn->AddMovementInput(FVector::RightVector,   Input.Y);
 
-}
-
-void ARSPlayerController::OnMouseAim(const FInputActionValue& Value)
-{
-	SetShowMouseCursor(true);
-	
-	FVector2D inputVector = Value.Get<FVector2D>();
-	AimAngle = FMath::RadiansToDegrees(FMath::Atan2(inputVector.Y, inputVector.X));
 }
 
 void ARSPlayerController::OnShootStart(const FInputActionValue& Value)

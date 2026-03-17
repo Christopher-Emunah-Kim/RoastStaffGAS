@@ -20,7 +20,6 @@ class ROASTSTAFFGAS_API ARSPlayerCharacter : public ABaseCharacter
     ARSPlayerCharacter();
 
 protected:
-    virtual void BeginPlay() override;
     virtual void PossessedBy(AController* NewController) override;
     
     // ABaseCharacter 오버라이드

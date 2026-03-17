@@ -41,7 +41,6 @@ private:
 	//========================================================
 	bool HandleMouseAim();
 	void OnMove(const FInputActionValue& Value);
-	void OnMouseAim(const FInputActionValue& Value);
 	void OnShootStart(const FInputActionValue& Value);
 	void OnSlotActivate(const FInputActionValue& Value, int32 SlotIndex);
 
@@ -57,8 +56,6 @@ protected:
 	TObjectPtr<UInputMappingContext> IMC;
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
 	TObjectPtr<UInputAction> IA_Move;
-	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
-	TObjectPtr<UInputAction> IA_MouseAim;
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
 	TObjectPtr<UInputAction> IA_Attack;
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
