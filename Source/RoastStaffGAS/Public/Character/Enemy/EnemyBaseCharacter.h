@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Character/BaseCharacter.h"
+#include "Data/DataTableStructs.h"
 #include "EnemyBaseCharacter.generated.h"
 
 
@@ -36,7 +37,6 @@ public:
 	void InitializeEnemy(FName InEnemyID);
 	
 	FORCEINLINE FName GetEnemyID() const { return EnemyID; }
-
 protected:
 	virtual void BeginPlay() override;
 
@@ -46,6 +46,10 @@ protected:
 	virtual void InitializeAbilitySystem() override;
 	virtual void HandleDeath() override;
 
+private:
+	bool ApplyStatData(FEnemyStaticData& EnemyData);
+	bool StartEnemyAI(FEnemyStaticData EnemyData);
+	
 public:
 	// 처치 델리게이트 
 	UPROPERTY(BlueprintAssignable, Category = "MY|Enemy")

@@ -37,9 +37,7 @@ void ABaseCharacter::HandleDeath()
 	ASC->CancelAllAbilities();
 
 	//모든 Infinite GE 제거
-	ASC->RemoveActiveEffectsWithTags(
-		FGameplayTagContainer(FGameplayTag::RequestGameplayTag(TEXT("Duration.Infinite")))
-	);
+	ASC->RemoveActiveEffects(FGameplayEffectQuery());
 	
 	//사망 상태 태그 부여
 	FGameplayTagContainer DeadTag;
