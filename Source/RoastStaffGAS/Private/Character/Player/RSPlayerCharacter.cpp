@@ -2,28 +2,26 @@
 
 
 #include "Character/Player/RSPlayerCharacter.h"
+#include "RoastStaffGAS.h"
+#include "System/LoggingSystem.h"
+#include "Subsystems/EquipmentSubsystem.h"
+#include "Subsystems/LevelUpSubsystem.h"
 #include "Character/Player/RSPlayerState.h"
 #include "Component/EquipmentComponent.h"
-#include "Component/LevelUpComponent.h"
 #include "GAS/Attributes/PlayerAttributeSet.h"
 #include "GAS/Tags/RSGameplayTags.h"
-#include "System/LoggingSystem.h"
 
+#include "GameFramework/CharacterMovementComponent.h"
 #include "AbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "RoastStaffGAS.h"
 #include "TimerManager.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "Subsystems/EquipmentSubsystem.h"
-#include "Subsystems/LevelUpSubsystem.h"
 
 ARSPlayerCharacter::ARSPlayerCharacter()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
@@ -53,22 +51,6 @@ void ARSPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	if (!PC)
-	{
-		KHS_WARN(TEXT("PlayerController is NULL"));
-	}
-	
-	UEnhancedInputLocalPlayerSubsystem* Subsys = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
-	if (!Subsys)
-	{
-		KHS_WARN(TEXT("EnhancedInputSubsystem is NULL"));
-	}
-	
-	if (IMC)
-	{
-		Subsys->AddMappingContext(IMC, 0);
-	}
 }
 
 void ARSPlayerCharacter::PossessedBy(AController* NewController)
@@ -76,59 +58,8 @@ void ARSPlayerCharacter::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 	
 	InitializeAbilitySystem();
-	
 }
 
-bool ARSPlayerCharacter::HandleMouseAim()
-{
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	if (!PC)
-	{
-		KHS_WARN(TEXT("PlayerController is NULL."));
-		return false;
-	}
-	
-	FHitResult HitResult;
-	PC->GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
-
-	if (HitResult.bBlockingHit)
-	{
-		const FRotator LookAt =	(HitResult.Location - GetActorLocation()).Rotation();
-		AimAngle = LookAt.Yaw;
-		SetActorRotation(FRotator(0.f, AimAngle, 0.f));
-		
-		CachedAimLocation = HitResult.Location;
-	}
-	
-	return true;
-}
-
-
-void ARSPlayerCharacter::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-	
-	// 쿼터뷰 — 마우스 커서 방향으로 캐릭터 회전 / 마우스 좌표 캐싱
-	if (!HandleMouseAim())
-	{
-		return;
-	}
-}
-
-void ARSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	UEnhancedInputComponent* EIC = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
-
-	EIC->BindAction(IA_Move,  ETriggerEvent::Triggered, this, &ARSPlayerCharacter::OnMove);
-	EIC->BindAction(IA_MouseAim, ETriggerEvent::Triggered, this, &ARSPlayerCharacter::OnMouseAim);
-	//EIC->BindAction(IA_Dash,  ETriggerEvent::Triggered, this, &ARSPlayerCharacter::OnDash);
-	EIC->BindAction(IA_Attack, ETriggerEvent::Started,   this, &ARSPlayerCharacter::OnShootStart);
-	EIC->BindAction(IA_Slot1, ETriggerEvent::Started, this, &ARSPlayerCharacter::OnSlotActivate, 0);
-	EIC->BindAction(IA_Slot2, ETriggerEvent::Started, this, &ARSPlayerCharacter::OnSlotActivate, 1);
-	EIC->BindAction(IA_Slot3, ETriggerEvent::Started, this, &ARSPlayerCharacter::OnSlotActivate, 2);
-}
 
 UAbilitySystemComponent* ARSPlayerCharacter::GetAbilitySystemComponent() const
 {
@@ -210,63 +141,7 @@ void ARSPlayerCharacter::HandleDeath()
 	KHS_INFO(TEXT("플레이어 고유 사망 처리 완료."));
 }
 
-// void ARSPlayerCharacter::TryActivateDash()
-// {
-// 	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
-// 	if (!ASC)
-// 	{
-// 		KHS_WARN(TEXT("ASC IS NULL"));
-// 		return;
-// 	}
-//
-// 	FGameplayTagContainer TempTags;
-// 	TempTags.AddTag(RSTags::Ability_Movement_Dash);
-// 	ASC->TryActivateAbilitiesByTag(TempTags);
-// }
-
 ARSPlayerState* ARSPlayerCharacter::GetRSPlayerState() const
 {
 	return GetPlayerState<ARSPlayerState>();
-}
-
-void ARSPlayerCharacter::OnMove(const FInputActionValue& Value)
-{
-	const FVector2D Input = Value.Get<FVector2D>();
-	LastMoveInput = Input;
-
-	AddMovementInput(FVector::ForwardVector, Input.X);
-	AddMovementInput(FVector::RightVector,   Input.Y);
-}
-
-void ARSPlayerCharacter::OnMouseAim(const FInputActionValue& Value)
-{
-	FVector2D inputVector = Value.Get<FVector2D>();
-	
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	if (!PC)
-	{
-		KHS_WARN(TEXT("PlayerController is NULL."));
-		return;
-	}
-	PC->SetShowMouseCursor(true);
-	
-	AimAngle = FMath::RadiansToDegrees(FMath::Atan2(inputVector.Y, inputVector.X));
-}
-
-// void ARSPlayerCharacter::OnDash(const FInputActionValue& Value)
-// {
-// 	TryActivateDash();
-// }
-
-void ARSPlayerCharacter::OnShootStart(const FInputActionValue& Value)
-{
-	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys);
-	EquipSys->RequestManualFire(CachedAimLocation);
-}
-
-
-void ARSPlayerCharacter::OnSlotActivate(const FInputActionValue& Value, int32 SlotIndex)
-{
-	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys);
-	EquipSys->RequestSlotActivate(SlotIndex);
 }
