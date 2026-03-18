@@ -30,7 +30,7 @@ void UGA_ProjectileAttack::OnAbilityActivated(const FGameplayAbilitySpecHandle H
     }
 
     TSubclassOf<ABaseProjectile> ProjectileClass;
-    FRSSkillInitData InitData;
+    FProjectileInitData InitData;
     
     if (!PrepareProjectileData(SkillData, ProjectileClass, InitData))
     {
@@ -44,71 +44,47 @@ void UGA_ProjectileAttack::OnAbilityActivated(const FGameplayAbilitySpecHandle H
     EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
-bool UGA_ProjectileAttack::LoadSkillData(const FName SkillID, FSkillStaticData& OutSkillData, FSkillEffectData& OutEffectData) const
-{
-	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());
-
-	if (!GDS->GetSkillData(SkillID, OutSkillData))
-	{
-		KHS_WARN(TEXT("SkillID 조회 실패: %s"),*SkillID.ToString());
-		return false;
-	}
-
-	if (!GDS->GetSkillEffectData(OutSkillData.SkillEffectID, OutEffectData))
-	{
-		KHS_WARN(TEXT("SkillEffectID 조회 실패: %s"), *OutSkillData.SkillEffectID.ToString() );
-		return false;
-	}
-	
-	return true;
-}
-
-void UGA_ProjectileAttack::BuildInitData(const FSkillStaticData& SkillData, const FSkillEffectData& EffectData,
-	TSubclassOf<UGameplayEffect> DamageGEClass, TSubclassOf<UGameplayEffect> StatusGEClass,	FRSSkillInitData& OutInitData) const
+void UGA_ProjectileAttack::BuildInitData(const FSkillExecutionData& ExecData,
+	TSubclassOf<UGameplayEffect> DamageGEClass, TSubclassOf<UGameplayEffect> StatusGEClass,
+	FProjectileInitData& OutInitData) const
 {
 	// InitData 채우기 
-	OutInitData.SkillID        = SkillData.SkillID;
-	OutInitData.SkillEffectID  = SkillData.SkillEffectID;
-	OutInitData.DamageGEClass  = DamageGEClass;
-	OutInitData.StatusGEClass  = StatusGEClass;
-	OutInitData.InstigatorASC  = GetOwnerASC();
-	OutInitData.Damage         = EffectData.Damage;
-	OutInitData.Speed          = EffectData.Speed;
-	OutInitData.Lifetime       = EffectData.Lifetime;
-
-	// TODO : SpawnData는 GDS에서 별도 조회 
-	// 일단SINGLE 모드만 사용
-	OutInitData.SpawnPattern    = ESpawnPattern::SINGLE;
-	OutInitData.ProjectileCount = 1;
-	OutInitData.SpreadAngle     = 0.f;	
+	OutInitData.SkillID       = ExecData.SkillID;                                                              
+	OutInitData.SkillEffectID = ExecData.SkillEffectID;                                                          
+	OutInitData.DamageGEClass = DamageGEClass;
+	OutInitData.StatusGEClass = StatusGEClass;                                                                   
+	OutInitData.InstigatorASC = GetOwnerASC();                                                                   
+	OutInitData.Amount        = ExecData.Amount;                                                                 
+	OutInitData.Speed         = ExecData.Speed;                                                                  
+	OutInitData.Lifetime      = ExecData.Lifetime;                                                               
+	OutInitData.SpawnPattern  = ExecData.SpawnPattern;                                                           
+	OutInitData.SpawnCount    = ExecData.SpawnCount;                                                             
+	OutInitData.SpreadAngle   = ExecData.SpreadAngle;
 }
 
-bool UGA_ProjectileAttack::PrepareProjectileData(const URSSkillData* SkillData, TSubclassOf<ABaseProjectile>& OutClass, FRSSkillInitData& OutInitData)
+
+bool UGA_ProjectileAttack::PrepareProjectileData(const URSSkillData* SkillData, TSubclassOf<ABaseProjectile>& OutClass, FProjectileInitData& OutInitData)
 {
-    const FName SkillID = SkillData->SkillID;
-
-    // GDS 조회 
-    FSkillStaticData SkillStaticData;
-    FSkillEffectData EffectData;
-    if (!LoadSkillData(SkillID, SkillStaticData, EffectData))
-    {
-	    return false;
-    }
-
-    // 투사체/데미지GE/상태이상 GE 로드 
-    if (!LoadRequiredClass(SkillStaticData.ProjectileClass, OutClass, SkillID))
-    {
-        return false;
-    }
-    TSubclassOf<UGameplayEffect> DamageGEClass;
-    if (!LoadRequiredClass(SkillStaticData.DamageGEClass, DamageGEClass, SkillID))
-    {
-        return false;
-    }
-    TSubclassOf<UGameplayEffect> StatusGEClass = LoadOptionalClass(SkillStaticData.StatusGEClass, SkillID);
-	
-	//InitData 구성
-	BuildInitData(SkillStaticData, EffectData, DamageGEClass, StatusGEClass, OutInitData);
-	
-    return true; 
+	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());  
+	FSkillExecutionData ExecData;
+	if (!GDS->GetSkillExecutionData(SkillData->SkillID, ExecData))                                               
+	{                                                                                                          
+		KHS_WARN(TEXT("GetSkillExecutionData 실패. SkillID: %s"), *SkillData->SkillID.ToString());
+		return false;
+	}
+	if (!LoadRequiredClass(ExecData.ProjectileClass, OutClass, ExecData.SkillID))                                
+	{
+		return false;                                                                                            
+	}                                                                                                          
+                                                                                                                   
+	TSubclassOf<UGameplayEffect> DamageGEClass;                                                                  
+	if (!LoadRequiredClass(ExecData.DamageGEClass, DamageGEClass, ExecData.SkillID))                             
+	{                                                                                                            
+		return false;                                                                                          
+	}                                                                                                            
+   
+	TSubclassOf<UGameplayEffect> StatusGEClass = LoadOptionalClass(ExecData.StatusGEClass, ExecData.SkillID);    
+                                                                                                                 
+	BuildInitData(ExecData, DamageGEClass, StatusGEClass, OutInitData);                                          
+	return true;                 
 }

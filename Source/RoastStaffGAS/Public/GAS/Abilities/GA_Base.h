@@ -19,7 +19,8 @@
 
 class ABaseCharacter;
 class ABaseProjectile;
-struct FRSSkillInitData;
+struct FSkillExecutionData;
+struct FProjectileInitData;
 
 UCLASS()
 class ROASTSTAFFGAS_API UGA_Base : public UGameplayAbility
@@ -45,7 +46,7 @@ protected:
 		const FGameplayAbilityActivationInfo ActivationInfo);
 
 	// SpawnData 기반 투사체 스폰 헬퍼
-	void SpawnProjectiles(TSubclassOf<ABaseProjectile> ProjectileClass, const FRSSkillInitData& InitData);
+	void SpawnProjectiles(TSubclassOf<ABaseProjectile> ProjectileClass, const FProjectileInitData& InitData);
 
 	// GA 오너의 ASC 반환
 	UAbilitySystemComponent* GetOwnerASC() const;

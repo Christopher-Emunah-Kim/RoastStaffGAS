@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/DataTableStructs.h"
+#include "Data/RuntimeDataStructs.h"
 #include "GAS/Abilities/GA_Base.h"
 #include "Objects/Data/RSSkillData.h"
 #include "GA_ProjectileAttack.generated.h"
@@ -16,6 +16,9 @@
  * SkillID는 GiveAbility 시점에 FGameplayAbilitySpec.SourceObject(URSSkillData)로 주입
  * GA는 활성화 시 SourceObject에서 SkillID를 꺼내 GDS를 조회
  */
+
+struct FProjectileInitData;
+
 UCLASS()
 class ROASTSTAFFGAS_API UGA_ProjectileAttack : public UGA_Base
 {
@@ -26,11 +29,9 @@ public:
 
 private:
 	//투사체 생성 헬퍼
-	bool PrepareProjectileData(const URSSkillData* SkillData, TSubclassOf<ABaseProjectile>& OutClass,  FRSSkillInitData& OutInitData);
+	bool PrepareProjectileData(const URSSkillData* SkillData, TSubclassOf<ABaseProjectile>& OutClass,  FProjectileInitData& OutInitData);
 	//투사체 생성 내부 헬퍼
-	bool LoadSkillData(FName SkillID, FSkillStaticData& OutSkilLData, FSkillEffectData& OutEffectData) const;
-	void BuildInitData(const FSkillStaticData& SkillData,  const FSkillEffectData& EffectData,  TSubclassOf<UGameplayEffect> DamageGEClass, 
-		TSubclassOf<UGameplayEffect> StatusGEClass, FRSSkillInitData& OutInitData) const;
+	void BuildInitData(const FSkillExecutionData& ExecData, TSubclassOf<UGameplayEffect> DamageGEClass, TSubclassOf<UGameplayEffect> StatusGEClass, FProjectileInitData& OutInitData) const;
 
 protected:
 	virtual void OnAbilityActivated(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;

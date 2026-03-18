@@ -79,32 +79,27 @@ void UEquipmentSubsystem::EquipWeapon(const FName& WeaponID)
 		KHS_INFO(TEXT("빈 슬롯 없음. 무기 획득 불가: %s"), *WeaponID.ToString());
 		return;
 	}
-	
 	//무기 정보 로드
-	FWeaponEquipData EquipData;
+	FWeaponSlotEquipData EquipData;
 	if (!LoadEquipData(WeaponID, EquipData))
 	{
 		return;
 	}
-
 	//필요 클래스 로드
 	FLoadedEquipClasses Classes;
 	if (!LoadEquipClasses(EquipData, Classes))
 	{
 		return;
 	}
-
 	//어빌리티 등록
     FGameplayAbilitySpecHandle Handle;
 	if (!RegisterAbility(EquipData, Classes, Handle))
 	{
 		return;
 	}
-    
-
+	
 	//슬롯데이터 등록/발사시작
-	CommitSlot(TargetSlot, WeaponID, EquipData, Classes, Handle);
-    
+	CommitSlot(TargetSlot, EquipData, Handle);
 }
 
 void UEquipmentSubsystem::StopAllFire()
@@ -150,10 +145,10 @@ void UEquipmentSubsystem::FireSlot(int32 SlotIndex, const FVector& AimLocation)
 		ASC->AbilityActorInfo.Get(), EventTag, &Payload,*ASC);
 
 	//UI업데이트
-	Slot.CooldownRemaining = Slot.EquipData.Cooldown;
+	Slot.CooldownRemaining = Slot.SlotEquipData.Cooldown;
 	OnSlotUpdatedDel.Broadcast(SlotIndex);
 	
-	KHS_INFO(TEXT("Slot %d: %s 발사! CD: %.2fs"), SlotIndex, *Slot.EquipData.SkillID.ToString(), Slot.EquipData.Cooldown);
+	KHS_INFO(TEXT("Slot %d: %s 발사! CD: %.2fs"), SlotIndex, *Slot.SlotEquipData.SkillID.ToString(), Slot.SlotEquipData.Cooldown);
 }
 
 void UEquipmentSubsystem::StartAutoFire(int32 SlotIndex)
@@ -171,9 +166,9 @@ void UEquipmentSubsystem::StartAutoFire(int32 SlotIndex)
 				FireSlot(SlotIndex, FVector::ZeroVector);
 			}
 		},
-		Slot.EquipData.Cooldown, true, 0.f);
+		Slot.SlotEquipData.Cooldown, true, 0.f);
 
-	KHS_INFO(TEXT("Slot %d: 자동공격 타이머 시작. CD: %.2fs"),	SlotIndex, Slot.EquipData.Cooldown);
+	KHS_INFO(TEXT("Slot %d: 자동공격 타이머 시작. CD: %.2fs"),	SlotIndex, Slot.SlotEquipData.Cooldown);
 }
 
 void UEquipmentSubsystem::StopAutoFire(int32 SlotIndex)
@@ -234,25 +229,30 @@ int32 UEquipmentSubsystem::GetEmptySlotIndex() const
 
 FGameplayTag UEquipmentSubsystem::GetEventTag(const FWeaponSlotInstanceData& Slot) const
 {
-	switch (Slot.EquipData.SkillType)
+	switch (Slot.SlotEquipData.SkillType)
 	{
-	case ESkillType::PROJECTILE:
-		return RSTags::Event_Weapon_Fire_Projectile;
-	case ESkillType::SUMMON:
-		return RSTags::Event_Weapon_Fire_Summon;
+	case ESkillType::ATTACK:
+		{
+			return (Slot.SlotEquipData.MoveType == EMoveType::SUMMON)
+			? RSTags::Event_Weapon_Fire_Summon 
+			: RSTags::Event_Weapon_Fire_Projectile;
+		}
+		
+	case ESkillType::DEFENSE:
+		return RSTags::Event_Weapon_Defense;
 	default:
 		{
-			KHS_WARN(TEXT("Invalid GameplayTag"));
+			KHS_WARN(TEXT("GetEventTag — 매핑 없는 SkillType. WeaponID: %s"),  *Slot.SlotEquipData.WeaponID.ToString());
 			return FGameplayTag::EmptyTag;
 		}
 	}
 }
 
-bool UEquipmentSubsystem::LoadEquipData(const FName& WeaponID, FWeaponEquipData& OutData) const
+bool UEquipmentSubsystem::LoadEquipData(const FName& WeaponID, FWeaponSlotEquipData& OutData) const
 {
 	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
 	
-	if (!GDS->GetWeaponEquipData(WeaponID, OutData))
+	if (!GDS->GetWeaponSlotEquipData(WeaponID, OutData))
 	{
 		KHS_WARN(TEXT("WeaponID 조회 실패: %s"), *WeaponID.ToString());
 		return false;
@@ -261,25 +261,17 @@ bool UEquipmentSubsystem::LoadEquipData(const FName& WeaponID, FWeaponEquipData&
 	return true;
 }
 
-bool UEquipmentSubsystem::LoadEquipClasses(const FWeaponEquipData& EquipData, FLoadedEquipClasses& OutClasses) const
+bool UEquipmentSubsystem::LoadEquipClasses(const FWeaponSlotEquipData& EquipData, FLoadedEquipClasses& OutClasses) const
 {
 	if (!LoadRequiredClass(EquipData.GAClass, OutClasses.GAClass, EquipData.WeaponID))
 	{
 		return false;
 	}
 	
-	if (!LoadRequiredClass(EquipData.DamageGEClass, OutClasses.DamageGEClass, EquipData.WeaponID))
-	{
-		return false;
-	}
-	
-	OutClasses.StatusGEClass = LoadOptionalClass(EquipData.StatusGEClass, EquipData.WeaponID);
-	OutClasses.ProjectileClass = LoadOptionalClass(EquipData.ProjectileClass, EquipData.WeaponID);
-	
 	return true;
 }
 
-bool UEquipmentSubsystem::RegisterAbility(const FWeaponEquipData& EquipData, const FLoadedEquipClasses& Classes, FGameplayAbilitySpecHandle& OutHandle)
+bool UEquipmentSubsystem::RegisterAbility(const FWeaponSlotEquipData& EquipData, const FLoadedEquipClasses& Classes, FGameplayAbilitySpecHandle& OutHandle)
 {
 	URSSkillData* SkillDataObj = NewObject<URSSkillData>(this);
 	SkillDataObj->SkillID = EquipData.SkillID;
@@ -296,27 +288,18 @@ bool UEquipmentSubsystem::RegisterAbility(const FWeaponEquipData& EquipData, con
 	return true;
 }
 
-void UEquipmentSubsystem::CommitSlot(int32 TargetSlot, const FName& WeaponID, const FWeaponEquipData& EquipData, const FLoadedEquipClasses& Classes, const FGameplayAbilitySpecHandle& Handle)
+void UEquipmentSubsystem::CommitSlot(int32 TargetSlot, const FWeaponSlotEquipData& EquipData, const FGameplayAbilitySpecHandle& Handle)
 {
 	//슬롯 런타임 데이터 관리(GA랑 슬롯은 서로 모르니까)
 	FWeaponSlotInstanceData& Slot  = Slots[TargetSlot];
-	Slot.EquipData.WeaponID        = WeaponID;
-	Slot.EquipData.WeaponName	   = EquipData.WeaponName;
-	Slot.EquipData.SkillID         = EquipData.SkillID;
-	Slot.EquipData.Cooldown        = EquipData.Cooldown;
-	Slot.EquipData.SkillIcon	   = EquipData.SkillIcon;
-	Slot.EquipData.GAClass         = Classes.GAClass;
-	Slot.EquipData.ProjectileClass = Classes.ProjectileClass;
-	Slot.EquipData.DamageGEClass   = Classes.DamageGEClass;
-	Slot.EquipData.StatusGEClass   = Classes.StatusGEClass;
-	Slot.AbilitySpecHandle         = Handle;
-	Slot.CooldownRemaining         = 0.f;
-	Slot.bIsActive                 = false;
+	Slot.SlotEquipData		 = EquipData;
+	Slot.AbilitySpecHandle   = Handle;
+	Slot.CooldownRemaining   = 0.f;
+	Slot.bIsActive           = false;
 
-	KHS_INFO(TEXT("무기 장착 완료: %s → Slot %d"), *WeaponID.ToString(), TargetSlot);
+	KHS_INFO(TEXT("무기 장착 완료: %s → Slot %d"), *EquipData.WeaponID.ToString(), TargetSlot);
 
 	StartAutoFire(TargetSlot);
-	
 	//이벤트 발행
 	OnSlotUpdatedDel.Broadcast(TargetSlot);
 }

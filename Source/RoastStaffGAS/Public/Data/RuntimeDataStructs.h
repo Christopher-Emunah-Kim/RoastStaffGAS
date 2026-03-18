@@ -7,128 +7,196 @@
 #include "Abilities/GameplayAbility.h"
 #include "RuntimeDataStructs.generated.h"
 
-/**
- * 
- */
-// ----------------------------------------------------------------------------
-// FWeaponEquipData — 무기 장착 시 필요한 데이터를 한 번에 전달하는 구조체
-// GDS의 GetWeaponEquipData()가 반환
-// ----------------------------------------------------------------------------
+
+// ============================================================================
+// RuntimeDataStructs.h
+// GDS 복합 조회 인터페이스가 반환하는 런타임 번들 구조체 문서
+//
+// 구조:
+//   FWeaponSlotEquipData     — 장착/슬롯/UI       ← GDS.GetWeaponSlotEquipData()
+//   FSkillExecutionData      — GA 발동 파라미터   ← GDS.GetSkillExecutionData()
+//   FSkillFXData             — 연출 데이터        ← GDS.GetSkillFXData()
+//   FRSProjectileInitData    — GA→투사체 전달     ← GA 내부에서 직접 조립
+//   FWeaponSlotInstanceData  — 슬롯 런타임 상태  ← EquipmentSubsystem 내부
+// ============================================================================
+
 class ABaseProjectile;
+class UNiagaraSystem;
+class USoundBase;
+class UTexture2D;
+
+// ----------------------------------------------------------------------------
+// FWeaponSlotEquipData — 장착/슬롯/UI에 필요한 데이터
+// GDS.GetWeaponSlotEquipData(WeaponID) 반환
+// ----------------------------------------------------------------------------
 
 USTRUCT(BlueprintType)
-struct FWeaponEquipData
+struct FWeaponSlotEquipData
 {
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadOnly) 
 	FName WeaponID;
 	UPROPERTY(BlueprintReadOnly) 
+	FName WeaponName;
+	UPROPERTY(BlueprintReadOnly) 
 	FName SkillID;
 	UPROPERTY(BlueprintReadOnly) 
 	FName SkillEffectID;
+	
 	UPROPERTY(BlueprintReadOnly) 
-	FName WeaponName;
-	UPROPERTY(BlueprintReadOnly) 
-	EWeaponSlotType SlotType;
-
-	// GA/투사체/GE 클래스 경로 (TSoftClassPtr — 장착 시점에 LoadSynchronous)
-	UPROPERTY(BlueprintReadOnly) 
-	TSoftClassPtr<UGameplayAbility> GAClass;
-	UPROPERTY(BlueprintReadOnly) 
-	TSoftClassPtr<ABaseProjectile> ProjectileClass;
-	UPROPERTY(BlueprintReadOnly) 
-	TSoftClassPtr<UGameplayEffect> DamageGEClass;
-	UPROPERTY(BlueprintReadOnly) 
-	TSoftClassPtr<UGameplayEffect> StatusGEClass;
-
-	// 쿨타임 (DT_SkillEffect에서 가져옴)
+	ESkillType SkillType;
+	UPROPERTY(BlueprintReadOnly)
+	EMoveType MoveType;
 	UPROPERTY(BlueprintReadOnly) 
 	float Cooldown;
-	// 스킬 아이콘	
+	
 	UPROPERTY(BlueprintReadOnly)
 	TSoftObjectPtr<UTexture2D> SkillIcon;
 	
-	// 투사체 공통 파라미터 (GA가 사용)
-	UPROPERTY(BlueprintReadOnly) 
-	float Damage;
-	UPROPERTY(BlueprintReadOnly) 
-	float Speed;
-	UPROPERTY(BlueprintReadOnly) 
-	float Lifetime;
-	UPROPERTY(BlueprintReadOnly) 
-	ESkillType SkillType;
-	UPROPERTY(BlueprintReadOnly) 
-	EFlightType FlightType;
-	UPROPERTY(BlueprintReadOnly) 
-	EHitType HitType;
-	UPROPERTY(BlueprintReadOnly) 
-	EExpireCondition ExpireCondition;
+	/** GiveAbility 등록용 — 장착 시 1회 LoadSynchronous */
+	UPROPERTY(BlueprintReadOnly)                                                                               
+	TSoftClassPtr<UGameplayAbility> GAClass;
+
 };
 
-// ----------------------------------------------------------------------------
-// FRSSkillInitData — GA → 투사체로 전달되는 초기화 데이터.
-// GA가 GDS에서 조회한 결과를 채워서 SpawnProjectiles에 전달
-// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------                                  
+// FSkillExecutionData — GA 발동 시 필요한 전체 파라미터                                                       
+// GDS.GetSkillExecutionData(SkillID) 반환
+// ---------------------------------------------------------------------------- 
 
 USTRUCT(BlueprintType)
-struct FRSSkillInitData
+struct FSkillExecutionData
 {
 	GENERATED_BODY()
 
 	// 스킬 식별
-	UPROPERTY() 
+	UPROPERTY(BlueprintReadOnly) 
 	FName SkillID;
-	UPROPERTY() 
+	UPROPERTY(BlueprintReadOnly) 
 	FName SkillEffectID;
 
-	// GE 클래스
-	UPROPERTY() 
-	TSubclassOf<UGameplayEffect> DamageGEClass;
-	UPROPERTY() 
-	TSubclassOf<UGameplayEffect> StatusGEClass;   // 없으면 nullptr
-
-	// 발사자 ASC 
-	UPROPERTY() 
-	TObjectPtr<UAbilitySystemComponent> InstigatorASC;
-
-	// 투사체 파라미터
-	UPROPERTY() 
-	float Damage;
-	UPROPERTY() 
-	float Speed;
-	UPROPERTY() 
-	float Lifetime;
-
-	// 스폰 파라미터
-	UPROPERTY() 
-	ESpawnPattern SpawnPattern;
-	UPROPERTY() 
-	int32 ProjectileCount;
-	UPROPERTY() 
-	float SpreadAngle;
+	// 클래스 경로 (SoftClassPtr — GA에서 LoadSynchronous)                                                     
+    UPROPERTY(BlueprintReadOnly)                                                                               
+    TSoftClassPtr<UGameplayEffect> DamageGEClass;                                                              
+    UPROPERTY(BlueprintReadOnly)                                                                               
+    TSoftClassPtr<UGameplayEffect> StatusGEClass;      // 없으면 null                                          
+    UPROPERTY(BlueprintReadOnly)                                                                               
+    TSoftClassPtr<ABaseProjectile> ProjectileClass;    // 투사체형                                             
+    UPROPERTY(BlueprintReadOnly)                                                                               
+    TSoftClassPtr<AActor> SummonObjectClass;           // 소환형                                              
+    UPROPERTY(BlueprintReadOnly)                                                                               
+    TSoftClassPtr<AActor> SummonPreviewClass;          // 소환형 프리뷰                                       
+                                                                                                               
+    // 스킬 타입 분류                                                                                        
+    UPROPERTY(BlueprintReadOnly)                                                                               
+    ESkillType SkillType;                                                               
+    UPROPERTY(BlueprintReadOnly)                                                                               
+    EMoveType MoveType;                                                                    
+    UPROPERTY(BlueprintReadOnly)                                                                               
+    EHitType HitType;                                                                       
+    UPROPERTY(BlueprintReadOnly)                                                                             
+    ESpawnPattern SpawnPattern;                                                        
+                                                                                                               
+    // 수치 파라미터                                                                                           
+    UPROPERTY(BlueprintReadOnly)                                                                               
+    float Amount;                                                                                      
+    UPROPERTY(BlueprintReadOnly)                                                                               
+    float Speed;                                                                                         
+    UPROPERTY(BlueprintReadOnly)                                                                               
+    float Lifetime;                                                                                      
+    UPROPERTY(BlueprintReadOnly)                                                                             
+    float Range;
+                                                                                                               
+    // 스폰 파라미터
+    UPROPERTY(BlueprintReadOnly)                                                                               
+    int32 SpawnCount;                                                                                    
+    UPROPERTY(BlueprintReadOnly)
+    FName SocketName;                                                                                          
+    UPROPERTY(BlueprintReadOnly)
+    float SpreadAngle;                 
 };
 
+// ----------------------------------------------------------------------------                                  
+  // FSkillFXData — 연출 데이터                                                                                  
+  // GDS.GetSkillFXData(SkillID) 반환
+  // SkillCommonResource에서 FX 필드만 추출                                                             
+  // ----------------------------------------------------------------------------
+  USTRUCT(BlueprintType)                                                                                           
+  struct FSkillFXData                                                                                              
+  {                                                                                                                
+        GENERATED_BODY()                                                                                           
+                                                                                                                   
+        UPROPERTY(BlueprintReadOnly)                                                                             
+        TSoftObjectPtr<UNiagaraSystem> SpawnVFX;
+        UPROPERTY(BlueprintReadOnly)
+        TSoftObjectPtr<USoundBase> SpawnSFX;                                                                       
+        UPROPERTY(BlueprintReadOnly)
+        TSoftObjectPtr<UNiagaraSystem> TrailVFX;                                                                   
+        UPROPERTY(BlueprintReadOnly)                                                                             
+        TSoftObjectPtr<UNiagaraSystem> ImpactVFX;                                                                  
+        UPROPERTY(BlueprintReadOnly)                                                                               
+        TSoftObjectPtr<USoundBase> ImpactSFX;                                                                      
+  };                                                                                                               
+                                                                                                                 
+  // ----------------------------------------------------------------------------
+  // FProjectileInitData — GA → 투사체 전달 데이터 
+  // GA가 FSkillExecutionData의 SoftClassPtr을 로드 완료 후 직접 조립                                              
+  // SoftClassPtr → TSubclassOf 변환 완료 상태                                                                     
+  // ----------------------------------------------------------------------------                                  
+  USTRUCT(BlueprintType)                                                                                           
+  struct FProjectileInitData                                                                                     
+  {
+        GENERATED_BODY()                                                                                           
+                                                                                                                 
+        UPROPERTY()
+        FName SkillID;
+        UPROPERTY()
+        FName SkillEffectID;
 
-// -------------------------------------------------------------------------
-// 슬롯 런타임 데이터 — EquipmentComponent가 직접 관리
-// -------------------------------------------------------------------------
-USTRUCT()
-struct FWeaponSlotInstanceData
-{
-	GENERATED_BODY()
+        UPROPERTY()
+        TSubclassOf<UGameplayEffect> DamageGEClass;
+        UPROPERTY()                                                                                                
+        TSubclassOf<UGameplayEffect> StatusGEClass;     // 없으면 nullptr
+        UPROPERTY()                                                                                                
+        TObjectPtr<UAbilitySystemComponent> InstigatorASC;                                                         
+                                                                                                                   
+        UPROPERTY()                                                                                                
+        float Amount;                                                                                        
+        UPROPERTY()                                                                                              
+        float Speed;
+        UPROPERTY()
+        float Lifetime;
+                                                                                                                   
+        UPROPERTY()
+        ESpawnPattern SpawnPattern;                                                        
+        UPROPERTY()                                                                                              
+        int32 SpawnCount;
+        UPROPERTY()                                                                                                
+        float SpreadAngle;
+  };                                                                                                               
+                                                                                                                 
+  // ----------------------------------------------------------------------------                                  
+  // FWeaponSlotInstanceData — 슬롯 런타임 상태                                                                  
+  // EquipmentSubsystem이 직접 관리
+  // ----------------------------------------------------------------------------
+  USTRUCT()                                                                                                        
+  struct FWeaponSlotInstanceData
+  {                                                                                                                
+        GENERATED_BODY()                                                                                         
 
-	// GDS에서 받아온 정적 데이터
-	FWeaponEquipData EquipData;
+        /** GDS에서 받아온 장착 데이터 */                                                                          
+        FWeaponSlotEquipData SlotEquipData;
+                                                                                                                   
+        /** GA 핸들 */                                                                                           
+        FGameplayAbilitySpecHandle AbilitySpecHandle;                                                              
+                                                                                                                 
+        int32 SlotIndex;
+        float CooldownRemaining;
+        bool bIsActive;
+                                                                                                                   
+        FTimerHandle AutoFireTimerHandle;                                                                          
+                                                                                                                   
+        bool IsEmpty() const { return SlotEquipData.WeaponID.IsNone(); }                                           
+  };                                                                                                             
 
-	// 런타임 가변 상태
-	FGameplayAbilitySpecHandle AbilitySpecHandle;
-	
-	int32 SlotIndex = -1;
-	float CooldownRemaining; //자동발사시 쿨타임 관리
-	bool bIsActive;
-	
-	FTimerHandle AutoFireTimerHandle;
-
-	bool IsEmpty() const { return EquipData.WeaponID.IsNone(); }
-};

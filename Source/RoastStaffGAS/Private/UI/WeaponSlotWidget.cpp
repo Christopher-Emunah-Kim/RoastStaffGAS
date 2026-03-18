@@ -27,15 +27,15 @@ void UWeaponSlotWidget::UpdateSlot(const FWeaponSlotInstanceData* SlotData)
 		return;
 	}
 
-	FName DisplayName = SlotData->EquipData.WeaponName.IsNone()? SlotData->EquipData.WeaponID : SlotData->EquipData.WeaponName;
+	FName DisplayName = SlotData->SlotEquipData.WeaponName.IsNone()? SlotData->SlotEquipData.WeaponID : SlotData->SlotEquipData.WeaponName;
 	Txt_WeaponName->SetText(FText::FromName(DisplayName));
 
 	Img_ActiveBorder->SetVisibility(SlotData->bIsActive ? ESlateVisibility::Visible : ESlateVisibility::Collapsed); // 액티브 모드 여부
 	
 	//스킬 아이콘 세팅
-	if (!SlotData->EquipData.SkillIcon.IsNull())
+	if (!SlotData->SlotEquipData.SkillIcon.IsNull())
 	{
-		LoadedSkillIcon = SlotData->EquipData.SkillIcon.LoadSynchronous();
+		LoadedSkillIcon = SlotData->SlotEquipData.SkillIcon.LoadSynchronous();
 		if (LoadedSkillIcon)
 		{
 			Img_SkillIcon->SetBrushFromTexture(LoadedSkillIcon);
@@ -51,7 +51,7 @@ void UWeaponSlotWidget::UpdateSlot(const FWeaponSlotInstanceData* SlotData)
 	}
 	else
 	{
-		TotalCooldown = SlotData->EquipData.Cooldown;
+		TotalCooldown = SlotData->SlotEquipData.Cooldown;
 		LocalCooldownRemaining = SlotData->CooldownRemaining;
 		bIsCooldownActive = true;
 		Img_CooldownOverlay->SetVisibility(ESlateVisibility::SelfHitTestInvisible);

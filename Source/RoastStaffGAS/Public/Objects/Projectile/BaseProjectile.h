@@ -21,6 +21,7 @@
 class USphereComponent;
 class UProjectileMovementComponent;
 class UGameplayEffect;
+struct FProjectileInitData;
 
 UCLASS()
 class ROASTSTAFFGAS_API ABaseProjectile : public AActor
@@ -52,7 +53,7 @@ protected:
 
 public:	
 	// GA가 스폰 직후 호출 — final로 막아 공통 초기화 보장
-	void InitProjectile(const FRSSkillInitData& InInitData);
+	void InitProjectile(const FProjectileInitData& InInitData);
 
 	
 protected:
@@ -62,7 +63,7 @@ protected:
 	TObjectPtr<UProjectileMovementComponent> ProjectileComp;
 
 	// GA로부터 받은 초기화 데이터 
-	FRSSkillInitData InitData;
+	FProjectileInitData InitData;
 
 private:
 	FTimerHandle LifetimeTimerHandle;

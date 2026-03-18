@@ -19,13 +19,21 @@ void UGameDataSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 void UGameDataSubsystem::Deinitialize()
 {
     WeaponCache.Empty();
-    SkillCache.Empty();
-    SkillEffectCache.Empty();
-    SpawnCache.Empty();
-    FlightArcCache.Empty();
-    FlightPierceCache.Empty();
-    FlightExplodeCache.Empty();
     WeaponByLevelIndex.Empty();
+    
+    SkillCommonStaticCache.Empty();
+    SkillCommonResourceCache.Empty();
+    SkillCommonParamCache.Empty();
+    SkillAttackCommonParamsCache.Empty();
+    SkillAttackSpawnParamsCache.Empty();
+    SkillMoveTypeArcCache.Empty();
+    SkillMoveTypeHomingCache.Empty();
+    SkillMoveTypeSummonCache.Empty();
+    SkillHitTypePierceCache.Empty();
+    SkillHitTypeAreaCache.Empty();
+    SkillDefenseCommonParamsCache.Empty();
+    
+    StatusEffectCache.Empty();
     EnemyCache.Empty();
     StageCache.Empty();
     WaveCache.Empty();
@@ -50,16 +58,38 @@ void UGameDataSubsystem::LoadDataTables()
         return;
     }
 
-    LoadDataTable<FWeaponStaticData>(Config->WeaponTable,      LoadedWeaponTable,      TEXT("DT_Weapon"));              //무기 데이터
-    LoadDataTable<FSkillStaticData> (Config->SkillTable,       LoadedSkillTable,       TEXT("DT_Skill"));               //스킬 데이터
-    LoadDataTable<FSkillEffectData> (Config->SkillEffectTable, LoadedSkillEffectTable, TEXT("DT_SkillEffect"));         //스킬 효과 데이터
-    LoadDataTable<FSkillSpawnData>  (Config->SpawnTable,       LoadedSpawnTable,       TEXT("DT_Spawn"));               //스킬 소환 데이터
-    LoadDataTable<FFlightArcData>   (Config->FlightArcTable,   LoadedFlightArcTable,   TEXT("DT_Flight_Arc"));          //궤도형 투사체 데이터
-    LoadDataTable<FFlightPierceData>(Config->FlightPierceTable,LoadedFlightPierceTable,TEXT("DT_Flight_Pierce"));       //관통형 투사체 데이터
-    LoadDataTable<FFlightExplodeData>(Config->FlightExplodeTable,LoadedFlightExplodeTable,TEXT("DT_Flight_Explode"));   //폭발형 투사체 데이터
-    LoadDataTable<FEnemyStaticData> (Config->EnemyTable,  LoadedEnemyTable,  TEXT("DT_Enemy"));                         //적 데이터
-    LoadDataTable<FStageStaticData> (Config->StageTable,  LoadedStageTable,  TEXT("DT_Stage"));                         //스테이지 스폰 데이터
-    LoadDataTable<FWaveStaticData>  (Config->WaveTable,   LoadedWaveTable,   TEXT("DT_WaveData"));                      //스폰 웨이브 데이터
+    LoadDataTable<FWeaponStaticData>(
+        Config->WeaponStaticTable,LoadedWeaponTable,TEXT("DT_Weapon"));                                                        //무기 데이터
+    LoadDataTable<FSkillCommonStaticData> (
+        Config->SkillCommonStaticTable, LoadedSkillCommonStaticTable,TEXT("DT_Skill"));                                        //스킬 정적 데이터
+    LoadDataTable<FSkillCommonResourceData>(
+        Config->SkillCommonResourceTable, LoadedSkillCommonResourceTable,TEXT("DT_Skill_Common_Resource"));                    //스킬 리소스 데이터
+    LoadDataTable<FSkillCommonParamData>(
+        Config->SkillCommonParamsTable,LoadedSkillCommonParamsTable, TEXT("DT_Skill_Common_Params"));                          //스킬 공통 파라미터
+    LoadDataTable<FSkillAttackCommonParamsData> (
+        Config->SkillAttackCommonParamsTable, LoadedSkillAttackCommonParamsTable,TEXT("DT_SkillEffect"));                      //공격 스킬 공통 파라미터
+    LoadDataTable<FSkillAttackSpawnParamsData>  (
+        Config->SkillAttackSpawnParamsTable, LoadedSkillAttackSpawnParamsTable,TEXT("DT_Spawn"));                              //공격 스킬 소환 파라미터
+    LoadDataTable<FSkillAttackMoveTypeParamsArc>   (
+        Config->SkillAttackMoveTypeParamsArcTable,   LoadedSkillAttackMoveTypeParamsArcTable,   TEXT("DT_Flight_Arc"));        //궤도형 스킬 데이터
+    LoadDataTable<FSkillAttackMoveTypeParamsHoming>(
+        Config->SkillAttackMoveTypeParamsHomingTable,LoadedSkillAttackMoveTypeParamsHomingTable, TEXT("DT_MoveType_Homing"));  //유도형 스킬 데이터                             
+    LoadDataTable<FSkillAttackMoveTypeParamsSummon>(
+        Config->SkillAttackMoveTypeParamsSummonTable, LoadedSkillAttackMoveTypeParamsSummonTable, TEXT("DT_MoveType_Summon")); //소환형 스킬 데이터
+    LoadDataTable<FSkillAttackHitTypeParamsPierce>(
+        Config->SkillAttackHitTypeParamsPierceTable,LoadedSkillAttackHitTypeParamsPierceTable,TEXT("DT_Flight_Pierce"));       //관통공격 스킬 데이터
+    LoadDataTable<FSkillAttackHitTypeParamsArea>(
+        Config->SkillAttackHitTypeParamsAreaTable,LoadedSkillAttackHitTypeParamsAreaTable,TEXT("DT_Flight_Explode"));          //범위공격 스킬 데이터
+    LoadDataTable<FSkillDefenseCommonParamsData>(
+        Config->SkillDefenseCommonParamsTable,LoadedSkillDefenseCommonParamsTable, TEXT("DT_Skill_Defense_Common_Params"));    //방어 스킬 공통 파라미터                       
+    LoadDataTable<FStatusEffectData>(
+        Config->StatusEffectStaticTable,LoadedStatusEffectTable, TEXT("DT_Status_Effect"));                                    //상태이상 데이터
+    LoadDataTable<FEnemyStaticData> (
+        Config->EnemyTable,  LoadedEnemyTable,  TEXT("DT_Enemy"));                                                             //적 데이터
+    LoadDataTable<FStageStaticData> (
+        Config->StageTable,  LoadedStageTable,  TEXT("DT_Stage"));                                                             //스테이지 스폰 데이터
+    LoadDataTable<FWaveStaticData>  (
+        Config->WaveTable,   LoadedWaveTable,   TEXT("DT_WaveData"));                                                          //스폰 웨이브 데이터
     
     if (!Config->BaseStatCurveTable.IsNull()) //레벨별 스탯 커브 데이터
     {
@@ -73,12 +103,18 @@ void UGameDataSubsystem::LoadDataTables()
 void UGameDataSubsystem::CacheAllData()
 {
     CacheDataTable<FWeaponStaticData>(LoadedWeaponTable,       WeaponCache,      &FWeaponStaticData::WeaponID,    TEXT("DT_Weapon"));
-    CacheDataTable<FSkillStaticData> (LoadedSkillTable,        SkillCache,       &FSkillStaticData::SkillID,      TEXT("DT_Skill"));
-    CacheDataTable<FSkillEffectData> (LoadedSkillEffectTable,  SkillEffectCache, &FSkillEffectData::SkillEffectID,TEXT("DT_SkillEffect"));
-    CacheDataTable<FSkillSpawnData>  (LoadedSpawnTable,        SpawnCache,       &FSkillSpawnData::SkillEffectID, TEXT("DT_Spawn"));
-    CacheDataTable<FFlightArcData>   (LoadedFlightArcTable,    FlightArcCache,   &FFlightArcData::SkillEffectID,  TEXT("DT_Flight_Arc"));
-    CacheDataTable<FFlightPierceData>(LoadedFlightPierceTable, FlightPierceCache,&FFlightPierceData::SkillEffectID,TEXT("DT_Flight_Pierce"));
-    CacheDataTable<FFlightExplodeData>(LoadedFlightExplodeTable,FlightExplodeCache,&FFlightExplodeData::SkillEffectID,TEXT("DT_Flight_Explode"));
+    CacheDataTable<FSkillCommonStaticData> (LoadedSkillCommonStaticTable,        SkillCommonStaticCache,       &FSkillCommonStaticData::SkillID,      TEXT("DT_Skill_Common_Static"));
+    CacheDataTable<FSkillCommonResourceData>(LoadedSkillCommonResourceTable,SkillCommonResourceCache, &FSkillCommonResourceData::SkillID, TEXT("DT_Skill_Common_Resource"));         
+    CacheDataTable<FSkillCommonParamData>(LoadedSkillCommonParamsTable,SkillCommonParamCache, &FSkillCommonParamData::SkillEffectID, TEXT("DT_Skill_Common_Params")); 
+    CacheDataTable<FSkillAttackCommonParamsData> (LoadedSkillAttackCommonParamsTable,  SkillAttackCommonParamsCache, &FSkillAttackCommonParamsData::SkillEffectID,TEXT("DT_Skill_Attack_Common_Params"));
+    CacheDataTable<FSkillAttackSpawnParamsData>  (LoadedSkillAttackSpawnParamsTable,        SkillAttackSpawnParamsCache,       &FSkillAttackSpawnParamsData::SkillEffectID, TEXT("DT_Skill_Attack_Spawn_Param"));
+    CacheDataTable<FSkillAttackMoveTypeParamsArc>   (LoadedSkillAttackMoveTypeParamsArcTable,    SkillMoveTypeArcCache,   &FSkillAttackMoveTypeParamsArc::SkillEffectID,  TEXT("DT_Skill_Attack_MoveType_Param_Arc"));
+    CacheDataTable<FSkillAttackMoveTypeParamsHoming>(LoadedSkillAttackMoveTypeParamsHomingTable,SkillMoveTypeHomingCache, &FSkillAttackMoveTypeParamsHoming::SkillEffectID, TEXT("DT_Skill_Attack_MoveType_Param_Homing"));
+    CacheDataTable<FSkillAttackMoveTypeParamsSummon>(LoadedSkillAttackMoveTypeParamsSummonTable,   SkillMoveTypeSummonCache, &FSkillAttackMoveTypeParamsSummon::SkillEffectID, TEXT("DT_Skill_Attack_MoveType_Param_Summon")); 
+    CacheDataTable<FSkillAttackHitTypeParamsPierce>(LoadedSkillAttackHitTypeParamsPierceTable, SkillHitTypePierceCache,&FSkillAttackHitTypeParamsPierce::SkillEffectID,TEXT("DT_Skill_Attack_HitType_Param_Pierce"));
+    CacheDataTable<FSkillAttackHitTypeParamsArea>(LoadedSkillAttackHitTypeParamsAreaTable,SkillHitTypeAreaCache,&FSkillAttackHitTypeParamsArea::SkillEffectID,TEXT("DT_Skill_Attack_HitType_Param_Area"));
+    CacheDataTable<FSkillDefenseCommonParamsData>(LoadedSkillDefenseCommonParamsTable,SkillDefenseCommonParamsCache, &FSkillDefenseCommonParamsData::SkillEffectID,TEXT("DT_Skill_Defense_Common_Params"));                                                                         
+    CacheDataTable<FStatusEffectData>(LoadedStatusEffectTable, StatusEffectCache, &FStatusEffectData::StatusEffectID, TEXT("DT_Status_Effect"));  
     CacheDataTable<FEnemyStaticData>(LoadedEnemyTable, EnemyCache, &FEnemyStaticData::EnemyID, TEXT("DT_Enemy"));
     CacheDataTable<FStageStaticData>(LoadedStageTable, StageCache, &FStageStaticData::StageID, TEXT("DT_Stage"));
     CacheDataTable<FWaveStaticData> (LoadedWaveTable,  WaveCache,  &FWaveStaticData::StageID,  TEXT("DT_WaveData"));
@@ -172,19 +208,40 @@ TArray<FName> UGameDataSubsystem::GetWeaponIDsByLevel(int32 WeaponLevel) const
 // -----------------------------------------------------------------------------
 // 스킬 조회
 // -----------------------------------------------------------------------------
-bool UGameDataSubsystem::GetSkillData(FName SkillID, FSkillStaticData& OutData) const
+bool UGameDataSubsystem::GetSkillStaticData(FName SkillID, FSkillCommonStaticData& OutData) const
 {
-    return GetCachedData(SkillCache, SkillID, OutData, TEXT("FSkillStaticData"));
+    return GetCachedData(SkillCommonStaticCache, SkillID, OutData, TEXT("FSkillCommonStaticData"));
 }
 
-bool UGameDataSubsystem::GetSkillEffectData(FName SkillEffectID, FSkillEffectData& OutData) const
+bool UGameDataSubsystem::GetSkillResourceData(FName SkillID, FSkillCommonResourceData& OutData) const
 {
-    return GetCachedData(SkillEffectCache, SkillEffectID, OutData, TEXT("FSkillEffectData"));
+    return GetCachedData(SkillCommonResourceCache, SkillID, OutData, TEXT("FSkillCommonResourceData"));
 }
 
-bool UGameDataSubsystem::GetSkillSpawnData(FName SkillEffectID, FSkillSpawnData& OutData) const
+bool UGameDataSubsystem::GetSkillCommonParamData(FName SkillEffectID, FSkillCommonParamData& OutData) const
 {
-    return GetCachedData(SpawnCache, SkillEffectID, OutData, TEXT("FSkillSpawnData"));
+    return GetCachedData(SkillCommonParamCache, SkillEffectID, OutData, TEXT("FSkillCommonParamData")); 
+}
+
+bool UGameDataSubsystem::GetSkillAttackCommonParamsData(FName SkillEffectID, FSkillAttackCommonParamsData& OutData) const
+{
+    return GetCachedData(SkillAttackCommonParamsCache, SkillEffectID, OutData, TEXT("FSkillAttackCommonParamsData"));
+}
+
+bool UGameDataSubsystem::GetSkillAttackSpawnParamsData(FName SkillEffectID, FSkillAttackSpawnParamsData& OutData) const
+{
+    return GetCachedData(SkillAttackSpawnParamsCache, SkillEffectID, OutData, TEXT("FSkillAttackSpawnParamsData"));
+}
+
+bool UGameDataSubsystem::GetSkillDefenseCommonParamsData(FName SkillEffectID,
+    FSkillDefenseCommonParamsData& OutData) const
+{
+    return GetCachedData(SkillDefenseCommonParamsCache, SkillEffectID, OutData, TEXT("FSkillDefenseCommonParamsData"));  
+}
+
+bool UGameDataSubsystem::GetStatusEffectData(FName StatusEffectID, FStatusEffectData& OutData) const
+{
+    return GetCachedData(StatusEffectCache, StatusEffectID, OutData, TEXT("FStatusEffectData"));  
 }
 
 // -----------------------------------------------------------------------------
@@ -226,51 +283,144 @@ TArray<FWaveStaticData> UGameDataSubsystem::GetWaveDataByStage(FName StageID) co
 // -----------------------------------------------------------------------------
 // 복합 조회
 // -----------------------------------------------------------------------------
-bool UGameDataSubsystem::GetWeaponEquipData(FName WeaponID, FWeaponEquipData& OutData) const
+bool UGameDataSubsystem::GetWeaponSlotEquipData(FName WeaponID, FWeaponSlotEquipData& OutData) const
 {
     // DT_Weapon 조회
     FWeaponStaticData WeaponData;
     if (!GetWeaponData(WeaponID, WeaponData))
     {
-        KHS_WARN(TEXT("GetWeaponEquipData 실패 — DT_Weapon 조회 실패. WeaponID: %s"), *WeaponID.ToString());
+        KHS_WARN(TEXT("DT_Weapon 조회 실패. WeaponID: %s"), *WeaponID.ToString());
         return false;
     }
 
-    // DT_Skill 조회
-    FSkillStaticData SkillData;
-    if (!GetSkillData(WeaponData.SkillID, SkillData))
+    // Skill Common Static 조회
+    FSkillCommonStaticData SkillStaticData;
+    if (!GetSkillStaticData(WeaponData.SkillID, SkillStaticData))
     {
-        KHS_WARN(TEXT("GetWeaponEquipData 실패 — DT_Skill 조회 실패. SkillID: %s"), *WeaponData.SkillID.ToString());
+        KHS_WARN(TEXT("DT_Skill 조회 실패. SkillID: %s"), *WeaponData.SkillID.ToString());
         return false;
     }
 
-    //DT_SkillEffect 조회
-    FSkillEffectData EffectData;
-    if (!GetSkillEffectData(SkillData.SkillEffectID, EffectData))
-    {
-        KHS_WARN(TEXT("GetWeaponEquipData 실패 — DT_SkillEffect 조회 실패. SkillEffectID: %s"), *SkillData.SkillEffectID.ToString());
+    //Skill Common Resource 조회
+    FSkillCommonResourceData ResourceData;
+    if (!GetSkillResourceData(WeaponData.SkillID, ResourceData))                                                 
+    {                                                                                                          
+        KHS_WARN(TEXT("SkillResource 조회 실패. SkillID: %s"), *WeaponData.SkillID.ToString());                                                                                 
         return false;
+    }    
+    
+    //Skill Common Param 조회
+    FSkillCommonParamData CommonParamData;                                                                     
+    if (!GetSkillCommonParamData(SkillStaticData.SkillEffectID, CommonParamData))                                
+    {                                                                                                            
+        KHS_WARN(TEXT("SkillCommonParam 조회 실패. SkillEffectID: %s"),*SkillStaticData.SkillEffectID.ToString());                                                                      
+        return false;                                                                                          
     }
+    
+    //FWeaponSlotEquipData 레퍼런스 채우기
+    OutData.WeaponID           = WeaponID;
+    OutData.WeaponName         = WeaponData.WeaponName;   
+    OutData.SkillID            = WeaponData.SkillID;
+    OutData.SkillEffectID      = SkillStaticData.SkillEffectID;
+    OutData.Cooldown           = SkillStaticData.Cooldown;
+    OutData.SkillIcon          = ResourceData.SkillIcon;
+    OutData.GAClass            = ResourceData.GAClass;
+    OutData.SkillType          = CommonParamData.SkillType;   
 
-    //FWeaponEquipData 레퍼런스 반환
-    OutData.WeaponID        = WeaponID;
-    OutData.SkillID         = WeaponData.SkillID;
-    OutData.SkillEffectID   = SkillData.SkillEffectID;
-    OutData.WeaponName      = WeaponData.WeaponName;
-    OutData.SlotType        = WeaponData.SlotType;          
-    OutData.GAClass         = SkillData.GAClass;
-    OutData.ProjectileClass = SkillData.ProjectileClass;
-    OutData.DamageGEClass   = SkillData.DamageGEClass;
-    OutData.StatusGEClass   = SkillData.StatusGEClass;
-    OutData.Cooldown        = EffectData.Cooldown;
-    OutData.SkillIcon       = SkillData.SkillIcon;
-    OutData.Damage          = EffectData.Damage;            
-    OutData.Speed           = EffectData.Speed;             
-    OutData.Lifetime        = EffectData.Lifetime;          
-    OutData.SkillType       = EffectData.SkillType;
-    OutData.FlightType      = EffectData.FlightType;        
-    OutData.HitType         = EffectData.HitType;           
-    OutData.ExpireCondition = EffectData.ExpireCondition;   
+    // ATTACK 스킬일 경우 AttackCommonParams에서 MoveType 조회 (DEFENSE는 해당 테이블 없음)                               
+    if (CommonParamData.SkillType == ESkillType::ATTACK)                                                             
+    {                                                                                                                
+        FSkillAttackCommonParamsData AttackParamData;                                                                
+        if (!GetSkillAttackCommonParamsData(SkillStaticData.SkillEffectID, AttackParamData))                       
+        {                                                                                                            
+            KHS_WARN(TEXT("AttackCommonParam 조회 실패. SkillEffectID: %s"), *SkillStaticData.SkillEffectID.ToString());                                                                      
+            return false;                                                                                            
+        }                                                                                                          
+        OutData.MoveType = AttackParamData.MoveType;                                                                 
+    }   
+    
+    return true;
+}
+
+bool UGameDataSubsystem::GetSkillExecutionData(FName SkillID, FSkillExecutionData& OutData) const
+{
+    FSkillCommonStaticData SkillStaticData;                                                                      
+      if (!GetSkillStaticData(SkillID, SkillStaticData))                                                         
+      {
+          KHS_WARN(TEXT("DT_Skill_Common_Static 조회 실패. SkillID: %s"), *SkillID.ToString());
+          return false;                                                                                            
+      }
+                                                                                                                   
+      FSkillCommonResourceData ResourceData;                                                                     
+      if (!GetSkillResourceData(SkillID, ResourceData))
+      {                                                                                                            
+          KHS_WARN(TEXT("DT_Skill_Common_Resource 조회 실패. SkillID: %s"), *SkillID.ToString());                  
+          return false;                                                                                            
+      }                                                                                                            
+                                                                                                                 
+      const FName SkillEffectID = SkillStaticData.SkillEffectID;                                                   
+   
+      FSkillCommonParamData CommonParamData;                                                                       
+      if (!GetSkillCommonParamData(SkillEffectID, CommonParamData))                                              
+      {                                                                                                            
+          KHS_WARN(TEXT("DT_Skill_Common_Param 조회 실패. SkillEffectID: %s"), *SkillEffectID.ToString());
+          return false;                                                                                            
+      }                                                                                                          
+                                                                                                                   
+      FSkillAttackCommonParamsData AttackParamData;                                                                
+      if (!GetSkillAttackCommonParamsData(SkillEffectID, AttackParamData))                                         
+      {                                                                                                            
+          KHS_WARN(TEXT("DT_Skill_Attack_Common_Param 조회 실패. SkillEffectID: %s"), *SkillEffectID.ToString());
+          return false;                                                                                            
+      }
+                                                                                                                   
+      FSkillAttackSpawnParamsData SpawnParamData;                                                                  
+      if (!GetSkillAttackSpawnParamsData(SkillEffectID, SpawnParamData))
+      {                                                                                                            
+          KHS_WARN(TEXT("DT_Skill_Attack_Spawn_Param 조회 실패. SkillEffectID: %s"), *SkillEffectID.ToString()); 
+          return false;                                                                                            
+      }
+                                                                                                                   
+      OutData.SkillID            = SkillID;                                                                      
+      OutData.SkillEffectID      = SkillEffectID;
+    
+      OutData.DamageGEClass      = ResourceData.DamageGEClass;                                                     
+      OutData.StatusGEClass      = ResourceData.StatusGEClass;
+      OutData.ProjectileClass    = ResourceData.ProjectileClass;                                                   
+      OutData.SummonObjectClass  = ResourceData.SummonObjectClass;                                                 
+      OutData.SummonPreviewClass = ResourceData.SummonPreviewClass;
+    
+      OutData.SkillType          = CommonParamData.SkillType;                                                      
+      OutData.Lifetime           = CommonParamData.Lifetime;                                                     
+      OutData.Range              = CommonParamData.Range;        
+    
+      OutData.MoveType           = AttackParamData.MoveType;                                                       
+      OutData.HitType            = AttackParamData.HitType;                                                        
+      OutData.SpawnPattern       = AttackParamData.SpawnType;                                                      
+      OutData.Amount             = AttackParamData.Amount;                                                         
+      OutData.Speed              = AttackParamData.Speed;       
+    
+      OutData.SpawnCount         = SpawnParamData.SpawnCount;                                                      
+      OutData.SocketName         = SpawnParamData.SocketName;                                                      
+      OutData.SpreadAngle        = SpawnParamData.SpreadAngle;
+                                                                                                                   
+      return true;                                            
+}
+
+bool UGameDataSubsystem::GetSkillFXData(FName SkillID, FSkillFXData& OutData) const
+{
+    FSkillCommonResourceData ResourceData;                                                                       
+    if (!GetSkillResourceData(SkillID, ResourceData))                                                          
+    {                                                                                                            
+        KHS_WARN(TEXT("DT_Skill_Common_Resource 조회 실패 (FX). SkillID: %s"), *SkillID.ToString());
+        return false;                                                                                            
+    }                                                                                                          
+                                                                                                                   
+    OutData.SpawnVFX  = ResourceData.SpawnVFX;                                                                   
+    OutData.SpawnSFX  = ResourceData.SpawnSFX;
+    OutData.TrailVFX  = ResourceData.TrailVFX;                                                                   
+    OutData.ImpactVFX = ResourceData.ImpactVFX;                                                                  
+    OutData.ImpactSFX = ResourceData.ImpactSFX;
 
     return true;
 }
