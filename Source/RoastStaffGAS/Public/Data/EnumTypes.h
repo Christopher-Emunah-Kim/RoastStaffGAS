@@ -8,33 +8,35 @@
 // ENUM 정의
 // ============================================================================
 
-/** 무기 슬롯 타입 */
+/** 무기 베이스 타입 */
 UENUM(BlueprintType)
-enum class EWeaponSlotType : uint8
+enum class EWeaponBaseType : uint8
 {
-	MAIN		UMETA(DisplayName = "Main"),
-	SUB01		UMETA(DisplayName = "Sub01"),
-	SUB02		UMETA(DisplayName = "Sub02")
+	Fireball	UMETA(DisplayName = "Fireball"),
+	Iceball		UMETA(DisplayName = "Iceball"),
+	Thunder		UMETA(DisplayName = "Thunder"),
+	Poison		UMETA(DisplayName = "Poison"),
+	Shadow		UMETA(DisplayName = "Shadow"),
 };
 
 /** 스킬 타입 (투사체 / 소환) */
 UENUM(BlueprintType)
 enum class ESkillType : uint8
 {
-	PROJECTILE	UMETA(DisplayName = "Projectile"),
-	SUMMON		UMETA(DisplayName = "Summon")
+	ATTACK		UMETA(DisplayName = "Attack"),
+	DEFENSE		UMETA(DisplayName = "Defense"),
+	UTILITY		UMETA(DisplayName = "Utility"),
 };
 
 /** 투사체 비행 방식 */
 UENUM(BlueprintType)
-enum class EFlightType : uint8
+enum class EMoveType : uint8
 {
-	NONE		UMETA(DisplayName = "None"),
+	MELEE		UMETA(DisplayName = "Melee"),
 	LINEAR		UMETA(DisplayName = "Linear"),
 	HOMING		UMETA(DisplayName = "Homing"),
 	ARC			UMETA(DisplayName = "Arc"),
-	PIERCE		UMETA(DisplayName = "Pierce"),
-	EXPLODE		UMETA(DisplayName = "Explode")
+	SUMMON		UMETA(DisplayName = "Summon"),
 };
 
 /** 타격 방식 */
@@ -51,8 +53,6 @@ UENUM(BlueprintType)
 enum class EExpireCondition : uint8
 {
 	OnHit			UMETA(DisplayName = "OnHit"),
-	OnExplosion		UMETA(DisplayName = "OnExplosion"),
-	OnPierceCount	UMETA(DisplayName = "OnPierceCount"),
 	OnLifetime		UMETA(DisplayName = "OnLifetime")
 };
 
@@ -61,8 +61,16 @@ UENUM(BlueprintType)
 enum class ESpawnPattern : uint8
 {
 	SINGLE		UMETA(DisplayName = "Single"),
-	SPREAD		UMETA(DisplayName = "FanSpread"),
+	SPREAD		UMETA(DisplayName = "Spread"),
 	CIRCLE		UMETA(DisplayName = "Circle")
+};
+
+/** 방어 스킬 타입 */
+UENUM(BlueprintType)
+enum class EDefenseType : uint8
+{
+	INVINCIBLE	UMETA(DisplayName = "Invincible"),
+	ARMOR		UMETA(DisplayName = "Armor"),
 };
 
 /** 에너미 AI 행동 패턴 타입 */
