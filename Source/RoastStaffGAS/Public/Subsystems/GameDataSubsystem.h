@@ -37,14 +37,20 @@ public:
     // 캐릭터 스탯 커브 테이블 조회
     // -------------------------------------------------------------------------
     bool GetLevelCurveValue(FName CurveName, int32 Level, float& OutValue) const;
-
+    
+    // -------------------------------------------------------------------------
+    // 무기/스킬 복합 조회
+    // -------------------------------------------------------------------------
+    //WeaponID → FWeaponSlotEquipData 조합 반환.(장착 + 슬롯 초기화 + UI)
+    bool GetWeaponSlotEquipData(FName WeaponID, FWeaponSlotEquipData& OutData) const;
+    //SkillID → FSkillExecutionData 조합 반환.(GA 발동 시 투사체/소환물 생성에 필요) 
+    bool GetSkillExecutionData(FName SkillID, FSkillExecutionData& OutData) const;
+    //SkillID → FSkillFXData 조합 반환.(투사체/소환물 연출(VFX/SFX))                                                                                                  
+    bool GetSkillFXData(FName SkillID, FSkillFXData& OutData) const;  
     
     // -------------------------------------------------------------------------
     // 무기 조회
     // -------------------------------------------------------------------------
-    UFUNCTION(BlueprintCallable, Category = "MY|GDS|Weapon")
-    bool GetWeaponData(FName WeaponID, FWeaponStaticData& OutData) const;
-
     /** WeaponLevel 기준 무기 ID 목록 반환. 레벨업 시 무기 풀 구성에 사용 */
     UFUNCTION(BlueprintCallable, Category = "MY|GDS|Weapon")
     TArray<FName> GetWeaponIDsByLevel(int32 WeaponLevel) const;
@@ -52,19 +58,14 @@ public:
     // -------------------------------------------------------------------------
     // 스킬 조회
     // -------------------------------------------------------------------------
-    UFUNCTION(BlueprintCallable, Category = "MY|GDS|Skill")
-    bool GetSkillData(FName SkillID, FSkillStaticData& OutData) const;
-
-    UFUNCTION(BlueprintCallable, Category = "MY|GDS|Skill")
-    bool GetSkillEffectData(FName SkillEffectID, FSkillEffectData& OutData) const;
-
-    UFUNCTION(BlueprintCallable, Category = "MY|GDS|Skill")
-    bool GetSkillSpawnData(FName SkillEffectID, FSkillSpawnData& OutData) const;
-
-    // FlightData 템플릿 조회
+    // MoveTypeData 템플릿 조회
     template<typename T>
-    bool GetFlightData(FName SkillEffectID, T& OutData) const;
+    bool GetMoveTypeData(FName SkillEffectID, T& OutData) const;
 
+    // HitTypeData 템플릿 조회
+    template<typename T>
+    bool GetHitTypeData(FName SkillEffectID, T& OutData) const;
+    
     // -------------------------------------------------------------------------
     // 에너미 조회
     // -------------------------------------------------------------------------
@@ -81,17 +82,6 @@ public:
     UFUNCTION(BlueprintCallable, Category = "MY|GDS|Stage")
     TArray<FWaveStaticData> GetWaveDataByStage(FName StageID) const;
     
-    
-    // -------------------------------------------------------------------------
-    // 복합 조회
-    // -------------------------------------------------------------------------
-    /**
-     * WeaponID 하나로 DT_Weapon → DT_Skill → DT_SkillEffect를 체인 조회하여
-     * FWeaponEquipData를 조합해 반환한다.
-     * 중간 조회가 하나라도 실패하면 false를 반환하고 OutData는 변경하지 않는다.
-     */
-    bool GetWeaponEquipData(FName WeaponID, FWeaponEquipData& OutData) const;
-
 private:
     // -------------------------------------------------------------------------
     // 초기화 헬퍼
@@ -101,21 +91,34 @@ private:
     void BuildSecondaryIndex();
 
     // -------------------------------------------------------------------------
-    // 템플릿 헬퍼 3종 (기존 GDS 패턴 유지)
+    // 개별 테이블 조회 (복합 조회 내부 헬퍼)                                                          
+    // -------------------------------------------------------------------------  
+    bool GetWeaponData(FName WeaponID, FWeaponStaticData& OutData) const;
+    bool GetSkillStaticData(FName SkillID, FSkillCommonStaticData& OutData) const;
+    bool GetSkillResourceData(FName SkillID, FSkillCommonResourceData& OutData) const;
+    bool GetSkillCommonParamData(FName SkillEffectID, FSkillCommonParamData& OutData) const;
+    bool GetSkillAttackCommonParamsData(FName SkillEffectID, FSkillAttackCommonParamsData& OutData) const;
+    bool GetSkillAttackSpawnParamsData(FName SkillEffectID, FSkillAttackSpawnParamsData& OutData) const;                                   
+    bool GetSkillDefenseCommonParamsData(FName SkillEffectID, FSkillDefenseCommonParamsData& OutData) const;                                       
+    bool GetStatusEffectData(FName StatusEffectID, FStatusEffectData& OutData) const;  
+    
+    // -------------------------------------------------------------------------
+    // 템플릿 헬퍼
     // -------------------------------------------------------------------------
     template<typename T>
     void LoadDataTable(TSoftObjectPtr<UDataTable>& SoftPtr, UDataTable*& OutTable, const FString& TableName);
-
     template<typename T>
     void CacheDataTable(UDataTable* DataTable, TMap<FName, T>& OutCache, FName T::* KeyField, const FString& TableName);
-
     template<typename T>
     bool GetCachedData(const TMap<FName, T>& Cache, FName ID, T& OutData, const TCHAR* DataName) const;
 
-    // FlightData 캐시 선택 특수화
+    // MoveTypeData 캐시 선택 특수화 탬플릿
     template<typename T>
-    const TMap<FName, T>& GetFlightCache() const;
-
+    const TMap<FName, T>& GetMoveTypeCache() const;
+    // HitTypeData 캐시 선택 특수화 탬플릿
+    template<typename T>
+    const TMap<FName, T>& GetHitTypeCache() const;
+    
 private:
     // -------------------------------------------------------------------------
     // 초기화 상태
@@ -125,53 +128,46 @@ private:
     // -------------------------------------------------------------------------
     // 로드된 DataTable 포인터 (UPROPERTY로 GC 방지)
     // -------------------------------------------------------------------------
-    UPROPERTY()
-    UCurveTable* LoadedCurveTable = nullptr;
-    UPROPERTY()
-    UDataTable* LoadedWeaponTable = nullptr;
-    UPROPERTY()
-    UDataTable* LoadedSkillTable = nullptr;
-    UPROPERTY()
-    UDataTable* LoadedSkillEffectTable = nullptr;
-    UPROPERTY()
-    UDataTable* LoadedSpawnTable = nullptr;
-    UPROPERTY()
-    UDataTable* LoadedFlightArcTable = nullptr;
-    UPROPERTY()
-    UDataTable* LoadedFlightPierceTable = nullptr;
-    UPROPERTY()
-    UDataTable* LoadedFlightExplodeTable = nullptr;
-    UPROPERTY()
-    UDataTable* LoadedEnemyTable = nullptr;
-    UPROPERTY()
-    UDataTable* LoadedStageTable = nullptr;
-    UPROPERTY()
-    UDataTable* LoadedWaveTable = nullptr;
-
+    UPROPERTY() UCurveTable* LoadedCurveTable = nullptr;
+    UPROPERTY() UDataTable* LoadedWeaponTable = nullptr;
+    UPROPERTY() UDataTable* LoadedEnemyTable = nullptr;
+    UPROPERTY() UDataTable* LoadedStageTable = nullptr;
+    UPROPERTY() UDataTable* LoadedWaveTable = nullptr;
+    UPROPERTY() UDataTable* LoadedStatusEffectTable = nullptr;  
+    //SKill 관련 
+    UPROPERTY() UDataTable* LoadedSkillCommonStaticTable = nullptr;
+    UPROPERTY() UDataTable* LoadedSkillCommonResourceTable = nullptr;
+    UPROPERTY() UDataTable* LoadedSkillCommonParamsTable = nullptr;
+    UPROPERTY() UDataTable* LoadedSkillAttackCommonParamsTable = nullptr;
+    UPROPERTY() UDataTable* LoadedSkillAttackSpawnParamsTable = nullptr;
+    UPROPERTY() UDataTable* LoadedSkillAttackMoveTypeParamsArcTable = nullptr;
+    UPROPERTY() UDataTable* LoadedSkillAttackMoveTypeParamsHomingTable = nullptr; 
+    UPROPERTY() UDataTable* LoadedSkillAttackMoveTypeParamsSummonTable = nullptr; 
+    UPROPERTY() UDataTable* LoadedSkillAttackHitTypeParamsPierceTable = nullptr;
+    UPROPERTY() UDataTable* LoadedSkillAttackHitTypeParamsAreaTable = nullptr;
+    UPROPERTY() UDataTable* LoadedSkillDefenseCommonParamsTable = nullptr;        
+    
     // -------------------------------------------------------------------------
     // 캐시 (ID → 구조체)
     // -------------------------------------------------------------------------
-    UPROPERTY()
-    TMap<FName, FWeaponStaticData> WeaponCache;
-    UPROPERTY()
-    TMap<FName, FSkillStaticData> SkillCache;
-    UPROPERTY()
-    TMap<FName, FSkillEffectData> SkillEffectCache;
-    UPROPERTY()
-    TMap<FName, FSkillSpawnData> SpawnCache;
-    UPROPERTY()
-    TMap<FName, FFlightArcData> FlightArcCache;
-    UPROPERTY()
-    TMap<FName, FFlightPierceData> FlightPierceCache;
-    UPROPERTY()
-    TMap<FName, FFlightExplodeData> FlightExplodeCache;
-    UPROPERTY()
-    TMap<FName, FEnemyStaticData> EnemyCache;
-    UPROPERTY()
-    TMap<FName, FStageStaticData> StageCache;
-    UPROPERTY()
-    TMap<FName, FWaveStaticData> WaveCache;
-
+    UPROPERTY() TMap<FName, FWeaponStaticData>                  WeaponCache;   
+    UPROPERTY() TMap<FName, FEnemyStaticData>                   EnemyCache;
+    UPROPERTY() TMap<FName, FStageStaticData>                   StageCache;
+    UPROPERTY() TMap<FName, FWaveStaticData>                    WaveCache;
+    UPROPERTY() TMap<FName, FStatusEffectData>                  StatusEffectCache; 
+    //Skill
+    UPROPERTY() TMap<FName, FSkillCommonStaticData>             SkillCommonStaticCache;
+    UPROPERTY() TMap<FName, FSkillCommonResourceData>           SkillCommonResourceCache;  
+    UPROPERTY() TMap<FName, FSkillCommonParamData>              SkillCommonParamCache;  
+    UPROPERTY() TMap<FName, FSkillAttackCommonParamsData>       SkillAttackCommonParamsCache;
+    UPROPERTY() TMap<FName, FSkillAttackSpawnParamsData>        SkillAttackSpawnParamsCache;
+    UPROPERTY() TMap<FName, FSkillAttackMoveTypeParamsArc>      SkillMoveTypeArcCache;
+    UPROPERTY() TMap<FName, FSkillAttackMoveTypeParamsHoming>   SkillMoveTypeHomingCache;     
+    UPROPERTY() TMap<FName, FSkillAttackMoveTypeParamsSummon>   SkillMoveTypeSummonCache;  
+    UPROPERTY() TMap<FName, FSkillAttackHitTypeParamsPierce>    SkillHitTypePierceCache;
+    UPROPERTY() TMap<FName, FSkillAttackHitTypeParamsArea>      SkillHitTypeAreaCache;
+    UPROPERTY() TMap<FName, FSkillDefenseCommonParamsData>      SkillDefenseCommonParamsCache; 
+    
     // -------------------------------------------------------------------------
     // 보조 인덱스
     // -------------------------------------------------------------------------
@@ -252,36 +248,64 @@ bool UGameDataSubsystem::GetCachedData(const TMap<FName, T>& Cache, FName ID, T&
     return true;
 }
 
-// FlightData 캐시 특수화 — 특수화된 타입 외 기본 템플릿은 호출되면 컴파일 에러로 방어
+// MoveData 캐시 특수화 — 특수화된 타입 외 기본 템플릿은 호출되면 컴파일 에러로 방어
 template<typename T>
-const TMap<FName, T>& UGameDataSubsystem::GetFlightCache() const
+const TMap<FName, T>& UGameDataSubsystem::GetMoveTypeCache() const
 {
-    static_assert(sizeof(T) == 0, "지원하지 않는 FlightData 타입입니다.");
+    static_assert(sizeof(T) == 0, "지원하지 않는 MoveType 타입입니다.");
     static TMap<FName, T> Dummy;
     return Dummy;
 }
 
 template<>
-inline const TMap<FName, FFlightArcData>& UGameDataSubsystem::GetFlightCache() const
+inline const TMap<FName, FSkillAttackMoveTypeParamsArc>& UGameDataSubsystem::GetMoveTypeCache() const
 {
-    return FlightArcCache;
+    return SkillMoveTypeArcCache;
 }
 
 template<>
-inline const TMap<FName, FFlightPierceData>& UGameDataSubsystem::GetFlightCache() const
+inline const TMap<FName, FSkillAttackMoveTypeParamsHoming>& UGameDataSubsystem::GetMoveTypeCache() const
 {
-    return FlightPierceCache;
+    return SkillMoveTypeHomingCache;
 }
 
 template<>
-inline const TMap<FName, FFlightExplodeData>& UGameDataSubsystem::GetFlightCache() const
+inline const TMap<FName, FSkillAttackMoveTypeParamsSummon>& UGameDataSubsystem::GetMoveTypeCache() const
 {
-    return FlightExplodeCache;
+    return SkillMoveTypeSummonCache;
 }
 
 template<typename T>
-bool UGameDataSubsystem::GetFlightData(FName SkillEffectID, T& OutData) const
+bool UGameDataSubsystem::GetMoveTypeData(FName SkillEffectID, T& OutData) const
 {
-    const TMap<FName, T>& Cache = GetFlightCache<T>();
-    return GetCachedData(Cache, SkillEffectID, OutData, TEXT("FlightData"));
+    const TMap<FName, T>& Cache = GetMoveTypeCache<T>();
+    return GetCachedData(Cache, SkillEffectID, OutData, TEXT("MoveType Data"));
+}
+
+// MoveData 캐시 특수화 — 특수화된 타입 외 기본 템플릿은 호출되면 컴파일 에러로 방어
+template<typename T>
+const TMap<FName, T>& UGameDataSubsystem::GetHitTypeCache() const
+{
+    static_assert(sizeof(T) == 0, "지원하지 않는 HitType 타입입니다.");
+    static TMap<FName, T> Dummy;
+    return Dummy;
+}
+
+template<>
+inline const TMap<FName, FSkillAttackHitTypeParamsPierce>& UGameDataSubsystem::GetHitTypeCache() const
+{
+    return SkillHitTypePierceCache;
+}
+
+template<>
+inline const TMap<FName, FSkillAttackHitTypeParamsArea>& UGameDataSubsystem::GetHitTypeCache() const
+{
+    return SkillHitTypeAreaCache;
+}
+
+template<typename T>
+bool UGameDataSubsystem::GetHitTypeData(FName SkillEffectID, T& OutData) const
+{
+    const TMap<FName, T>& Cache = GetHitTypeCache<T>();
+    return GetCachedData(Cache, SkillEffectID, OutData, TEXT("HitType Data"));
 }

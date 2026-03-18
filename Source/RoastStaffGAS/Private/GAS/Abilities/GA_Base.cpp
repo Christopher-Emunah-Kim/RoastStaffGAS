@@ -38,7 +38,7 @@ void UGA_Base::OnAbilityActivated(const FGameplayAbilitySpecHandle Handle, const
 	//자식 GA에서 오버라이딩하여 사용
 }
 
-void UGA_Base::SpawnProjectiles(TSubclassOf<ABaseProjectile> ProjectileClass, const FRSSkillInitData& InitData)
+void UGA_Base::SpawnProjectiles(TSubclassOf<ABaseProjectile> ProjectileClass, const FProjectileInitData& InitData)
 {
 	if (!ensureMsgf(CachedInstigator, TEXT("CachedInstigator is null")))
 	{
@@ -50,7 +50,7 @@ void UGA_Base::SpawnProjectiles(TSubclassOf<ABaseProjectile> ProjectileClass, co
 		return;
 	}
 	
-	const int32 Count = FMath::Max(1, InitData.ProjectileCount);
+	const int32 Count = FMath::Max(1, InitData.SpawnCount);
 	
 	// ProjectileCount=1인데 FanSpread면 경고 후 Single로 처리
 	if (Count == 1 && InitData.SpawnPattern == ESpawnPattern::SPREAD)

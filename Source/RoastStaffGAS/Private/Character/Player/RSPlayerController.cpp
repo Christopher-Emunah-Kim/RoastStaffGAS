@@ -107,7 +107,7 @@ void ARSPlayerController::RefreshSlotUI(int32 SlotIndex)
 	const FWeaponSlotInstanceData* SlotData = EquipSys->GetSlotData(SlotIndex);
 	Slot->UpdateSlot(SlotData);
 
-	KHS_INFO(TEXT("Slot %d UI 갱신 — WeaponID: %s"), SlotIndex, SlotData ? *SlotData->EquipData.WeaponID.ToString() : TEXT("null"));
+	KHS_INFO(TEXT("Slot %d UI 갱신 — WeaponID: %s"), SlotIndex, SlotData ? *SlotData->SlotEquipData.WeaponID.ToString() : TEXT("null"));
 }
 
 bool ARSPlayerController::HandleMouseAim()

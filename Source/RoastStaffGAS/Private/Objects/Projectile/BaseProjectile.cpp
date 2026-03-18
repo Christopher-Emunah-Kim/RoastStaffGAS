@@ -58,7 +58,7 @@ void ABaseProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UP
 		// 기본 단일 타격 처리
 		if (InitData.DamageGEClass)
 		{
-			ApplyEffectToTarget(TargetASC, InitData.DamageGEClass, InitData.Damage);
+			ApplyEffectToTarget(TargetASC, InitData.DamageGEClass, InitData.Amount);
 		}
 
 		// 상태이상 처리
@@ -107,7 +107,7 @@ void ABaseProjectile::OnLifetimeExpired()
 	Destroy();
 }
 
-void ABaseProjectile::InitProjectile(const FRSSkillInitData& InInitData)
+void ABaseProjectile::InitProjectile(const FProjectileInitData& InInitData)
 {
 	// 투사체 기본 초기화
 	InitData = InInitData;

@@ -19,9 +19,6 @@ class URSSkillData;
 struct FLoadedEquipClasses //EquipWeapon 내부헬퍼
 {
 	TSubclassOf<UGameplayAbility> GAClass;
-	TSubclassOf<UGameplayEffect>  DamageGEClass;
-	TSubclassOf<UGameplayEffect>  StatusGEClass;  // 없으면 nullptr
-	TSubclassOf<AActor>           ProjectileClass; // 없으면 nullptr
 };
 
 UCLASS()
@@ -54,10 +51,10 @@ private:
 	FGameplayTag GetEventTag(const FWeaponSlotInstanceData& Slot) const;
 
 	//EquipWeapon 내부 헬퍼
-	bool LoadEquipData(const FName& WeaponID, FWeaponEquipData& OutData) const;
-	bool LoadEquipClasses(const FWeaponEquipData& EquipData, FLoadedEquipClasses& OutClasses) const;
-	bool RegisterAbility(const FWeaponEquipData& EquipData, const FLoadedEquipClasses& Classes, FGameplayAbilitySpecHandle& OutHandle);
-	void CommitSlot(int32 TargetSlot, const FName& WeaponID, const FWeaponEquipData& EquipData, const FLoadedEquipClasses& Classes, const FGameplayAbilitySpecHandle& Handle);
+	bool LoadEquipData(const FName& WeaponID, FWeaponSlotEquipData& OutData) const;
+	bool LoadEquipClasses(const FWeaponSlotEquipData& EquipData, FLoadedEquipClasses& OutClasses) const;
+	bool RegisterAbility(const FWeaponSlotEquipData& EquipData, const FLoadedEquipClasses& Classes, FGameplayAbilitySpecHandle& OutHandle);
+	void CommitSlot(int32 TargetSlot,const FWeaponSlotEquipData& EquipData, const FGameplayAbilitySpecHandle& Handle);
 	
 	template<typename T>
 	bool LoadRequiredClass(const TSoftClassPtr<T>& SoftPtr, TSubclassOf<T>& OutClass, const FName& ContextID) const;

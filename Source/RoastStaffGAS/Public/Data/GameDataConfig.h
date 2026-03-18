@@ -17,30 +17,53 @@ class ROASTSTAFFGAS_API UGameDataConfig : public UDataAsset
 	GENERATED_BODY()
 	
 public:
+	//Character
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level")
 	TSoftObjectPtr<UCurveTable> BaseStatCurveTable;
 	
+	//Weapon
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
-	TSoftObjectPtr<UDataTable> WeaponTable;
+	TSoftObjectPtr<UDataTable> WeaponStaticTable;
+
+	//Skill
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
+	TSoftObjectPtr<UDataTable> SkillCommonStaticTable;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
-	TSoftObjectPtr<UDataTable> SkillTable;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
-	TSoftObjectPtr<UDataTable> SkillEffectTable;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
-	TSoftObjectPtr<UDataTable> SpawnTable;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Flight")
-	TSoftObjectPtr<UDataTable> FlightArcTable;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Flight")
-	TSoftObjectPtr<UDataTable> FlightPierceTable;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Flight")
-	TSoftObjectPtr<UDataTable> FlightExplodeTable;
+	TSoftObjectPtr<UDataTable> SkillCommonResourceTable;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
+	TSoftObjectPtr<UDataTable> SkillCommonParamsTable;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Attack")
+	TSoftObjectPtr<UDataTable> SkillAttackCommonParamsTable;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Attack")
+	TSoftObjectPtr<UDataTable> SkillAttackSpawnParamsTable;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Attack|HitType")
+	TSoftObjectPtr<UDataTable> SkillAttackHitTypeParamsPierceTable;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Attack|HitType")
+	TSoftObjectPtr<UDataTable> SkillAttackHitTypeParamsAreaTable;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Attack|MoveType")
+	TSoftObjectPtr<UDataTable> SkillAttackMoveTypeParamsArcTable;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Attack|MoveType")
+	TSoftObjectPtr<UDataTable> SkillAttackMoveTypeParamsHomingTable;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Attack|MoveType")
+	TSoftObjectPtr<UDataTable> SkillAttackMoveTypeParamsSummonTable;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Defense")
+	TSoftObjectPtr<UDataTable> SkillDefenseCommonParamsTable;
+	
+	//Status Effect
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
+	TSoftObjectPtr<UDataTable> StatusEffectStaticTable;
+	
+	//Enemy / Stage / Wave
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
 	TSoftObjectPtr<UDataTable> EnemyTable;
 	
