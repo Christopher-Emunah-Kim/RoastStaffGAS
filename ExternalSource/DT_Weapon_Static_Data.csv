@@ -1,0 +1,6 @@
+﻿---,WeaponID,BaseType,WeaponLevel,SkillID,NextLevelWeaponID,WeaponName,Description
+WPN_FIRESTAFF_Lv1,WPN_FIRESTAFF_Lv1,FireBall,1,SKILL_FIREBALL,,화염의스태프,화염의스태프
+WPN_ICESTAFF_Lv1,WPN_ICESTAFF_Lv1,IceBall,1,SKILL_ICEBALL,,얼음의 스태프,얼음의 스태프
+WPN_THUNDER_Lv1,WPN_THUNDER_Lv1,Thunder,1,SKILL_THUNDER,,썬더 스태프,썬더 스태프
+WPN_POISON_Lv1,WPN_POISON_Lv1,Poison,1,SKILL_POISON,,독 스태프,독 스태프
+WPN_SHADOW_Lv1,WPN_SHADOW_Lv1,Shadow,1,SKILL_SHADOW,,그림자 스태프,그림자 스태프

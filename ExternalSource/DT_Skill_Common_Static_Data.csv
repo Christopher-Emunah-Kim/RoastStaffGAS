@@ -1,0 +1,6 @@
+﻿---,SkillID,SkillEffectID,SkillName,Description,Tags,Cooldown
+SKILL_FIREBALL,SKILL_FIREBALL,EFFECT_FIREBALL,파이어볼,파이어볼,"(GameplayTags=((TagName=""Ability.Skill.Fireball"")))",5.000000
+SKILL_ICEBALL,SKILL_ICEBALL,EFFECT_ICEBALL,아이스볼,아이스볼,"(GameplayTags=((TagName=""Ability.Skill.Iceball"")))",6.000000
+SKILL_THUNDER,SKILL_THUNDER,EFFECT_THUNDER,라이트닝,라이트닝,"(GameplayTags=((TagName=""Ability.Skill.Thunder"")))",4.000000
+SKILL_POISON,SKILL_POISON,EFFECT_POISON,포이즌,포이즌,"(GameplayTags=((TagName=""Ability.Skill.Poison"")))",8.000000
+SKILL_SHADOW,SKILL_SHADOW,EFFECT_SHADOW,쉐도우,쉐도우,"(GameplayTags=((TagName=""Ability.Skill.Shadow"")))",7.000000
