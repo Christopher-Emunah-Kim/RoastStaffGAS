@@ -175,7 +175,35 @@ struct FSkillExecutionData
         UPROPERTY()                                                                                                
         float SpreadAngle;
   };                                                                                                               
-                                                                                                                 
+                                   
+// ----------------------------------------------------------------------------
+  // FSummonObjectInitData — GA → 소환 오브젝트 전달 데이터                                                         
+  // GA가 FSkillExecutionData를 기반으로 직접 조립                                                                 
+  // ----------------------------------------------------------------------------                                  
+  USTRUCT(BlueprintType)                                                                                           
+  struct FSummonObjectInitData                                                                                     
+  {                                                                                                                
+      GENERATED_BODY()                                                                                           
+
+      UPROPERTY()
+      FName SkillID;
+                                                                                                                   
+      UPROPERTY()
+      TSubclassOf<UGameplayEffect> DamageGEClass;                                                                  
+      UPROPERTY()                                                                                                  
+      TSubclassOf<UGameplayEffect> StatusGEClass;     //선택                                                             
+      UPROPERTY()                                                                                                  
+      TObjectPtr<UAbilitySystemComponent> InstigatorASC;                                                         
+                                                                                                                   
+      UPROPERTY()
+      float Amount;                                                                                          
+      UPROPERTY()                                                                                                  
+      float SummonRadius;                                                                                    
+      UPROPERTY()
+      float Lifetime;                                                                                        
+  };                                   
+
+
   // ----------------------------------------------------------------------------                                  
   // FWeaponSlotInstanceData — 슬롯 런타임 상태                                                                  
   // EquipmentSubsystem이 직접 관리
