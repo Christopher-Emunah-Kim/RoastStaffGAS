@@ -41,6 +41,16 @@ void UEquipmentSubsystem::RequestManualFire(const FVector& AimLocation)
 		return;
 	}
 
+	//슬롯 스킬이 소환형인경우 -> 클릭 = 에임 장판 확인 후 ASC Confirm 전달
+	if (Slots[ActiveSlotIndex].SlotEquipData.MoveType == EMoveType::SUMMON)
+	{                                                                                                            
+		if (ASC)                                                                                               
+		{                                                                                                        
+			ASC->LocalInputConfirm();                                                                          
+		}                                                                                                        
+		return;
+	}      
+	
 	FireSlot(ActiveSlotIndex, AimLocation);
 }
 
@@ -115,6 +125,48 @@ void UEquipmentSubsystem::StopAllFire()
 	KHS_INFO(TEXT("모든 슬롯 자동발사 타이머 클리어."));
 }
 
+void UEquipmentSubsystem::OnSummonAbilityEnded(FName SkillID)
+{
+	for (int32 i = 0; i < SLOT_COUNT; ++i)                                                                       
+	{                                                                                                            
+		if (Slots[i].SlotEquipData.SkillID != SkillID)
+		{                                                                                                        
+	          continue;                                                                                          
+		}                                                                                                        
+	                                                                                                               
+		const float Cooldown = FMath::Max(0.1f, Slots[i].SlotEquipData.Cooldown);                                
+	                         
+		KHS_INFO(TEXT("[EQS] OnSummonAbilityEnded. SkillID: %s, bIsActive: %s"), *SkillID.ToString(), Slots[i].bIsActive ? TEXT("true") : TEXT("false"));  
+	    if (Slots[i].bIsActive)                                                                                  
+	    {                                                                                                      
+	        // Active 모드: GA 재발동 (에임 장판 프리뷰 재시작)                                
+	    	// EndAbility 완전 종료 후 다음 틱에 FireSlot (GA 종료 완료 보장)
+	    	GetGameInstance()->GetWorld()->GetTimerManager().SetTimer(
+	    		Slots[i].AutoFireTimerHandle, [this, i]()                                                                                              
+	    		{                                                                                                      
+	  	  			if (IsValidSlotIndex(i) && Slots[i].bIsActive)                                                       
+	  			    {                                                                                                    
+	  				  FireSlot(i, FVector::ZeroVector);
+	  			    } 
+	    		},  0.1f, false); 
+	    }        
+	    else                                                                                                   
+	    {                                                                                                        
+	      // 자동 모드: 쿨타임 후 반복 발동 재시작 (첫 딜레이 = Cooldown)
+			GetGameInstance()->GetWorld()->GetTimerManager().SetTimer(
+				Slots[i].AutoFireTimerHandle, [this, i]() 
+				{                                                                                                
+				  if (!Slots[i].bIsActive)                                                                   
+				  {
+					  FireSlot(i, FVector::ZeroVector);
+				  }                                                                                            
+				}, Cooldown, true, Cooldown);  //쿨타임마다 루프                                                                 
+	    }                                                                                                        
+		break;                                                                                                   
+	}                                                                                                            
+}               
+
+
 const FWeaponSlotInstanceData* UEquipmentSubsystem::GetSlotData(int32 SlotIndex) const
 {
 	if (!IsValidSlotIndex(SlotIndex))
@@ -125,14 +177,13 @@ const FWeaponSlotInstanceData* UEquipmentSubsystem::GetSlotData(int32 SlotIndex)
 	return &Slots[SlotIndex];
 }
 
+
 void UEquipmentSubsystem::FireSlot(int32 SlotIndex, const FVector& AimLocation)
 {
 	FWeaponSlotInstanceData& Slot = Slots[SlotIndex];
 
 	FGameplayEventData Payload;
-	Payload.Instigator = ASC->GetAvatarActor();
-	Payload.Target     = nullptr;
-	// TODO: AimLocation → TargetData로 전달 (GA 구현 시 확정)
+	SetGameplayEventData(AimLocation, Payload);
 
 	const FGameplayTag EventTag = GetEventTag(Slot);
 	if (EventTag == FGameplayTag::EmptyTag)
@@ -149,6 +200,19 @@ void UEquipmentSubsystem::FireSlot(int32 SlotIndex, const FVector& AimLocation)
 	OnSlotUpdatedDel.Broadcast(SlotIndex);
 	
 	KHS_INFO(TEXT("Slot %d: %s 발사! CD: %.2fs"), SlotIndex, *Slot.SlotEquipData.SkillID.ToString(), Slot.SlotEquipData.Cooldown);
+}
+
+
+void UEquipmentSubsystem::SetGameplayEventData(const FVector& AimLocation, FGameplayEventData& Payload)
+{
+	FGameplayAbilityTargetData_LocationInfo* LocationData = new FGameplayAbilityTargetData_LocationInfo();
+	LocationData->TargetLocation.LiteralTransform = FTransform(AimLocation);
+	FGameplayAbilityTargetDataHandle TargetDataHandle;
+	TargetDataHandle.Add(LocationData);
+	
+	Payload.Instigator = ASC->GetAvatarActor();
+	Payload.Target     = nullptr;
+	Payload.TargetData = TargetDataHandle;
 }
 
 void UEquipmentSubsystem::StartAutoFire(int32 SlotIndex)
@@ -189,6 +253,12 @@ void UEquipmentSubsystem::SetSlotActive(int32 SlotIndex)
 	ActiveSlotIndex = SlotIndex;
 	StopAutoFire(SlotIndex);
 
+	// 소환형 스킬: 슬롯 활성화 즉시 GA 발동 (GA 내부에서 bIsActive로 모드 분기)                                 
+	if (Slots[SlotIndex].SlotEquipData.MoveType == EMoveType::SUMMON)                                            
+	{                                                                                                            
+		FireSlot(SlotIndex, FVector::ZeroVector);                                                                
+	}       
+	
 	KHS_INFO(TEXT("Slot %d → 액티브 모드 전환."), SlotIndex);
 	OnSlotUpdatedDel.Broadcast(SlotIndex);
 }
@@ -201,6 +271,13 @@ void UEquipmentSubsystem::ClearActiveSlot()
 	}
 
 	Slots[ActiveSlotIndex].bIsActive = false;
+	
+	// 소환형 슬롯이 GA 실행 중이면 강제 종료 (프리뷰 오브젝트 제거 포함)                                        
+	if (Slots[ActiveSlotIndex].SlotEquipData.MoveType == EMoveType::SUMMON)                                      
+	{                                                                                                            
+		ASC->CancelAbilityHandle(Slots[ActiveSlotIndex].AbilitySpecHandle);                                      
+	} 
+	
 	StartAutoFire(ActiveSlotIndex);
 
 	KHS_INFO(TEXT("Slot %d → 자동공격 복귀."), ActiveSlotIndex);
