@@ -6,9 +6,11 @@
 #include "RoastStaffGAS.h"
 #include "GAS/Tags/RSGameplayTags.h"
 #include "Objects/Data/RSSkillData.h"
+#include "Objects/Projectile/BaseProjectile.h"
 #include "Objects/Summon/BaseSummonObject.h"
 #include "Subsystems/EquipmentSubsystem.h"
 #include "Subsystems/GameDataSubsystem.h"
+#include "Subsystems/PoolingSubsystem.h"
 
 UGA_SummonBase::UGA_SummonBase()
 {
@@ -111,31 +113,32 @@ void UGA_SummonBase::HandleActiveMode()
 
 void UGA_SummonBase::SpawnSummonObject(const FVector& Location)
 {
-	FSummonObjectInitData InitData;
-	FActorSpawnParameters SpawnParams;
-	TSubclassOf<AActor> SummonClass;
-	
-	//로드한 데이터 세팅
-	if (!SetSummonData(InitData, SpawnParams, SummonClass))
-	{
-		KHS_WARN(TEXT("SummonData Setting FAILED. SkillID: %s"), *CachedSkillID.ToString());
-		return;
-	}
-	
-	//SpawnActorDeferred BeginPlay 호출 지연 -> FinishSpawning시점에 BeginPlay호출해서 InitData 넘기기.
-	ABaseSummonObject* SummonObject = GetWorld()->SpawnActorDeferred<ABaseSummonObject>(SummonClass, FTransform(Location), SpawnParams.Owner, SpawnParams.Instigator);
-	if (!SummonObject)
-	{
-		KHS_WARN(TEXT("SummonObject Spawn FAILED. SkillID: %s"), *CachedSkillID.ToString());
-		return;
-	}
-
-	SummonObject->InitSummon(InitData);
-	SummonObject->FinishSpawning(FTransform(Location));
+	FSummonObjectInitData InitData;                                                                              
+    TSubclassOf<AActor> SummonClass;                                                                             
+                                                                                                                 
+    if (!SetSummonData(InitData, SummonClass))                                                                 
+    {                                                                                                            
+        KHS_WARN(TEXT("SummonData 세팅 실패. SkillID: %s"), *CachedSkillID.ToString());
+        return;                                                                                                  
+    }                                                                                                            
+     
+	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys);                                                                                                        
+                                                                                                                 
+    ABaseSummonObject* SummonObject = Cast<ABaseSummonObject>(PoolSys->SpawnPooledActor(SummonClass, FTransform(Location)));                                                                      
+                                                                                                               
+    if (!SummonObject)                                                                                           
+    {                                                                                                            
+        KHS_WARN(TEXT("SummonObject SpawnPooled 실패. SkillID: %s"), *CachedSkillID.ToString());                 
+        return;                                                                                                  
+    }                                                                                                            
+     
+    SummonObject->SetOwner(GetOwningActorFromActorInfo());                                                       
+    SummonObject->SetInstigator(Cast<APawn>(GetOwningActorFromActorInfo()));                                     
+    SummonObject->InitSummon(InitData);   
 }
 
 
-bool UGA_SummonBase::SetSummonData(FSummonObjectInitData& InitData, FActorSpawnParameters& SpawnParams, TSubclassOf<AActor>& SummonClass)
+bool UGA_SummonBase::SetSummonData(FSummonObjectInitData& InitData, TSubclassOf<AActor>& SummonClass)
 {
 	//필요 클래스/데이터 로드
 	if (!LoadRequiredClass(CachedExecData.SummonObjectClass, SummonClass, CachedSkillID))
@@ -156,9 +159,6 @@ bool UGA_SummonBase::SetSummonData(FSummonObjectInitData& InitData, FActorSpawnP
 	InitData.Amount			= CachedExecData.Amount;
 	InitData.Lifetime		= CachedExecData.Lifetime;
 	InitData.SummonRadius	= CachedSummonParam.SummonRadius;
-	
-	SpawnParams.Owner		= GetOwningActorFromActorInfo();
-	SpawnParams.Instigator	= Cast<APawn>(GetOwningActorFromActorInfo());
 	
 	return true;
 }

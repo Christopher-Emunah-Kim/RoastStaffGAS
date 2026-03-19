@@ -38,7 +38,7 @@ private:
 	//데이터 조회/세팅 헬퍼
 	bool LoadSkillData();
 	bool LoadSummonData(FSkillExecutionData& OutExecData, FSkillAttackMoveTypeParamsSummon& OutSummonParam) const;
-	bool SetSummonData(FSummonObjectInitData& InitData, FActorSpawnParameters& SpawnParams, TSubclassOf<AActor>& SummonClass);
+	bool SetSummonData(FSummonObjectInitData& InitData, TSubclassOf<AActor>& SummonClass);
 	//액티브 모드 체크 헬퍼
 	bool CheckIsActiveSlot() const;  
 	//액티브 모드 입력처리 헬퍼

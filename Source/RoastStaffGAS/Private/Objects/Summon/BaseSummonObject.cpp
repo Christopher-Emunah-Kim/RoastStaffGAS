@@ -5,18 +5,58 @@
 #include "RoastStaffGAS.h"
 #include "Engine/OverlapResult.h"
 #include "GAS/Tags/RSGameplayTags.h"
+#include "Subsystems/PoolingSubsystem.h"
+#include "NiagaraComponent.h"
 
 // Sets default values
 ABaseSummonObject::ABaseSummonObject()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
+	
+	VFXComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("VFXComp"));                                        
+	VFXComp->SetupAttachment(GetRootComponent());                                                                
+	VFXComp->bAutoActivate = false;     
 }
 
 void ABaseSummonObject::InitSummon(const FSummonObjectInitData& InInitData)
 {
+	// 풀링 추가로 변경
+	// SpawnActorDeferred의 BeginPlay 역할을 InitSummon이 대신 수행                                 
 	InitData = InInitData;
 	bInitialized = true;
+	
+	ApplyGameplayEffectToArea();                                                                                 
+                                                                                                                   
+	const float EffectLifeTime = InitData.Lifetime > 0.f ? InitData.Lifetime : 1.f;                              
+	if (InitData.Lifetime <= 0.f)                                                                                
+	{                                                                                                            
+		KHS_WARN(TEXT("Lifetime 0 이하 — 기본값 1.f 적용. SkillID: %s"),*InitData.SkillID.ToString());                                                                       
+	}                                 
+	
+	GetWorldTimerManager().SetTimer(LifetimeHandle, this, &ABaseSummonObject::OnLifetimeExpired, EffectLifeTime, false);    
+}
+
+void ABaseSummonObject::OnPoolActivate()
+{
+	SetActorHiddenInGame(false);
+	SetActorEnableCollision(true); 
+	if (VFXComp)
+	{                                                                                                            
+		VFXComp->Activate(true); // true = 리셋 후 재생                                                          
+	}   
+}
+
+void ABaseSummonObject::OnPoolDeactivate()
+{
+	SetActorHiddenInGame(true);                                                                                  
+	SetActorEnableCollision(false);
+	GetWorldTimerManager().ClearTimer(LifetimeHandle);
+	bInitialized = false;  
+	if (VFXComp)                                                                                                 
+	{                                                                                                          
+		VFXComp->Deactivate();
+	}     
 }
 
 // Called when the game starts or when spawned
@@ -24,15 +64,8 @@ void ABaseSummonObject::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (!bInitialized)                                                                                           
-	{                                                                                                            
-		KHS_WARN(TEXT("InitSummon 미호출. Actor: %s"), *GetName());                               
-	}    
-	
-	ApplyGameplayEffectToArea();
-	
-	const float EffectLifeTime = InitData.Lifetime > 0.f? InitData.Lifetime : 1.f;
-	SetLifeSpan(EffectLifeTime);
+	//풀링 (최초 스폰시 비활성 상태)
+	OnPoolDeactivate();
 }
 
 void ABaseSummonObject::ApplyGameplayEffectToArea()
@@ -74,7 +107,8 @@ void ABaseSummonObject::ApplyGameplayEffectToArea()
         if (!TargetASC->HasMatchingGameplayTag(RSTags::Team_Enemy))                                              
         {                                                                                                      
             continue;                                                                                            
-        }                                                                                                     
+        }                               
+    	
         // DamageGE 적용 
         FGameplayEffectContextHandle Context = InitData.InstigatorASC->MakeEffectContext();
         FGameplayEffectSpecHandle SpecHandle = InitData.InstigatorASC->MakeOutgoingSpec(InitData.DamageGEClass,1.f, Context);                                                                                                   
@@ -99,5 +133,11 @@ void ABaseSummonObject::ApplyGameplayEffectToArea()
             }                                                                                                    
         }
     }          
+}
+
+void ABaseSummonObject::OnLifetimeExpired()
+{
+	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys);                                                           
+	PoolSys->ReturnToPool(this);  
 }
 
