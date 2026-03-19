@@ -7,7 +7,9 @@
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "GameplayEffect.h"
+#include "RoastStaffGAS.h"
 #include "GAS/Tags/RSGameplayTags.h"
+#include "Subsystems/PoolingSubsystem.h"
 #include "System/LoggingSystem.h"
 
 ABaseProjectile::ABaseProjectile()
@@ -26,11 +28,28 @@ ABaseProjectile::ABaseProjectile()
 	ProjectileComp->ProjectileGravityScale   = 0.f;
 }
 
+void ABaseProjectile::OnPoolActivate()
+{
+	ProjectileComp->SetUpdatedComponent(GetRootComponent());
+	SetActorHiddenInGame(false);                                                                                 
+	SetActorEnableCollision(true); 
+}
+
+void ABaseProjectile::OnPoolDeactivate()
+{
+	ProjectileComp->StopMovementImmediately();                                                                   
+	ProjectileComp->Velocity = FVector::ZeroVector;   
+	
+	SetActorHiddenInGame(true);                                                                                  
+	SetActorEnableCollision(false);                                                                              
+	GetWorldTimerManager().ClearTimer(LifetimeTimerHandle); 
+}
+
 void ABaseProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-	
 	SphereComp->OnComponentHit.AddDynamic(this, &ABaseProjectile::OnHit);
+	OnPoolDeactivate();
 }
 
 void ABaseProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
@@ -49,12 +68,11 @@ void ABaseProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UP
 	}
 	
 	const bool bHasEnemyTag = TargetASC->HasMatchingGameplayTag(RSTags::Team_Enemy);
-	// 자식 충돌 처리 — true 반환 시 베이스가 GE처리하고 Destroy
+	// 자식 충돌 처리 — true 반환 시 베이스가 GE처리하고 ReturnPool
 	const bool bShouldDestroy = OnProjectileHit(OtherActor, Hit);
 
 	if (bHasEnemyTag && bShouldDestroy)
 	{
-		
 		// 기본 단일 타격 처리
 		if (InitData.DamageGEClass)
 		{
@@ -67,8 +85,8 @@ void ABaseProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UP
 			ApplyEffectToTarget(TargetASC, InitData.StatusGEClass, 0.f);
 		}
 
-		GetWorldTimerManager().ClearTimer(LifetimeTimerHandle);
-		Destroy();
+		GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys);
+		PoolSys->ReturnToPool(this);
 	}
 }
 
@@ -104,7 +122,8 @@ void ABaseProjectile::ApplyEffectToTarget(UAbilitySystemComponent* TargetASC,  T
 void ABaseProjectile::OnLifetimeExpired()
 {
 	OnProjectileExpired();
-	Destroy();
+	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys);
+	PoolSys->ReturnToPool(this);
 }
 
 void ABaseProjectile::InitProjectile(const FProjectileInitData& InInitData)

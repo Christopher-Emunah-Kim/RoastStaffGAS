@@ -2,10 +2,13 @@
 
 
 #include "GAS/Abilities/GA_Base.h"
+
+#include "RoastStaffGAS.h"
 #include "Character/BaseCharacter.h"
 #include "Data/EnumTypes.h"
 #include "Objects/Data/RSSkillData.h"
 #include "Objects/Projectile/BaseProjectile.h"
+#include "Subsystems/PoolingSubsystem.h"
 
 
 UGA_Base::UGA_Base()
@@ -58,6 +61,8 @@ void UGA_Base::SpawnProjectiles(TSubclassOf<ABaseProjectile> ProjectileClass, co
 		KHS_WARN(TEXT("Count=1이지만 Spread 패턴 — Single로 처리"));
 	}
 	
+	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys);
+	
 	for (int32 i = 0; i < Count; ++i)
 	{
 		// 스폰 위치 — 캐릭터 전방 N미터
@@ -87,18 +92,16 @@ void UGA_Base::SpawnProjectiles(TSubclassOf<ABaseProjectile> ProjectileClass, co
 			break;
 		}
 	
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner      = const_cast<ABaseCharacter*>(CachedInstigator.Get());
-		SpawnParams.Instigator = const_cast<ABaseCharacter*>(CachedInstigator.Get());
-	
-		ABaseProjectile* Projectile = GetWorld()->SpawnActor<ABaseProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, SpawnParams);
+		ABaseProjectile* Projectile = PoolSys->SpawnPooledActor<ABaseProjectile>(ProjectileClass, FTransform(SpawnRotation,SpawnLocation));
 	
 		if (!Projectile)
 		{
-			KHS_WARN(TEXT("SpawnActor 실패 — 인덱스 %d"), i);
+			KHS_WARN(TEXT("SpawnPooledActor 실패 — 인덱스 %d"), i);
 			continue;
 		}
-	
+		
+		Projectile->SetOwner(const_cast<ABaseCharacter*>(CachedInstigator.Get()));
+		Projectile->SetInstigator(const_cast<ABaseCharacter*>(CachedInstigator.Get()));
 		Projectile->InitProjectile(InitData);
 	}
 }
