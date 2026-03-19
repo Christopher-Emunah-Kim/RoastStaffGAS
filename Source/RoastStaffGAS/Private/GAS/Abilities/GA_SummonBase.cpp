@@ -19,29 +19,23 @@ UGA_SummonBase::UGA_SummonBase()
 
 }
 
-void UGA_SummonBase::OnAbilityActivated(const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+void UGA_SummonBase::OnAbilityActivated(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
-	const URSSkillData* SkillData = Cast<URSSkillData>(GetCurrentSourceObject());
-	if (!ensureMsgf(SkillData, TEXT("SourceObject가 URSSkillData가 아님")))
+	if (!LoadSkillData())
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 	
-	CachedSkillID = SkillData->SkillID;
-	
-	//GDS에서 필요 데이터 로드
-	if (!LoadSummonData(CachedExecData, CachedSummonParam))
+	if (CheckIsActiveSlot())
 	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		HandleActiveMode(); //자식마다 다름
 		return;
 	}
 	
 	const FVector SummonLocation = DetermineSummonLocation();
 	if (SummonLocation.IsZero())
 	{
-		KHS_INFO(TEXT("소환 위치 없음 (적 없음). SkillID: %s"), *CachedSkillID.ToString());
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 		return;
 	}
@@ -62,6 +56,57 @@ void UGA_SummonBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const F
 	}
 	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+
+bool UGA_SummonBase::LoadSkillData()
+{
+	const URSSkillData* SkillData = Cast<URSSkillData>(GetCurrentSourceObject());
+	if (!ensureMsgf(SkillData, TEXT("SourceObject가 URSSkillData가 아님")))
+	{
+		return false;
+	}
+	
+	CachedSkillID = SkillData->SkillID;
+	
+	//GDS에서 필요 소환 데이터 로드
+	if (!LoadSummonData(CachedExecData, CachedSummonParam))
+	{
+		return false;
+	}
+	return true;
+}
+
+
+bool UGA_SummonBase::LoadSummonData(FSkillExecutionData& OutExecData,
+									FSkillAttackMoveTypeParamsSummon& OutSummonParam) const
+{
+	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());
+
+	if (!GDS->GetSkillExecutionData(CachedSkillID, OutExecData))
+	{
+		KHS_WARN(TEXT("GetSkillExecutionData 실패. SkillID: %s"), *CachedSkillID.ToString());
+		return false;
+	}
+
+	if (!GDS->GetMoveTypeData<FSkillAttackMoveTypeParamsSummon>(OutExecData.SkillEffectID,OutSummonParam))
+	{
+		KHS_WARN(TEXT("Summon MoveTypeData 없음. SkillEffectID: %s"), *OutExecData.SkillEffectID.ToString());
+		return false;
+	}
+	return true;
+}
+
+void UGA_SummonBase::HandleActiveMode()
+{
+	//기본 구현 외 내용은 자식들이 Override해서 처리
+	//GAS 어빌리티 WaitTask에 등록.
+	UAbilityTask_WaitConfirmCancel* WaitTask = UAbilityTask_WaitConfirmCancel::WaitConfirmCancel(this);          
+	WaitTask->OnConfirm.AddDynamic(this, &UGA_SummonBase::OnConfirm);                                  
+	WaitTask->OnCancel.AddDynamic(this, &UGA_SummonBase::OnCancel);                                              
+	WaitTask->ReadyForActivation();  
+    KHS_INFO(TEXT("WaitConfirmCancel 등록 완료.")); 
+    //EndAbility는 OnConfirm / OnCancel에서 호출
 }
 
 void UGA_SummonBase::SpawnSummonObject(const FVector& Location)
@@ -97,12 +142,12 @@ bool UGA_SummonBase::SetSummonData(FSummonObjectInitData& InitData, FActorSpawnP
 	{
 		return false;
 	}
-	
-	TSubclassOf<UGameplayEffect> DamageGEClass, StatusGEClass = LoadOptionalClass(CachedExecData.StatusGEClass, CachedSkillID);
+	TSubclassOf<UGameplayEffect> DamageGEClass;
 	if (!LoadRequiredClass(CachedExecData.DamageGEClass, DamageGEClass, CachedSkillID))
 	{
 		return false;
 	}
+	TSubclassOf<UGameplayEffect> StatusGEClass = LoadOptionalClass(CachedExecData.StatusGEClass, CachedSkillID);
 
 	InitData.SkillID		= CachedSkillID;
 	InitData.DamageGEClass	= DamageGEClass;
@@ -118,21 +163,39 @@ bool UGA_SummonBase::SetSummonData(FSummonObjectInitData& InitData, FActorSpawnP
 	return true;
 }
 
-bool UGA_SummonBase::LoadSummonData(FSkillExecutionData& OutExecData,
-	FSkillAttackMoveTypeParamsSummon& OutSummonParam) const
+bool UGA_SummonBase::CheckIsActiveSlot() const
 {
-	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());
-
-	if (!GDS->GetSkillExecutionData(CachedSkillID, OutExecData))
-	{
-		KHS_WARN(TEXT("GetSkillExecutionData 실패. SkillID: %s"), *CachedSkillID.ToString());
-		return false;
-	}
-
-	if (!GDS->GetMoveTypeData<FSkillAttackMoveTypeParamsSummon>(OutExecData.SkillEffectID,OutSummonParam))
-	{
-		KHS_WARN(TEXT("Summon MoveTypeData 없음. SkillEffectID: %s"), *OutExecData.SkillEffectID.ToString());
-		return false;
-	}
-	return true;
+	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EQS, GetWorld()->GetGameInstance());                              
+                                                                                                                   
+	for (int32 i = 0; ; ++i)                                                                                     
+	{                                                                                                            
+		const FWeaponSlotInstanceData* Slot = EQS->GetSlotData(i);                                               
+		if (!Slot)                                                                                               
+		{
+			break;                                                                                               
+		}                                                                                                      
+		if (Slot->SlotEquipData.SkillID == CachedSkillID)
+		{                                                                                                        
+			return Slot->bIsActive;                                                                              
+		}                                                                                                        
+	}                                                                                                            
+	return false; 
 }
+
+void UGA_SummonBase::OnConfirm()
+{
+	const FVector SummonLocation = DetermineSummonLocation();  
+	KHS_INFO(TEXT("OnConfirm 수신. 소환 위치: %s"), *SummonLocation.ToString()); 
+	if (!SummonLocation.IsZero())                                                                              
+	{
+		SpawnSummonObject(SummonLocation);
+	}                                                                                                            
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+}
+
+void UGA_SummonBase::OnCancel()
+{
+	KHS_INFO(TEXT("소환 취소됨. SkillID: %s"),  *CachedSkillID.ToString());
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+}
+

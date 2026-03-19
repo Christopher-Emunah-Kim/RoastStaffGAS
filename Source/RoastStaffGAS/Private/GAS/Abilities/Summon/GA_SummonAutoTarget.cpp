@@ -8,43 +8,6 @@
 #include "Objects/Data/RSSkillData.h"
 #include "Subsystems/EquipmentSubsystem.h"
 
-void UGA_SummonAutoTarget::OnAbilityActivated(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
-{
-	const URSSkillData* SkillData = Cast<URSSkillData>(GetCurrentSourceObject());                                
-      if (!ensureMsgf(SkillData, TEXT("SourceObject가 URSSkillData가 아님")))                                      
-      {                                                                                                            
-          EndAbility(Handle, ActorInfo, ActivationInfo, true, true);                                               
-          return;                                                                                                  
-      }                                                                                                          
-      CachedSkillID = SkillData->SkillID;                                                                          
-                                                                                                                   
-      if (!LoadSummonData(CachedExecData, CachedSummonParam))                                                      
-      {                                                                                                            
-          EndAbility(Handle, ActorInfo, ActivationInfo, true, true);                                               
-          return;                                                                                                  
-      }                                                                                                            
-                                                                                                                   
-      // Active 모드: 클릭 대기                                                                                    
-      if (CheckIsActiveSlot())                                                                                   
-      {                                                                                                            
-          UAbilityTask_WaitConfirmCancel* WaitTask = UAbilityTask_WaitConfirmCancel::WaitConfirmCancel(this);      
-          WaitTask->OnConfirm.AddDynamic(this, &UGA_SummonAutoTarget::OnConfirm);                                  
-          WaitTask->OnCancel.AddDynamic(this, &UGA_SummonAutoTarget::OnCancel);                                    
-          WaitTask->ReadyForActivation();                                                                          
-          return;                                                                                                  
-      }                                                                                                            
-                                                                                                                 
-      // 자동 모드: 즉시 소환                                                                                      
-      const FVector SummonLocation = DetermineSummonLocation();                                                  
-      if (SummonLocation.IsZero())                                                                                 
-      {                                                                                                          
-          EndAbility(Handle, ActorInfo, ActivationInfo, true, false);                                              
-          return;                                                                                                  
-      }
-	
-      SpawnSummonObject(SummonLocation);                                                                           
-      EndAbility(Handle, ActorInfo, ActivationInfo, true, false);       
-}
 
 FVector UGA_SummonAutoTarget::DetermineSummonLocation()
 {
@@ -64,7 +27,7 @@ FVector UGA_SummonAutoTarget::DetermineSummonLocation()
 
 }
 
-const float UGA_SummonAutoTarget::FindNearestEnemy(AActor*& NearestEnemy, float& NearestDistSq)
+float UGA_SummonAutoTarget::FindNearestEnemy(AActor*& NearestEnemy, float& NearestDistSq)
 {
 	const float SearchRange = CachedSummonParam.SearchRange;
 	
@@ -96,39 +59,4 @@ const float UGA_SummonAutoTarget::FindNearestEnemy(AActor*& NearestEnemy, float&
 		}
 	}
 	return SearchRange;
-}
-
-void UGA_SummonAutoTarget::OnConfirm()
-{
-	const FVector SummonLocation = DetermineSummonLocation();                                                    
-	if (!SummonLocation.IsZero())                                                                              
-	{
-		SpawnSummonObject(SummonLocation);
-	}                                                                                                            
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-
-}
-
-void UGA_SummonAutoTarget::OnCancel()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);  
-}
-
-bool UGA_SummonAutoTarget::CheckIsActiveSlot() const
-{
-	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EQS, GetWorld()->GetGameInstance());                              
-                                                                                                                   
-	for (int32 i = 0; ; ++i)                                                                                     
-	{                                                                                                            
-		const FWeaponSlotInstanceData* Slot = EQS->GetSlotData(i);                                               
-		if (!Slot)                                                                                               
-		{
-			break;                                                                                               
-		}                                                                                                      
-		if (Slot->SlotEquipData.SkillID == CachedSkillID)
-		{                                                                                                        
-			return Slot->bIsActive;                                                                              
-		}                                                                                                        
-	}                                                                                                            
-	return false; 
 }

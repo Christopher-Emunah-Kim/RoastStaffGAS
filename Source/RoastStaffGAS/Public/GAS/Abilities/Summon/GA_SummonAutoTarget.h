@@ -17,16 +17,8 @@ class ROASTSTAFFGAS_API UGA_SummonAutoTarget : public UGA_SummonBase
 	GENERATED_BODY()
 
 protected:
-	virtual void OnAbilityActivated(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	virtual FVector DetermineSummonLocation() override;
-
-	const float FindNearestEnemy(AActor*& NearestEnemy, float& NearestDistSq);
 	
-private:                                                                                                         
-	UFUNCTION()                                                                                                
-	void OnConfirm();                                                                                            
-	UFUNCTION()                                                                                                  
-	void OnCancel();
-                                                                                                                   
-	bool CheckIsActiveSlot() const;  
+	float FindNearestEnemy(AActor*& NearestEnemy, float& NearestDistSq);
+	
 };

@@ -21,21 +21,14 @@ class ROASTSTAFFGAS_API UGA_SummonAimedField : public UGA_SummonBase
 	GENERATED_BODY()
 	
 protected:
-	virtual void OnAbilityActivated(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	
 	virtual FVector DetermineSummonLocation() override;
+	virtual void HandleActiveMode() override;
 	
 private:
-	UFUNCTION()
-	void OnConfirm();
-	UFUNCTION()
-	void OnCancel();
-	
-	void HandleActiveMode();
-	bool LoadSkillInitData();
-	bool CheckIsActiveSlot() const;
-	
+	void SpawnPreviewObject();
+
 protected:
 	UPROPERTY()
 	TObjectPtr<ASummonPreviewObject> CachedPreviewObject;
