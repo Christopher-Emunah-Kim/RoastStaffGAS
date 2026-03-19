@@ -23,7 +23,6 @@
 #include "Abilities/GameplayAbility.h"
 #include "Abilities/Tasks/AbilityTask_WaitConfirmCancel.h"
 
-
 // GameplayTag 관련
 #include "GameplayTagContainer.h"
 
@@ -41,6 +40,7 @@
 //로그 시스템
 #include "System/LoggingSystem.h"
 
+
 /** Main log category used across the project */
 DECLARE_LOG_CATEGORY_EXTERN(LogRoastStaffGAS, Log, All);
 
@@ -54,16 +54,26 @@ DECLARE_LOG_CATEGORY_EXTERN(LogRoastStaffGAS, Log, All);
 // World가 없는 컨텍스트(UObject 등)에서는 GI를 직접 넘겨야함:
 //   GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GI);
 // -------------------------------------------------------------------------
-#define GET_GI(VarName)                                  \
-UGameInstance* VarName = GetGameInstance();                     \
+#define GET_GI(VarName)														  \
+UGameInstance* VarName = GetGameInstance();									  \
 check(VarName);
 
-#define GET_GI_SUBSYSTEM(SubsystemClass, VarName)                               \
-GET_GI(_GI_##VarName)                                            \
-SubsystemClass* VarName = _GI_##VarName->GetSubsystem<SubsystemClass>();    \
+#define GET_GI_SUBSYSTEM(SubsystemClass, VarName)                             \
+GET_GI(_GI_##VarName)														  \
+SubsystemClass* VarName = _GI_##VarName->GetSubsystem<SubsystemClass>();      \
 check(VarName);
 
-#define GET_GI_SUBSYSTEM_FROM(SubsystemClass, VarName, GameInstanceRef)      \
-check(GameInstanceRef);                                                  \
-SubsystemClass* VarName = (GameInstanceRef)->GetSubsystem<SubsystemClass>(); \
+#define GET_GI_SUBSYSTEM_FROM(SubsystemClass, VarName, GameInstanceRef)       \
+check(GameInstanceRef);                                                       \
+SubsystemClass* VarName = (GameInstanceRef)->GetSubsystem<SubsystemClass>();  \
+check(VarName);
+
+// -------------------------------------------------------------------------
+// World 서브시스템 접근 매크로
+//
+// 사용 예:
+//   GET_WORLD_SUBSYSTEM(UPoolableSystem, PoolSys);
+// -------------------------------------------------------------------------
+#define GET_WORLD_SUBSYSTEM(SubsystemClass, VarName)                          \
+SubsystemClass* VarName = GetWorld()->GetSubsystem<SubsystemClass>();         \
 check(VarName);
