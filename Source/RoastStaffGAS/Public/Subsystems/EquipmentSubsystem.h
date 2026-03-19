@@ -35,12 +35,17 @@ public:
 	// LevelUpSubsystem에서 호출
 	void EquipWeapon(const FName& WeaponID);
 	
+	//공격 중지
 	void StopAllFire();
+	//GA EndAbility에서 호출(쿨타임 관리)
+	void OnSummonAbilityEnded(FName SkillID); 
+	
 	// 슬롯 데이터 읽기 UI용
 	const FWeaponSlotInstanceData* GetSlotData(int32 SlotIndex) const;
 
 private:
 	void FireSlot(int32 SlotIndex, const FVector& AimLocation);
+	void SetGameplayEventData(const FVector& AimLocation, FGameplayEventData& Payload);
 	void StartAutoFire(int32 SlotIndex);
 	void StopAutoFire(int32 SlotIndex);
 	void SetSlotActive(int32 SlotIndex);
