@@ -21,6 +21,8 @@
 
 // GameplayAbility 관련
 #include "Abilities/GameplayAbility.h"
+#include "Abilities/Tasks/AbilityTask_WaitConfirmCancel.h"
+
 
 // GameplayTag 관련
 #include "GameplayTagContainer.h"
@@ -31,6 +33,7 @@
 //엔진 제공
 #include "Algo/RandomShuffle.h"
 #include "Engine/GameInstance.h"
+#include "Engine/OverlapResult.h"
 
 //네트워크 멀티플레이 용 헤더
 #include "Net/UnrealNetwork.h"

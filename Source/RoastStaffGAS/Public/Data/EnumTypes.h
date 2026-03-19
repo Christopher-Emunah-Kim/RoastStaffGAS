@@ -12,11 +12,13 @@
 UENUM(BlueprintType)
 enum class EWeaponBaseType : uint8
 {
-	Fireball	UMETA(DisplayName = "Fireball"),
-	Iceball		UMETA(DisplayName = "Iceball"),
-	Thunder		UMETA(DisplayName = "Thunder"),
-	Poison		UMETA(DisplayName = "Poison"),
-	Shadow		UMETA(DisplayName = "Shadow"),
+	Fireball		UMETA(DisplayName = "Fireball"),
+	Iceball			UMETA(DisplayName = "Iceball"),
+	Thunder			UMETA(DisplayName = "Thunder"),
+	Poison			UMETA(DisplayName = "Poison"),
+	Shadow			UMETA(DisplayName = "Shadow"),
+	SummonSword		UMETA(DisplayName = "SummonSword"),
+	SummonLightning UMETA(DisplayName = "SummonLightning"),
 };
 
 /** 스킬 타입 (투사체 / 소환) */

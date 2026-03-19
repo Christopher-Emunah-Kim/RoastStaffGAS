@@ -50,6 +50,9 @@ namespace RSTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Thunder);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Poison);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Shadow);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Summon_Sword);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_Summon_Lightning);
+	
 	
 	//Dash GA태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Movement_Dash);

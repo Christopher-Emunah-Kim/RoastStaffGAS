@@ -20,6 +20,8 @@ namespace RSTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_Thunder, "Ability.Skill.Thunder");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_Poison, "Ability.Skill.Poison");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_Shadow, "Ability.Skill.Shadow");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_Summon_Sword, "Ability.Skill.Summon.Sword");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_Summon_Lightning, "Ability.Skill.Summon.Lightning");
 	
 	//팀 태그
 	UE_DEFINE_GAMEPLAY_TAG(Team_Player, "Team.Player");
