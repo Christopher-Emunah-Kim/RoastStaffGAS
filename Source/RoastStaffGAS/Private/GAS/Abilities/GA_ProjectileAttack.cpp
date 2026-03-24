@@ -7,6 +7,10 @@
 #include "Objects/Data/RSSkillData.h"
 #include "Subsystems/GameDataSubsystem.h"
 #include "Objects/Projectile/BaseProjectile.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
+#include "Character/BaseCharacter.h"
+#include "Data/EnumTypes.h"
 
 UGA_ProjectileAttack::UGA_ProjectileAttack()
 {
@@ -40,27 +44,9 @@ void UGA_ProjectileAttack::OnAbilityActivated(const FGameplayAbilitySpecHandle H
     
     //투사체 스폰
     SpawnProjectiles(ProjectileClass, InitData);
-
     EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
-void UGA_ProjectileAttack::BuildInitData(const FSkillExecutionData& ExecData,
-	TSubclassOf<UGameplayEffect> DamageGEClass, TSubclassOf<UGameplayEffect> StatusGEClass,
-	FProjectileInitData& OutInitData) const
-{
-	// InitData 채우기 
-	OutInitData.SkillID       = ExecData.SkillID;                                                              
-	OutInitData.SkillEffectID = ExecData.SkillEffectID;                                                          
-	OutInitData.DamageGEClass = DamageGEClass;
-	OutInitData.StatusGEClass = StatusGEClass;                                                                   
-	OutInitData.InstigatorASC = GetOwnerASC();                                                                   
-	OutInitData.Amount        = ExecData.Amount;                                                                 
-	OutInitData.Speed         = ExecData.Speed;                                                                  
-	OutInitData.Lifetime      = ExecData.Lifetime;                                                               
-	OutInitData.SpawnPattern  = ExecData.SpawnPattern;                                                           
-	OutInitData.SpawnCount    = ExecData.SpawnCount;                                                             
-	OutInitData.SpreadAngle   = ExecData.SpreadAngle;
-}
 
 
 bool UGA_ProjectileAttack::PrepareProjectileData(const URSSkillData* SkillData, TSubclassOf<ABaseProjectile>& OutClass, FProjectileInitData& OutInitData)
@@ -85,6 +71,161 @@ bool UGA_ProjectileAttack::PrepareProjectileData(const URSSkillData* SkillData, 
    
 	TSubclassOf<UGameplayEffect> StatusGEClass = LoadOptionalClass(ExecData.StatusGEClass, ExecData.SkillID);    
                                                                                                                  
-	BuildInitData(ExecData, DamageGEClass, StatusGEClass, OutInitData);                                          
-	return true;                 
+	BuildInitData(ExecData, DamageGEClass, StatusGEClass, OutInitData);
+
+	if (!HandleExtraParametersByType(OutInitData, ExecData))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+
+void UGA_ProjectileAttack::BuildInitData(const FSkillExecutionData& ExecData, TSubclassOf<UGameplayEffect> DamageGEClass, TSubclassOf<UGameplayEffect> StatusGEClass, FProjectileInitData& OutInitData) const
+{
+	// InitData 채우기 
+	OutInitData.SkillID       = ExecData.SkillID;                                                              
+	OutInitData.SkillEffectID = ExecData.SkillEffectID;                                                          
+	OutInitData.DamageGEClass = DamageGEClass;
+	OutInitData.StatusGEClass = StatusGEClass;                                                                   
+	OutInitData.InstigatorASC = GetOwnerASC();                                                                   
+	OutInitData.Amount        = ExecData.Amount;                                                                 
+	OutInitData.Speed         = ExecData.Speed;                                                                  
+	OutInitData.Lifetime      = ExecData.Lifetime;                                                               
+	OutInitData.SpawnPattern  = ExecData.SpawnPattern;
+	OutInitData.SpawnCount    = ExecData.SpawnCount;
+	OutInitData.SpreadAngle   = ExecData.SpreadAngle;
+	OutInitData.MoveType      = ExecData.MoveType;
+	OutInitData.HitType       = ExecData.HitType;
+}
+
+
+bool UGA_ProjectileAttack::HandleExtraParametersByType(FProjectileInitData& OutInitData, const FSkillExecutionData& ExecData)
+{
+	//타입별 추가 데이터 채우기
+
+	// HOMING 타입 추가 처리
+	if (ExecData.MoveType == EMoveType::HOMING)
+	{
+		if (!HandleHomingType(OutInitData, ExecData))
+		{
+			return false;
+		}
+	}
+
+	// ARC 타입 추가 처리
+	if (ExecData.MoveType == EMoveType::ARC)
+	{
+		if (!HandleArcType(OutInitData, ExecData))
+		{
+			return false;
+		}
+	}
+
+	// AREA 타입 추가 처리
+	if (ExecData.HitType == EHitType::AREA)
+	{
+		if (!HandleAreaType(OutInitData, ExecData))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool UGA_ProjectileAttack::HandleHomingType(FProjectileInitData& OutInitData, const FSkillExecutionData& ExecData)
+{
+	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());  
+	FSkillAttackMoveTypeParamsHoming HomingData;
+	if (!GDS->GetMoveTypeData(ExecData.SkillEffectID, HomingData))
+	{
+		KHS_WARN(TEXT("Homing 파라미터 조회 실패. SkillEffectID: %s"), *ExecData.SkillEffectID.ToString());
+		return false;
+	}
+		
+	OutInitData.TurnSpeed = HomingData.TurnSpeed;
+
+	// LockRange 내 최근접 Enemy 탐색
+	AActor* NearestEnemy = FindNearestEnemy(HomingData);
+
+	if (!NearestEnemy)
+	{
+		KHS_WARN(TEXT("LockRange 내 적 없음 — 직선 비행 폴백. SkillEffectID: %s"), *ExecData.SkillEffectID.ToString());
+		// HomingTarget은 null 유지 → OnProjectileInitialized에서 직선 비행 폴백
+		return true;
+	}
+		
+	OutInitData.HomingTarget = NearestEnemy->GetRootComponent();
+	return true;
+}
+
+
+
+AActor* UGA_ProjectileAttack::FindNearestEnemy(FSkillAttackMoveTypeParamsHoming HomingData)
+{
+	AActor* NearestEnemy = nullptr;
+	const FVector CasterLocation = CachedInstigator->GetActorLocation();
+	TArray<FOverlapResult> Overlaps;
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(CachedInstigator.Get());
+
+	GetWorld()->OverlapMultiByChannel(Overlaps,	CasterLocation,	FQuat::Identity,ECC_Pawn,
+									  FCollisionShape::MakeSphere(HomingData.LockRange),	QueryParams	);
+
+	float MinDistSq = MAX_FLT;
+
+	for (const FOverlapResult& Overlap : Overlaps)
+	{
+		AActor* OverlappedActor = Overlap.GetActor();
+		if (!OverlappedActor)
+		{
+			continue;
+		}
+
+		UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OverlappedActor);
+		if (!TargetASC || !TargetASC->HasMatchingGameplayTag(RSTags::Team_Enemy))
+		{
+			continue;
+		}
+
+		const float DistSq = FVector::DistSquared(CasterLocation, OverlappedActor->GetActorLocation());
+		if (DistSq < MinDistSq)
+		{
+			MinDistSq = DistSq;
+			NearestEnemy = OverlappedActor;
+		}
+	}
+	return NearestEnemy;
+}
+
+
+bool UGA_ProjectileAttack::HandleArcType(FProjectileInitData& OutInitData, const FSkillExecutionData& ExecData)
+{
+	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());  
+	FSkillAttackMoveTypeParamsArc ArcData;
+	if (!GDS->GetMoveTypeData(ExecData.SkillEffectID, ArcData))
+	{
+		KHS_WARN(TEXT("Arc 파라미터 조회 실패. SkillEffectID: %s"), *ExecData.SkillEffectID.ToString());
+		return false;
+	}
+	
+	OutInitData.LaunchAngle  = FMath::Clamp(ArcData.LaunchAngle, -80.f, 80.f);
+	OutInitData.GravityScale = ArcData.GravityScale;
+	return true;
+}
+
+
+bool UGA_ProjectileAttack::HandleAreaType(FProjectileInitData& OutInitData, const FSkillExecutionData& ExecData)
+{
+	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());  
+	FSkillAttackHitTypeParamsArea AreaData;
+	if (!GDS->GetHitTypeData(ExecData.SkillEffectID, AreaData))
+	{
+		KHS_WARN(TEXT("Area 파라미터 조회 실패. SkillEffectID: %s"), *ExecData.SkillEffectID.ToString());
+		return false;
+	}
+	OutInitData.HitRadius = AreaData.HitRadius;
+	return true;
 }

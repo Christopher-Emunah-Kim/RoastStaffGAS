@@ -1,2 +1,2 @@
-﻿---,SkillEffectID,LaunchAngle,GravityScale,HitRadius
-EFFECT_ARC,EFFECT_ARC,45,20,1200
+---,SkillEffectID,LaunchAngle,GravityScale,HitRadius
+EFFECT_FIREBALL,"EFFECT_FIREBALL","65.000000","1.300000","0.000000"

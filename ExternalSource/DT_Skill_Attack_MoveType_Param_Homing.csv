@@ -1,2 +1,2 @@
-﻿---,SkillEffectID,TurnSpeed,LockRange
-EFFECT_HOMING,EFFECT_HOMING,200,1000
+---,SkillEffectID,TurnSpeed,LockRange
+EFFECT_SHADOW,"EFFECT_SHADOW","3000.000000","5000.000000"

@@ -23,7 +23,9 @@ UGA_SummonBase::UGA_SummonBase()
 	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 	AbilityTriggers.Add(TriggerData);
 	
-	AbilityTags.AddTag(RSTags::Ability_Skill_Summon);
+	FGameplayTagContainer AssetTags;
+	AssetTags.AddTag(RSTags::Ability_Skill_Summon);
+	SetAssetTags(AssetTags);
 	ActivationBlockedTags.AddTag(RSTags::State_Dead);  
 }
 

@@ -35,29 +35,39 @@ public:
 	virtual void OnPoolActivate() override;
 	virtual void OnPoolDeactivate() override;
 	
+	// GA가 스폰 직후 호출 - 공통 초기화
+	void InitProjectile(const FProjectileInitData& InInitData);
+	
 protected:
 	virtual void BeginPlay() override;
-	// 타입별 추가 초기화 (Arc 중력, Pierce 카운트 등)
-	virtual void OnProjectileInitialized() {   }
+	// 타입별 추가 초기화
+	virtual void OnProjectileInitialized();
 	// @return true면 베이스가 GE처리하고 ReturnPool, false면 자식이 직접 처리
 	virtual bool OnProjectileHit(AActor* OtherActor, const FHitResult& Hit) { return true; }
-	// 수명 만료 시 자식 처리 (폭발 범위 데미지 등)
-	virtual void OnProjectileExpired() {   }
-	
+	// 수명 만료 시 자식 처리 (ARC 미착탄 폭발 등)
+	virtual void OnProjectileExpired();
+
 	// 충돌 이벤트 — OnHit에서 OnProjectileHit으로 위임
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,	FVector NormalImpulse,	const FHitResult& Hit);
+
+private:
+	//풀 반환 헬퍼
+	void ReturnToPool();
 	// GE 적용 헬퍼
+	void ApplyMultipleEffectsToTarget(UAbilitySystemComponent* TargetASC, float DamageMultiplier);
 	void ApplyEffectToTarget(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass,	float DamageValue);
 	// 수명 만료 처리
 	void OnLifetimeExpired();
-
-public:	
-	// GA가 스폰 직후 호출 - 공통 초기화
-	void InitProjectile(const FProjectileInitData& InInitData);
+	// 일반 공격 처리
+	void HandleHitEvent(AActor* OtherActor, const FHitResult& Hit);
+	// 폭발 공격 처리(AREA)
+	void ExplodeArea(const FVector& Center);
 
 private:
 	FTimerHandle LifetimeTimerHandle;
+	bool bHasExploded = false;
+	
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "MY|Projectile")
 	TObjectPtr<USphereComponent> SphereComp;
