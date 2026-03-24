@@ -28,8 +28,8 @@ public:
   	/** 풀 반납하고 비활성화 */                                                            
   	void ReturnToPool(AActor* Actor);                                                                            
   	/** 전체 반납 */                                        
-  	void ReturnAllActiveActors();                                                                                
-  	                                                                                                             
+  	void ReturnAllActiveActors();                                       
+	
   	/** 타입 안전 헬퍼 — Cast 생략용 */                                                                          
   	template<typename T>
   	T* SpawnPooledActor(TSubclassOf<T> ActorClass, const FTransform& SpawnTransform)                             
@@ -41,9 +41,9 @@ private:
 	bool TrySpawnActor(TSubclassOf<AActor> ActorClass, AActor*& Actor);
 	
 private:                                                                                                         
-  	// ── Actor Pool ────────────────────────────────────────────────────────────                              
-  	/** 비활성 액터 풀 */
-  	TMap<UClass*, TArray<TObjectPtr<AActor>>> ActorPool;                                                        
+  	// ── Actor Pool ──────────────────────────────────────────────────────────── 
+  	/** 비활성 액터 풀 */ 
+	TMap<UClass*, TArray<TObjectPtr<AActor>>> ActorPool;                                                       
   	/** 활성 액터 추적 */                                  
   	UPROPERTY() //GC방지 강한 참조 필수                                                                                              
   	TSet<TObjectPtr<AActor>> ActiveActors;                                                                       

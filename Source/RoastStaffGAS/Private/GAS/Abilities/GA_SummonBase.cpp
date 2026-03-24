@@ -4,10 +4,14 @@
 #include "GAS/Abilities/GA_SummonBase.h"
 
 #include "RoastStaffGAS.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
+#include "Character/Player/RSPlayerController.h"
 #include "GAS/Tags/RSGameplayTags.h"
 #include "Objects/Data/RSSkillData.h"
 #include "Objects/Projectile/BaseProjectile.h"
 #include "Objects/Summon/BaseSummonObject.h"
+#include "Objects/Summon/SummonPreviewObject.h"
 #include "Subsystems/EquipmentSubsystem.h"
 #include "Subsystems/GameDataSubsystem.h"
 #include "Subsystems/PoolingSubsystem.h"
@@ -18,7 +22,9 @@ UGA_SummonBase::UGA_SummonBase()
 	TriggerData.TriggerTag    = RSTags::Event_Weapon_Fire_Summon;
 	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 	AbilityTriggers.Add(TriggerData);
-
+	
+	AbilityTags.AddTag(RSTags::Ability_Skill_Summon);
+	ActivationBlockedTags.AddTag(RSTags::State_Dead);  
 }
 
 void UGA_SummonBase::OnAbilityActivated(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
@@ -51,6 +57,12 @@ void UGA_SummonBase::OnAbilityActivated(const FGameplayAbilitySpecHandle Handle,
 void UGA_SummonBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	KHS_INFO(TEXT("EndAbility 진입. CachedSkillID: %s"), *CachedSkillID.ToString());
+	if (CachedPreviewObject.Get())
+	{
+		CachedPreviewObject->Destroy();
+		CachedPreviewObject = nullptr;
+	}
+	
 	if (!CachedSkillID.IsNone())
 	{
 		GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EQS, GetWorld()->GetGameInstance());
@@ -58,6 +70,33 @@ void UGA_SummonBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const F
 	}
 	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+FVector UGA_SummonBase::DetermineSummonLocation()
+{
+	// 액티브(수동) 모드: 마우스 에임 좌표에 소환
+	if (CheckIsActiveSlot())
+	{
+		ARSPlayerController* PC = Cast<ARSPlayerController>(GetWorld()->GetFirstPlayerController());
+		check(PC);
+
+		const FVector AimLoc = PC->GetCachedAimLocation();
+		if (AimLoc.IsZero())
+		{
+			KHS_WARN(TEXT("CachedAimLocation 미초기화 (커서 화면 밖). SkillID: %s"), *CachedSkillID.ToString());
+		}
+		return AimLoc;
+	}
+
+	// 자동 모드: SearchRange 내 최근접 적 위치에 소환
+	AActor* NearestEnemy = nullptr;
+	FindNearestEnemy(NearestEnemy);
+	if (!NearestEnemy)
+	{
+		KHS_INFO(TEXT("SearchRange(%.0f) 내 적 없음 — 발동 생략. SkillID: %s"), CachedSummonParam.SearchRange, *CachedSkillID.ToString());
+		return FVector::ZeroVector;
+	}
+	return NearestEnemy->GetActorLocation();
 }
 
 
@@ -101,7 +140,8 @@ bool UGA_SummonBase::LoadSummonData(FSkillExecutionData& OutExecData,
 
 void UGA_SummonBase::HandleActiveMode()
 {
-	//기본 구현 외 내용은 자식들이 Override해서 처리
+	SpawnPreviewObject();
+
 	//GAS 어빌리티 WaitTask에 등록.
 	UAbilityTask_WaitConfirmCancel* WaitTask = UAbilityTask_WaitConfirmCancel::WaitConfirmCancel(this);          
 	WaitTask->OnConfirm.AddDynamic(this, &UGA_SummonBase::OnConfirm);                                  
@@ -163,11 +203,28 @@ bool UGA_SummonBase::SetSummonData(FSummonObjectInitData& InitData, TSubclassOf<
 	return true;
 }
 
+void UGA_SummonBase::SpawnPreviewObject()
+{
+	TSubclassOf<AActor> PreviewClass;
+	if (!LoadRequiredClass(CachedExecData.SummonPreviewClass, PreviewClass, CachedSkillID))
+	{
+		KHS_WARN(TEXT("SummonPreviewClass 로드 실패. SkillID: %s"), *CachedSkillID.ToString());
+		return;
+	}
+	
+	ARSPlayerController* PC = Cast<ARSPlayerController>(GetWorld()->GetFirstPlayerController());
+	const FVector InitLocation = PC ? PC->GetCachedAimLocation() : FVector::ZeroVector;
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = GetOwningActorFromActorInfo();
+	CachedPreviewObject = GetWorld()->SpawnActor<ASummonPreviewObject>(PreviewClass, InitLocation,FRotator::ZeroRotator, SpawnParams);
+}
+
 bool UGA_SummonBase::CheckIsActiveSlot() const
 {
 	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EQS, GetWorld()->GetGameInstance());                              
                                                                                                                    
-	for (int32 i = 0; ; ++i)                                                                                     
+	for (int32 i = 0; i < EQS->GetSlotCount(); ++i)                                                                                     
 	{                                                                                                            
 		const FWeaponSlotInstanceData* Slot = EQS->GetSlotData(i);                                               
 		if (!Slot)                                                                                               
@@ -180,6 +237,39 @@ bool UGA_SummonBase::CheckIsActiveSlot() const
 		}                                                                                                        
 	}                                                                                                            
 	return false; 
+}
+
+void UGA_SummonBase::FindNearestEnemy(AActor*& OutEnemy) const
+{
+	const float SearchRange = CachedSummonParam.SearchRange;
+	const FVector Origin = GetOwningActorFromActorInfo()->GetActorLocation();
+
+	TArray<FOverlapResult> Overlaps;
+	const FCollisionShape Sphere = FCollisionShape::MakeSphere(SearchRange);
+	GetWorld()->OverlapMultiByChannel(Overlaps, Origin, FQuat::Identity, ECC_Pawn, Sphere);
+
+	float NearestDistSq = FLT_MAX;
+	for (const FOverlapResult& Overlap : Overlaps)
+	{
+		AActor* Candidate = Overlap.GetActor();
+		if (!Candidate)
+		{
+			continue;
+		}
+
+		UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Candidate);
+		if (!TargetASC || !TargetASC->HasMatchingGameplayTag(RSTags::Team_Enemy))
+		{
+			continue;
+		}
+
+		const float DistSq = FVector::DistSquared(Origin, Candidate->GetActorLocation());
+		if (DistSq < NearestDistSq)
+		{
+			NearestDistSq = DistSq;
+			OutEnemy      = Candidate;
+		}
+	}
 }
 
 void UGA_SummonBase::OnConfirm()
