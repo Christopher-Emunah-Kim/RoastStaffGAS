@@ -7,11 +7,12 @@
 
 void UPoolingSubsystem::InitializePool(TSubclassOf<AActor> ActorClass, int32 Count)
 {
-	if (!ActorClass)                                                                                             
+	if (!ActorClass || Count <= 0)                                                                                             
     {                                                                                                          
-        KHS_WARN(TEXT("ActorClass null"));
+        KHS_WARN(TEXT("ActorClass is null or Invalid Count : %d"), Count);
         return;
     }
+    
                                                                                                                  
     TArray<TObjectPtr<AActor>>& Pool = ActorPool.FindOrAdd(ActorClass);                                          
                                                                                                                  

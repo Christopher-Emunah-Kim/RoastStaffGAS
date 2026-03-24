@@ -10,12 +10,14 @@
 
 /**
   * UGA_SummonBase
-  * 소환형 스킬 추상 베이스 GA.
-  * DetermineSummonLocation: 자식 구현 (PURE_VIRTUAL)
+  * 소환형 스킬 베이스 GA.
+  * DetermineSummonLocation
   * EndAbility 오버라이드로 쿨타임 타이머 재시작 보장.
   */
 
-UCLASS(Abstract)
+class ASummonPreviewObject;
+
+UCLASS()
 class ROASTSTAFFGAS_API UGA_SummonBase : public UGA_Base
 {
 	GENERATED_BODY()
@@ -27,9 +29,9 @@ protected:
 	virtual void OnAbilityActivated(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
-	//소환 위치 결정(순수가상함수)
-	virtual FVector DetermineSummonLocation() PURE_VIRTUAL(UGA_SummonBase::DetermineSummonLocation, return FVector::ZeroVector;) 
-	//액티브 모드 처리 가상함수
+	//소환 위치 결정
+	virtual FVector DetermineSummonLocation(); 
+	//액티브 모드 처리
 	virtual void HandleActiveMode();                                                                           
 	
 private:
@@ -39,8 +41,12 @@ private:
 	bool LoadSkillData();
 	bool LoadSummonData(FSkillExecutionData& OutExecData, FSkillAttackMoveTypeParamsSummon& OutSummonParam) const;
 	bool SetSummonData(FSummonObjectInitData& InitData, TSubclassOf<AActor>& SummonClass);
+	//프리뷰 오브젝트 소환
+	void SpawnPreviewObject();
+	//자동 모드: SearchRange 내 최근접 적 탐색
+	void FindNearestEnemy(AActor*& OutEnemy) const;
 	//액티브 모드 체크 헬퍼
-	bool CheckIsActiveSlot() const;  
+	bool CheckIsActiveSlot() const;
 	//액티브 모드 입력처리 헬퍼
 	//(UAbilityTask_WaitConfirmCancel)
 	UFUNCTION()
@@ -49,6 +55,8 @@ private:
 	void OnCancel();
 	
 protected:
+	TWeakObjectPtr<ASummonPreviewObject> CachedPreviewObject;
+	
 	FName CachedSkillID;
 	FSkillExecutionData CachedExecData;
 	FSkillAttackMoveTypeParamsSummon CachedSummonParam;

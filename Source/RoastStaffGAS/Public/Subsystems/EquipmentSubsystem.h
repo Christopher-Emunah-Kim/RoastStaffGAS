@@ -43,6 +43,8 @@ public:
 	// 슬롯 데이터 읽기 UI용
 	const FWeaponSlotInstanceData* GetSlotData(int32 SlotIndex) const;
 
+	FORCEINLINE int32 GetSlotCount() const {return SLOT_COUNT;}
+	
 private:
 	void FireSlot(int32 SlotIndex, const FVector& AimLocation);
 	void SetGameplayEventData(const FVector& AimLocation, FGameplayEventData& Payload);
