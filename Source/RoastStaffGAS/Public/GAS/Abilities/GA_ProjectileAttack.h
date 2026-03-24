@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/DataTableStructs.h"
 #include "Data/RuntimeDataStructs.h"
 #include "GAS/Abilities/GA_Base.h"
 #include "Objects/Data/RSSkillData.h"
@@ -32,6 +33,17 @@ private:
 	bool PrepareProjectileData(const URSSkillData* SkillData, TSubclassOf<ABaseProjectile>& OutClass,  FProjectileInitData& OutInitData);
 	//투사체 생성 내부 헬퍼
 	void BuildInitData(const FSkillExecutionData& ExecData, TSubclassOf<UGameplayEffect> DamageGEClass, TSubclassOf<UGameplayEffect> StatusGEClass, FProjectileInitData& OutInitData) const;
+	
+	//타입별 파라미터 처리 헬퍼
+	bool HandleExtraParametersByType(FProjectileInitData& OutInitData, const FSkillExecutionData& ExecData);
+	//Homing 타입 처리 헬퍼
+	bool HandleHomingType(FProjectileInitData& OutInitData, const FSkillExecutionData& ExecData);
+	//인근 적 탐색 헬퍼
+	AActor* FindNearestEnemy(FSkillAttackMoveTypeParamsHoming HomingData);
+	//Arc 타입 처리 헬퍼
+	bool HandleArcType(FProjectileInitData& OutInitData, const FSkillExecutionData& ExecData);
+	//Area 타입 처리 헬퍼
+	bool HandleAreaType(FProjectileInitData& OutInitData, const FSkillExecutionData& ExecData);
 
 protected:
 	virtual void OnAbilityActivated(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
