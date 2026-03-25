@@ -47,9 +47,12 @@ protected:
 	// 수명 만료 시 자식 처리 (ARC 미착탄 폭발 등)
 	virtual void OnProjectileExpired();
 
-	// 충돌 이벤트 — OnHit에서 OnProjectileHit으로 위임
+	// 충돌 이벤트 — Blocking (SINGLE/AREA/벽)
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,	FVector NormalImpulse,	const FHitResult& Hit);
+	// 오버랩 이벤트 — PIERCE: Pawn을 Overlap으로 설정하여 관통 처리
+	UFUNCTION()
+	void OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 private:
 	//풀 반환 헬퍼
@@ -62,11 +65,15 @@ private:
 	// 일반 공격 처리
 	void HandleHitEvent(AActor* OtherActor, const FHitResult& Hit);
 	// 폭발 공격 처리(AREA)
-	void ExplodeArea(const FVector& Center);
+	void HandleAreaHit(const FVector& Center);
+	// 관통 공격 처리(PIERCE)
+	void HandlePierceHit(AActor* OtherActor);
 
 private:
 	FTimerHandle LifetimeTimerHandle;
 	bool bHasExploded = false;
+	bool bHasPierceFinished = false;
+	int32 PierceHitCount = 0; 
 	
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "MY|Projectile")

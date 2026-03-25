@@ -44,6 +44,8 @@ private:
 	bool HandleArcType(FProjectileInitData& OutInitData, const FSkillExecutionData& ExecData);
 	//Area 타입 처리 헬퍼
 	bool HandleAreaType(FProjectileInitData& OutInitData, const FSkillExecutionData& ExecData);
+	//Pierce 타입 처리 헬퍼
+	bool HandlePierceType(FProjectileInitData& OutInitData, const FSkillExecutionData& ExecData);
 
 protected:
 	virtual void OnAbilityActivated(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
