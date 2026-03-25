@@ -292,10 +292,10 @@ struct FSkillAttackHitTypeParamsPierce : public FTableRowBase
 	FName SkillEffectID;
 	/** 최대 관통 횟수 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight|Pierce")
-	int32 PierceCount;
+	int32 PierceCount = 1;  
 	/** 관통마다 적용되는 데미지 감쇠율 (0.0~1.0) */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight|Pierce")
-	float DamageDecay;
+	float DamageDecay = 0.f; 
 	
 };
 

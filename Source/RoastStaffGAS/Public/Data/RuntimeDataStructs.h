@@ -191,6 +191,11 @@ struct FProjectileInitData
     //HitType - Area
     UPROPERTY()
     float HitRadius;
+    // HitType - Pierce
+    UPROPERTY()
+    int32 PierceCount;
+    UPROPERTY()
+    float DamageDecay;
 };                                                                                                               
                                    
 // ----------------------------------------------------------------------------

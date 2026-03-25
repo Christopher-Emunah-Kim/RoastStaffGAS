@@ -104,34 +104,56 @@ void UGA_ProjectileAttack::BuildInitData(const FSkillExecutionData& ExecData, TS
 bool UGA_ProjectileAttack::HandleExtraParametersByType(FProjectileInitData& OutInitData, const FSkillExecutionData& ExecData)
 {
 	//타입별 추가 데이터 채우기
-
-	// HOMING 타입 추가 처리
-	if (ExecData.MoveType == EMoveType::HOMING)
+	switch (ExecData.MoveType)
 	{
-		if (!HandleHomingType(OutInitData, ExecData))
+	case EMoveType::HOMING: // HOMING 타입 추가 처리
 		{
-			return false;
+			if (!HandleHomingType(OutInitData, ExecData))
+			{
+				return false;
+			}
+		}
+		break;
+	case EMoveType::ARC: // ARC 타입 추가 처리
+		{
+			if (!HandleArcType(OutInitData, ExecData))
+			{
+				return false;
+			}
+		}
+		break;
+		
+	default:
+		{
+			//파라미터 추가 작업이므로 별도 처리 필요없음.
 		}
 	}
-
-	// ARC 타입 추가 처리
-	if (ExecData.MoveType == EMoveType::ARC)
+	
+	switch (ExecData.HitType)
 	{
-		if (!HandleArcType(OutInitData, ExecData))
+	case EHitType::AREA: // AREA 타입 추가 처리
 		{
-			return false;
+			if (!HandleAreaType(OutInitData, ExecData))
+			{
+				return false;
+			}
+		}
+		break;
+	case EHitType::PIERCE: // PIERCE 타입 추가 처리
+		{
+			if (!HandlePierceType(OutInitData, ExecData))
+			{
+				return false;
+			}
+		}
+		break;
+		
+	default:
+		{
+			//파라미터 추가 작업이므로 별도 처리 필요없음.
 		}
 	}
-
-	// AREA 타입 추가 처리
-	if (ExecData.HitType == EHitType::AREA)
-	{
-		if (!HandleAreaType(OutInitData, ExecData))
-		{
-			return false;
-		}
-	}
-
+	
 	return true;
 }
 
@@ -211,7 +233,8 @@ bool UGA_ProjectileAttack::HandleArcType(FProjectileInitData& OutInitData, const
 		return false;
 	}
 	
-	OutInitData.LaunchAngle  = FMath::Clamp(ArcData.LaunchAngle, -80.f, 80.f);
+	constexpr int32 LAUNCH_ANGLE_CLAMP = 80.f;
+	OutInitData.LaunchAngle  = FMath::Clamp(ArcData.LaunchAngle, -LAUNCH_ANGLE_CLAMP, LAUNCH_ANGLE_CLAMP);
 	OutInitData.GravityScale = ArcData.GravityScale;
 	return true;
 }
@@ -219,7 +242,7 @@ bool UGA_ProjectileAttack::HandleArcType(FProjectileInitData& OutInitData, const
 
 bool UGA_ProjectileAttack::HandleAreaType(FProjectileInitData& OutInitData, const FSkillExecutionData& ExecData)
 {
-	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());  
+	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());
 	FSkillAttackHitTypeParamsArea AreaData;
 	if (!GDS->GetHitTypeData(ExecData.SkillEffectID, AreaData))
 	{
@@ -227,5 +250,23 @@ bool UGA_ProjectileAttack::HandleAreaType(FProjectileInitData& OutInitData, cons
 		return false;
 	}
 	OutInitData.HitRadius = AreaData.HitRadius;
+	return true;
+}
+
+
+bool UGA_ProjectileAttack::HandlePierceType(FProjectileInitData& OutInitData, const FSkillExecutionData& ExecData)
+{
+	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());
+	FSkillAttackHitTypeParamsPierce PierceData;
+	
+	if (!GDS->GetHitTypeData(ExecData.SkillEffectID, PierceData))
+	{
+		KHS_WARN(TEXT("Pierce 파라미터 조회 실패. SkillEffectID: %s"), *ExecData.SkillEffectID.ToString());
+		return false;
+	}
+	
+	OutInitData.PierceCount = PierceData.PierceCount;
+	OutInitData.DamageDecay = PierceData.DamageDecay;
+	
 	return true;
 }

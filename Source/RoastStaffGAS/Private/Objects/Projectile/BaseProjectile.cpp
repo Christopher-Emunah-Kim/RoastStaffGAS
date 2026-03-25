@@ -45,6 +45,10 @@ void ABaseProjectile::OnPoolDeactivate()
 	ProjectileComp->HomingTargetComponent = nullptr;
 	ProjectileComp->ProjectileGravityScale = 0.f;
 
+	SphereComp->ClearMoveIgnoreActors();
+	bHasPierceFinished = false;
+	PierceHitCount = 0;
+
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
 	GetWorldTimerManager().ClearTimer(LifetimeTimerHandle);
@@ -55,28 +59,163 @@ void ABaseProjectile::BeginPlay()
 	Super::BeginPlay();
 	
 	SphereComp->OnComponentHit.AddDynamic(this, &ABaseProjectile::OnHit);
+	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ABaseProjectile::OnBeginOverlap);
 	OnPoolDeactivate();
 }
 
 
-void ABaseProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
-                            FVector NormalImpulse, const FHitResult& Hit)
+void ABaseProjectile::InitProjectile(const FProjectileInitData& InInitData)
+{
+	// 풀 재사용 대비 상태 리셋
+	bHasExploded = false;
+	bHasPierceFinished = false;
+	PierceHitCount = 0;
+	SphereComp->ClearMoveIgnoreActors();
+
+	// 투사체 기본 초기화
+	InitData = InInitData;
+
+	// 발사자(자신)와의 충돌을 물리적으로 무시하도록 예외 처리 추가
+	if (InitData.InstigatorASC && InitData.InstigatorASC->GetAvatarActor())
+	{
+		AActor* AvatarActor = InitData.InstigatorASC->GetAvatarActor();
+		SphereComp->IgnoreActorWhenMoving(AvatarActor, true); // 발사자를 뚫고 나가도록 설정
+        
+		SetOwner(AvatarActor); 
+		SetInstigator(Cast<APawn>(AvatarActor));
+	}
+	
+	// 속도 세팅
+	ProjectileComp->InitialSpeed = InitData.Speed;
+	ProjectileComp->MaxSpeed     = InitData.Speed;
+	ProjectileComp->Velocity     = GetActorForwardVector() * InitData.Speed;
+	ProjectileComp->UpdateComponentVelocity();
+	ProjectileComp->Activate();
+
+	// 수명 타이머
+	const float SafeLifetime = InitData.Lifetime > 0.f ? InitData.Lifetime : 5.f;
+	if (InitData.Lifetime <= 0.f)
+	{
+		KHS_WARN(TEXT("Lifetime이 0 이하 — 기본값 5.f 적용"));
+	}
+
+	GetWorldTimerManager().SetTimer(LifetimeTimerHandle,	this,
+		&ABaseProjectile::OnLifetimeExpired,SafeLifetime,false);
+
+	// 자식 타입별 추가 초기화
+	OnProjectileInitialized();
+}
+
+
+void ABaseProjectile::OnProjectileInitialized()
+{
+	//HitType별 추가 처리
+	switch(InitData.HitType)
+	{
+	case EHitType::PIERCE:
+		{
+			// PIERCE: Pawn 채널을 Overlap으로 변경하여 적을 통과하며 OnBeginOverlap으로 감지
+			SphereComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+		}
+		break;
+		
+	default:
+		{
+			//추가 처리이므로 별도 디폴트 처리 없음.
+		}
+	}
+
+	//MoveType별 추가 처리
+	switch (InitData.MoveType)
+	{
+	case EMoveType::HOMING:
+		{
+			if (InitData.HomingTarget.IsValid())
+			{
+				ProjectileComp->bIsHomingProjectile = true;
+				ProjectileComp->HomingTargetComponent = InitData.HomingTarget.Get();
+				ProjectileComp->HomingAccelerationMagnitude = InitData.TurnSpeed;
+			}
+			else
+			{
+				KHS_WARN(TEXT("HOMING 타겟 없음 — 직선 비행 폴백. SkillID: %s"), *InitData.SkillID.ToString());
+			}
+		}
+		break;
+	case EMoveType::ARC:
+		{
+			// RotateAngleAxis로 짐벌락 없이 LaunchAngle만큼 상방 회전
+			const FVector RightVec = FVector::CrossProduct(GetActorForwardVector(), FVector::UpVector).GetSafeNormal();
+			const FVector LaunchVel = GetActorForwardVector().RotateAngleAxis(InitData.LaunchAngle, RightVec) * InitData.Speed;
+
+			if (LaunchVel.IsNearlyZero())
+			{
+				KHS_WARN(TEXT("ARC LaunchAngle 계산 Zero — 에임 방향 폴백. SkillID: %s"), *InitData.SkillID.ToString());
+			}
+			else
+			{
+				ProjectileComp->Velocity = LaunchVel;
+			}
+
+			ProjectileComp->ProjectileGravityScale = InitData.GravityScale;
+		}
+		break;
+		
+	default:
+		{
+			//추가 처리이므로 별도 디폴트 없음.
+		}
+		break;
+	}
+}
+
+void ABaseProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (!OtherActor || OtherActor == GetOwner())
 	{
 		return;
 	}
 
-	// 폭발 공격 - 착탄 위치에서 범위 폭발 (벽/지형 포함 충돌대상 무관. AREA 타입)
-	if (InitData.HitType == EHitType::AREA)
+	switch (InitData.HitType)
 	{
-		ExplodeArea(Hit.ImpactPoint);
-		ReturnToPool();
+	case EHitType::AREA: // 폭발 공격 - 착탄 위치에서 범위 폭발 (벽/지형 포함 충돌대상 무관. AREA 타입)
+		{
+			HandleAreaHit(Hit.ImpactPoint);
+			ReturnToPool();
+			return;
+		}
+	case EHitType::PIERCE: // 관통 공격 — OnBeginOverlap에서 처리. 벽 blocking hit는 무시
+		{
+			return;
+		}
+	case EHitType::SINGLE: // 일반 공격 처리
+		{
+			HandleHitEvent(OtherActor, Hit);
+			break;
+		}
+
+	default:
+		{
+			HandleHitEvent(OtherActor, Hit);
+			break;
+		}
+	}
+	
+}
+
+
+void ABaseProjectile::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!OtherActor || OtherActor == GetOwner())
+	{
 		return;
 	}
 
-	// 일반 공격 처리
-	HandleHitEvent(OtherActor, Hit);
+	if (InitData.HitType == EHitType::PIERCE)
+	{
+		HandlePierceHit(OtherActor);
+	}
 }
 
 
@@ -129,46 +268,13 @@ void ABaseProjectile::ApplyEffectToTarget(UAbilitySystemComponent* TargetASC,  T
 	InitData.InstigatorASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
 }
 
-void ABaseProjectile::OnProjectileInitialized()
-{
-	if (InitData.MoveType == EMoveType::HOMING)
-	{
-		if (InitData.HomingTarget.IsValid())
-		{
-			ProjectileComp->bIsHomingProjectile = true;
-			ProjectileComp->HomingTargetComponent = InitData.HomingTarget.Get();
-			ProjectileComp->HomingAccelerationMagnitude = InitData.TurnSpeed;
-		}
-		else
-		{
-			KHS_WARN(TEXT("HOMING 타겟 없음 — 직선 비행 폴백. SkillID: %s"), *InitData.SkillID.ToString());
-		}
-	}
-	else if (InitData.MoveType == EMoveType::ARC)
-	{
-		// RotateAngleAxis로 짐벌락 없이 LaunchAngle만큼 상방 회전
-		const FVector RightVec = FVector::CrossProduct(GetActorForwardVector(), FVector::UpVector).GetSafeNormal();
-		const FVector LaunchVel = GetActorForwardVector().RotateAngleAxis(InitData.LaunchAngle, RightVec) * InitData.Speed;
-
-		if (LaunchVel.IsNearlyZero())
-		{
-			KHS_WARN(TEXT("ARC LaunchAngle 계산 Zero — 에임 방향 폴백. SkillID: %s"), *InitData.SkillID.ToString());
-		}
-		else
-		{
-			ProjectileComp->Velocity = LaunchVel;
-		}
-
-		ProjectileComp->ProjectileGravityScale = InitData.GravityScale;
-	}
-}
 
 void ABaseProjectile::OnProjectileExpired()
 {
 	// ARC 미착탄 수명 만료
 	if (InitData.HitType == EHitType::AREA)
 	{
-		ExplodeArea(GetActorLocation());
+		HandleAreaHit(GetActorLocation());
 	}
 	// ReturnToPool은 OnLifetimeExpired()가 담당
 }
@@ -194,7 +300,7 @@ void ABaseProjectile::HandleHitEvent(AActor* OtherActor, const FHitResult& Hit)
 	}
 }
 
-void ABaseProjectile::ExplodeArea(const FVector& Center)
+void ABaseProjectile::HandleAreaHit(const FVector& Center)
 {
 	if (bHasExploded)
 	{
@@ -248,37 +354,45 @@ void ABaseProjectile::ExplodeArea(const FVector& Center)
 	
 }
 
+void ABaseProjectile::HandlePierceHit(AActor* OtherActor)
+{
+	if (bHasPierceFinished)
+	{
+		return;
+	}
+
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
+	if (!TargetASC)
+	{
+		return; // 벽/지형 — ignore 추가 없이 통과
+	}
+
+	if (!TargetASC->HasMatchingGameplayTag(RSTags::Team_Enemy))
+	{
+		return;
+	}
+
+	SphereComp->IgnoreActorWhenMoving(OtherActor, true); //한번 충돌한 액터는 무시
+	++PierceHitCount; // MoveIgnoreActors와 분리 — 발사자 등록 영향 없음
+
+	const float Multiplier = FMath::Max(0.f, 1.f - (PierceHitCount - 1) * InitData.DamageDecay);
+
+	if (Multiplier > 0.f)
+	{
+		ApplyMultipleEffectsToTarget(TargetASC, Multiplier);
+	}
+
+	if (PierceHitCount >= InitData.PierceCount)
+	{
+		bHasPierceFinished = true;
+		ReturnToPool();
+	}
+}
+
 void ABaseProjectile::OnLifetimeExpired()
 {
 	OnProjectileExpired();
 	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys);
 	PoolSys->ReturnToPool(this);
-}
-
-void ABaseProjectile::InitProjectile(const FProjectileInitData& InInitData)
-{
-	// 풀 재사용 대비 상태 리셋
-	bHasExploded = false;
-
-	// 투사체 기본 초기화
-	InitData = InInitData;
-
-	// 속도 세팅
-	ProjectileComp->InitialSpeed = InitData.Speed;
-	ProjectileComp->MaxSpeed     = InitData.Speed;
-	ProjectileComp->Velocity     = GetActorForwardVector() * InitData.Speed;
-
-	// 수명 타이머
-	const float SafeLifetime = InitData.Lifetime > 0.f ? InitData.Lifetime : 5.f;
-	if (InitData.Lifetime <= 0.f)
-	{
-		KHS_WARN(TEXT("Lifetime이 0 이하 — 기본값 5.f 적용"));
-	}
-
-	GetWorldTimerManager().SetTimer(LifetimeTimerHandle,	this,
-		&ABaseProjectile::OnLifetimeExpired,SafeLifetime,false);
-
-	// 자식 타입별 추가 초기화
-	OnProjectileInitialized();
 }
 
