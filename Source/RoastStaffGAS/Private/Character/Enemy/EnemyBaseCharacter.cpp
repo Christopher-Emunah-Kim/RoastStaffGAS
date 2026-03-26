@@ -6,10 +6,13 @@
 #include "AbilitySystemComponent.h"
 #include "Character/Enemy/EnemyAIController.h"
 #include "GAS/Attributes/EnemyAttributeSet.h"
+#include "GAS/Attributes/BaseAttributeSet.h"
 #include "Subsystems/GameDataSubsystem.h"
 #include "Data/DataTableStructs.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GAS/Tags/RSGameplayTags.h"
+#include "Components/WidgetComponent.h"
+#include "UI/Enemy/EnemyHPBarWidget.h"
 
 AEnemyBaseCharacter::AEnemyBaseCharacter()
 {
@@ -19,6 +22,13 @@ AEnemyBaseCharacter::AEnemyBaseCharacter()
 	// EnemyAttributeSet - ASC 등록
 	EnemyAttributeSet = CreateDefaultSubobject<UEnemyAttributeSet>(TEXT("EnemyAttributeSet"));
 	ASC->AddAttributeSetSubobject<UEnemyAttributeSet>(EnemyAttributeSet);
+
+	// HPBar WidgetComponent — 월드 스페이스, 머리 위 부착
+	// 위치는 BP 에디터의 컴포넌트 트랜스폼에서 조정 가능
+	HPBarWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPBarWidgetComp"));
+	HPBarWidgetComp->SetupAttachment(RootComponent);
+	HPBarWidgetComp->SetWidgetSpace(EWidgetSpace::Screen);  // 항상 카메라를 향함
+	HPBarWidgetComp->SetRelativeLocation(FVector(0.f, 0.f, 90.f));
 }
 
 
@@ -67,6 +77,10 @@ void AEnemyBaseCharacter::InitializeEnemy(FName InEnemyID)
 		return;
 	}
 	
+	// HPBar 바인딩 및 데미지 델리게이트 구독
+	SetupHPBar();
+	SetupDamageDelegate();
+
 	bIsInitialized = true;
 
 	KHS_INFO(TEXT("%s — 초기화 완료. EnemyID: %s / HP: %.0f / Speed: %.0f"), *GetName(), *EnemyID.ToString(), EnemyData.MaxHP, EnemyData.MoveSpeed);
@@ -112,6 +126,19 @@ void AEnemyBaseCharacter::HandleDeath()
 	// 공통 사망 프로세스 (GA 종료, GE 제거, State.Dead 태그, 충돌 비활성화)
 	Super::HandleDeath();
 
+	// HPBar 숨김
+	if (HPBarWidgetComp)
+	{
+		HPBarWidgetComp->SetVisibility(false);
+	}
+
+	// DamageDelegate 명시적 해제
+	if (ASC)
+	{
+		ASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetCurrentHPAttribute())
+			.RemoveAll(this);
+	}
+
 	// StageWaveSubsystem에 처치 통보
 	OnEnemyKilledDel.Broadcast(EnemyID);
 
@@ -121,6 +148,26 @@ void AEnemyBaseCharacter::HandleDeath()
 	KHS_INFO(TEXT("%s — 에너미 사망 처리 완료. EnemyID: %s"), *GetName(), *EnemyID.ToString());
 }
 
+
+void AEnemyBaseCharacter::SetupHPBar()
+{
+	if (!HPBarWidgetClass)
+	{
+		KHS_WARN(TEXT("%s — HPBarWidgetClass가 할당되지 않았습니다. HPBar를 건너뜁니다."), *GetName());
+		return;
+	}
+
+	HPBarWidgetComp->SetWidgetClass(HPBarWidgetClass);
+
+	UEnemyHPBarWidget* HPBarWidget = Cast<UEnemyHPBarWidget>(HPBarWidgetComp->GetWidget());
+	if (!HPBarWidget)
+	{
+		KHS_WARN(TEXT("%s — HPBarWidget 획득 실패. WidgetClass 타입을 확인하세요."), *GetName());
+		return;
+	}
+
+	HPBarWidget->BindToASC(ASC);
+}
 
 bool AEnemyBaseCharacter::ApplyStatData(FEnemyStaticData& EnemyData)
 {

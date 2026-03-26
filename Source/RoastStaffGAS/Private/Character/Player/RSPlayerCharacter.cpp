@@ -9,6 +9,7 @@
 #include "Character/Player/RSPlayerState.h"
 #include "Component/EquipmentComponent.h"
 #include "GAS/Attributes/PlayerAttributeSet.h"
+#include "AbilitySystemComponent.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AbilitySystemComponent.h"
@@ -102,7 +103,10 @@ void ARSPlayerCharacter::InitializeAbilitySystem()
 
 	GET_GI_SUBSYSTEM(ULevelUpSubsystem, LevelUpSys);
 	LevelUpSys->InitializeSubsystem(ASC, PS->GetPlayerAttributeSet(), AddEXPEffectClass);
-	
+
+	// FloatingDamageWidget 구독 (BaseCharacter 공통)
+	SetupDamageDelegate();
+
 	KHS_INFO(TEXT("GAS 초기화 완료."));
 }
 

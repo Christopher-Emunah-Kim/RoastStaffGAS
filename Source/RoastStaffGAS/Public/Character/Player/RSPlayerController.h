@@ -12,6 +12,7 @@
  */
 
 class URSHUDWidget;
+class UFloatingDamageWidget;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
@@ -21,7 +22,7 @@ UCLASS()
 class ROASTSTAFFGAS_API ARSPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -31,14 +32,24 @@ protected:
 public:
 	FORCEINLINE FVector GetCachedAimLocation() const { return CachedAimLocation; }
 	
+	// 플로팅 데미지 풀 관리
+	/** 피격 위치(WorldPos)를 스크린 좌표로 변환해 FloatingDamageWidget을 표시 */
+	void SpawnFloatingDamage(FVector WorldPos, float Damage);
+
+	/** 애니메이션 완료 후 위젯을 풀에 반납 */
+	void ReturnFloatingDamageToPool(UFloatingDamageWidget* Widget);
+
 private:
+	/** BeginPlay에서 PoolInitialSize만큼 위젯을 미리 생성 */
+	void PrewarmFloatingDamagePool();
+
 	//========================================================
 	// UI 관리
 	//========================================================
 	UFUNCTION()
 	void OnSlotUpdated(int32 SlotIndex);
 	void RefreshSlotUI(int32 SlotIndex);
-	
+
 	//========================================================
 	// 입력 처리
 	//========================================================
@@ -48,12 +59,25 @@ private:
 	void OnSlotActivate(const FInputActionValue& Value, int32 SlotIndex);
 
 protected:
-	// UI
+	// UI — HUD
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<URSHUDWidget> HUDWidgetClass;
 	UPROPERTY()
 	TObjectPtr<URSHUDWidget> CachedHUDUI;
-	
+
+	// UI — FloatingDamageWidget 
+	UPROPERTY(EditDefaultsOnly, Category = "MY|UI")
+	TSubclassOf<UFloatingDamageWidget> FloatingDamageWidgetClass;
+	/** 사용 가능한 비활성 위젯 풀 */
+	UPROPERTY()
+	TArray<TObjectPtr<UFloatingDamageWidget>> FloatingDamagePool;
+	/** 미리 생성할 위젯 수 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|UI", meta = (ClampMin = "0"))
+	int32 PoolInitialSize = 10;
+	/** 동시 생성 가능한 위젯 총 상한 (prewarm + 온디맨드 합산) */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|UI", meta = (ClampMin = "1"))
+	int32 PoolMaxSize = 30;
+
 	// 입력 에셋
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
 	TObjectPtr<UInputMappingContext> IMC;
@@ -69,8 +93,12 @@ protected:
 	TObjectPtr<UInputAction> IA_Slot3;
 
 	// 런타임 상태
-	FVector CachedAimLocation = FVector::ZeroVector; // 에임 좌표 캐시 — RequestManualFire 시 전달
-	FVector2D LastMoveInput = FVector2D::ZeroVector; // 마지막 이동 입력 — 대시 방향 계산용
-	float AimAngle = 0.f;						     // 에임 각도 (Yaw)		
+	FVector   CachedAimLocation  = FVector::ZeroVector;
+	FVector2D LastMoveInput      = FVector2D::ZeroVector;
+	float     AimAngle           = 0.f;
 
+private:
+	/** 총 생성된 FloatingDamageWidget 수 — 풀 상한 판단에 사용 */
+	int32 TotalCreatedCount = 0;
+	
 };
