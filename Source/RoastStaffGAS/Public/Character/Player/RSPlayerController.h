@@ -13,9 +13,11 @@
 
 class URSHUDWidget;
 class UFloatingDamageWidget;
+class ULevelUpWeaponSelectWidget;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
+struct FWeaponCardDisplayData;
 
 
 UCLASS()
@@ -50,6 +52,14 @@ private:
 	void OnSlotUpdated(int32 SlotIndex);
 	void RefreshSlotUI(int32 SlotIndex);
 
+	/** LevelUpSubsystem.OnWeaponCandidatesReadyDel 핸들러 — 레벨업 UI 오픈 + 게임 일시정지 */
+	UFUNCTION()
+	void OnWeaponCandidatesReady(const TArray<FWeaponCardDisplayData>& WeaponCards);
+
+	/** LevelUpWeaponSelectWidget.OnWeaponSelectCompletedDel 핸들러 — 게임 재개 */
+	UFUNCTION()
+	void OnWeaponSelectCompleted();
+
 	//========================================================
 	// 입력 처리
 	//========================================================
@@ -64,6 +74,12 @@ protected:
 	TSubclassOf<URSHUDWidget> HUDWidgetClass;
 	UPROPERTY()
 	TObjectPtr<URSHUDWidget> CachedHUDUI;
+
+	// UI — 레벨업 무기 선택 팝업
+	UPROPERTY(EditDefaultsOnly, Category = "MY|UI")
+	TSubclassOf<ULevelUpWeaponSelectWidget> LevelUpUIClass;
+	UPROPERTY()
+	TObjectPtr<ULevelUpWeaponSelectWidget> CachedLevelUpWidget;
 
 	// UI — FloatingDamageWidget 
 	UPROPERTY(EditDefaultsOnly, Category = "MY|UI")

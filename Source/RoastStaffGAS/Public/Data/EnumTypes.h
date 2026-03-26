@@ -8,6 +8,16 @@
 // ENUM 정의
 // ============================================================================
 
+/** 레벨업 UI 무기 카드 표시 상태 */
+UENUM(BlueprintType)
+enum class EWeaponCardState : uint8
+{
+	New      UMETA(DisplayName = "NEW"),      // 미보유 신규 무기
+	Lv1ToLv2 UMETA(DisplayName = "Lv1->Lv2"), // 동일 BaseType Lv1 보유 중 — 강화 가능
+	Lv2ToLv3 UMETA(DisplayName = "Lv2->Lv3"), // 동일 BaseType Lv2 보유 중 — 강화 가능
+	Lv3Max   UMETA(DisplayName = "Lv3(MAX)"), // 동일 BaseType Lv3 보유 — 최대 레벨
+};
+
 /** 무기 베이스 타입 */
 UENUM(BlueprintType)
 enum class EWeaponBaseType : uint8
@@ -82,18 +92,4 @@ enum class EAIType : uint8
 	CHASE	UMETA(DisplayName = "Chase"),
 	RANGED	UMETA(DisplayName = "Ranged"),
 	ELITE	UMETA(DisplayName = "Elite")
-};
-
-
-UENUM(BlueprintType)
-enum class ELevelUpState : uint8
-{
-	
-};
-
-
-UENUM(BlueprintType)
-enum class EStageState : uint8
-{
-	
 };

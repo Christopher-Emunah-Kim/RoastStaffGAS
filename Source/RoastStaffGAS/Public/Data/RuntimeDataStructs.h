@@ -225,8 +225,33 @@ struct FSummonObjectInitData
 };                                   
 
 
-// ----------------------------------------------------------------------------                                  
-// FWeaponSlotInstanceData — 슬롯 런타임 상태                                                                  
+// ----------------------------------------------------------------------------
+// FWeaponCardDisplayData — 레벨업 UI 무기 카드 표시 데이터
+// LevelUpSubsystem → LevelUpWeaponSelectWidget 전달용
+// ----------------------------------------------------------------------------
+USTRUCT(BlueprintType)
+struct FWeaponCardDisplayData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	FName WeaponID;
+	UPROPERTY(BlueprintReadOnly)
+	FName WeaponName;
+	UPROPERTY(BlueprintReadOnly)
+	FName Description;
+	UPROPERTY(BlueprintReadOnly)
+	EWeaponCardState CardState = EWeaponCardState::New;
+	/** DT_Combination 미구현 — 항상 false (스텁) */
+	UPROPERTY(BlueprintReadOnly)
+	bool bCanEvolve = false;
+	/** 무기 카드 아이콘 — GDS.GetWeaponSlotEquipData().SkillIcon 경유 */
+	UPROPERTY(BlueprintReadOnly)
+	TSoftObjectPtr<UTexture2D> WeaponIcon;
+};
+
+// ----------------------------------------------------------------------------
+// FWeaponSlotInstanceData — 슬롯 런타임 상태
 // EquipmentSubsystem이 직접 관리
 // ----------------------------------------------------------------------------
 USTRUCT()                                                                                                        

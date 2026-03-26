@@ -54,6 +54,8 @@ public:
     /** WeaponLevel 기준 무기 ID 목록 반환. 레벨업 시 무기 풀 구성에 사용 */
     UFUNCTION(BlueprintCallable, Category = "MY|GDS|Weapon")
     TArray<FName> GetWeaponIDsByLevel(int32 WeaponLevel) const;
+    /** WeaponID → FWeaponStaticData 단일 조회. LevelUpSubsystem 카드 상태 판단에 사용 */
+    bool GetWeaponData(FName WeaponID, FWeaponStaticData& OutData) const;
 
     // -------------------------------------------------------------------------
     // 스킬 조회
@@ -91,9 +93,9 @@ private:
     void BuildSecondaryIndex();
 
     // -------------------------------------------------------------------------
-    // 개별 테이블 조회 (복합 조회 내부 헬퍼)                                                          
-    // -------------------------------------------------------------------------  
-    bool GetWeaponData(FName WeaponID, FWeaponStaticData& OutData) const;
+    // 개별 테이블 조회 (복합 조회 내부 헬퍼)
+    // -------------------------------------------------------------------------
+    // GetWeaponData — public 섹션으로 승격 (LevelUpSubsystem 카드 상태 판단 사용)
     bool GetSkillStaticData(FName SkillID, FSkillCommonStaticData& OutData) const;
     bool GetSkillResourceData(FName SkillID, FSkillCommonResourceData& OutData) const;
     bool GetSkillCommonParamData(FName SkillEffectID, FSkillCommonParamData& OutData) const;
