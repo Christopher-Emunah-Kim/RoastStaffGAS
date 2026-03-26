@@ -5,11 +5,13 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayEffectTypes.h"
 #include "BaseCharacter.generated.h"
 
 class UAbilitySystemComponent;
 class UBaseAttributeSet;
 class UGameplayEffect;
+class ARSPlayerController;
 
 UCLASS()
 class ROASTSTAFFGAS_API ABaseCharacter : public ACharacter, public IAbilitySystemInterface
@@ -41,6 +43,16 @@ protected:
 	void BindAttributeDelegates();
 	// 패시브 GE 적용 — 공통 로직
 	void ApplyPassiveEffects(const TArray<TSoftClassPtr<UGameplayEffect>>& DefaultEffects);
+	// FloatingDamageWidget 구독 — 자식이 ASC 준비 완료 후 호출
+	void SetupDamageDelegate();
+
+private:
+	void OnCurrentHPChangedForDamage(const FOnAttributeChangeData& Data);
+
+protected:
+	/** 피격 FloatingDamageWidget 표시 위치 오프셋 — BP에서 캐릭터별로 조정 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|UI", meta = (ClampMin = "0.0"))
+	float DamageWidgetZOffset = 120.f;
 
 public:
 	// IAbilitySystemInterface

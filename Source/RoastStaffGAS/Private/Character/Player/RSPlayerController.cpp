@@ -11,6 +11,7 @@
 #include "UI/RSHUDWidget.h"
 #include "UI/WeaponSlotContainerWidget.h"
 #include "UI/WeaponSlotWidget.h"
+#include "UI/FloatingDamageWidget.h"
 #include "Data/RuntimeDataStructs.h"
 
 void ARSPlayerController::BeginPlay()
@@ -42,12 +43,14 @@ void ARSPlayerController::BeginPlay()
 	}
 	
 	CachedHUDUI = UMS->OpenUI<URSHUDWidget>(HUDWidgetClass);
-	
+
 	if (!CachedHUDUI)
 	{
 		KHS_WARN(TEXT("HUD Widget 생성 실패"));
 		return;
 	}
+
+	PrewarmFloatingDamagePool();
 }
 
 void ARSPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -160,5 +163,96 @@ void ARSPlayerController::OnSlotActivate(const FInputActionValue& Value, int32 S
 {
 	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetGameInstance());
 	EquipSys->RequestSlotActivate(SlotIndex);
+}
 
+// ============================================================================
+// FloatingDamageWidget 풀
+// ============================================================================
+
+void ARSPlayerController::PrewarmFloatingDamagePool()
+{
+	if (!FloatingDamageWidgetClass)
+	{
+		KHS_WARN(TEXT("FloatingDamageWidgetClass가 할당되지 않아 prewarm을 건너뜁니다."));
+		return;
+	}
+
+	const int32 PrewarmCount = FMath::Min(PoolInitialSize, PoolMaxSize);
+	for (int32 i = 0; i < PrewarmCount; ++i)
+	{
+		UFloatingDamageWidget* Widget = CreateWidget<UFloatingDamageWidget>(this, FloatingDamageWidgetClass);
+		if (Widget)
+		{
+			Widget->SetVisibility(ESlateVisibility::Collapsed);
+			FloatingDamagePool.Add(Widget);
+			++TotalCreatedCount;
+		}
+	}
+
+	KHS_INFO(TEXT("FloatingDamageWidget prewarm 완료: %d개"), TotalCreatedCount);
+}
+
+void ARSPlayerController::SpawnFloatingDamage(FVector WorldPos, float Damage)
+{
+	if (!FloatingDamageWidgetClass)
+	{
+		KHS_WARN(TEXT("FloatingDamageWidgetClass가 할당되지 않았습니다."));
+		return;
+	}
+
+	UFloatingDamageWidget* Widget = nullptr;
+
+	if (FloatingDamagePool.Num() > 0)
+	{
+		Widget = FloatingDamagePool.Pop();
+	}
+	else if (TotalCreatedCount < PoolMaxSize)
+	{
+		Widget = CreateWidget<UFloatingDamageWidget>(this, FloatingDamageWidgetClass);
+		if (Widget)
+		{
+			++TotalCreatedCount;
+		}
+	}
+	else
+	{
+		KHS_WARN(TEXT("FloatingDamageWidget 풀 상한(%d) 초과 — 스폰 스킵"), PoolMaxSize);
+		return;
+	}
+
+	if (!Widget)
+	{
+		KHS_WARN(TEXT("FloatingDamageWidget 생성 실패"));
+		return;
+	}
+
+	// 화면 밖 방어 — 스크린 변환 실패 시 풀 반납 후 반환
+	FVector2D ScreenPos;
+	if (!ProjectWorldLocationToScreen(WorldPos, ScreenPos, true))
+	{
+		FloatingDamagePool.Add(Widget);
+		return;
+	}
+
+	Widget->SetPositionInViewport(ScreenPos, true);  // bRemoveDPIScale=true: 픽셀→Slate 단위 변환
+
+	if (!Widget->IsInViewport())
+	{
+		Widget->AddToViewport(200);
+	}
+
+	Widget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	Widget->PlayFloatAnimation(Damage);
+}
+
+void ARSPlayerController::ReturnFloatingDamageToPool(UFloatingDamageWidget* Widget)
+{
+	if (!Widget)
+	{
+		return;
+	}
+
+	Widget->RemoveFromParent();
+	Widget->SetVisibility(ESlateVisibility::Collapsed);
+	FloatingDamagePool.Add(Widget);
 }

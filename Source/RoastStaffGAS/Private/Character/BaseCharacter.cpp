@@ -5,6 +5,7 @@
 #include "AbilitySystemComponent.h"
 #include "GAS/Attributes/BaseAttributeSet.h"
 #include "GAS/Tags/RSGameplayTags.h"
+#include "Character/Player/RSPlayerController.h"
 #include "System/LoggingSystem.h"
 
 ABaseCharacter::ABaseCharacter()
@@ -52,6 +53,38 @@ void ABaseCharacter::HandleDeath()
 	KHS_INFO(TEXT(" %s — 부모 공통 사망 처리 완료."), *GetName());
 
 	// 고유 사망 처리는 자식 클래스에서 오버라이드
+}
+
+void ABaseCharacter::SetupDamageDelegate()
+{
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	if (!ASC)
+	{
+		KHS_WARN(TEXT("%s — SetupDamageDelegate: ASC is null"), *GetName());
+		return;
+	}
+
+	ASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetCurrentHPAttribute())
+		.AddUObject(this, &ABaseCharacter::OnCurrentHPChangedForDamage);
+}
+
+void ABaseCharacter::OnCurrentHPChangedForDamage(const FOnAttributeChangeData& Data)
+{
+	const float Damage = Data.OldValue - Data.NewValue;
+	if (Damage <= 0.f)
+	{
+		return;
+	}
+
+	ARSPlayerController* PC = Cast<ARSPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (!PC)
+	{
+		KHS_WARN(TEXT("%s — OnCurrentHPChangedForDamage: ARSPlayerController 획득 실패"), *GetName());
+		return;
+	}
+
+	const FVector WorldPos = GetActorLocation() + FVector(0.f, 0.f, DamageWidgetZOffset);
+	PC->SpawnFloatingDamage(WorldPos, Damage);
 }
 
 void ABaseCharacter::BindAttributeDelegates()
