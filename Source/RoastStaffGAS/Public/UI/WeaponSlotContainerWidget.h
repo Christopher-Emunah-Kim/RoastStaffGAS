@@ -16,7 +16,7 @@ UCLASS()
 class ROASTSTAFFGAS_API UWeaponSlotContainerWidget : public URSBaseWidget
 {
 	GENERATED_BODY()
-	
+
 public:
 	UWeaponSlotWidget* GetSlotWidget(int32 SlotIndex) const;
 
@@ -30,5 +30,5 @@ private:
 	TObjectPtr<UWeaponSlotWidget> SlotWidget_1;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UWeaponSlotWidget> SlotWidget_2;
-	
+
 };

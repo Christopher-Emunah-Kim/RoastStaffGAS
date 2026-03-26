@@ -7,11 +7,13 @@
 
 #include "RoastStaffGAS.h"
 #include "Subsystems/EquipmentSubsystem.h"
+#include "Subsystems/LevelUpSubsystem.h"
 #include "Subsystems/UIManagerSubsystem.h"
 #include "UI/RSHUDWidget.h"
 #include "UI/WeaponSlotContainerWidget.h"
 #include "UI/WeaponSlotWidget.h"
 #include "UI/FloatingDamageWidget.h"
+#include "UI/LevelUpWeaponSelectWidget.h"
 #include "Data/RuntimeDataStructs.h"
 
 void ARSPlayerController::BeginPlay()
@@ -31,9 +33,11 @@ void ARSPlayerController::BeginPlay()
 	//슬롯 델리게이트 구독
 	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance());
 	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetGameInstance());
-	
+	GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
+
 	EquipSys->OnSlotUpdatedDel.AddDynamic(this, &ARSPlayerController::OnSlotUpdated);
-	KHS_INFO(TEXT("OnSlotUpdatedDel 구독 완료 "));
+	LevelUpSys->OnWeaponCandidatesReadyDel.AddDynamic(this, &ARSPlayerController::OnWeaponCandidatesReady);
+	KHS_INFO(TEXT("델리게이트 구독 완료 (SlotUpdated / WeaponCandidatesReady)"));
 
 	//HUD UI오픈
 	if (!HUDWidgetClass)
@@ -57,7 +61,10 @@ void ARSPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetGameInstance());
 	EquipSys->OnSlotUpdatedDel.RemoveDynamic(this, &ARSPlayerController::OnSlotUpdated);
-	
+
+	GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
+	LevelUpSys->OnWeaponCandidatesReadyDel.RemoveDynamic(this, &ARSPlayerController::OnWeaponCandidatesReady);
+
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -163,6 +170,62 @@ void ARSPlayerController::OnSlotActivate(const FInputActionValue& Value, int32 S
 {
 	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetGameInstance());
 	EquipSys->RequestSlotActivate(SlotIndex);
+}
+
+// ============================================================================
+// 레벨업 UI 관리
+// ============================================================================
+
+void ARSPlayerController::OnWeaponCandidatesReady(const TArray<FWeaponCardDisplayData>& WeaponCards)
+{
+	if (!ensureMsgf(LevelUpUIClass, TEXT("LevelUpUIClass 미할당 — BP_PlayerController에서 설정 필요")))
+	{
+		GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
+		LevelUpSys->NotifyWeaponSelectCompleted();
+		return;
+	}
+
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance());
+	ULevelUpWeaponSelectWidget* Widget = UMS->OpenUI<ULevelUpWeaponSelectWidget>(LevelUpUIClass);
+
+	if (!ensureMsgf(Widget, TEXT("LevelUpWeaponSelectWidget 오픈 실패")))
+	{
+		GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
+		LevelUpSys->NotifyWeaponSelectCompleted();
+		return;
+	}
+
+	CachedLevelUpWidget = Widget;
+	Widget->OnWeaponSelectCompletedDel.AddDynamic(this, &ARSPlayerController::OnWeaponSelectCompleted);
+	Widget->SetCandidates(WeaponCards);
+
+	// 게임 일시정지 (추후 StageSystem 위임으로 교체 예정)
+	if (UWorld* World = GetWorld())
+	{
+		World->GetWorldSettings()->TimeDilation = 0.f;
+	}
+
+	KHS_INFO(TEXT("레벨업 UI 오픈 — 후보 %d종"), WeaponCards.Num());
+}
+
+void ARSPlayerController::OnWeaponSelectCompleted()
+{
+	if (CachedLevelUpWidget)
+	{
+		CachedLevelUpWidget->OnWeaponSelectCompletedDel.RemoveDynamic(this, &ARSPlayerController::OnWeaponSelectCompleted);
+		CachedLevelUpWidget = nullptr;
+	}
+
+	// 게임 재개 (추후 StageSystem 위임으로 교체 예정)
+	if (UWorld* World = GetWorld())
+	{
+		World->GetWorldSettings()->TimeDilation = 1.f;
+	}
+
+	GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
+	LevelUpSys->NotifyWeaponSelectCompleted();
+
+	KHS_INFO(TEXT("레벨업 UI 종료 — 게임 재개"));
 }
 
 // ============================================================================

@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "Data/RuntimeDataStructs.h"
 #include "LevelUpSubsystem.generated.h"
 
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponCandidatesReady, const TArray<FName>&, WeaponIDs);
+/** 무기 후보 선정 완료 — PlayerController가 구독하여 UI 오픈 */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponCandidatesReady, const TArray<FWeaponCardDisplayData>&, WeaponCards);
 
 class UAbilitySystemComponent;
 class UPlayerAttributeSet;
@@ -19,11 +20,21 @@ class ROASTSTAFFGAS_API ULevelUpSubsystem : public UGameInstanceSubsystem
 	GENERATED_BODY()
 
 public:
-	// PlayerCharacter::InitializeAbilitySystem()에서 호출
-	void InitializeSubsystem(UAbilitySystemComponent* InASC, UPlayerAttributeSet* InAttributeSet, TSubclassOf<UGameplayEffect> InAddEXPEffectClass);
+	/** PlayerCharacter::InitializeAbilitySystem()에서 호출 */
+	void InitializeSubsystem(
+		UAbilitySystemComponent* InASC,
+		UPlayerAttributeSet* InAttributeSet,
+		TSubclassOf<UGameplayEffect> InAddEXPEffectClass);
 
 	UFUNCTION(BlueprintCallable, Category = "MY|LevelUp")
 	void AddEXP(float Amount);
+
+	/** 무기 후보 선정 완료 시 발행 — PlayerController가 구독하여 레벨업 UI 오픈 */
+	UPROPERTY(BlueprintAssignable, Category = "MY|LevelUp")
+	FOnWeaponCandidatesReady OnWeaponCandidatesReadyDel;
+
+	/** PlayerController가 UI 종료 시 호출 — bIsLevelingUp 해제 */
+	void NotifyWeaponSelectCompleted();
 
 private:
 	UFUNCTION()
@@ -33,11 +44,6 @@ private:
 	void SelectWeaponCandidates();
 	void ApplyLevelUp(int32 CurrentLevel, float OverflowEXP);
 
-public:
-	// 무기 후보 선정 완료 시 발행 — UI 또는 EquipmentSubsystem이 구독
-	UPROPERTY(BlueprintAssignable, Category = "MY|LevelUp")
-	FOnWeaponCandidatesReady OnWeaponCandidatesReadyDel;
-
 private:
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> ASC;
@@ -46,11 +52,9 @@ private:
 	UPROPERTY()
 	TSubclassOf<UGameplayEffect> AddEXPEffectClass;
 
-	bool bIsLevelingUp = false;
+	bool bIsLevelingUp  = false;
 	bool bIsInitialized = false;
 
-	static constexpr int32 MAX_LEVEL = 20;
+	static constexpr int32 MAX_LEVEL            = 20;
 	static constexpr int32 WEAPON_CANDIDATE_COUNT = 3;
-	
-	
 };

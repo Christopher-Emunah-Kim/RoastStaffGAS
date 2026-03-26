@@ -1,14 +1,18 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Subsystems/LevelUpSubsystem.h"
 #include "RoastStaffGAS.h"
 #include "GAS/Attributes/PlayerAttributeSet.h"
 #include "Subsystems/GameDataSubsystem.h"
 #include "Subsystems/EquipmentSubsystem.h"
 #include "GAS/Tags/RSGameplayTags.h"
+#include "Data/DataTableStructs.h"
+#include "Algo/RandomShuffle.h"
 
-void ULevelUpSubsystem::InitializeSubsystem(UAbilitySystemComponent* InASC, UPlayerAttributeSet* InAttributeSet,TSubclassOf<UGameplayEffect> InAddEXPEffectClass)
+void ULevelUpSubsystem::InitializeSubsystem(
+	UAbilitySystemComponent* InASC,
+	UPlayerAttributeSet* InAttributeSet,
+	TSubclassOf<UGameplayEffect> InAddEXPEffectClass)
 {
 	if (bIsInitialized)
 	{
@@ -16,17 +20,17 @@ void ULevelUpSubsystem::InitializeSubsystem(UAbilitySystemComponent* InASC, UPla
 		return;
 	}
 
-	if (!InASC || !InAttributeSet || !InAddEXPEffectClass )
+	if (!InASC || !InAttributeSet || !InAddEXPEffectClass)
 	{
 		KHS_WARN(TEXT("필수 초기화 데이터 누락"));
 		return;
 	}
-	
-	ASC				  = InASC;
-	AttributeSet	  = InAttributeSet;
+
+	ASC             = InASC;
+	AttributeSet    = InAttributeSet;
 	AddEXPEffectClass = InAddEXPEffectClass;
 
-	AttributeSet->OnEXPChangedDel.AddDynamic(this, &ULevelUpSubsystem::OnEXPChanged); //경험치 이벤트 구독
+	AttributeSet->OnEXPChangedDel.AddDynamic(this, &ULevelUpSubsystem::OnEXPChanged);
 
 	bIsInitialized = true;
 	KHS_INFO(TEXT("LevelUpSubsystem 초기화 완료"));
@@ -86,33 +90,34 @@ void ULevelUpSubsystem::CheckLevelUp(float NewEXP, int32 CurrentLevel)
 
 	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
 
-	float CurrentExpToProcess  = NewEXP;
-	int32 LevelToProcess       = CurrentLevel;
-	float RequiredExp		   = 0.f;
-	
-	//잔여경험치를 반복 처리(레벨업 여러번일 경우)
-	while (LevelToProcess < MAX_LEVEL && GDS->GetLevelCurveValue(FName("RequiredEXP"), LevelToProcess + 1, RequiredExp) && CurrentExpToProcess >= RequiredExp)
+	float RequiredExp = 0.f;
+	if (!GDS->GetLevelCurveValue(FName("RequiredEXP"), CurrentLevel + 1, RequiredExp))
 	{
-		CurrentExpToProcess -= RequiredExp;
-
-		bIsLevelingUp = true;
-		
-		KHS_INFO(TEXT("레벨업! %d → %d (남은EXP: %.0f)"),	LevelToProcess, LevelToProcess + 1, CurrentExpToProcess);
-
-		ApplyLevelUp(LevelToProcess, CurrentExpToProcess);
-		SelectWeaponCandidates();
-		
-		bIsLevelingUp = false;
-
-		LevelToProcess++;
+		return;
 	}
+
+	if (NewEXP < RequiredExp)
+	{
+		return;
+	}
+
+	const float OverflowEXP = NewEXP - RequiredExp;
+	bIsLevelingUp = true;
+
+	KHS_INFO(TEXT("레벨업! %d → %d (남은EXP: %.0f)"), CurrentLevel, CurrentLevel + 1, OverflowEXP);
+
+	ApplyLevelUp(CurrentLevel, OverflowEXP);
+	SelectWeaponCandidates();
+	// bIsLevelingUp는 PlayerController가 UI 종료 후 NotifyWeaponSelectCompleted()로 해제
+	// 잉여 EXP 연속 레벨업은 Task B에서 처리
 }
 
 void ULevelUpSubsystem::SelectWeaponCandidates()
 {
 	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
+	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys);
 
-	TArray<FName> WeaponPool = GDS->GetWeaponIDsByLevel(1); //1레벨 무기만.
+	TArray<FName> WeaponPool = GDS->GetWeaponIDsByLevel(1);
 
 	if (WeaponPool.IsEmpty())
 	{
@@ -121,31 +126,89 @@ void ULevelUpSubsystem::SelectWeaponCandidates()
 		return;
 	}
 
-	//셔플해서 앞에서 N개까지만 뽑기
 	Algo::RandomShuffle(WeaponPool);
 
-	TArray<FName> Candidates;
 	const int32 PickCount = FMath::Min(WeaponPool.Num(), WEAPON_CANDIDATE_COUNT);
+	TArray<FWeaponCardDisplayData> Candidates;
 
 	for (int32 i = 0; i < PickCount; i++)
 	{
-		Candidates.Add(WeaponPool[i]);
+		const FName& CandidateID = WeaponPool[i];
+
+		FWeaponStaticData CandidateData;
+		if (!GDS->GetWeaponData(CandidateID, CandidateData))
+		{
+			KHS_WARN(TEXT("후보 무기 데이터 조회 실패 — ID: %s, 건너뜀"), *CandidateID.ToString());
+			continue;
+		}
+
+		// 현재 장착 슬롯과 BaseType 비교로 카드 상태 결정
+		EWeaponCardState CardState = EWeaponCardState::New;
+		for (int32 SlotIdx = 0; SlotIdx < EquipSys->GetSlotCount(); SlotIdx++)
+		{
+			const FWeaponSlotInstanceData* SlotData = EquipSys->GetSlotData(SlotIdx);
+			if (!SlotData || SlotData->IsEmpty())
+			{
+				continue;
+			}
+
+			FWeaponStaticData EquippedData;
+			if (!GDS->GetWeaponData(SlotData->SlotEquipData.WeaponID, EquippedData))
+			{
+				continue;
+			}
+
+			if (EquippedData.BaseType != CandidateData.BaseType)
+			{
+				continue;
+			}
+
+			switch (EquippedData.WeaponLevel)
+			{
+				case 1:  CardState = EWeaponCardState::Lv1ToLv2; break;
+				case 2:  CardState = EWeaponCardState::Lv2ToLv3; break;
+				case 3:  CardState = EWeaponCardState::Lv3Max;   break;
+				default: break;
+			}
+			break; // 첫 번째 일치 슬롯 기준
+		}
+
+		FWeaponSlotEquipData EquipData;
+		FWeaponCardDisplayData CardData;
+		CardData.WeaponID    = CandidateID;
+		CardData.WeaponName  = CandidateData.WeaponName;
+		CardData.Description = CandidateData.Description;
+		CardData.CardState   = CardState;
+		CardData.bCanEvolve  = false; // DT_Combination 미구현 스텁
+		if (GDS->GetWeaponSlotEquipData(CandidateID, EquipData))
+		{
+			CardData.WeaponIcon = EquipData.SkillIcon;
+		}
+
+		Candidates.Add(CardData);
 	}
 
-	KHS_INFO(TEXT("무기 후보 선정 완료: %s / %s / %s"), *Candidates[0].ToString(),	*Candidates[1].ToString(), *Candidates[2].ToString());
+	if (Candidates.IsEmpty())
+	{
+		KHS_WARN(TEXT("유효 후보 0종 — 델리게이트 발행 취소"));
+		bIsLevelingUp = false;
+		return;
+	}
 
-	// UI 미구현 — 첫 번째 후보 자동 장착
-	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys);
-	EquipSys->EquipWeapon(Candidates[0]);
-
-	//TODO  델리게이트 발행 — UI 연동 후 위 임시 코드 제거하고 여기서 처리
+	KHS_INFO(TEXT("무기 후보 선정 완료 — %d종 발행"), Candidates.Num());
 	OnWeaponCandidatesReadyDel.Broadcast(Candidates);
 }
 
 void ULevelUpSubsystem::ApplyLevelUp(int32 CurrentLevel, float OverflowEXP)
 {
-	ASC->SetNumericAttributeBase(AttributeSet->GetLevelAttribute(),	static_cast<float>(CurrentLevel + 1));
-	ASC->SetNumericAttributeBase(AttributeSet->GetEXPAttribute(),OverflowEXP);
+	ASC->SetNumericAttributeBase(AttributeSet->GetLevelAttribute(), static_cast<float>(CurrentLevel + 1));
+	ASC->SetNumericAttributeBase(AttributeSet->GetEXPAttribute(), OverflowEXP);
 
 	KHS_INFO(TEXT("어트리뷰트 갱신 — Level: %d, EXP: %.0f"), CurrentLevel + 1, OverflowEXP);
+}
+
+void ULevelUpSubsystem::NotifyWeaponSelectCompleted()
+{
+	bIsLevelingUp = false;
+	KHS_INFO(TEXT("무기 선택 완료 알림 수신 — bIsLevelingUp 해제"));
 }
