@@ -30,7 +30,10 @@ void AEnemyAIController::Tick(float DeltaTime)
 	
 	//플레이어가 죽거나, 유효하지않으면 false.
 	//플레이어가 유효한 경우 tick으로 위치 추적.
-	if (!UpdatePlayerInfo()) return;
+	if (!UpdatePlayerInfo())
+	{
+		return;
+	}
 }
 
 
@@ -112,4 +115,26 @@ void AEnemyAIController::StartAI(UBehaviorTree* BehaviorTree)
 	}
 
 	KHS_INFO(TEXT("%s — BehaviorTree 실행 완료."), *GetName());
+}
+
+void AEnemyAIController::SetInitialTargetLocation(const FVector& Location)
+{
+	UBlackboardComponent* BB = GetBlackboardComponent();
+	if (!BB)
+	{
+		KHS_WARN(TEXT("%s — SetInitialTargetLocation: Blackboard가 없음"), *GetName());
+		return;
+	}
+	BB->SetValueAsVector(BBKey_PlayerLocation, Location);
+	BB->SetValueAsBool(BBKey_bPlayerDead, false);
+}
+
+void AEnemyAIController::StopAI()
+{
+	if (UBrainComponent* Brain = GetBrainComponent())
+	{
+		Brain->StopLogic(TEXT("Pooled — deactivated"));
+	}
+	StopMovement();
+	KHS_INFO(TEXT("%s — AI 중단."), *GetName());
 }

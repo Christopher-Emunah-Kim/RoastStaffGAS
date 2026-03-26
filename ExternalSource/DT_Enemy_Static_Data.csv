@@ -1,3 +1,3 @@
----,EnemyID,MaxHP,MoveSpeed,AttackDamage,AttackCooldown,AttackRange,AIType,BehaviorTree,SpawnWeight,DropEXP
-ENM_Melee_01,"ENM_Melee_01","500.000000","300.000000","10.000000","1.500000","120.000000","CHASE","/Game/Blueprint/Enemy/BT_MeleeEnemy.BT_MeleeEnemy","1.000000","10"
-ENM_Melee_02,"ENM_Melee_02","500.000000","250.000000","20.000000","1.500000","120.000000","CHASE","/Game/Blueprint/Enemy/BT_MeleeEnemy.BT_MeleeEnemy","0.500000","25"
+---,EnemyID,MaxHP,MoveSpeed,AttackDamage,AttackCooldown,AttackRange,AIType,BehaviorTree,SpawnWeight,DropEXP,EnemyClass
+ENM_Melee_01,"ENM_Melee_01","500.000000","300.000000","10.000000","1.500000","120.000000","CHASE","/Game/Blueprint/Enemy/BT_MeleeEnemy.BT_MeleeEnemy","1.000000","10","/Game/Blueprint/Enemy/BP_MeleeEnemy.BP_MeleeEnemy_C"
+ENM_Melee_02,"ENM_Melee_02","500.000000","250.000000","20.000000","1.500000","120.000000","CHASE","/Game/Blueprint/Enemy/BT_MeleeEnemy.BT_MeleeEnemy","0.500000","25","/Game/Blueprint/Enemy/BP_MeleeEnemy.BP_MeleeEnemy_C"
