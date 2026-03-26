@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash \"C:\\\\Users\\\\KGA\\\\Projects\\\\RoastStaffGAS\\\\.claude\\\\scripts\\\\gemini-review.sh\" code)",
+      "Skill(update-config)",
+      "Bash(find C:UsersKGAProjectsRoastStaffGAS_Design -type f -name *.md)",
+      "Skill(coding)",
+      "mcp__ide__getDiagnostics",
+      "Skill(test)",
+      "Bash(.claude/scripts/gemini-review.sh code:*)",
+      "Bash(cd:*)",
+      "Bash(/c/Users/KGA/Projects/RoastStaffGAS/.claude/scripts/gemini-review.sh plan:*)",
+      "Bash(C:/Users/KGA/Projects/RoastStaffGAS/.claude/scripts/gemini-review.sh code:*)",
+      "Bash(bash \"C:/Users/KGA/Projects/RoastStaffGAS/.claude/scripts/gemini-review.sh\" code)",
+      "Bash(\"C:/Users/KGA/Projects/RoastStaffGAS/_Design/Handoff/HANDOFF_LATEST.md\":*)"
+    ]
+  },
+  "enabledPlugins": {
+    "hookify@claude-plugins-official": false
+  }
+}
