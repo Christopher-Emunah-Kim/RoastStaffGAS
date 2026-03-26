@@ -370,6 +370,8 @@ struct FStatusEffectData : public FTableRowBase
 // ----------------------------------------------------------------------------
 // DT_Enemy — 에너미 기본 데이터
 // ----------------------------------------------------------------------------
+class AEnemyBaseCharacter;
+
 USTRUCT(BlueprintType)
 struct FEnemyStaticData : public FTableRowBase
 {
@@ -401,9 +403,13 @@ struct FEnemyStaticData : public FTableRowBase
 	/** 웨이브 스폰 가중치 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
 	float SpawnWeight;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
 	int32 DropEXP;
+
+	/** 스폰할 BP 에너미 클래스 에셋 경로 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
+	TSoftClassPtr<AEnemyBaseCharacter> EnemyClass;
 };
 
 

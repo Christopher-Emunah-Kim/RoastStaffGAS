@@ -4,10 +4,13 @@
 #include "Character/Enemy/EnemyBaseCharacter.h"
 #include "RoastStaffGAS.h"
 #include "AbilitySystemComponent.h"
+#include "BrainComponent.h"
 #include "Character/Enemy/EnemyAIController.h"
 #include "GAS/Attributes/EnemyAttributeSet.h"
 #include "GAS/Attributes/BaseAttributeSet.h"
 #include "Subsystems/GameDataSubsystem.h"
+#include "Subsystems/PoolingSubsystem.h"
+#include "Subsystems/StageManagerSubsystem.h"
 #include "Data/DataTableStructs.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GAS/Tags/RSGameplayTags.h"
@@ -89,6 +92,8 @@ void AEnemyBaseCharacter::InitializeEnemy(FName InEnemyID)
 void AEnemyBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	// 풀에서 처음 생성 시 비활성 상태로 시작 (BaseSummonObject 동일 패턴)
+	OnPoolDeactivate();
 }
 
 UAbilitySystemComponent* AEnemyBaseCharacter::GetAbilitySystemComponent() const
@@ -123,7 +128,7 @@ void AEnemyBaseCharacter::InitializeAbilitySystem()
 
 void AEnemyBaseCharacter::HandleDeath()
 {
-	// 공통 사망 프로세스 (GA 종료, GE 제거, State.Dead 태그, 충돌 비활성화)
+	// 공통 사망 프로세스 (bIsDead 가드, GA 종료, GE 제거, State.Dead 태그, 충돌 비활성화)
 	Super::HandleDeath();
 
 	// HPBar 숨김
@@ -139,13 +144,77 @@ void AEnemyBaseCharacter::HandleDeath()
 			.RemoveAll(this);
 	}
 
-	// StageWaveSubsystem에 처치 통보
+	// 생존 목록에서 먼저 제거한 후 처치 이벤트 브로드캐스트
+	if (UStageManagerSubsystem* StageMgr = GetWorld()->GetSubsystem<UStageManagerSubsystem>())
+	{
+		StageMgr->UnregisterAliveEnemy(this);
+	}
 	OnEnemyKilledDel.Broadcast(EnemyID);
 
-	// 사망 연출 후 액터 소멸 (2초)
-	SetLifeSpan(2.f);
+	// 사망 연출 후 풀 반납 (SetLifeSpan 대신 ReturnToPool — 액터 재사용)
+	GetWorldTimerManager().SetTimer(
+		DeathReturnTimerHandle,
+		[this]()
+		{
+			if (UPoolingSubsystem* PoolSys = GetWorld()->GetSubsystem<UPoolingSubsystem>())
+			{
+				PoolSys->ReturnToPool(this);
+			}
+		},
+		DeathPoolReturnDelay,
+		false
+	);
 
 	KHS_INFO(TEXT("%s — 에너미 사망 처리 완료. EnemyID: %s"), *GetName(), *EnemyID.ToString());
+}
+
+void AEnemyBaseCharacter::OnPoolActivate()
+{
+	// 가시성 및 충돌 활성화
+	SetActorHiddenInGame(false);
+	SetActorEnableCollision(true);
+
+	// ASC Actor 정보 갱신 및 State.Dead 태그 제거
+	if (ASC)
+	{
+		ASC->InitAbilityActorInfo(this, this);
+
+		FGameplayTagContainer DeadTag;
+		DeadTag.AddTag(RSTags::State_Dead);
+		ASC->RemoveLooseGameplayTags(DeadTag);
+	}
+
+	// HPBar 표시
+	if (HPBarWidgetComp)
+	{
+		HPBarWidgetComp->SetVisibility(true);
+	}
+
+	// 재초기화 허용 플래그 리셋
+	bIsInitialized = false;
+	bIsDead        = false;
+}
+
+void AEnemyBaseCharacter::OnPoolDeactivate()
+{
+	// 가시성 및 충돌 비활성화
+	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
+
+	// 진행 중인 Ability 강제 종료 (ASC가 준비된 경우만)
+	if (ASC)
+	{
+		ASC->CancelAllAbilities();
+	}
+
+	// AI 중단
+	if (AEnemyAIController* AIC = Cast<AEnemyAIController>(GetController()))
+	{
+		AIC->StopAI();
+	}
+
+	// 사망 복귀 타이머 정리 (비정상 반납 시 중복 실행 방지)
+	GetWorldTimerManager().ClearTimer(DeathReturnTimerHandle);
 }
 
 

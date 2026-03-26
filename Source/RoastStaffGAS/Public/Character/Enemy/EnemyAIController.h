@@ -36,10 +36,16 @@ private:
 public:
 	void StartAI(UBehaviorTree* BehaviorTree);
 
+	/** BT 시작 전 Blackboard에 초기 플레이어 위치를 즉시 설정 — Tick 대기 없이 첫 틱부터 유효한 목표 제공 */
+	void SetInitialTargetLocation(const FVector& Location);
+
+	/** 풀 반납 시 BT 로직 중단 및 이동 정지 */
+	void StopAI();
+
 private:
 	// tick 체크용 캐싱
 	TWeakObjectPtr<APawn> CachedPlayerPawn;
-	
+
 public:
 	// Blackboard 키 이름 상수
 	static const FName BBKey_PlayerLocation;

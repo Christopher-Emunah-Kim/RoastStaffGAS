@@ -83,17 +83,3 @@ enum class EAIType : uint8
 	RANGED	UMETA(DisplayName = "Ranged"),
 	ELITE	UMETA(DisplayName = "Elite")
 };
-
-
-UENUM(BlueprintType)
-enum class ELevelUpState : uint8
-{
-	
-};
-
-
-UENUM(BlueprintType)
-enum class EStageState : uint8
-{
-	
-};

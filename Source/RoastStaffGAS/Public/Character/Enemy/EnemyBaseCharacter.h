@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Character/BaseCharacter.h"
 #include "Data/DataTableStructs.h"
+#include "Interface/PoolableInterface.h"
 #include "EnemyBaseCharacter.generated.h"
 
 
@@ -28,7 +29,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyKilled, FName, EnemyID);
 
 
 UCLASS()
-class ROASTSTAFFGAS_API AEnemyBaseCharacter : public ABaseCharacter
+class ROASTSTAFFGAS_API AEnemyBaseCharacter : public ABaseCharacter, public IPoolableInterface
 {
 	GENERATED_BODY()
 
@@ -49,6 +50,10 @@ protected:
 	virtual UBaseAttributeSet* GetBaseAttributeSet() const override;
 	virtual void InitializeAbilitySystem() override;
 	virtual void HandleDeath() override;
+
+	// IPoolableInterface 구현
+	virtual void OnPoolActivate() override;
+	virtual void OnPoolDeactivate() override;
 
 private:
 	bool ApplyStatData(FEnemyStaticData& EnemyData);
@@ -73,7 +78,6 @@ private:
 	// UI 컴포넌트
 	UPROPERTY(VisibleAnywhere, Category = "MY|UI")
 	TObjectPtr<UWidgetComponent> HPBarWidgetComp;
-
 	UPROPERTY(EditDefaultsOnly, Category = "MY|UI")
 	TSubclassOf<UEnemyHPBarWidget> HPBarWidgetClass;
 
@@ -81,4 +85,11 @@ private:
 	FName EnemyID;
 	// 중복 초기화 방지
 	bool bIsInitialized = false;
+
+	/** 사망 후 풀 반납까지 대기 시간 (초) — 사망 연출 길이에 맞춰 BP에서 조정 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy")
+	float DeathPoolReturnDelay = 2.f;
+
+	/** 사망 후 풀 반납 타이머 */
+	FTimerHandle DeathReturnTimerHandle;
 };
