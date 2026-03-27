@@ -1,101 +1,128 @@
 ---
 name: planning
-description: >
-  기획서를 참조하여 구현 계획서를 작성하고 검증한다.
-  Use when: 새 기능 구현 요청, "계획 세워줘", "PLAN", "구현하고 싶어",
-  "이 시스템 만들어줘", 스프린트 작업 시작 시.
-  Do NOT use: 단순 질문, 코드 수정만 필요한 경우, 학습 질문.
+version: 3.1.0
+depends-on: []
+suggests-next: ["@cross-reviewer(선택)", "CODE"]
 allowed-tools: Read, Write, Edit, Grep, Glob, Agent
 ---
+# /planning RUNBOOK
+> 역할: 사용자와 계획 협의 → @planning-architect 호출 → TODO 생성 → 플랜 파일 저장
+> 토큰 전략: 기획서 분석은 @planning-architect에 위임. 이 Skill은 인터페이스만.
 
-# /planning — 기획 기반 구현 계획서 작성
+## STATE_MACHINE
+```
+INIT ──→ [A] _Design/TODO.md 확인
+          └─ [B] 사용자와 구현 목표 협의
+                └─ [C] @planning-architect 호출
+                      └─ [D] 결과 검토 + 사용자 승인
+                            ├─ A) 승인 ──────────────→ [E] TODO 갱신 + 파일 저장
+                            ├─ B) Gemini리뷰 → 반영 → [E]
+                            ├─ C) 수정 ──────────────→ [C] 재호출
+                            └─ D) 일부 DEFERRED ─────→ [E]
+[E] → [F] 기획서 정정 제안(있으면) → DONE
+```
 
-## 역할
-기획서를 참조하여 구현 계획서를 작성하고, 기획서와의 일관성을 검증한다.
-승인된 계획서를 파일로 저장하고, Gemini 크로스 리뷰를 거쳐 정교화한다.
+## EXEC
 
-## 실행 절차
+### [A] TODO 확인
+`_Design/TODO.md` 읽기:
+```
+ACTIVE_WORK 있음:
+  "진행 중 작업: [목록]
+   A) 이어서  B) 새 작업  C) DEFERRED 후 새 작업"
+DEFERRED 있음: "미뤄둔 작업: [목록] — 이번에 처리할까요?"
+둘 다 없음: 바로 [B]
+```
 
-### Phase A — 계획서 작성
+### [B] 목표 협의
+```
+- 무엇을 만드는가 (한 문장)
+- 연관 기획서 이름 (_Design/References/Systems/ 내)
+- 이번 세션 범위 vs 전체 설계
+```
 
-#### Step 1 — 기획서 탐색
-1. 요청과 관련된 기획서를 `_Design/Systems/`에서 **파일명으로 먼저 특정**한다.
-2. **관련 기획서만 읽는다** (최대 3개). 전체 기획서를 순회하지 않는다.
-3. 해당 스프린트 계획서(`_Design/Sprints/`)가 있으면 현재 구현 범위를 확인한다.
-4. 기획서에서 관련 데이터 스키마, 함수 흐름, 예외처리 규칙을 추출한다.
+### [C] @planning-architect 호출
+전달: 사용자 요청 한 문장 + 연관 기획서 파일명
+수신 후 처리:
+- feature/plan_file → 제목
+- modules[].name + tasks → 모듈 목록 + 체크리스트
+- modules[].files_new/modified → 영향 범위
+- design_notes → 기획서 정합 이슈
+- missing_specs → 기획서 미정의 항목 (있으면 경고)
+- modules[].deferred=true → [D] 옵션 D 자동 제안
 
-#### Step 2 — 계획서 작성
-`references/plan-template.md` 양식에 따라 계획서를 작성한다.
+### [D] 승인 요청 (ASK_USER_FORMAT)
+> 형식: .claude/references/ask-user-format.md
+```
+📌 [PLAN] | [기능명]
+상황: [기능명] 구현 계획서가 준비됐습니다.
+      [아키텍처 다이어그램]
+      [모듈 목록]
+결정: 이 계획대로 진행할까요?
+권장: A) — 설계가 기획서와 정합하고 모듈 분해가 적절합니다.
+A) 승인 — TODO 갱신 후 코딩 시작
+B) Gemini 검증 후 승인
+C) 수정 요청
+D) 일부 모듈 나중에
+```
+⚠️ missing_specs 있으면 D 전에 별도 질문
 
-#### Step 3 — 자가 검토
-1. **기획서와의 일관성**: 우선순위 규칙, 데이터 흐름, 예외처리가 기획서와 일치하는가
-2. **누락된 예외처리**: 기획서에 명시된 예외 상황 중 계획서에 반영되지 않은 항목
-3. **기획서 정정 필요 사항**: 기존 기획서와 차이가 있는 항목 식별
+### [E] TODO 갱신 + 저장
+`_Design/TODO.md` ACTIVE_WORK에 추가:
+```markdown
+## [FEATURE] [기능명] | PLAN_[시스템명]_v1.0
+> 시작: YYYY-MM-DD | 기획서: [파일명]
 
-검토 결과를 계획서 하단 `[검토 결과]` 섹션에 추가한다.
+  ### [MODULE-1] [모듈명]
+  신규: [파일명.h/.cpp]
+  수정: [파일명.h/.cpp]
+    - [ ] [태스크] (클래스명)   [P0]
 
-### Phase B — 사용자 승인 및 Gemini 리뷰 선택
+  ### [MODULE-2] [모듈명]
+    - [ ] [태스크]              [P1]
+```
 
-#### Step 4 — 사용자 승인 요청
-계획서를 사용자에게 제시한다:
+DEFERRED:
+```markdown
+- [~] [MODULE-N] [이름] — 이유: [발언 요약] | [P2] | REF: [기능명]
+```
 
-> 📋 계획서 검토를 요청합니다.
-> - **승인**: 계획서를 확정하고 파일로 저장합니다.
-> - **Gemini 리뷰 후 승인**: `@cross-reviewer`를 통해 Gemini 리뷰를 받은 후 승인합니다.
-> - **정정 요청**: 수정할 내용을 알려주세요.
+플랜 파일: `_Design/Plans/active/PLAN_[시스템명]_v1.0.md`
+CHANGESET: `_Design/Changesets/CHANGESET.md` 신규 항목 append
 
-#### Step 5 — 사용자 선택에 따른 처리
+### [F] 기획서 정정 제안
+```
+📝 [기획서 정정 필요]
+| # | 대상 | 섹션 | 내용 |
+승인/부분승인/보류
+```
 
-**5-1. 직접 승인 (Gemini 리뷰 스킵)**
-- 계획서를 그대로 파일로 저장하고 Phase C로 진행
+## DONE
+```
+✅ [PLAN] DONE
+TODO: _Design/TODO.md 갱신
+플랜: _Design/Plans/active/PLAN_[시스템명]_v1.0.md
+다음: /coding — MODULE-1부터
+```
 
-**5-2. Gemini 리뷰 후 승인**
-- `@cross-reviewer` 서브에이전트를 호출하여 계획서의 Gemini 리뷰를 받는다.
-- Gemini 리뷰에서 타당한 지적 사항을 계획서에 반영한다.
-- 반영하지 않은 지적은 사유와 함께 `[검토 결과]`에 기록한다.
-- Step 6으로 진행
+## ON_DEMAND_REFS
+```yaml
+plan_template: .claude/skills/planning/references/plan-template.md  # [E] 저장 시
+protocols:     .claude/references/protocols.md                       # TODO_WORKFLOW 확인 시
+```
 
-**5-3. 정정 요청**
-- 사용자 피드백 → 계획서 반영 → 변경 부분 명시 → Step 4 반복
+## COMPLETION
+```
+DONE:              플랜 저장 완료, TODO 갱신 완료
+DONE_WITH_CONCERNS: 저장됨, 기획서 미정의 항목 존재
+BLOCKED:           기획서 없음 (_Design/References/Systems/ 확인 요청)
+NEEDS_CONTEXT:     구현 범위 불명확
+```
 
-#### Step 6 — 최종 승인 확인 (Gemini 리뷰 후)
-Gemini 리뷰 반영 후 사용자에게 최종 승인을 요청한다:
-
-> 📋 Gemini 리뷰 반영이 완료되었습니다.
-> - **승인**: 계획서를 확정하고 파일로 저장합니다.
-> - **정정 요청**: 수정할 내용을 알려주세요.
-
-### Phase C — 계획서 파일 저장
-
-#### Step 7 — 계획서 파일 저장
-`_Design/Sprints/Plans/PLAN_[시스템명]_v1.0.md` 파일을 생성한다.
-
-### Phase D — 기획서 정정 제안
-
-#### Step 8 — 기획서 정정 여부 확인
-자가 검토에서 식별된 기획서 정정 필요 사항을 사용자에게 제시한다.
-
-> 📝 이 계획서에 따라 아래 기획서의 정정이 필요합니다.
->
-> | # | 대상 문서 | 정정 섹션 | 정정 내용 요약 |
-> |---|----------|-----------|---------------|
->
-> **승인** / **부분 승인** / **보류** 중 선택해주세요.
-
-#### Step 9 — 기획서 정정 실행 (승인 시)
-- 대상 기획서 수정
-- 정정 이력(날짜, 내용, 사유) 추가
-- 버전 번호 갱신
-
-### Phase E — 다음 단계 전환
-
-> ✅ [PLAN] 완료
-> 📁 확정 계획서: `_Design/Sprints/Plans/PLAN_[시스템명]_v1.0.md`
-> 다음 단계: [CODE] — `/coding` 실행으로 진행할까요?
-
-## 금지사항
-- 기획서를 읽지 않고 계획서를 작성하지 않는다.
-- 기획서에 정의된 규칙과 충돌하는 내용을 포함하지 않는다.
-- 기획서 미정의 항목은 반드시 명시한다.
-- 사용자 승인 없이 계획서를 파일로 저장하지 않는다.
-- 사용자 승인 없이 기획서를 정정하지 않는다.
+## RULES
+```
+- @planning-architect 호출 전 사용자와 목표 협의 필수
+- 기획서 직접 읽지 않음 (architect에 위임)
+- 승인 없이 _Design/TODO.md 갱신 / 파일 저장 금지
+- DEFERRED 이동 시 반드시 이유 기록
+```

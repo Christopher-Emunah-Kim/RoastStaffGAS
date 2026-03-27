@@ -29,6 +29,9 @@ if (!SkillData)
 {
     return;
 }
+
+//하드코딩 금지
+- 대상 - DataTable/EditDefaultsOnly
 ```
 
 ## 일반 규칙

@@ -1,63 +1,97 @@
-# PROJECT VANGUARD — CLAUDE.md
+# CLAUDE.md
+> 라우터 + 목차. 규칙 상세는 .claude/references/ 참조.
 
-## 프로젝트
-- RoastStaffGAS: 쿼터뷰 디펜스 RPG 로그라이크 (UE5 C++, GAS, 싱글플레이어)
-- 아키텍처: 데이터 드리븐 — CSV → DataTable → Subsystem → GA
-- 네트워킹: 싱글플레이어 전용 (Replication 코드 비활성)
-
-## 핵심 서브시스템
-- GDS(UGameDataSubsystem): 정적 DataTable 로드/캐싱/조회 허브
-- SGS(USaveGameSubsystem): 영구 저장 데이터 관리
-- RDS(URuntimeDataSubsystem): 세션 내 동적 상태 (해금, 슬롯, 선택 캐릭터)
-- UMS(UIManagerSubsystem): 위젯 생명주기, 레이어, 팝업 스택 관리
-
-## 절대 규칙
-1. 모든 구현 작업은 파이프라인을 따른다: PLAN → CROSS-REVIEW → 승인 → CODE(+셀프리뷰) → 승인 → (선택)TEST → (선택)SENIOR-REVIEW → (선택)LEARN → 커밋 요청 → 승인
-2. 기획서(`_Design/Systems/`)를 읽지 않고 코드를 작성하지 않는다.
-3. 기획서와 충돌 시 "기획서 ○○의 ○○ 규칙과 충돌합니다" 명시 후 선택지 제시.
-4. 하드코딩 금지. 수치/규칙은 DataTable 또는 외부 데이터에서 참조.
-5. 모든 if문은 중괄호 필수. 인라인 return 금지.
-6. 새 개념 등장 시 코드 전 Q&A로 개념 먼저 설명 (학습 모드).
-7. CODE 단계 승인 후, TEST나 SENIOR-REVIEW, LEARN 단계는 실행여부를 반드시 사용자에게 승인을 요청한다. 호출 전에 `/compact`를 실행하여 컨텍스트를 정리한다.
-8. 새 세션 시작 시 `_Design/Handoff/HANDOFF_LATEST.md`를 확인하여 이전 작업 컨텍스트를 이어받는다.
-
-## 코딩 컨벤션 참조
-- 상세 컨벤션: `.claude/skills/coding/references/conventions.md`
-- 예외처리 계층/GAS 패턴/GC 참조 규칙 모두 해당 파일 참조.
-
-## 기획서 참조
-- 기획서 위치: `_Design/Systems/`, `_Design/_Overview/`
-- 기획서 목록은 스킬이 자동으로 탐색. CLAUDE.md에 목록 유지하지 않음.
-
-## 에이전트/스킬 구조
-- 스킬: `/planning`, `/coding`, `/test`, `/sync-doc`, `/update-design`
-- 에이전트: `@cross-reviewer`, `@senior-reviewer`, `@senior-reviewer-full`, `@learning-coach`
-
-## 세션 종료 프로토콜                                                          
- 사용자가 "세션 종료", "종료할게", "그만할게", "세션 종료하고", "핸드오프 작성하자" 등을 말하면:                           
- 1. `touch "$CLAUDE_PROJECT_DIR/.claude/.session_end_flag"` 실행
- 2. 핸드오프 문서를 직접 작성하지 않는다. Stop Hook이 템플릿을 생성하고 채우기를 요청한다.
-
-## 새 세션 시작 시 (Worktree 병합 후)
-1. `_Design/Handoff/HANDOFF_LATEST.md` 확인
-2. 명령: "Main handoff 업데이트: Worktree별 완료 내용을 통합해줘"
-3. Claude가 자동으로 다음 포맷으로 통합:
-
-### Main Handoff 통합 포맷
-```
-# Main Handoff — [Timestamp]
-
-## 최근 Worktree 작업 통합
-### [Worktree 1 작업 이름]
-- 완료: (핵심 사항)
-- 변경: (수정 파일)
-
-### [Worktree 2 작업 이름]
-- 완료: (핵심 사항)
-- 변경: (수정 파일)
-
-## 다음 작업 계획
-(Planning에서 결정할 사항)
+## PROJECT
+> 상세: _Design/References/README.md
+```yaml
+name: RoastStaffGAS
+arch: CSV → DataTable → Subsystem → GA
+refs:
+  기획서:   _Design/References/Systems/
+  계획서:   _Design/Plans/active/
+  리뷰:     _Design/Reviews/
+  학습:     _Design/Learning/
+  핸드오프: _Design/Handoff/
 ```
 
-4. 통합 완료 후 Planning 시작
+## ABSOLUTE_RULES
+```
+1. 파이프라인 강제: PLAN → CODE → [TEST] → [SR] → [LEARN] → COMMIT
+2. 기획서(_Design/References/Systems/) 또는 계획서(_Design/Plans/active/) 없이 코드 작성 금지
+3. 기획서 충돌 시: 중단 → "기획서 ○○의 ○○ 규칙과 충돌" → 선택지 제시
+4. 코딩 규칙: .claude/skills/coding/references/conventions.md 준수
+5. [TEST][SR][LEARN]은 사용자 승인 후 실행
+6. 3회 실패 → BLOCKED 자동 선언
+```
+
+## SESSION_START
+> 상세 프로토콜: .claude/references/protocols.md
+```
+1. _Design/TODO.md 읽기                      ← 최우선
+2. _Design/Plans/active/ 확인                ← 진행 중 플랜
+3. _Design/Changesets/CHANGESET.md 확인     ← PENDING_COMMIT만
+4. _Design/Handoff/HANDOFF_LATEST.md        ← 추가 컨텍스트 필요 시만
+```
+
+## ROUTING_TABLE
+```yaml
+PLAN:   trigger: ["계획","PLAN","구현하고 싶어","새 기능","시스템 만들어줘"]
+        load:    [.claude/skills/planning/SKILL.md]
+
+CODE:   trigger: ["코드 작성","CODE","구현해줘","만들어줘","이어서"]
+        load:    [.claude/skills/coding/SKILL.md]
+        pre:     _Design/TODO.md ACTIVE 항목 확인
+
+TEST:   trigger: ["테스트","TEST","검증","확인해줘"]
+        load:    [.claude/skills/test/SKILL.md]
+
+SR:     trigger: ["시니어리뷰","@senior-reviewer","리뷰해줘"]
+        load:    [.claude/agents/senior-reviewer.md]
+
+SR_F:   trigger: ["전체리뷰","@senior-reviewer-full"]
+        load:    [.claude/agents/senior-reviewer-full.md]
+
+LEARN:  trigger: ["학습리포트","@learning-coach"]
+        load:    [.claude/agents/learning-coach.md]
+
+CROSS:  trigger: ["Gemini리뷰","@cross-reviewer"]
+        load:    [.claude/agents/cross-reviewer.md]
+
+SYNC:   trigger: ["동기화","sync","정합성","기획서랑 코드 맞아"]
+        load:    [.claude/skills/sync-doc/SKILL.md]
+
+UPDOC:  trigger: ["기획서 수정","기획서 업데이트","update-design"]
+        load:    [.claude/skills/update-design/SKILL.md]
+
+COMMIT: trigger: ["커밋해줘","커밋하자","commit"]
+        load:    [.claude/skills/commit/SKILL.md]
+        pre:     _Design/Changesets/CHANGESET.md + _Design/TODO.md 읽기
+
+UPDATE: trigger: ["플로우 개선","스킬 수정","규칙 바꿔","agent-update","시스템 업데이트"]
+        load:    [.claude/skills/agent-update/SKILL.md]
+```
+
+## PIPELINE_FLOW
+> 상세: .claude/references/protocols.md#pipeline
+```
+[PLAN] → [CODE] → [TEST]* → [SR]* → [LEARN]* → COMMIT
+  * = 사용자 승인 필요
+```
+
+## LOAD_STRATEGY
+```yaml
+always:     [CLAUDE.md]
+session:    [_Design/TODO.md]
+on_route:   해당 SKILL.md 또는 agent.md 만
+on_demand:  각 SKILL의 ON_DEMAND_REFS 명시 시만
+never_auto: _Design/References/Systems/ 전체 순회 금지
+```
+
+## REFERENCES
+```yaml
+프로젝트 정보:  _Design/References/README.md
+워크플로우:     .claude/references/protocols.md
+커밋 정책:      .claude/references/commit-policy.md
+상호작용 형식:  .claude/references/ask-user-format.md
+완료 상태:      .claude/references/completion-status.md
+```

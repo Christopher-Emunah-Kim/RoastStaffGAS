@@ -1,102 +1,119 @@
 ---
 name: coding
-description: >
-  승인된 계획서 기반으로 코드를 직접 작성한다. 수정만 담당하며 리뷰/테스트는 하지 않는다.
-  Use when: "코드 작성해줘", "CODE", 계획서 승인 후 코드 작업 진행,
-  "구현해줘", "만들어줘".
-  Do NOT use: 계획서 없이 코드 작성 요청 시 (→ /planning 안내).
-  Do NOT use: 리뷰나 테스트 요청 시 (→ /review-test 안내).
+version: 3.1.0
+depends-on: ["_Design/Plans/active/ 내 PLAN 파일", "_Design/TODO.md MODULE 항목"]
+suggests-next: ["TEST(선택)", "SR(선택)"]
 allowed-tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob
 ---
+# /coding RUNBOOK
+> 페르소나: 20년차 시니어 UE5 C++ 게임 개발자
+> 역할: TODO의 MODULE 단위로 코드 작성 → 셀프리뷰 → TODO/CHANGESET 갱신
 
-# /coding — 계획서 기반 코드 작성
-
-## 역할
-확정된 계획서를 기반으로 C++ 코드를 코드베이스에 직접 작성한다.
-
-## 전제 조건
-- [PLAN] 단계에서 승인된 계획서가 `_Design/Sprints/Plans/`에 존재해야 한다.
-- 계획서가 없으면 `/planning`을 먼저 실행하도록 안내한다.
-
-### 점진적 작성 규칙
-- 파일 단위로 수정 → 셀프 리뷰 → 다음 파일 진행.
-- 한번에 6개 이상의 파일을 동시에 수정하지 않는다.
-- 각 파일 수정 후 컴파일 가능한 상태를 유지한다.
-
-## 실행 절차
-
-### Step 1 — 계획서 확인
-1. 승인된 계획서를 확인한다.
-2. 구현 목표, 영향 범위, 함수 호출 흐름, 예외처리 목록을 재확인한다.
-
-### Step 2 — 코드 작성
-계획서의 순서에 따라 코드베이스를 직접 수정한다.
-
-**작성 규칙:**
-- 컨벤션은 `references/conventions.md`를 참조한다.
-- **신규 파일:** 전체 코드 작성
-- **기존 파일 수정:** 변경 위치를 주석으로 명시
-- **하드코딩 금지:** 수치는 DataTable/CurveTable 참조
-
-### Step 3 — Q&A 학습 설명
-새 개념이나 UE5/GAS 패턴이 등장하면:
-1. 코드 전에 "왜 이렇게 설계하는가"를 Q&A로 먼저 설명
-2. 설명 후 실제 코드를 작성
-3. Q&A는 3~4단계를 넘지 않도록 간결하게 유지
-
-### Step 4 — 변경 리포트 생성
-코드 작성이 완료되면 아래 형식의 변경 리포트를 출력한다:
-
-```markdown
-## 변경 리포트 — [날짜] [시스템명]
-
-### 수정된 파일
-| 파일 | 변경 유형 | 변경 요약 |
-|------|-----------|-----------|
-
-### 주요 변경 내용
-(변경 상세 설명)
+## STATE_MACHINE
+```
+INIT ──→ [A] _Design/TODO.md + 플랜 확인
+          └─ 플랜 없음 → /planning 안내 → BLOCKED
+          └─ 있음 → [B] Q&A (새 개념 시만)
+                     └─ [C] 코드 작성 (파일 단위)
+                           └─ [D] 셀프 리뷰
+                                 ├─ 통과 → [E] TODO/CHANGESET 갱신 → 승인 요청
+                                 └─ 실패 → 자체 수정 → [D]
 ```
 
-### Step 5 — 셀프 리뷰 (코드 제안 직후 자동 수행)
-코드 작성 완료 즉시, 사용자에게 제시하기 전에 아래 검증을 자체 수행한다.
-OOP 설계 원칙은 `references/oop-principles.md`를 참조한다.
+## EXEC
 
-**체크리스트:**
+### [A] TODO + 플랜 확인
 ```
-□ 함수 호출 흐름이 계획서와 일치하는가
-□ 모든 예외처리가 구현되었는가
-□ DataTable 스키마(FK, 컬럼명)가 기획서와 일치하는가
-□ GAS 소유권 패턴이 올바른가
-□ GA 트리거 방식이 올바른가 (SendGameplayEventToActor)
-□ check() / ensureMsgf() 사용이 적절한가
-□ 모든 if문에 중괄호가 있는가
-□ 하드코딩된 수치가 없는가
-□ UPROPERTY() 강참조가 필요한 곳에 적용되었는가
-□ 네트워크/Replication 코드가 비활성 상태인가
-□ UE5 객체 초기화 타이밍 충돌 없는가 (BeginPlay 순서, 컴포넌트 생성 타이밍)
-□ SOLID 원칙 / 조합 메서드 패턴 / 비즈니스-표현 레이어 분리가 지켜졌는가
-□ TDA 원칙: Getter로 상태를 꺼내서 외부에서 로직을 구성하고 있지 않은가
-□ 기차 충돌(Train Wreck) 없는가: A->B->C->D 체이닝으로 깊이 접근하고 있지 않은가
-□ 상속이 IS-A 관계인가, 코드 재사용 목적의 잘못된 상속은 없는가
+_Design/TODO.md 읽기:
+  ACTIVE_WORK에서 [>] ACTIVE 항목 찾기
+  없으면: "어떤 MODULE 작업할까요?" + 목록 제시
+
+_Design/Plans/active/PLAN_*.md 읽기:
+  GOAL / FLOW / EDGE_CASES / SCHEMA 파악
+
+작업 시작 시 해당 MODULE을 [>] ACTIVE로 마킹
 ```
 
-**문제 발견 시:** 코드를 자체 수정한 후 다시 검증한다. 사용자에게는 최종 검증을 통과한 코드만 제시한다.
-
-**셀프 리뷰 결과를 변경 리포트에 포함:**
-```markdown
-### 셀프 리뷰
-- 통과: (통과 항목 요약)
-- 자체 수정: (셀프 리뷰에서 발견하여 수정한 항목이 있으면 명시)
+### [B] Q&A (새 개념 등장 시만)
+```
+Q: 왜 이렇게 설계하는가?
+A: 3~4단계 이내 → 코드 작성
 ```
 
-### Step 6 — 다음 단계 전환
+### [C] 코드 작성
+```
+- 파일 단위 수정 → 셀프리뷰 → 다음 파일 (동시 6파일 초과 금지)
+- 각 파일 수정 후 컴파일 가능 상태 유지
+- 신규: 전체 코드
+- 수정: // [CHG] YYYY-MM-DD: [변경 이유] 주석 명시
+- 하드코딩 금지 (DataTable/EditDefaultsOnly)
+```
 
-> ✅ [CODE] 완료 (셀프 리뷰 통과)
-> - **승인**: 코드를 적용합니다. 테스트 데이터가 필요하면 말씀해주세요.
-> - **수정 요청**: 수정할 내용을 알려주세요.
+### [D] 셀프 리뷰
+```
+□ FLOW와 함수 흐름 일치
+□ 모든 EDGE_CASES 처리
+□ DataTable SCHEMA(FK/컬럼명) 일치
+□ GAS: ASC 소유권, SendGameplayEventToActor
+□ check()/ensureMsgf() 적절
+□ if문 전체 중괄호 (conventions.md 참조)
+□ 하드코딩 없음
+□ UPROPERTY() 강참조 필요한 곳
+□ Replication 비활성
+□ BeginPlay 타이밍 충돌 없음
+□ TDA 원칙 (Getter 남용 없음)
+□ 기차충돌 없음 (A->B->C->D)
+□ 상속 IS-A 관계
+```
 
-## 금지사항
-- 계획서 없이 코드를 작성하지 않는다.
-- 기획서에 정의된 규칙과 충돌하는 코드를 작성하지 않는다.
-- 이 단계에서 테스트를 실행하지 않는다 (→ /review-test 담당).
+### [E] TODO + CHANGESET 갱신
+
+**_Design/TODO.md 갱신:**
+```
+완료 태스크: [ ] → [x]
+MODULE 전체 완료: ### [MODULE-N] 헤더에 ✓ DONE YYYY-MM-DD
+"나중에" 발언: [ ] → [~] + 이유 + DEFERRED 섹션 이동
+```
+
+**_Design/Changesets/CHANGESET.md 갱신:**
+```yaml
+  files:
+    modified: [실제 수정된 파일]
+    created:  [실제 생성된 파일]
+```
+
+**변경 리포트:**
+```
+## [CODE] YYYY-MM-DD [MODULE명]
+수정: | 파일 | 유형 | 요약 |
+셀프리뷰: 통과/(자체수정 항목)
+TODO 갱신: [x] 완료된 태스크
+남은 TODO: [ ] 다음 태스크
+```
+
+### 승인 요청 (ASK_USER_FORMAT)
+```
+📌 [CODE] | MODULE-N [이름]
+상황: [이름] 모듈 코드 작성 완료. 셀프 리뷰 통과.
+결정: 이 코드를 적용할까요?
+권장: A) — 셀프 리뷰 통과, 계획서 흐름과 일치.
+A) 승인
+B) 수정 요청
+```
+다음 MODULE: [다음 항목] — 이어서 진행할까요?
+커밋은 모든 작업 완료 후 "커밋해줘" 발언 시 일괄 처리.
+
+## ON_DEMAND_REFS
+```yaml
+conventions: .claude/skills/coding/references/conventions.md  # 컨벤션 불명확 시
+oop:         .claude/skills/coding/references/oop-principles.md # OOP 위반 판단 시
+```
+
+## RULES
+```
+- _Design/Plans/active/ 에 활성 플랜 없으면 코드 작성 금지
+- 기획서(_Design/References/Systems/) 규칙 충돌 시 즉시 중단
+- 테스트 실행 금지 (/test 담당)
+- MODULE 완료 시 반드시 _Design/TODO.md 갱신
+- 커밋 제안 금지 ("커밋해줘" 발언 전까지)
+```

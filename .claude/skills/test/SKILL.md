@@ -1,83 +1,73 @@
 ---
 name: test
-description: >
-  코드 적용 후 테스트 시나리오를 작성하고 테스트 데이터를 제안한다.
-  Use when: "테스트해줘", "TEST", "테스트 데이터 줘",
-  코드 승인 후 테스트 단계, "확인해줘", "검증해줘".
-  Do NOT use: 코드 작성 전, 계획서 작성 중.
-  Do NOT use: 시니어 리뷰 요청 시 (→ @senior-reviewer).
+version: 2.2.0
+depends-on: ["CODE 승인 완료", "_Design/TODO.md ACTIVE MODULE"]
+suggests-next: ["SR(선택)"]
 allowed-tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob, Agent
 ---
+# /test RUNBOOK
+> 페르소나: UE5/GAS 전문 QA 엔지니어
 
-# /test — 즉석 테스트
-
-## 역할
-코드 적용 후 테스트 시나리오를 작성하고,
-사용자가 언리얼 에디터에서 실행할 수 있는 테스트 데이터와 호출 코드를 제안한다.
-
-## 전제 조건
-- [CODE] 단계에서 코드가 승인·적용되어 있어야 한다.
-
----
-
-## Phase A — 즉석 테스트
-
-### Step 1 — 호출부 탐색
-1. 현재 레포 코드를 탐색하여 테스트 가능한 호출부를 특정한다.
-2. 기존 BeginPlay, 이벤트 바인딩, 테스트용 함수 등에서 진입점을 찾는다.
-
-### Step 2 — 테스트 시나리오 작성
-
-`references/test-patterns.md`를 참조하여 아래 유형의 시나리오를 작성한다:
-
-| 유형 | 내용 |
-|------|------|
-| **정상 동작** | 기본 흐름이 기획서 규칙대로 작동하는지 |
-| **경계값** | 0, 최대값, NULL 등 경계 조건 |
-| **예외 케이스** | 기획서에 명시된 예외 상황 재현 |
-| **연쇄 테스트** | 시스템 간 연동 (예: 레벨업 → 무기 장착 → GA 부여) |
-
-### Step 3 — 더미데이터 + 호출 코드 제안
-
-테스트 실행에 필요한 코드를 제공한다:
-- DataTable 더미 행 (CSV 형식)
-- BeginPlay 또는 테스트 함수에 넣을 호출 코드
-- 예상되는 UE_LOG 출력 패턴
-
-```markdown
-### TC-01: [정상] ○○ 기본 흐름
-- 조건: (전제 조건)
-- 실행: (호출 코드)
-- 예상 결과: (예상 로그/동작)
+## STATE_MACHINE
+```
+INIT ──→ [A] _Design/TODO.md에서 대상 MODULE 확인
+          └─ [B] 호출부 탐색
+                └─ [C] 시나리오 작성
+                      └─ [D] 더미데이터 + 호출코드 제안
+                            └─ [E] 결과 대기
+                                  ├─ 수신 → [F] 분석
+                                  │         ├─ 통과 → [G] 갱신 → DONE
+                                  │         └─ 실패 → 원인분석 → /coding 복귀
+                                  └─ 없음 → 대기
 ```
 
-### Step 4 — 결과 분석
+## EXEC
 
-사용자가 실행 결과(로그/스크린캡처)를 제공하면:
-1. 예상 결과와 실제 결과를 대조한다.
-2. 불일치 항목의 원인을 추정한다.
-3. 수정이 필요하면 `/coding` 단계 복귀를 제안한다.
+### [A] 대상 확인
+`_Design/TODO.md` [>] ACTIVE 또는 직전 [x] MODULE 확인
+`_Design/Plans/active/PLAN_*.md` FLOW/EDGE_CASES 파악
 
-```markdown
-## [TEST 결과]
-
-### ✅ 통과
-- TC-01: 정상 동작 확인
-
-### ❌ 실패
-- TC-02: 예상 Warning 미출력 → 원인: ○○ 분기 누락 추정
-
-### 수정 필요 시
-> `/coding` 단계로 복귀하여 ○○를 수정해야 합니다. 진행할까요?
+### [B-D] 시나리오 + 코드
+```
+| TC-ID | 유형   | 조건 | 실행 | 예상 결과 |
+|-------|--------|------|------|-----------|
+| TC-01 | 정상   |      |      |           |
+| TC-02 | 경계값 |      |      |           |
+| TC-03 | 예외   |      |      |           |
+| TC-04 | 연쇄   |      |      |           |
 ```
 
-### Step 5 — 다음 단계 전환
+### [F] 결과 분석
+```
+## [TEST] YYYY-MM-DD [MODULE명]
+✅ 통과: TC-01, TC-02
+❌ 실패:
+  TC-03: (예상) vs (실제) → 원인: ○○ → /coding 복귀 권장
+STATUS: DONE | DONE_WITH_CONCERNS | BLOCKED
+```
 
-모든 테스트 통과 시 `@senior-reviewer` 서브에이전트를 자동 호출한다.
+### [G] 갱신
+**_Design/TODO.md:**
+```
+  - [x] [태스크명] (파일명) ← TEST_OK YYYY-MM-DD
+  ### [MODULE-N] [이름] ✓ CODE_DONE + TEST_OK YYYY-MM-DD
+```
 
-> ✅ [REVIEW+TEST] 완료
-> 다음 단계: [SENIOR-REVIEW] — `@senior-reviewer` 호출합니다.
+**_Design/Plans/active/PLAN_*.md REVIEW_STATUS:**
+```
+| Senior-Review | TEST_READY | YYYY-MM-DD | - |
+```
 
-## 금지사항
-- 코드 리뷰/승인 없이 테스트를 바로 시작하지 않는다
-- 테스트 실패 시 원인 분석 없이 다음 단계로 넘어가지 않는다.
+커밋은 모든 작업 완료 후 "커밋해줘" 발언 시 /commit에서 일괄 처리.
+
+## ON_DEMAND_REFS
+```yaml
+patterns: .claude/skills/test/references/test-patterns.md
+```
+
+## RULES
+```
+- CODE 승인 없이 테스트 시작 금지
+- 실패 시 원인분석 없이 다음 단계 진행 금지
+- 커밋 제안 금지
+```

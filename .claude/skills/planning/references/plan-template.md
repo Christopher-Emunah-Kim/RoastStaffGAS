@@ -1,29 +1,66 @@
-# 계획서 템플릿
-
-```markdown
 # PLAN_[시스템명]_v1.0
+```yaml
+date:    YYYY-MM-DD
+sprint:  SPRINT-N
+status:  ACTIVE          # ACTIVE | COMPLETED | ABANDONED
+designs: [○○_시스템_기획_vX.X.md]
+```
 
-> 작성일: YYYY-MM-DD
-> 관련 기획서: ○○_시스템_기획_v○.○.md, ...
-> 스프린트: SPRINT ○
+## GOAL
+> 한 문장: 무엇을 왜 만드는가.
 
-## 구현 목표
-무엇을 만드는가
+## SCOPE
+```yaml
+new_files:      []
+modified_files: []
+new_datatables: []
+new_tags:       []
+```
 
-## 영향 범위
-- 수정/생성이 필요한 클래스 목록
-- 수정/생성이 필요한 DataTable 목록
-- 추가 필요한 Gameplay Tag 목록
+## FLOW
+```
+[진입점: 함수명/이벤트]
+    │
+    ▼
+[Step 1: 함수A(인자)]
+    ├─ 정상 ──→ [Step 2: 함수B]
+    │                │
+    │                ▼
+    │           [Step 3: 출력/효과]
+    └─ 예외1 ──→ [예외처리A] → RETURN/BLOCKED
+    └─ 예외2 ──→ [예외처리B] → LOG + CONTINUE
+```
 
-## 함수 호출 흐름
-어떤 순서로 어떤 함수가 호출되는가 (Q&A 방식으로 설명)
+## SCHEMA
+```
+DataTable: DT_[이름]
+| 컬럼 | 타입 | FK | 기본값 | 설명 |
+|------|------|----|--------|------|
+```
 
-## 예외처리 목록
-어떤 예외 상황을 처리해야 하는가
+## EDGE_CASES
+```
+| 상황 | 처리 | 기획서 근거 |
+|------|------|------------|
+```
 
-## [검토 결과]
-- 기획서 일관성: ○○ 기획서 v○.○과 일치 여부
-- 누락된 예외처리: 기획서에 명시되었으나 계획서에 누락된 항목
-- 기획서 정정 필요 사항: 이 계획에 따라 기획서 수정이 필요한 항목 목록
-- Gemini 리뷰 반영: 반영한 사항 / 반영하지 않은 사항(사유)
+## REVIEW_NOTES
+```
+기획서 일관성: ✓/✗ (불일치 항목)
+누락 예외처리: (있으면 나열)
+기획서 정정:   (있으면 나열)
+Gemini 반영:   반영(사유) / 미반영(사유)
+```
+
+---
+## REVIEW_STATUS
+```
+| 단계          | 상태 | 날짜       | 주요 지적         |
+|---------------|------|------------|-------------------|
+| Cross-Review  | -    | -          | -                 |
+| Senior-Review | -    | -          | -                 |
+| Learn-Report  | -    | -          | -                 |
+
+verdict:   PENDING   # PENDING | CLEAR | BLOCKED
+unresolved: []
 ```
