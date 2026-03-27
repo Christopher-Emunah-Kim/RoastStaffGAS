@@ -2,7 +2,7 @@
 name: commit
 version: 1.1.0
 depends-on: ["CODE+TEST+이슈수정 완료"]
-allowed-tools: Read, Bash, Grep
+allowed-tools: Read, Bash, Grep, Edit
 ---
 # /commit RUNBOOK
 > 역할: 전체 변경사항을 _Design/TODO.md MODULE 단위로 분할하여 순서대로 커밋 안내
@@ -12,16 +12,29 @@ allowed-tools: Read, Bash, Grep
 ```yaml
 policy: .claude/references/commit-policy.md  # 커밋 타입/형식/원칙 전체
 ```
-> 이 SKILL 실행 시 commit-policy.md를 먼저 읽는다.
+> commit-policy.md는 타입/형식이 불명확할 때만 읽는다. 아래 요약으로 충분하면 생략.
+
+### 커밋 타입 요약 (policy 읽기 전 참고)
+```
+feat:     새 기능
+fix:      버그 수정
+data:     DataTable/CSV
+refactor: 리팩토링 (동작 변화 없음)
+docs:     문서
+chore:    설정/빌드
+scope:    시스템명 (예: feat(Pierce-Core): ...)
+body:     - 변경 이유/내용 (항목별)
+ref:      ref: PLAN_파일명_vX.X
+```
 
 ## STATE_MACHINE
 ```
 INIT ──→ [A] CHANGESET + TODO 읽기
           └─ [B] 파일 → MODULE 매핑
                 └─ [C] 커밋 순서 + 메시지 일괄 제안 (ASK_USER_FORMAT)
-                      ├─ 승인 → [D] git 명령어 제시
+                      ├─ 승인 → [D] Claude가 직접 커밋 실행
                       └─ 수정 → [C] 재조정
-[D] → 사용자 실행 → [E] 해시 수집 → [F] CHANGESET+TODO 갱신 → DONE
+[D] → [E] 해시 자동 수집 → [F] CHANGESET+TODO 갱신 → DONE
 ```
 
 ## EXEC
@@ -65,7 +78,8 @@ A) 이대로 진행
 B) 순서/메시지 조정
 ```
 
-### [D] git 명령어 제시
+### [D] 직접 커밋 실행
+승인 수령 후 커밋을 순서대로 직접 실행:
 ```bash
 # 커밋 1
 git add 파일A.h 파일A.cpp
@@ -75,12 +89,13 @@ git commit -m "feat(Pierce-Core): 관통 감지 구현
 - PierceHitCount 카운터 분리
 ref: PLAN_Pierce_v1.0"
 
-# 커밋 2 ...
+# 커밋 2 ... (이전 커밋 성공 확인 후 순차 실행)
 ```
-→ "순서대로 실행 후 각 커밋 해시를 알려주세요"
+- 각 커밋 실행 후 성공 여부 확인
+- 실패 시 즉시 중단 + 오류 내용 보고
 
-### [E] 해시 수집
-사용자 해시 전달 시 순서대로 각 커밋과 매핑
+### [E] 해시 자동 수집
+각 커밋 실행 결과에서 해시 자동 추출 (git log --oneline -1)
 
 ### [F] 일괄 갱신
 ```

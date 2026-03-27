@@ -25,7 +25,7 @@ INIT ──→ [A] _Design/TODO.md 확인
 ## EXEC
 
 ### [A] TODO 확인
-`_Design/TODO.md` 읽기:
+`_Design/TODO.md` 읽기 (SESSION_START에서 이미 읽힌 경우 재읽기 금지):
 ```
 ACTIVE_WORK 있음:
   "진행 중 작업: [목록]
@@ -52,7 +52,6 @@ DEFERRED 있음: "미뤄둔 작업: [목록] — 이번에 처리할까요?"
 - modules[].deferred=true → [D] 옵션 D 자동 제안
 
 ### [D] 승인 요청 (ASK_USER_FORMAT)
-> 형식: .claude/references/ask-user-format.md
 ```
 📌 [PLAN] | [기능명]
 상황: [기능명] 구현 계획서가 준비됐습니다.

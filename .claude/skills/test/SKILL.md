@@ -24,8 +24,8 @@ INIT ──→ [A] _Design/TODO.md에서 대상 MODULE 확인
 ## EXEC
 
 ### [A] 대상 확인
-`_Design/TODO.md` [>] ACTIVE 또는 직전 [x] MODULE 확인
-`_Design/Plans/active/PLAN_*.md` FLOW/EDGE_CASES 파악
+`_Design/TODO.md` [>] ACTIVE 또는 직전 [x] MODULE 확인 (SESSION_START에서 이미 읽힌 경우 재읽기 금지)
+`_Design/Plans/active/PLAN_*.md` FLOW/EDGE_CASES 파악 (이미 읽힌 경우 재읽기 금지 — Grep으로 필요 섹션만)
 
 ### [B-D] 시나리오 + 코드
 ```

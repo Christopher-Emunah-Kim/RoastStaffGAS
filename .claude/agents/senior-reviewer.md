@@ -40,7 +40,7 @@ INIT ──→ [A] MEMORY 로드
 3. 메모리 안전  — UPROPERTY, TWeakObjectPtr, 복사 비용
 4. OOP 원칙     — TDA, 기차충돌, IS-A, SOLID
 5. 엣지 케이스  — nullptr, 경계값, BeginPlay 타이밍
-6. 컨벤션       — .claude/skills/coding/references/conventions.md 기준
+6. 컨벤션       — 전체 중괄호, 네이밍(U/A/F/E 접두사), UPROPERTY 강참조, 하드코딩 금지
 ```
 
 ### [D] 2차 확인

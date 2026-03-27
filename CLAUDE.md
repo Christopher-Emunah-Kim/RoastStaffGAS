@@ -88,6 +88,15 @@ on_route:   해당 SKILL.md 또는 agent.md 만
 on_demand:  각 SKILL의 ON_DEMAND_REFS 명시 시만
 never_auto: _Design/References/Systems/ 전체 순회 금지
 
+# 중복 읽기 방지
+no_reread:  SESSION_START에서 읽힌 파일(TODO.md, PLAN_*.md)은 같은 세션 내 재읽기 금지
+
+# Grep-first 원칙
+grep_first: |
+  파일 전체 Read 전에 Grep으로 필요한 섹션 먼저 탐색.
+  적용 대상: TODO.md, CHANGESET.md, PLAN_*.md, 대형 참조파일
+  예외: 신규 파일 또는 전체 구조 파악이 필요한 경우
+
 # 에이전트 사용 제한 (토큰/처리시간 보호)
 agent_policy:
   Explore:          사용자 명시 요청 시만 — 자동 호출 절대 금지
@@ -118,6 +127,7 @@ agent_policy:
 ```
 
 ## REFERENCES
+> 조회용 인덱스 — 자동 로드 금지. 해당 SKILL의 ON_DEMAND_REFS 지시 시만 읽기.
 ```yaml
 프로젝트 정보:  _Design/References/README.md
 워크플로우:     .claude/references/protocols.md

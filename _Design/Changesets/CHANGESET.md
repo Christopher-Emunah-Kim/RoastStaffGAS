@@ -30,16 +30,21 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 - date: 2026-03-27
   plan: PLAN_ManualFireBugFix_v1.0
-  commit: null
+  commit: "3e21a68"
   files:
     modified:
-      - Source/RoastStaffGAS/Private/GAS/Abilities/GA_ProjectileAttack.cpp
-      - Source/RoastStaffGAS/Public/Data/RuntimeDataStructs.h
+      - Source/RoastStaffGAS/Private/Subsystems/UIManagerSubsystem.cpp
+      - Source/RoastStaffGAS/Private/Character/Player/RSPlayerController.cpp
       - Source/RoastStaffGAS/Private/Subsystems/EquipmentSubsystem.cpp
+      - Source/RoastStaffGAS/Private/UI/LevelUpWeaponSelectWidget.cpp
+      - Source/RoastStaffGAS/Public/UI/LevelUpWeaponSelectWidget.h
+      - Content/GAS/GA/GA_ProjectileAttackBP.uasset
+      - Content/GAS/GA/GA_SummonBaseBP.uasset
     created: []
     deleted: []
-  summary: "수동 발사 무음 실패 버그 픽스 — bRetriggerInstancedAbility + LastManualFireTime 게이트"
-  status: PENDING_COMMIT
+  summary: "수동 발사 클릭 미인식 버그 수정 — InputMode 정책 + NativeOnInitialized 이동"
+  status: COMMITTED
   bugs_found: []
   bugs_fixed:
-    - "수동 모드 클릭 시 GAS bRetriggerInstancedAbility=false로 인한 무음 실패"
+    - "NotifyInputModeChange GameOnly 전환 시 마우스 캡처 해제로 클릭 미인식"
+    - "LevelUpWeaponSelectWidget NativeConstruct 중복 바인딩"
