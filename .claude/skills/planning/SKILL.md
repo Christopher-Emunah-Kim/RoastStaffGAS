@@ -3,7 +3,7 @@ name: planning
 version: 3.1.0
 depends-on: []
 suggests-next: ["@cross-reviewer(선택)", "CODE"]
-allowed-tools: Read, Write, Edit, Grep, Glob, Agent
+allowed-tools: Read, Write, Edit, Grep, Glob, Agent(planning-architect)
 ---
 # /planning RUNBOOK
 > 역할: 사용자와 계획 협의 → @planning-architect 호출 → TODO 생성 → 플랜 파일 저장

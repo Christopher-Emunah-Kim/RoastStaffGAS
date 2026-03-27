@@ -12,7 +12,8 @@
       "Bash(/c/Users/KGA/Projects/RoastStaffGAS/.claude/scripts/gemini-review.sh plan:*)",
       "Bash(C:/Users/KGA/Projects/RoastStaffGAS/.claude/scripts/gemini-review.sh code:*)",
       "Bash(bash \"C:/Users/KGA/Projects/RoastStaffGAS/.claude/scripts/gemini-review.sh\" code)",
-      "Bash(\"C:/Users/KGA/Projects/RoastStaffGAS/_Design/Handoff/HANDOFF_LATEST.md\":*)"
+      "Bash(\"C:/Users/KGA/Projects/RoastStaffGAS/_Design/Handoff/HANDOFF_LATEST.md\":*)",
+      "Bash(grep -r \"class URSSkillData\\\\|Pool.*Summon\\\\|InitializePool\" C:/Users/KGA/Projects/RoastStaffGAS/Source --include=*.cpp --include=*.h -l)"
     ]
   },
   "enabledPlugins": {

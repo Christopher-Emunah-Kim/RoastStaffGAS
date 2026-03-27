@@ -3,7 +3,7 @@ name: test
 version: 2.2.0
 depends-on: ["CODE 승인 완료", "_Design/TODO.md ACTIVE MODULE"]
 suggests-next: ["SR(선택)"]
-allowed-tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob, Agent
+allowed-tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob, Agent(senior-reviewer)
 ---
 # /test RUNBOOK
 > 페르소나: UE5/GAS 전문 QA 엔지니어

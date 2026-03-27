@@ -22,15 +22,17 @@ refs:
 4. 코딩 규칙: .claude/skills/coding/references/conventions.md 준수
 5. [TEST][SR][LEARN]은 사용자 승인 후 실행
 6. 3회 실패 → BLOCKED 자동 선언
+7. 무거운 작업 시작 전 반드시 사용자 확인 (HEAVY_OP_POLICY 참조)
 ```
+
 
 ## SESSION_START
 > 상세 프로토콜: .claude/references/protocols.md
 ```
-1. _Design/TODO.md 읽기                      ← 최우선
-2. _Design/Plans/active/ 확인                ← 진행 중 플랜
-3. _Design/Changesets/CHANGESET.md 확인     ← PENDING_COMMIT만
-4. _Design/Handoff/HANDOFF_LATEST.md        ← 추가 컨텍스트 필요 시만
+1. _Design/TODO.md 읽기                                          ← 최우선
+2. _Design/Plans/active/ → Glob("PLAN_*.md")으로 파일 목록 확인  ← 있으면 최신 1개만 Read
+3. _Design/Changesets/CHANGESET.md 읽기                         ← 커밋 관련 작업 시만
+4. _Design/Handoff/HANDOFF_LATEST.md                            ← 추가 컨텍스트 필요 시만
 ```
 
 ## ROUTING_TABLE
@@ -85,6 +87,34 @@ session:    [_Design/TODO.md]
 on_route:   해당 SKILL.md 또는 agent.md 만
 on_demand:  각 SKILL의 ON_DEMAND_REFS 명시 시만
 never_auto: _Design/References/Systems/ 전체 순회 금지
+
+# 에이전트 사용 제한 (토큰/처리시간 보호)
+agent_policy:
+  Explore:          사용자 명시 요청 시만 — 자동 호출 절대 금지
+  general-purpose:  사용자 명시 요청 시만 — 자동 호출 절대 금지
+  허용 자동 호출:   planning-architect (PLAN 단계), senior-reviewer (SR 단계), learning-coach (LEARN 단계)
+  기타 에이전트:    사용자 명시 요청 시만
+```
+
+
+## HEAVY_OP_POLICY
+```yaml
+대상:
+  - Agent 호출 (종류 무관)
+  - 파일 9개 이상 연속 Read
+  - 디렉터리 전체 탐색 (Glob + 다수 Read 조합)
+
+실행 전 필수 안내 형식:
+  ⚠️ [무거운 작업 예고]
+  작업: [무엇을 하려는지 한 줄]
+  예상 비용: [에이전트 호출 / 파일 N개 읽기 등]
+  A) 진행
+  B) 방식 변경 (경량 대안 제시)
+  C) 취소
+
+예외 (안내 없이 진행 가능):
+  - SESSION_START 필수 파일 (TODO.md, 최신 PLAN 1개)
+  - 사용자가 직접 명령한 에이전트 호출
 ```
 
 ## REFERENCES

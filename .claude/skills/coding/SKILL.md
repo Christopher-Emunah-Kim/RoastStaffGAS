@@ -24,7 +24,7 @@ INIT ──→ [A] _Design/TODO.md + 플랜 확인
 
 ### [A] TODO + 플랜 확인
 ```
-_Design/TODO.md 읽기:
+_Design/TODO.md: SESSION_START에서 이미 읽힌 경우 재읽기 금지. 미읽힌 경우만 읽기.
   ACTIVE_WORK에서 [>] ACTIVE 항목 찾기
   없으면: "어떤 MODULE 작업할까요?" + 목록 제시
 
