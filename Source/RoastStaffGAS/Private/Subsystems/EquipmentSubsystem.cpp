@@ -43,14 +43,14 @@ void UEquipmentSubsystem::RequestManualFire(const FVector& AimLocation)
 
 	//슬롯 스킬이 소환형인경우 -> 클릭 = 에임 장판 확인 후 ASC Confirm 전달
 	if (Slots[ActiveSlotIndex].SlotEquipData.MoveType == EMoveType::SUMMON)
-	{                                                                                                            
-		if (ASC)                                                                                               
-		{                                                                                                        
-			ASC->LocalInputConfirm();                                                                          
-		}                                                                                                        
+	{
+		if (ASC)
+		{
+			ASC->LocalInputConfirm();
+		}
 		return;
-	}      
-	
+	}
+
 	FireSlot(ActiveSlotIndex, AimLocation);
 }
 
@@ -198,7 +198,7 @@ void UEquipmentSubsystem::FireSlot(int32 SlotIndex, const FVector& AimLocation)
 	//UI업데이트
 	Slot.CooldownRemaining = Slot.SlotEquipData.Cooldown;
 	OnSlotUpdatedDel.Broadcast(SlotIndex);
-	
+
 	KHS_INFO(TEXT("Slot %d: %s 발사! CD: %.2fs"), SlotIndex, *Slot.SlotEquipData.SkillID.ToString(), Slot.SlotEquipData.Cooldown);
 }
 

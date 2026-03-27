@@ -30,13 +30,17 @@ void ARSPlayerController::BeginPlay()
 	Subsys->AddMappingContext(IMC, 0);
 	SetShowMouseCursor(true);
 
+	FInputModeGameOnly GameOnlyMode;                                                                 
+	GameOnlyMode.SetConsumeCaptureMouseDown(false);                                                
+	SetInputMode(GameOnlyMode);           
+	
 	//슬롯 델리게이트 구독
 	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance());
 	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetGameInstance());
 	GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
 
-	EquipSys->OnSlotUpdatedDel.AddDynamic(this, &ARSPlayerController::OnSlotUpdated);
-	LevelUpSys->OnWeaponCandidatesReadyDel.AddDynamic(this, &ARSPlayerController::OnWeaponCandidatesReady);
+	EquipSys->OnSlotUpdatedDel.AddUniqueDynamic(this, &ARSPlayerController::OnSlotUpdated);
+	LevelUpSys->OnWeaponCandidatesReadyDel.AddUniqueDynamic(this, &ARSPlayerController::OnWeaponCandidatesReady);
 	KHS_INFO(TEXT("델리게이트 구독 완료 (SlotUpdated / WeaponCandidatesReady)"));
 
 	//HUD UI오픈

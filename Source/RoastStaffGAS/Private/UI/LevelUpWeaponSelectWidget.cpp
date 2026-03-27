@@ -30,9 +30,9 @@ ULevelUpWeaponSelectWidget::ULevelUpWeaponSelectWidget()
 	bIsModal = true;
 }
 
-void ULevelUpWeaponSelectWidget::NativeConstruct()
+void ULevelUpWeaponSelectWidget::NativeOnInitialized()
 {
-	Super::NativeConstruct();
+	Super::NativeOnInitialized();
 
 	Btn_Select1->OnClicked.AddDynamic(this, &ULevelUpWeaponSelectWidget::OnBtn_Select1Clicked);
 	Btn_Select2->OnClicked.AddDynamic(this, &ULevelUpWeaponSelectWidget::OnBtn_Select2Clicked);

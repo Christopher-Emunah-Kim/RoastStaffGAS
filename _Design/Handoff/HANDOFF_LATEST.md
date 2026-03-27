@@ -1,51 +1,59 @@
-# 세션 핸드오프 — 2026-03-25 16:10:05
+# 세션 핸드오프 — 2026-03-27 17:37:06
+
+## Worktree 정보
+main 브랜치 직접 작업. worktree 없음.
 
 ## 파이프라인 진행 상태
-> 완료 — PLAN → CROSS-REVIEW → CODE → TEST → SENIOR-REVIEW → LEARN → 커밋 (`323ebdd`)
+메타 작업 (코드 파이프라인 외) — Claude Code 운영 규칙 개선 세션.
+이전 세션(17:01~17:16)에서 UMGWidgetLifecycle 버그 수정 + LEARN 완료 상태.
 
 ## 마지막 작업 내용
-**PIERCE HitType 구현** — 관통형 투사체 (최대 N회 관통, 회당 DamageDecay 감쇠, 중복 타격 방지)
-
-### 구현 핵심
-- `OnComponentBeginOverlap` + `ECR_Overlap` 기반 관통 감지 (OnHit 사용 시 ProjectileMovementComponent 정지)
-- `SphereComp->IgnoreActorWhenMoving`으로 중복 타격 방지
-- `PierceHitCount` 전용 카운터 — MoveIgnoreActors(발사자 포함)와 분리
-- `bHasPierceFinished`로 ReturnToPool 이중 호출 방지
-- EFFECT_THUNDER 스킬 HitType SINGLE → PIERCE 변경, 테스트 완료
-
-### 디버깅 과정에서 발생한 주요 버그와 해결
-1. **OnPoolDeactivate에 SetCollisionProfileName 호출** → BP 충돌 오버라이드 초기화로 SINGLE 타입 즉시 정지
-   - 해결: 해당 라인 제거. 동일 클래스는 항상 동일 HitType이므로 리셋 불필요
-2. **MoveIgnoreActors를 HitCount 카운터로 재활용** → 발사자 등록으로 오염, 첫 타격 30% 데미지
-   - 해결: `PierceHitCount` 전용 멤버 분리
+Claude Code 워크플로우 최적화:
+1. Explore 서브에이전트 자동 트리거 문제 원인 분석 및 수정
+2. CLAUDE.md — SESSION_START 파일 읽기 최적화, HEAVY_OP_POLICY 추가
+3. LOAD_STRATEGY — agent_policy 섹션 추가 (Explore/general-purpose 자동 호출 금지)
+4. planning/SKILL.md — `allowed-tools: Agent(planning-architect)`로 범위 축소
+5. test/SKILL.md — `allowed-tools: Agent(senior-reviewer)`로 범위 축소
+6. coding/SKILL.md — TODO.md 중복 읽기 방지 명시
 
 ## 미완료 사항
-### 하드코딩 수치 — 3회 연속 미해결 (최우선 교정 대상)
-- `SPAWN_OFFSET = 200.f` (GA_Base.h)
-- `HandleAreaHit` 거리 감쇠 분기값 (0.3f, 0.7f, 0.4f)
-- `HandleArcType` LaunchAngle 클램프값 (-80, 80)
-→ 다음 세션 초반에 DataTable/EditDefaultsOnly 이관 권장
+- 게임 코드 작업: `_Design/TODO.md` ACTIVE_WORK 비어있음 — 다음 세션에서 새 기능 PLAN부터 시작
+- git status 확인: CLAUDE.md, SKILL 파일들 수정 미커밋 상태 (메타 작업이므로 별도 커밋 필요)
 
-### 다음 스프린트 후보
-1. 하드코딩 수치 DataTable 이관
-2. Stage 시스템 구현 (풀링 InitializePool 이관 대기 중)
-3. 새 HitType 또는 MoveType 추가
+## ⭐ Main으로 전달할 내용 (Worktree 작업 시 필수)
+> 다음 내용을 main의 HANDOFF_LATEST.md에 통합하세요:
+> 
+> ### [작업 이름]
+> - 완료 사항: 
+> - 변경 파일: 
+> - 다음 단계:
 
 ## 최근 변경 파일
-| 파일 | 내용 |
-|------|------|
-| BaseProjectile.h/cpp | PIERCE 완전 구현 + 버그 수정 |
-| GA_ProjectileAttack.h/cpp | HandlePierceType 추가 |
-| DataTableStructs.h | FSkillAttackHitTypeParamsPierce 기본값 추가 (PierceCount=1, DamageDecay=0.f) |
-| RuntimeDataStructs.h | FProjectileInitData PierceCount/DamageDecay 추가 |
-| ExternalSource/DT_Skill_Attack_HitType_Param_Pierce.csv | EFFECT_THUNDER 행 추가 |
-| ExternalSource/DT_Skill_Attack_Common_Param_Data.csv | EFFECT_THUNDER HitType SINGLE→PIERCE |
+
+| 시간 | 도구 | 파일 |
+|------|------|------|
+| 2026-03-27 17:01:20 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Public\UI\LevelUpWeaponSelectWidget.h` |
+| 2026-03-27 17:01:28 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\UI\LevelUpWeaponSelectWidget.cpp` |
+| 2026-03-27 17:01:39 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Character\Player\RSPlayerController.cpp` |
+| 2026-03-27 17:15:11 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Subsystems\EquipmentSubsystem.cpp` |
+| 2026-03-27 17:16:16 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Learning\reports\LEARN_20260327_UMGWidgetLifecycle.md` |
+| 2026-03-27 17:16:23 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Learning\LEARNING_LOG.md` |
+| 2026-03-27 17:16:28 | Edit | `C:\Users\KGA\.claude\projects\C--Users-KGA-Projects-RoastStaffGAS\memory\user_weak_patterns.md` |
+| 2026-03-27 17:16:39 | Edit | `C:\Users\KGA\.claude\projects\C--Users-KGA-Projects-RoastStaffGAS\memory\user_weak_patterns.md` |
+| 2026-03-27 17:16:50 | Edit | `C:\Users\KGA\.claude\projects\C--Users-KGA-Projects-RoastStaffGAS\memory\MEMORY.md` |
+| 2026-03-27 17:28:51 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\CLAUDE.md` |
+| 2026-03-27 17:28:51 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\CLAUDE.md` |
+| 2026-03-27 17:29:03 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\planning\SKILL.md` |
+| 2026-03-27 17:29:04 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\test\SKILL.md` |
+| 2026-03-27 17:29:04 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\coding\SKILL.md` |
+| 2026-03-27 17:32:01 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\CLAUDE.md` |
+| 2026-03-27 17:36:57 | Write | `C:\Users\KGA\.claude\projects\C--Users-KGA-Projects-RoastStaffGAS\memory\feedback_agent_policy.md` |
+| 2026-03-27 17:37:01 | Edit | `C:\Users\KGA\.claude\projects\C--Users-KGA-Projects-RoastStaffGAS\memory\MEMORY.md` |
 
 ## 토큰 사용 체감
-세션이 컨텍스트 한도 초과로 요약 이어받기 형태로 시작됨. 디버깅 반복 과정(투사체 멈춤 현상 원인 분석)에서 컨텍스트 소비가 많았음.
+이번 세션은 파일 읽기/수정 위주로 가벼웠음. 에이전트 호출 없음.
 
 ## 참고사항
-- 시니어 리뷰 기획서 정합 **2/5** — HitCount 오염이 원인. 다음 세션에서 데이터 구조 역할 혼용 주의
-- 학습 리포트: `_Design/Learning/reports/LEARN_20260325_Pierce.md`
-- 리뷰 파일: `_Design/Reviews/SR_2026-03-25_Pierce.md`
-- CLAUDE.md 파이프라인 규칙 수정됨 (TEST/SENIOR-REVIEW/LEARN 단계 선택적으로 변경)
+- HEAVY_OP_POLICY 신규 적용: Agent 호출 / 파일 9개+ 연속 Read 전에 사용자 확인 필수
+- SESSION_START step 3(CHANGESET.md)은 커밋 관련 작업 시만 읽음 — 불필요한 읽기 하지 말 것
+- 이전 세션에서 발견된 UMG NativeConstruct vs NativeOnInitialized 버그 수정 완료 (memory 기록됨)

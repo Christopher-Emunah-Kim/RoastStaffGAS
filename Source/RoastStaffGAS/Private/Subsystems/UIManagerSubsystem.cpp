@@ -63,15 +63,17 @@ void UUIManagerSubsystem::NotifyInputModeChange()
     
 	if (bHasModalPopup) // Popup이 있을 때는 UI Only 
 	{
-		FInputModeGameAndUI InputMode;
-		InputMode.SetWidgetToFocus(PopupUIStack.Last()->TakeWidget());
-		PC->SetInputMode(InputMode);
-		PC->SetShowMouseCursor(true);
+		FInputModeGameAndUI InputMode;                                                               
+		InputMode.SetWidgetToFocus(PopupUIStack.Last()->TakeWidget());                             
+		PC->SetInputMode(InputMode);                                                                 
+		PC->SetShowMouseCursor(true); 
 	}
 	else // Popup이 없을 때는 Game Only 
 	{
-		PC->SetInputMode(FInputModeGameOnly());
-		PC->SetShowMouseCursor(false);
+		FInputModeGameOnly GameOnlyMode;
+		GameOnlyMode.SetConsumeCaptureMouseDown(false);
+		PC->SetInputMode(GameOnlyMode);                                                              
+		PC->SetShowMouseCursor(true);  // 에임 커서 유지
 	}
 }
 

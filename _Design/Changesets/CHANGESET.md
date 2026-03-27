@@ -27,3 +27,19 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ---
 <!-- 신규 항목은 이 줄 아래에 추가 -->
+
+- date: 2026-03-27
+  plan: PLAN_ManualFireBugFix_v1.0
+  commit: null
+  files:
+    modified:
+      - Source/RoastStaffGAS/Private/GAS/Abilities/GA_ProjectileAttack.cpp
+      - Source/RoastStaffGAS/Public/Data/RuntimeDataStructs.h
+      - Source/RoastStaffGAS/Private/Subsystems/EquipmentSubsystem.cpp
+    created: []
+    deleted: []
+  summary: "수동 발사 무음 실패 버그 픽스 — bRetriggerInstancedAbility + LastManualFireTime 게이트"
+  status: PENDING_COMMIT
+  bugs_found: []
+  bugs_fixed:
+    - "수동 모드 클릭 시 GAS bRetriggerInstancedAbility=false로 인한 무음 실패"

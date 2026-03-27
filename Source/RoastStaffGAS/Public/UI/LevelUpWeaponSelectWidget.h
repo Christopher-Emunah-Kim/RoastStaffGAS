@@ -37,7 +37,8 @@ public:
 	FOnWeaponSelectCompleted OnWeaponSelectCompletedDel;
 
 protected:
-	virtual void NativeConstruct() override;
+	/** 위젯 최초 생성 시 딱 한 번 — 버튼 바인딩 */
+	virtual void NativeOnInitialized() override;
 	/** UIManagerSubsystem이 위젯을 재표시할 때마다 선택 상태 초기화 */
 	virtual void OpenUI() override;
 

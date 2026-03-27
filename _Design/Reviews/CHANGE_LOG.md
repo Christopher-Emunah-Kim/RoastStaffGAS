@@ -1,0 +1,38 @@
+# 코드 변경 로그
+
+| 시간 | 도구 | 파일 |
+|------|------|------|
+| 2026-03-27 17:01:20 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Public\UI\LevelUpWeaponSelectWidget.h` |
+| 2026-03-27 17:01:28 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\UI\LevelUpWeaponSelectWidget.cpp` |
+| 2026-03-27 17:01:39 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Character\Player\RSPlayerController.cpp` |
+| 2026-03-27 17:15:11 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Subsystems\EquipmentSubsystem.cpp` |
+| 2026-03-27 17:16:16 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Learning\reports\LEARN_20260327_UMGWidgetLifecycle.md` |
+| 2026-03-27 17:16:23 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Learning\LEARNING_LOG.md` |
+| 2026-03-27 17:16:28 | Edit | `C:\Users\KGA\.claude\projects\C--Users-KGA-Projects-RoastStaffGAS\memory\user_weak_patterns.md` |
+| 2026-03-27 17:16:39 | Edit | `C:\Users\KGA\.claude\projects\C--Users-KGA-Projects-RoastStaffGAS\memory\user_weak_patterns.md` |
+| 2026-03-27 17:16:50 | Edit | `C:\Users\KGA\.claude\projects\C--Users-KGA-Projects-RoastStaffGAS\memory\MEMORY.md` |
+| 2026-03-27 17:28:51 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\CLAUDE.md` |
+| 2026-03-27 17:28:51 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\CLAUDE.md` |
+| 2026-03-27 17:29:03 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\planning\SKILL.md` |
+| 2026-03-27 17:29:04 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\test\SKILL.md` |
+| 2026-03-27 17:29:04 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\coding\SKILL.md` |
+| 2026-03-27 17:32:01 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\CLAUDE.md` |
+| 2026-03-27 17:36:57 | Write | `C:\Users\KGA\.claude\projects\C--Users-KGA-Projects-RoastStaffGAS\memory\feedback_agent_policy.md` |
+| 2026-03-27 17:37:01 | Edit | `C:\Users\KGA\.claude\projects\C--Users-KGA-Projects-RoastStaffGAS\memory\MEMORY.md` |
+| 2026-03-27 17:37:23 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Handoff\HANDOFF_LATEST.md` |
+| 2026-03-27 17:37:28 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Handoff\HANDOFF_LATEST.md` |
+| 2026-03-27 17:50:31 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Plans\active\PLAN_ManualFireBugFix_v1.0.md` |
+| 2026-03-27 17:50:42 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-03-27 17:50:49 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Changesets\CHANGESET.md` |
+| 2026-03-27 17:52:24 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\GAS\Abilities\GA_ProjectileAttack.cpp` |
+| 2026-03-27 22:52:27 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Public\Data\RuntimeDataStructs.h` |
+| 2026-03-27 22:52:56 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Subsystems\EquipmentSubsystem.cpp` |
+| 2026-03-27 22:53:06 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Subsystems\EquipmentSubsystem.cpp` |
+| 2026-03-27 22:53:23 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-03-27 23:01:21 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Subsystems\EquipmentSubsystem.cpp` |
+| 2026-03-27 23:01:32 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Subsystems\EquipmentSubsystem.cpp` |
+| 2026-03-27 23:01:36 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Public\Data\RuntimeDataStructs.h` |
+| 2026-03-27 23:25:31 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Learning\reports\LEARN_20260327_InputMode.md` |
+| 2026-03-27 23:25:41 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Learning\LEARNING_LOG.md` |
+| 2026-03-27 23:25:55 | Edit | `C:\Users\KGA\.claude\projects\C--Users-KGA-Projects-RoastStaffGAS\memory\user_weak_patterns.md` |
+| 2026-03-27 23:26:05 | Edit | `C:\Users\KGA\.claude\projects\C--Users-KGA-Projects-RoastStaffGAS\memory\MEMORY.md` |
