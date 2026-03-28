@@ -107,7 +107,6 @@ TODO: _Design/TODO.md 갱신
 ## ON_DEMAND_REFS
 ```yaml
 plan_template: .claude/skills/planning/references/plan-template.md  # [E] 저장 시
-protocols:     .claude/references/protocols.md                       # TODO_WORKFLOW 확인 시
 ```
 
 ## COMPLETION

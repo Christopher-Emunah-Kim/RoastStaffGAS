@@ -31,11 +31,12 @@ INIT ──→ [A] MEMORY 로드
 
 ### [B] 플랜 읽기
 `_Design/Plans/active/PLAN_*.md` → GOAL/FLOW/EDGE_CASES/SCHEMA
+(SESSION_START에서 이미 읽힌 경우 재읽기 금지. 미읽힌 경우만 읽기. 필요 섹션은 Grep 우선.)
 
 ### [C] 1차 리뷰 (변경 파일만)
 ```
 우선순위:
-1. 기획서 정합  — _Design/References/Systems/ 대조
+1. 기획서 정합  — _Design/References/Systems/ 대조 (최대 3개 파일, Grep 우선. 전체 순회 금지.)
 2. GAS 패턴     — ASC 소유권, GA 트리거, Attribute 접근
 3. 메모리 안전  — UPROPERTY, TWeakObjectPtr, 복사 비용
 4. OOP 원칙     — TDA, 기차충돌, IS-A, SOLID

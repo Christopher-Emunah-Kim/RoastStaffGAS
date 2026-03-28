@@ -29,6 +29,7 @@ _Design/TODO.md: SESSION_START에서 이미 읽힌 경우 재읽기 금지. 미�
   없으면: "어떤 MODULE 작업할까요?" + 목록 제시
 
 _Design/Plans/active/PLAN_*.md 읽기:
+  SESSION_START에서 이미 읽힌 경우 재읽기 금지. 미읽힌 경우만 읽기.
   GOAL / FLOW / EDGE_CASES / SCHEMA 파악
 
 작업 시작 시 해당 MODULE을 [>] ACTIVE로 마킹
