@@ -36,6 +36,30 @@ void ULevelUpSubsystem::InitializeSubsystem(
 	KHS_INFO(TEXT("LevelUpSubsystem 초기화 완료"));
 }
 
+void ULevelUpSubsystem::OnEnemyKilled(FName InEnemyID)
+{
+	if (!bIsInitialized)
+	{
+		KHS_WARN(TEXT("LevelUpSubsystem::OnEnemyKilled — 미초기화 상태. ASC 연결 전 호출됨"));
+		return;
+	}
+
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
+	FEnemyStaticData EnemyData;
+	if (!GDS->GetEnemyData(InEnemyID, EnemyData))
+	{
+		KHS_WARN(TEXT("LevelUpSubsystem::OnEnemyKilled — EnemyID 조회 실패: %s"), *InEnemyID.ToString());
+		return;
+	}
+
+	if (EnemyData.DropEXP <= 0)
+	{
+		return;
+	}
+
+	AddEXP(static_cast<float>(EnemyData.DropEXP));
+}
+
 void ULevelUpSubsystem::AddEXP(float Amount)
 {
 	if (!ensureMsgf(ASC, TEXT("ASC가 null")))

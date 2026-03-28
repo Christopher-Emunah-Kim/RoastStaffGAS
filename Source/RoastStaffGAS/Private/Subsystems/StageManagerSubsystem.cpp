@@ -6,6 +6,7 @@
 #include "System/EnemySpawner.h"
 #include "Character/Enemy/EnemyBaseCharacter.h"
 #include "Subsystems/GameDataSubsystem.h"
+#include "Subsystems/LevelUpSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -106,6 +107,10 @@ void UStageManagerSubsystem::OnEnemyKilled(FName InEnemyID)
 	KillCount++;
 	KHS_INFO(TEXT("UStageManagerSubsystem::OnEnemyKilled — EnemyID: %s / 누적 처치: %d"),
 		*InEnemyID.ToString(), KillCount);
+
+	//레벨업 시스템에 적 사망 이벤트 전달.
+	GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetWorld()->GetGameInstance());
+	LevelUpSys->OnEnemyKilled(InEnemyID);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -29,6 +29,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "MY|LevelUp")
 	void AddEXP(float Amount);
 
+	/** AEnemyBaseCharacter::OnEnemyKilledDel → StageManagerSubsystem 경유로 호출 */
+	UFUNCTION()
+	void OnEnemyKilled(FName InEnemyID);
+
 	/** 무기 후보 선정 완료 시 발행 — PlayerController가 구독하여 레벨업 UI 오픈 */
 	UPROPERTY(BlueprintAssignable, Category = "MY|LevelUp")
 	FOnWeaponCandidatesReady OnWeaponCandidatesReadyDel;
