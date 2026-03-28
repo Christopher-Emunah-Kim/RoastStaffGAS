@@ -39,13 +39,20 @@ protected:
 private:
 	/** NativeConstruct NextTick에서 호출 — Player ASC 경로 탐색 후 BindToASC */
 	void BindToPlayerASC();
+	void InitializeEXPBar();
+	void BindToAttributeChangeDelegates();
 
 	/** ASC 어트리뷰트 변경 델리게이트 콜백 */
 	void OnCurrentHPChanged(const FOnAttributeChangeData& Data);
 	void OnMaxHPChanged(const FOnAttributeChangeData& Data);
+	// EXP/Level 어트리뷰트 변경 콜백
+	void OnEXPAttrChanged(const FOnAttributeChangeData& Data);
+	void OnLevelAttrChanged(const FOnAttributeChangeData& Data);
 
 	/** GhostBar를 TargetHealth 방향으로 보간 */
 	void UpdateGhostBar(float InDeltaTime);
+	/** EXPBar를 레벨업 후 시간을 두고 보간*/
+	void UpdateExpBar(float InDeltaTime);
 	/** LowHealth 상태 진입/탈출 시 애니메이션 갱신 */
 	void CheckLowHealthState();
 	/** HP 감소 감지 시 HitShake 애니메이션 재생 */
@@ -61,6 +68,8 @@ protected:
 	TObjectPtr<UProgressBar> PBar_Health;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UProgressBar> PBar_Ghost;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UProgressBar> PBar_Exp;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UImage> Img_DangerGlow;
 	UPROPERTY(Transient, meta = (BindWidgetAnimOptional))
@@ -76,6 +85,8 @@ private:
 	float InterpSpeed_Ghost = 3.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "MY|HPBar", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float LowHealthThreshold = 0.3f;
+	UPROPERTY(EditDefaultsOnly, Category = "MY|EXPBar", meta = (ClampMin = "0.1"))
+	float EXPLerpSpeed = 4.0f;
 
 	// 런타임 상태
 	UPROPERTY()
@@ -86,4 +97,9 @@ private:
 	float CurrentMaxHealth = 0.f;
 	float GhostDelayTimer  = 0.f;
 	bool  bIsLowHealth     = false;
+
+	float TargetEXPPercent  = 0.f;
+	float CurrentEXPPercent = 0.f;
+	float LerpStartPercent  = 0.f;
+	bool  bIsLerpingEXP     = false;
 };

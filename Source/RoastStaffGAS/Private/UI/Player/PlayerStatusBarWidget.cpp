@@ -4,7 +4,10 @@
 #include "Components/ProgressBar.h"
 #include "Components/Image.h"
 #include "AbilitySystemComponent.h"
+#include "RoastStaffGAS.h"
 #include "GAS/Attributes/BaseAttributeSet.h"
+#include "GAS/Attributes/PlayerAttributeSet.h"
+#include "Subsystems/GameDataSubsystem.h"
 #include "System/LoggingSystem.h"
 #include "Character/Player/RSPlayerState.h"
 
@@ -15,6 +18,38 @@ void UPlayerStatusBarWidget::NativeConstruct()
 	// Pawn 타이밍 안전 보장을 위해 1프레임 지연 후 자체 바인딩
 	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &UPlayerStatusBarWidget::BindToPlayerASC);
 }
+
+
+void UPlayerStatusBarWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	UpdateGhostBar(InDeltaTime);
+	
+	UpdateExpBar(InDeltaTime);
+}
+
+void UPlayerStatusBarWidget::NativeDestruct()
+{
+	if (CachedASC)
+	{
+		CachedASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetCurrentHPAttribute())
+			.RemoveAll(this);
+
+		CachedASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetMaxHPAttribute())
+			.RemoveAll(this);
+
+		// [CHG] 2026-03-28: EXP/Level 구독 해제
+		CachedASC->GetGameplayAttributeValueChangeDelegate(UPlayerAttributeSet::GetEXPAttribute())
+			.RemoveAll(this);
+
+		CachedASC->GetGameplayAttributeValueChangeDelegate(UPlayerAttributeSet::GetLevelAttribute())
+			.RemoveAll(this);
+	}
+
+	Super::NativeDestruct();
+}
+
 
 void UPlayerStatusBarWidget::BindToPlayerASC()
 {
@@ -42,6 +77,8 @@ void UPlayerStatusBarWidget::BindToPlayerASC()
 	KHS_WARN(TEXT("BindToPlayerASC 진입"));
 	BindToASC(ASC);
 }
+
+
 
 void UPlayerStatusBarWidget::BindToASC(UAbilitySystemComponent* InASC)
 {
@@ -72,34 +109,56 @@ void UPlayerStatusBarWidget::BindToASC(UAbilitySystemComponent* InASC)
 	CheckLowHealthState();
 
 	// 어트리뷰트 변경 델리게이트 구독
-	CachedASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetCurrentHPAttribute())
-		.AddUObject(this, &UPlayerStatusBarWidget::OnCurrentHPChanged);
+	BindToAttributeChangeDelegates();
 
-	CachedASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetMaxHPAttribute())
-		.AddUObject(this, &UPlayerStatusBarWidget::OnMaxHPChanged);
-	
+	// EXP 바 초기값 즉시 렌더링
+	InitializeEXPBar();
+
 	KHS_WARN(TEXT("어트리뷰트 변경 구독 완료"));
 }
 
-void UPlayerStatusBarWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
-{
-	Super::NativeTick(MyGeometry, InDeltaTime);
 
-	UpdateGhostBar(InDeltaTime);
+void UPlayerStatusBarWidget::BindToAttributeChangeDelegates()
+{
+	// HP 어트리뷰트 구독
+	CachedASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetCurrentHPAttribute())
+			 .AddUObject(this, &UPlayerStatusBarWidget::OnCurrentHPChanged);
+
+	CachedASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetMaxHPAttribute())
+			 .AddUObject(this, &UPlayerStatusBarWidget::OnMaxHPChanged);
+
+	// EXP 어트리뷰트 구독
+	CachedASC->GetGameplayAttributeValueChangeDelegate(UPlayerAttributeSet::GetEXPAttribute())
+			 .AddUObject(this, &UPlayerStatusBarWidget::OnEXPAttrChanged);
+
+	// Level 어트리뷰트 구독
+	CachedASC->GetGameplayAttributeValueChangeDelegate(UPlayerAttributeSet::GetLevelAttribute())
+			 .AddUObject(this, &UPlayerStatusBarWidget::OnLevelAttrChanged);
 }
 
-void UPlayerStatusBarWidget::NativeDestruct()
+
+void UPlayerStatusBarWidget::InitializeEXPBar()
 {
-	if (CachedASC)
+	const float InitEXP   = CachedASC->GetNumericAttribute(UPlayerAttributeSet::GetEXPAttribute());
+	const int32 InitLevel = static_cast<int32>(CachedASC->GetNumericAttribute(UPlayerAttributeSet::GetLevelAttribute()));
+
+	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());
+	float MaxEXP = 0.f;
+	// RequiredEXP 커브는 "레벨 N에 도달하는 데 필요한 EXP" — CheckLevelUp과 동일하게 +1
+	if (GDS->GetLevelCurveValue(FName("RequiredEXP"), InitLevel + 1, MaxEXP) && MaxEXP > 0.f)
 	{
-		CachedASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetCurrentHPAttribute())
-			.RemoveAll(this);
-
-		CachedASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetMaxHPAttribute())
-			.RemoveAll(this);
+		CurrentEXPPercent = FMath::Clamp(InitEXP / MaxEXP, 0.f, 1.f);
 	}
+	else
+	{
+		CurrentEXPPercent = 1.f; // 최대 레벨 또는 데이터 미정의 → 바 가득 표시
+	}
+	TargetEXPPercent = CurrentEXPPercent;
 
-	Super::NativeDestruct();
+	if (PBar_Exp)
+	{
+		PBar_Exp->SetPercent(CurrentEXPPercent);
+	}
 }
 
 void UPlayerStatusBarWidget::OnCurrentHPChanged(const FOnAttributeChangeData& Data)
@@ -161,6 +220,23 @@ void UPlayerStatusBarWidget::UpdateGhostBar(float InDeltaTime)
 	PBar_Ghost->SetPercent(CalcPercent(GhostHealth));
 }
 
+
+void UPlayerStatusBarWidget::UpdateExpBar(float InDeltaTime)
+{
+	if (bIsLerpingEXP && PBar_Exp)
+	{
+		CurrentEXPPercent = FMath::FInterpTo(CurrentEXPPercent, TargetEXPPercent, InDeltaTime, EXPLerpSpeed);
+		PBar_Exp->SetPercent(CurrentEXPPercent);
+
+		if (FMath::IsNearlyEqual(CurrentEXPPercent, TargetEXPPercent, 0.001f))
+		{
+			CurrentEXPPercent = TargetEXPPercent;
+			PBar_Exp->SetPercent(CurrentEXPPercent);
+			bIsLerpingEXP = false;
+		}
+	}
+}
+
 void UPlayerStatusBarWidget::CheckLowHealthState()
 {
 	if (CurrentMaxHealth <= 0.f)
@@ -218,6 +294,37 @@ void UPlayerStatusBarWidget::TriggerHitShake()
 	}
 
 	PlayAnimation(Anim_HitShake);
+}
+
+void UPlayerStatusBarWidget::OnLevelAttrChanged(const FOnAttributeChangeData& Data)
+{
+	// [CHG] 2026-03-28: 레벨업 감지 — 현재 EXP 바 퍼센트를 Lerp 시작점으로 캐시
+	LerpStartPercent = CurrentEXPPercent;
+}
+
+void UPlayerStatusBarWidget::OnEXPAttrChanged(const FOnAttributeChangeData& Data)
+{
+	// [CHG] 2026-03-28: EXP 변화 → 현재 Level 기준 MaxEXP 조회 후 Lerp 목표 설정
+	if (!CachedASC)
+	{
+		return;
+	}
+
+	const int32 CurrentLevel = static_cast<int32>(CachedASC->GetNumericAttribute(UPlayerAttributeSet::GetLevelAttribute()));
+
+	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());
+
+	float MaxEXP = 0.f;
+	// RequiredEXP 커브는 "레벨 N에 도달하는 데 필요한 EXP" — CheckLevelUp과 동일하게 +1
+	if (!GDS->GetLevelCurveValue(FName("RequiredEXP"), CurrentLevel + 1, MaxEXP) || MaxEXP <= 0.f)
+	{
+		TargetEXPPercent = 1.f; // 최대 레벨 또는 데이터 미정의 → 바 가득
+		bIsLerpingEXP    = true;
+		return;
+	}
+
+	TargetEXPPercent = FMath::Clamp(Data.NewValue / MaxEXP, 0.f, 1.f);
+	bIsLerpingEXP    = true;
 }
 
 float UPlayerStatusBarWidget::CalcPercent(float InHealth) const
