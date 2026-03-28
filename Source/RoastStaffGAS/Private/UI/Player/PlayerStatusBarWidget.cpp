@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "UI/Player/PlayerHPBarWidget.h"
+#include "UI/Player/PlayerStatusBarWidget.h"
 #include "Components/ProgressBar.h"
 #include "Components/Image.h"
 #include "AbilitySystemComponent.h"
@@ -8,15 +8,15 @@
 #include "System/LoggingSystem.h"
 #include "Character/Player/RSPlayerState.h"
 
-void UPlayerHPBarWidget::NativeConstruct()
+void UPlayerStatusBarWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
 	// Pawn 타이밍 안전 보장을 위해 1프레임 지연 후 자체 바인딩
-	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &UPlayerHPBarWidget::BindToPlayerASC);
+	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &UPlayerStatusBarWidget::BindToPlayerASC);
 }
 
-void UPlayerHPBarWidget::BindToPlayerASC()
+void UPlayerStatusBarWidget::BindToPlayerASC()
 {
 	APlayerController* PC = GetOwningPlayer();
 	if (!PC)
@@ -43,7 +43,7 @@ void UPlayerHPBarWidget::BindToPlayerASC()
 	BindToASC(ASC);
 }
 
-void UPlayerHPBarWidget::BindToASC(UAbilitySystemComponent* InASC)
+void UPlayerStatusBarWidget::BindToASC(UAbilitySystemComponent* InASC)
 {
 	if (!InASC)
 	{
@@ -73,22 +73,22 @@ void UPlayerHPBarWidget::BindToASC(UAbilitySystemComponent* InASC)
 
 	// 어트리뷰트 변경 델리게이트 구독
 	CachedASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetCurrentHPAttribute())
-		.AddUObject(this, &UPlayerHPBarWidget::OnCurrentHPChanged);
+		.AddUObject(this, &UPlayerStatusBarWidget::OnCurrentHPChanged);
 
 	CachedASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetMaxHPAttribute())
-		.AddUObject(this, &UPlayerHPBarWidget::OnMaxHPChanged);
+		.AddUObject(this, &UPlayerStatusBarWidget::OnMaxHPChanged);
 	
 	KHS_WARN(TEXT("어트리뷰트 변경 구독 완료"));
 }
 
-void UPlayerHPBarWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+void UPlayerStatusBarWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
 	UpdateGhostBar(InDeltaTime);
 }
 
-void UPlayerHPBarWidget::NativeDestruct()
+void UPlayerStatusBarWidget::NativeDestruct()
 {
 	if (CachedASC)
 	{
@@ -102,7 +102,7 @@ void UPlayerHPBarWidget::NativeDestruct()
 	Super::NativeDestruct();
 }
 
-void UPlayerHPBarWidget::OnCurrentHPChanged(const FOnAttributeChangeData& Data)
+void UPlayerStatusBarWidget::OnCurrentHPChanged(const FOnAttributeChangeData& Data)
 {
 	if (FMath::IsNearlyEqual(TargetHealth, Data.NewValue, 0.01f))
 	{
@@ -134,12 +134,12 @@ void UPlayerHPBarWidget::OnCurrentHPChanged(const FOnAttributeChangeData& Data)
 	CheckLowHealthState();
 }
 
-void UPlayerHPBarWidget::OnMaxHPChanged(const FOnAttributeChangeData& Data)
+void UPlayerStatusBarWidget::OnMaxHPChanged(const FOnAttributeChangeData& Data)
 {
 	CurrentMaxHealth = Data.NewValue;
 }
 
-void UPlayerHPBarWidget::UpdateGhostBar(float InDeltaTime)
+void UPlayerStatusBarWidget::UpdateGhostBar(float InDeltaTime)
 {
 	if (GhostDelayTimer > 0.f)
 	{
@@ -161,7 +161,7 @@ void UPlayerHPBarWidget::UpdateGhostBar(float InDeltaTime)
 	PBar_Ghost->SetPercent(CalcPercent(GhostHealth));
 }
 
-void UPlayerHPBarWidget::CheckLowHealthState()
+void UPlayerStatusBarWidget::CheckLowHealthState()
 {
 	if (CurrentMaxHealth <= 0.f)
 	{
@@ -204,7 +204,7 @@ void UPlayerHPBarWidget::CheckLowHealthState()
 	}
 }
 
-void UPlayerHPBarWidget::TriggerHitShake()
+void UPlayerStatusBarWidget::TriggerHitShake()
 {
 	if (!Anim_HitShake)
 	{
@@ -220,7 +220,7 @@ void UPlayerHPBarWidget::TriggerHitShake()
 	PlayAnimation(Anim_HitShake);
 }
 
-float UPlayerHPBarWidget::CalcPercent(float InHealth) const
+float UPlayerStatusBarWidget::CalcPercent(float InHealth) const
 {
 	if (CurrentMaxHealth <= 0.f)
 	{

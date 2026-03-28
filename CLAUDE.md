@@ -32,7 +32,6 @@ refs:
 1. _Design/TODO.md 읽기                                          ← 최우선
 2. _Design/Plans/active/ → Glob("PLAN_*.md")으로 파일 목록 확인  ← 있으면 최신 1개만 Read
 3. _Design/Changesets/CHANGESET.md 읽기                         ← 커밋 관련 작업 시만
-4. _Design/Handoff/HANDOFF_LATEST.md                            ← 추가 컨텍스트 필요 시만
 ```
 
 ## ROUTING_TABLE

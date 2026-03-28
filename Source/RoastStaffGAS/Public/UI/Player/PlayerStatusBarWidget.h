@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "GameplayEffectTypes.h"
-#include "PlayerHPBarWidget.generated.h"
+#include "PlayerStatusBarWidget.generated.h"
 
 class UProgressBar;
 class UTextBlock;
@@ -14,7 +14,7 @@ class UAbilitySystemComponent;
 class ARSPlayerState;
 
 /**
- * UPlayerHPBarWidget
+ * UPlayerStatusBarWidget
  *
  * - WBP_HUD의 자식 위젯으로 삽입되는 플레이어 체력바
  * - NativeConstruct에서 NextTick으로 Player ASC에 자체 바인딩
@@ -23,7 +23,7 @@ class ARSPlayerState;
  * - HitShake: HP 감소 감지 시 Anim_HitShake 재생
  */
 UCLASS()
-class ROASTSTAFFGAS_API UPlayerHPBarWidget : public UUserWidget
+class ROASTSTAFFGAS_API UPlayerStatusBarWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
