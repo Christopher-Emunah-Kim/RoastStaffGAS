@@ -10,24 +10,24 @@
 class UWeaponSlotContainerWidget;
 
 /**
- * 
+ *
  */
 UCLASS()
 class ROASTSTAFFGAS_API URSHUDWidget : public URSBaseWidget
 {
 	GENERATED_BODY()
-	
+
 	URSHUDWidget();
-	
+
 protected:
 	virtual void NativeConstruct() override;
-	
+
 public:
 	FORCEINLINE UWeaponSlotContainerWidget* GetSlotContainerWidget() const  { return WBP_SlotContainer; }
-	
+
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UWeaponSlotContainerWidget> WBP_SlotContainer;
 
-	
+
 };

@@ -67,7 +67,7 @@ UPDOC:  trigger: ["기획서 수정","기획서 업데이트","update-design"]
 
 COMMIT: trigger: ["커밋해줘","커밋하자","commit"]
         load:    [.claude/skills/commit/SKILL.md]
-        pre:     _Design/Changesets/CHANGESET.md + _Design/TODO.md 읽기
+        pre:     _Design/Changesets/CHANGESET.md + _Design/TODO.md 읽기 (SESSION_START에서 읽힌 경우 생략)
 
 UPDATE: trigger: ["플로우 개선","스킬 수정","규칙 바꿔","agent-update","시스템 업데이트"]
         load:    [.claude/skills/agent-update/SKILL.md]

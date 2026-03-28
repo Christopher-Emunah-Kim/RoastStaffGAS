@@ -28,6 +28,20 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 ---
 <!-- 신규 항목은 이 줄 아래에 추가 -->
 
+- date: 2026-03-28
+  plan: PLAN_PlayerHPBarWidget_v1.0
+  commit: null
+  files:
+    modified: []
+    created:
+      - Source/RoastStaffGAS/Public/UI/Player/PlayerHPBarWidget.h
+      - Source/RoastStaffGAS/Private/UI/Player/PlayerHPBarWidget.cpp
+    deleted: []
+  summary: "PlayerHPBarWidget 구현 — ASC HP 감지, Ghost/Health 보간, LowHealth/HitShake 애니메이션"
+  status: PENDING_COMMIT
+  bugs_found: []
+  bugs_fixed: []
+
 - date: 2026-03-27
   plan: PLAN_ManualFireBugFix_v1.0
   commit: "3e21a68"
