@@ -27,10 +27,26 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ---
 <!-- 신규 항목은 이 줄 아래에 추가 -->
+- date: 2026-03-28
+  plan: PLAN_EXP_LevelUp_UI_v1.0
+  commit: null
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Subsystems/LevelUpSubsystem.h
+      - Source/RoastStaffGAS/Private/Subsystems/LevelUpSubsystem.cpp
+      - Source/RoastStaffGAS/Private/Subsystems/StageManagerSubsystem.cpp
+      - Source/RoastStaffGAS/Public/UI/Player/PlayerStatusBarWidget.h
+      - Source/RoastStaffGAS/Private/UI/Player/PlayerStatusBarWidget.cpp
+    created: []
+    deleted: []
+  summary: "에너미 사망 → 스테이지 시스템 경유 EXP 전달 + PlayerStatusBarWidget EXP 바 Lerp 표시"
+  status: PENDING_COMMIT
+  bugs_found: []
+  bugs_fixed: []
 
 - date: 2026-03-28
   plan: PLAN_PlayerHPBarWidget_v1.0
-  commit: null
+  commit: "714cff4"
   files:
     modified: []
     created:
@@ -38,7 +54,7 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
       - Source/RoastStaffGAS/Private/UI/Player/PlayerHPBarWidget.cpp
     deleted: []
   summary: "PlayerHPBarWidget 구현 — ASC HP 감지, Ghost/Health 보간, LowHealth/HitShake 애니메이션"
-  status: PENDING_COMMIT
+  status: COMMITTED
   bugs_found: []
   bugs_fixed: []
 
