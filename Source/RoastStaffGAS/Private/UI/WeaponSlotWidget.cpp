@@ -39,6 +39,7 @@ void UWeaponSlotWidget::UpdateSlot(const FWeaponSlotInstanceData* SlotData)
 		if (LoadedSkillIcon)
 		{
 			Img_SkillIcon->SetBrushFromTexture(LoadedSkillIcon);
+			Img_SkillIcon->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		}
 	}
 	
