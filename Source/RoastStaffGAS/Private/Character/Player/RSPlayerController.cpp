@@ -14,6 +14,7 @@
 #include "UI/WeaponSlotWidget.h"
 #include "UI/FloatingDamageWidget.h"
 #include "UI/LevelUpWeaponSelectWidget.h"
+#include "UI/WeaponReplaceWidget.h"
 #include "Data/RuntimeDataStructs.h"
 
 void ARSPlayerController::BeginPlay()
@@ -40,8 +41,9 @@ void ARSPlayerController::BeginPlay()
 	GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
 
 	EquipSys->OnSlotUpdatedDel.AddUniqueDynamic(this, &ARSPlayerController::OnSlotUpdated);
+	EquipSys->OnSlotFull.AddUniqueDynamic(this, &ARSPlayerController::OnWeaponSlotFull);
 	LevelUpSys->OnWeaponCandidatesReadyDel.AddUniqueDynamic(this, &ARSPlayerController::OnWeaponCandidatesReady);
-	KHS_INFO(TEXT("델리게이트 구독 완료 (SlotUpdated / WeaponCandidatesReady)"));
+	KHS_INFO(TEXT("델리게이트 구독 완료 (SlotUpdated / SlotFull / WeaponCandidatesReady)"));
 
 	//HUD UI오픈
 	if (!HUDWidgetClass)
@@ -67,6 +69,7 @@ void ARSPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	EquipSys->OnSlotUpdatedDel.RemoveDynamic(this, &ARSPlayerController::OnSlotUpdated);
 
 	GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
+	EquipSys->OnSlotFull.RemoveDynamic(this, &ARSPlayerController::OnWeaponSlotFull);
 	LevelUpSys->OnWeaponCandidatesReadyDel.RemoveDynamic(this, &ARSPlayerController::OnWeaponCandidatesReady);
 
 	Super::EndPlay(EndPlayReason);
@@ -230,6 +233,56 @@ void ARSPlayerController::OnWeaponSelectCompleted()
 	LevelUpSys->NotifyWeaponSelectCompleted();
 
 	KHS_INFO(TEXT("레벨업 UI 종료 — 게임 재개"));
+}
+
+// ============================================================================
+// 무기 교체 UI 관리
+// ============================================================================
+
+void ARSPlayerController::OnWeaponSlotFull(FName PendingWeaponID)
+{
+	if (!ensureMsgf(WeaponReplaceUIClass, TEXT("WeaponReplaceUIClass 미할당 — BP_PlayerController에서 설정 필요")))
+	{
+		GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
+		LevelUpSys->NotifyWeaponSelectCompleted();
+		return;
+	}
+
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance());
+	UWeaponReplaceWidget* Widget = UMS->OpenUI<UWeaponReplaceWidget>(WeaponReplaceUIClass);
+
+	if (!ensureMsgf(Widget, TEXT("WeaponReplaceWidget 오픈 실패")))
+	{
+		GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
+		LevelUpSys->NotifyWeaponSelectCompleted();
+		return;
+	}
+
+	CachedWeaponReplaceWidget = Widget;
+	Widget->OnReplaceCompletedDel.AddDynamic(this, &ARSPlayerController::OnWeaponReplaceCompleted);
+	Widget->InitWidget(PendingWeaponID);
+
+	KHS_INFO(TEXT("교체 UI 오픈 — PendingWeaponID: %s"), *PendingWeaponID.ToString());
+}
+
+void ARSPlayerController::OnWeaponReplaceCompleted()
+{
+	if (CachedWeaponReplaceWidget)
+	{
+		CachedWeaponReplaceWidget->OnReplaceCompletedDel.RemoveDynamic(this, &ARSPlayerController::OnWeaponReplaceCompleted);
+		CachedWeaponReplaceWidget = nullptr;
+	}
+
+	// CHG: 교체 UI 완료 후 게임 재개 — LevelUpWeaponSelectWidget와 동일한 복구 경로
+	if (UWorld* World = GetWorld())
+	{
+		World->GetWorldSettings()->TimeDilation = 1.f;
+	}
+
+	GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
+	LevelUpSys->NotifyWeaponSelectCompleted();
+
+	KHS_INFO(TEXT("교체 UI 종료 — 게임 재개"));
 }
 
 // ============================================================================

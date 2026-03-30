@@ -149,12 +149,22 @@ void ULevelUpWeaponSelectWidget::EquipAndClose(int32 CardIndex)
 	}
 
 	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetWorld()->GetGameInstance());
-	EquipSys->EquipWeapon(Candidates[CardIndex].WeaponID);
-	KHS_INFO(TEXT("무기 장착 — WeaponID: %s"), *Candidates[CardIndex].WeaponID.ToString());
+
+	const FName SelectedWeaponID = Candidates[CardIndex].WeaponID;
+	const FName PendingBefore = EquipSys->PendingWeaponID;
+
+	EquipSys->EquipWeapon(SelectedWeaponID);
+	KHS_INFO(TEXT("무기 장착 요청 — WeaponID: %s"), *SelectedWeaponID.ToString());
 
 	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetWorld()->GetGameInstance());
 	UMS->CloseUI(this);
-	OnWeaponSelectCompletedDel.Broadcast();
+
+	// 슬롯 가득 → OnSlotFull 발행된 경우 교체 UI가 게임 재개를 담당
+	// 그 외(강화/일반 장착)는 이 위젯이 직접 완료 통보
+	if (EquipSys->PendingWeaponID == NAME_None)
+	{
+		OnWeaponSelectCompletedDel.Broadcast();
+	}
 }
 
 void ULevelUpWeaponSelectWidget::CloseWithoutEquip()

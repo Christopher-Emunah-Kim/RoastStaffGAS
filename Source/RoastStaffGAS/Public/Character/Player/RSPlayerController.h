@@ -14,6 +14,7 @@
 class URSHUDWidget;
 class UFloatingDamageWidget;
 class ULevelUpWeaponSelectWidget;
+class UWeaponReplaceWidget;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
@@ -55,10 +56,15 @@ private:
 	/** LevelUpSubsystem.OnWeaponCandidatesReadyDel 핸들러 — 레벨업 UI 오픈 + 게임 일시정지 */
 	UFUNCTION()
 	void OnWeaponCandidatesReady(const TArray<FWeaponCardDisplayData>& WeaponCards);
-
 	/** LevelUpWeaponSelectWidget.OnWeaponSelectCompletedDel 핸들러 — 게임 재개 */
 	UFUNCTION()
 	void OnWeaponSelectCompleted();
+	/** EquipmentSubsystem.OnSlotFull 핸들러 — 교체 UI 오픈 */
+	UFUNCTION()
+	void OnWeaponSlotFull(FName PendingWeaponID);
+	/** WeaponReplaceWidget.OnReplaceCompletedDel 핸들러 — 레벨업 완료 통보 */
+	UFUNCTION()
+	void OnWeaponReplaceCompleted();
 
 	//========================================================
 	// 입력 처리
@@ -80,6 +86,12 @@ protected:
 	TSubclassOf<ULevelUpWeaponSelectWidget> LevelUpUIClass;
 	UPROPERTY()
 	TObjectPtr<ULevelUpWeaponSelectWidget> CachedLevelUpWidget;
+
+	// UI — 무기 교체 팝업
+	UPROPERTY(EditDefaultsOnly, Category = "MY|UI")
+	TSubclassOf<UWeaponReplaceWidget> WeaponReplaceUIClass;
+	UPROPERTY()
+	TObjectPtr<UWeaponReplaceWidget> CachedWeaponReplaceWidget;
 
 	// UI — FloatingDamageWidget 
 	UPROPERTY(EditDefaultsOnly, Category = "MY|UI")
