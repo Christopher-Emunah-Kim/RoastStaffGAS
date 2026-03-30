@@ -28,6 +28,32 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 ---
 <!-- 신규 항목은 이 줄 아래에 추가 -->
 - date: 2026-03-28
+  plan: PLAN_WeaponUpgrade_Replace_v1.0
+  commit: "b6b18d4 / ed1513a / e35d380 / 0587332 / 07153a4 / aa6d657 / ddf94d8"
+  files:
+    modified:
+      - Content/ExternalSource/DT_Weapon.csv
+      - Source/RoastStaffGAS/Public/Subsystems/GameDataSubsystem.h
+      - Source/RoastStaffGAS/Private/Subsystems/GameDataSubsystem.cpp
+      - Source/RoastStaffGAS/Public/Subsystems/EquipmentSubsystem.h
+      - Source/RoastStaffGAS/Private/Subsystems/EquipmentSubsystem.cpp
+      - Source/RoastStaffGAS/Public/Character/Player/RSPlayerController.h
+      - Source/RoastStaffGAS/Private/Character/Player/RSPlayerController.cpp
+      - Source/RoastStaffGAS/Private/UI/LevelUpWeaponSelectWidget.cpp
+      - Source/RoastStaffGAS/Private/UI/WeaponSlotWidget.cpp
+    created:
+      - Content/Data/Weapon/DT_WeaponDamageCurve.uasset
+      - Source/RoastStaffGAS/Public/UI/WeaponReplaceWidget.h
+      - Source/RoastStaffGAS/Private/UI/WeaponReplaceWidget.cpp
+      - Content/UI/Levelup/WBP_WeaponReplaceUI.uasset
+      - _Design/Plans/active/PLAN_WeaponUpgrade_Replace_v1.0.md
+    deleted: []
+  summary: "무기 강화 로직 + 교체 UI — CurveTable 기반 Lv2/Lv3 데미지 스케일링, EquipmentSubsystem 강화 판정 내재화"
+  status: COMMITTED
+  bugs_found: []
+  bugs_fixed: []
+
+- date: 2026-03-28
   plan: PLAN_EXP_LevelUp_UI_v1.0
   commit: "82444aa / e7a5cb6 / 501862b"
   files:
