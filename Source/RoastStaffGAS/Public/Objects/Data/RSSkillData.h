@@ -20,4 +20,6 @@ class ROASTSTAFFGAS_API URSSkillData : public UObject
 public:
 	UPROPERTY()
 	FName SkillID;
+	UPROPERTY()
+	FName WeaponID;
 };

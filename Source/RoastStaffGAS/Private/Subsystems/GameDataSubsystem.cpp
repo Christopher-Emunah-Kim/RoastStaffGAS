@@ -95,6 +95,12 @@ void UGameDataSubsystem::LoadDataTables()
     {
         LoadedCurveTable = Config->BaseStatCurveTable.LoadSynchronous();
     }
+
+    if (!Config->WeaponDamageCurveTable.IsNull()) //무기 레벨별 데미지 커브
+    {
+        LoadedWeaponDamageCurveTable = Config->WeaponDamageCurveTable.LoadSynchronous();
+        KHS_INFO(TEXT("DT_WeaponDamageCurve 로드 완료"));
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -185,6 +191,33 @@ bool UGameDataSubsystem::GetLevelCurveValue(FName CurveName, int32 Level, float&
 bool UGameDataSubsystem::GetWeaponData(FName WeaponID, FWeaponStaticData& OutData) const
 {
     return GetCachedData(WeaponCache, WeaponID, OutData, TEXT("FWeaponStaticData"));
+}
+
+float UGameDataSubsystem::GetWeaponDamageFromCurve(FName WeaponID, int32 WeaponLevel) const
+{
+    if (!LoadedWeaponDamageCurveTable)
+    {
+        KHS_WARN(TEXT("WeaponDamageCurveTable is null — WeaponID: %s"), *WeaponID.ToString());
+        return 0.f;
+    }
+
+    FWeaponStaticData WeaponData;
+    if (!GetWeaponData(WeaponID, WeaponData))
+    {
+        KHS_WARN(TEXT("GetWeaponDamageFromCurve — WeaponData 조회 실패. WeaponID: %s"), *WeaponID.ToString());
+        return 0.f;
+    }
+
+    const UEnum* EnumPtr = StaticEnum<EWeaponBaseType>();
+    const FString BaseTypeName = EnumPtr->GetDisplayValueAsText(WeaponData.BaseType).ToString();
+    const FRealCurve* Curve = LoadedWeaponDamageCurveTable->FindCurve(FName(*BaseTypeName), TEXT(""));
+    if (!Curve)
+    {
+        KHS_WARN(TEXT("CurveTable 행 조회 실패 — RowName: %s"), *BaseTypeName);
+        return 0.f;
+    }
+
+    return Curve->Eval(static_cast<float>(WeaponLevel));
 }
 
 TArray<FName> UGameDataSubsystem::GetWeaponIDsByLevel(int32 WeaponLevel) const
@@ -342,69 +375,86 @@ bool UGameDataSubsystem::GetWeaponSlotEquipData(FName WeaponID, FWeaponSlotEquip
     return true;
 }
 
-bool UGameDataSubsystem::GetSkillExecutionData(FName SkillID, FSkillExecutionData& OutData) const
+bool UGameDataSubsystem::GetSkillExecutionData(FName SkillID, FSkillExecutionData& OutData, FName WeaponID) const
 {
     FSkillCommonStaticData SkillStaticData;                                                                      
-      if (!GetSkillStaticData(SkillID, SkillStaticData))                                                         
-      {
-          KHS_WARN(TEXT("DT_Skill_Common_Static 조회 실패. SkillID: %s"), *SkillID.ToString());
-          return false;                                                                                            
-      }
-                                                                                                                   
-      FSkillCommonResourceData ResourceData;                                                                     
-      if (!GetSkillResourceData(SkillID, ResourceData))
-      {                                                                                                            
-          KHS_WARN(TEXT("DT_Skill_Common_Resource 조회 실패. SkillID: %s"), *SkillID.ToString());                  
-          return false;                                                                                            
-      }                                                                                                            
+    if (!GetSkillStaticData(SkillID, SkillStaticData))                                                         
+    {
+        KHS_WARN(TEXT("DT_Skill_Common_Static 조회 실패. SkillID: %s"), *SkillID.ToString());
+        return false;                                                                                            
+    }
                                                                                                                  
-      const FName SkillEffectID = SkillStaticData.SkillEffectID;                                                   
-   
-      FSkillCommonParamData CommonParamData;                                                                       
-      if (!GetSkillCommonParamData(SkillEffectID, CommonParamData))                                              
-      {                                                                                                            
-          KHS_WARN(TEXT("DT_Skill_Common_Param 조회 실패. SkillEffectID: %s"), *SkillEffectID.ToString());
-          return false;                                                                                            
-      }                                                                                                          
-                                                                                                                   
-      FSkillAttackCommonParamsData AttackParamData;                                                                
-      if (!GetSkillAttackCommonParamsData(SkillEffectID, AttackParamData))                                         
-      {                                                                                                            
-          KHS_WARN(TEXT("DT_Skill_Attack_Common_Param 조회 실패. SkillEffectID: %s"), *SkillEffectID.ToString());
-          return false;                                                                                            
-      }
-                                                                                                                   
-      FSkillAttackSpawnParamsData SpawnParamData;                                                                  
-      if (!GetSkillAttackSpawnParamsData(SkillEffectID, SpawnParamData))
-      {                                                                                                            
-          KHS_WARN(TEXT("DT_Skill_Attack_Spawn_Param 조회 실패. SkillEffectID: %s"), *SkillEffectID.ToString()); 
-          return false;                                                                                            
-      }
-                                                                                                                   
-      OutData.SkillID            = SkillID;                                                                      
-      OutData.SkillEffectID      = SkillEffectID;
+    FSkillCommonResourceData ResourceData;                                                                     
+    if (!GetSkillResourceData(SkillID, ResourceData))
+    {                                                                                                            
+        KHS_WARN(TEXT("DT_Skill_Common_Resource 조회 실패. SkillID: %s"), *SkillID.ToString());                  
+        return false;                                                                                            
+    }                                                                                                            
+                                                                                                               
+    const FName SkillEffectID = SkillStaticData.SkillEffectID;                                                   
+ 
+    FSkillCommonParamData CommonParamData;                                                                       
+    if (!GetSkillCommonParamData(SkillEffectID, CommonParamData))                                              
+    {                                                                                                            
+        KHS_WARN(TEXT("DT_Skill_Common_Param 조회 실패. SkillEffectID: %s"), *SkillEffectID.ToString());
+        return false;                                                                                            
+    }                                                                                                          
+                                                                                                                 
+    FSkillAttackCommonParamsData AttackParamData;                                                                
+    if (!GetSkillAttackCommonParamsData(SkillEffectID, AttackParamData))                                         
+    {                                                                                                            
+        KHS_WARN(TEXT("DT_Skill_Attack_Common_Param 조회 실패. SkillEffectID: %s"), *SkillEffectID.ToString());
+        return false;                                                                                            
+    }
+                                                                                                                 
+    FSkillAttackSpawnParamsData SpawnParamData;                                                                  
+    if (!GetSkillAttackSpawnParamsData(SkillEffectID, SpawnParamData))
+    {                                                                                                            
+        KHS_WARN(TEXT("DT_Skill_Attack_Spawn_Param 조회 실패. SkillEffectID: %s"), *SkillEffectID.ToString()); 
+        return false;                                                                                            
+    }
+                                                                                                                 
+    OutData.SkillID            = SkillID;                                                                      
+    OutData.SkillEffectID      = SkillEffectID;
+  
+    OutData.DamageGEClass      = ResourceData.DamageGEClass;                                                     
+    OutData.StatusGEClass      = ResourceData.StatusGEClass;
+    OutData.ProjectileClass    = ResourceData.ProjectileClass;                                                   
+    OutData.SummonObjectClass  = ResourceData.SummonObjectClass;                                                 
+    OutData.SummonPreviewClass = ResourceData.SummonPreviewClass;
+  
+    OutData.SkillType          = CommonParamData.SkillType;                                                      
+    OutData.Lifetime           = CommonParamData.Lifetime;                                                     
+    OutData.Range              = CommonParamData.Range;        
+  
+    OutData.MoveType           = AttackParamData.MoveType;                                                       
+    OutData.HitType            = AttackParamData.HitType;                                                        
+    OutData.SpawnPattern       = AttackParamData.SpawnType; 
+    OutData.Speed              = AttackParamData.Speed;       
+  
+    OutData.SpawnCount         = SpawnParamData.SpawnCount;                                                      
+    OutData.SocketName         = SpawnParamData.SocketName;                                                      
+    OutData.SpreadAngle        = SpawnParamData.SpreadAngle;
     
-      OutData.DamageGEClass      = ResourceData.DamageGEClass;                                                     
-      OutData.StatusGEClass      = ResourceData.StatusGEClass;
-      OutData.ProjectileClass    = ResourceData.ProjectileClass;                                                   
-      OutData.SummonObjectClass  = ResourceData.SummonObjectClass;                                                 
-      OutData.SummonPreviewClass = ResourceData.SummonPreviewClass;
-    
-      OutData.SkillType          = CommonParamData.SkillType;                                                      
-      OutData.Lifetime           = CommonParamData.Lifetime;                                                     
-      OutData.Range              = CommonParamData.Range;        
-    
-      OutData.MoveType           = AttackParamData.MoveType;                                                       
-      OutData.HitType            = AttackParamData.HitType;                                                        
-      OutData.SpawnPattern       = AttackParamData.SpawnType;                                                      
-      OutData.Amount             = AttackParamData.Amount;                                                         
-      OutData.Speed              = AttackParamData.Speed;       
-    
-      OutData.SpawnCount         = SpawnParamData.SpawnCount;                                                      
-      OutData.SocketName         = SpawnParamData.SocketName;                                                      
-      OutData.SpreadAngle        = SpawnParamData.SpreadAngle;
+    // WeaponID 전달 시 DT에서 WeaponLevel 파생 → CurveTable 조회
+    if (WeaponID != NAME_None)
+    {
+        FWeaponStaticData WeaponData;
+        if (GetWeaponData(WeaponID, WeaponData) && WeaponData.WeaponLevel > 0)
+        {
+            OutData.Amount = GetWeaponDamageFromCurve(WeaponID, WeaponData.WeaponLevel);
+        }
+        else
+        {
+            OutData.Amount = AttackParamData.Amount;
+        }
+    }
+    else
+    {
+        OutData.Amount = AttackParamData.Amount;
+    }
                                                                                                                    
-      return true;                                            
+    return true;                                            
 }
 
 bool UGameDataSubsystem::GetSkillFXData(FName SkillID, FSkillFXData& OutData) const

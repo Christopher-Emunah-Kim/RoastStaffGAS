@@ -43,8 +43,9 @@ public:
     // -------------------------------------------------------------------------
     //WeaponID → FWeaponSlotEquipData 조합 반환.(장착 + 슬롯 초기화 + UI)
     bool GetWeaponSlotEquipData(FName WeaponID, FWeaponSlotEquipData& OutData) const;
-    //SkillID → FSkillExecutionData 조합 반환.(GA 발동 시 투사체/소환물 생성에 필요) 
-    bool GetSkillExecutionData(FName SkillID, FSkillExecutionData& OutData) const;
+    //SkillID → FSkillExecutionData 조합 반환.(GA 발동 시 투사체/소환물 생성에 필요)
+    //WeaponID 전달 시 DT에서 WeaponLevel 파생 → CurveTable로 Amount 결정. 미전달 시 DT 기본값 사용.
+    bool GetSkillExecutionData(FName SkillID, FSkillExecutionData& OutData, FName WeaponID = NAME_None) const;
     //SkillID → FSkillFXData 조합 반환.(투사체/소환물 연출(VFX/SFX))                                                                                                  
     bool GetSkillFXData(FName SkillID, FSkillFXData& OutData) const;  
     
@@ -56,6 +57,8 @@ public:
     TArray<FName> GetWeaponIDsByLevel(int32 WeaponLevel) const;
     /** WeaponID → FWeaponStaticData 단일 조회. LevelUpSubsystem 카드 상태 판단에 사용 */
     bool GetWeaponData(FName WeaponID, FWeaponStaticData& OutData) const;
+    /** WeaponID + WeaponLevel → CurveTable에서 데미지 조회. 조회 실패 시 0.f 반환 */
+    float GetWeaponDamageFromCurve(FName WeaponID, int32 WeaponLevel) const;
 
     // -------------------------------------------------------------------------
     // 스킬 조회
@@ -131,6 +134,7 @@ private:
     // 로드된 DataTable 포인터 (UPROPERTY로 GC 방지)
     // -------------------------------------------------------------------------
     UPROPERTY() UCurveTable* LoadedCurveTable = nullptr;
+    UPROPERTY() UCurveTable* LoadedWeaponDamageCurveTable = nullptr;
     UPROPERTY() UDataTable* LoadedWeaponTable = nullptr;
     UPROPERTY() UDataTable* LoadedEnemyTable = nullptr;
     UPROPERTY() UDataTable* LoadedStageTable = nullptr;

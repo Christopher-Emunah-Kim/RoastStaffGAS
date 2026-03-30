@@ -51,10 +51,10 @@ void UGA_ProjectileAttack::OnAbilityActivated(const FGameplayAbilitySpecHandle H
 
 bool UGA_ProjectileAttack::PrepareProjectileData(const URSSkillData* SkillData, TSubclassOf<ABaseProjectile>& OutClass, FProjectileInitData& OutInitData)
 {
-	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());  
+	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());
 	FSkillExecutionData ExecData;
-	if (!GDS->GetSkillExecutionData(SkillData->SkillID, ExecData))                                               
-	{                                                                                                          
+	if (!GDS->GetSkillExecutionData(SkillData->SkillID, ExecData, SkillData->WeaponID))
+	{
 		KHS_WARN(TEXT("GetSkillExecutionData 실패. SkillID: %s"), *SkillData->SkillID.ToString());
 		return false;
 	}

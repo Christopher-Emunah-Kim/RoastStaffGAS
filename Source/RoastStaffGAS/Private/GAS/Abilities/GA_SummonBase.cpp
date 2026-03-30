@@ -110,8 +110,9 @@ bool UGA_SummonBase::LoadSkillData()
 		return false;
 	}
 	
-	CachedSkillID = SkillData->SkillID;
-	
+	CachedSkillID  = SkillData->SkillID;
+	CachedWeaponID = SkillData->WeaponID;
+
 	//GDS에서 필요 소환 데이터 로드
 	if (!LoadSummonData(CachedExecData, CachedSummonParam))
 	{
@@ -126,7 +127,7 @@ bool UGA_SummonBase::LoadSummonData(FSkillExecutionData& OutExecData,
 {
 	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());
 
-	if (!GDS->GetSkillExecutionData(CachedSkillID, OutExecData))
+	if (!GDS->GetSkillExecutionData(CachedSkillID, OutExecData, CachedWeaponID))
 	{
 		KHS_WARN(TEXT("GetSkillExecutionData 실패. SkillID: %s"), *CachedSkillID.ToString());
 		return false;

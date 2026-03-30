@@ -58,6 +58,7 @@ protected:
 	TWeakObjectPtr<ASummonPreviewObject> CachedPreviewObject;
 	
 	FName CachedSkillID;
+	FName CachedWeaponID;
 	FSkillExecutionData CachedExecData;
 	FSkillAttackMoveTypeParamsSummon CachedSummonParam;
 	

@@ -25,6 +25,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 	TSoftObjectPtr<UDataTable> WeaponStaticTable;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+	TSoftObjectPtr<UCurveTable> WeaponDamageCurveTable;
+	
 	//Skill
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
 	TSoftObjectPtr<UDataTable> SkillCommonStaticTable;
