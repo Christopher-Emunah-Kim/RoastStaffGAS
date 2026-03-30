@@ -12,6 +12,8 @@
 
 // 슬롯 상태 변경 시 발행 — EquipmentComponent(UI)가 구독
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSlotUpdated, int32, SlotIndex);
+// 슬롯 가득 + 강화 불가 시 발행 — PlayerController가 구독해 교체 UI 열기
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponSlotFull, FName, PendingWeaponID);
 
 class UAbilitySystemComponent;
 class URSSkillData;
@@ -34,6 +36,8 @@ public:
 	
 	// LevelUpSubsystem에서 호출
 	void EquipWeapon(const FName& WeaponID);
+	// 동일 슬롯에 다음 레벨 무기 장착 (강화 / 교체 UI 확인 공용)
+	void UpgradeWeapon(int32 SlotIndex, FName NextWeaponID);
 	
 	//공격 중지
 	void StopAllFire();
@@ -52,6 +56,9 @@ private:
 	void StopAutoFire(int32 SlotIndex);
 	void SetSlotActive(int32 SlotIndex);
 	void ClearActiveSlot();
+	
+	
+	void ClearSlot(int32 SlotIndex);
 
 	bool IsValidSlotIndex(int32 SlotIndex) const;
 	int32 GetEmptySlotIndex() const;
@@ -72,6 +79,12 @@ public:
 	// 슬롯 상태 변경 델리게이트
 	UPROPERTY(BlueprintAssignable, Category = "MY|Equipment")
 	FOnSlotUpdated OnSlotUpdatedDel;
+
+	// 슬롯 가득 + 강화 불가 델리게이트
+	UPROPERTY(BlueprintAssignable, Category = "MY|Equipment")
+	FOnWeaponSlotFull OnSlotFull;
+
+	FName PendingWeaponID = NAME_None;
 	
 private:
 	static constexpr int32 SLOT_COUNT = 3;

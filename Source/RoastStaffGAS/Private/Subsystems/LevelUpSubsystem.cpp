@@ -191,7 +191,7 @@ void ULevelUpSubsystem::SelectWeaponCandidates()
 			{
 				case 1:  CardState = EWeaponCardState::Lv1ToLv2; break;
 				case 2:  CardState = EWeaponCardState::Lv2ToLv3; break;
-				case 3:  CardState = EWeaponCardState::Lv3Max;   break;
+				case 3:  break; // Lv3Max: 강화 불가 → New로 취급, 빈 슬롯에 Lv1 장착
 				default: break;
 			}
 			break; // 첫 번째 일치 슬롯 기준

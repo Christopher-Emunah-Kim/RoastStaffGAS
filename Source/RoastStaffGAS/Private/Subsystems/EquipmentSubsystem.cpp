@@ -79,37 +79,61 @@ void UEquipmentSubsystem::RequestSlotActivate(int32 SlotIndex)
 void UEquipmentSubsystem::EquipWeapon(const FName& WeaponID)
 {
 	if (!ensureMsgf(ASC, TEXT("ASC IS NULL")))
-    {
-        return;
-    }
-	
+	{
+		return;
+	}
+
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
+
+	// Step 1: 동일 BaseType 슬롯 강화 체크
+	FWeaponStaticData IncomingData;
+	if (GDS->GetWeaponData(WeaponID, IncomingData))
+	{
+		for (int32 i = 0; i < SLOT_COUNT; ++i)
+		{
+			if (Slots[i].IsEmpty()) continue;
+
+			FWeaponStaticData SlotData;
+			if (!GDS->GetWeaponData(Slots[i].SlotEquipData.WeaponID, SlotData)) continue;
+
+			if (SlotData.BaseType == IncomingData.BaseType && SlotData.NextLevelWeaponID != NAME_None)
+			{
+				UpgradeWeapon(i, SlotData.NextLevelWeaponID);
+				return;
+			}
+		}
+	}
+
+	// Step 2: 빈 슬롯 장착
 	int32 TargetSlot = GetEmptySlotIndex();
-	if (TargetSlot == INDEX_NONE)
+	if (TargetSlot != INDEX_NONE)
 	{
-		KHS_INFO(TEXT("빈 슬롯 없음. 무기 획득 불가: %s"), *WeaponID.ToString());
+		FWeaponSlotEquipData EquipData;
+		if (!LoadEquipData(WeaponID, EquipData))
+		{
+			return;
+		}
+
+		FLoadedEquipClasses Classes;
+		if (!LoadEquipClasses(EquipData, Classes))
+		{
+			return;
+		}
+
+		FGameplayAbilitySpecHandle Handle;
+		if (!RegisterAbility(EquipData, Classes, Handle))
+		{
+			return;
+		}
+
+		CommitSlot(TargetSlot, EquipData, Handle);
 		return;
 	}
-	//무기 정보 로드
-	FWeaponSlotEquipData EquipData;
-	if (!LoadEquipData(WeaponID, EquipData))
-	{
-		return;
-	}
-	//필요 클래스 로드
-	FLoadedEquipClasses Classes;
-	if (!LoadEquipClasses(EquipData, Classes))
-	{
-		return;
-	}
-	//어빌리티 등록
-    FGameplayAbilitySpecHandle Handle;
-	if (!RegisterAbility(EquipData, Classes, Handle))
-	{
-		return;
-	}
-	
-	//슬롯데이터 등록/발사시작
-	CommitSlot(TargetSlot, EquipData, Handle);
+
+	// Step 3: 슬롯 가득 + 강화 불가 → 교체 UI 신호
+	KHS_INFO(TEXT("슬롯 가득 + 강화 불가. 교체 UI 대기: %s"), *WeaponID.ToString());
+	PendingWeaponID = WeaponID;
+	OnSlotFull.Broadcast(WeaponID);
 }
 
 void UEquipmentSubsystem::StopAllFire()
@@ -351,7 +375,8 @@ bool UEquipmentSubsystem::LoadEquipClasses(const FWeaponSlotEquipData& EquipData
 bool UEquipmentSubsystem::RegisterAbility(const FWeaponSlotEquipData& EquipData, const FLoadedEquipClasses& Classes, FGameplayAbilitySpecHandle& OutHandle)
 {
 	URSSkillData* SkillDataObj = NewObject<URSSkillData>(this);
-	SkillDataObj->SkillID = EquipData.SkillID;
+	SkillDataObj->SkillID  = EquipData.SkillID;
+	SkillDataObj->WeaponID = EquipData.WeaponID;
 	SkillDataObjects.Add(SkillDataObj);
 
 	FGameplayAbilitySpec Spec(Classes.GAClass, 1, INDEX_NONE, SkillDataObj);
@@ -379,4 +404,75 @@ void UEquipmentSubsystem::CommitSlot(int32 TargetSlot, const FWeaponSlotEquipDat
 	StartAutoFire(TargetSlot);
 	//이벤트 발행
 	OnSlotUpdatedDel.Broadcast(TargetSlot);
+}
+
+void UEquipmentSubsystem::ClearSlot(int32 SlotIndex)
+{
+	if (!IsValidSlotIndex(SlotIndex))
+	{
+		KHS_WARN(TEXT("ClearSlot — 유효하지 않은 슬롯 인덱스: %d"), SlotIndex);
+		return;
+	}
+
+	if (Slots[SlotIndex].IsEmpty())
+	{
+		return;
+	}
+
+	FWeaponSlotInstanceData& Slot = Slots[SlotIndex];
+
+	// 액티브 슬롯이면 비활성화 처리 (StartAutoFire는 하지 않음 — 슬롯을 비울 것이므로)
+	if (ActiveSlotIndex == SlotIndex)
+	{
+		Slot.bIsActive = false;
+		if (Slot.SlotEquipData.MoveType == EMoveType::SUMMON)
+		{
+			ASC->CancelAbilityHandle(Slot.AbilitySpecHandle);
+		}
+		ActiveSlotIndex = -1;
+	}
+
+	StopAutoFire(SlotIndex);
+	ASC->ClearAbility(Slot.AbilitySpecHandle);
+
+	// 슬롯 초기화 (SlotIndex 보존)
+	Slot = FWeaponSlotInstanceData();
+	Slot.SlotIndex = SlotIndex;
+
+	KHS_INFO(TEXT("Slot %d 클리어 완료"), SlotIndex);
+	OnSlotUpdatedDel.Broadcast(SlotIndex);
+}
+
+void UEquipmentSubsystem::UpgradeWeapon(int32 SlotIndex, FName NextWeaponID)
+{
+	if (!IsValidSlotIndex(SlotIndex))
+	{
+		KHS_WARN(TEXT("UpgradeWeapon — 유효하지 않은 슬롯 인덱스: %d"), SlotIndex);
+		return;
+	}
+
+	KHS_INFO(TEXT("무기 강화: Slot %d → %s"), SlotIndex, *NextWeaponID.ToString());
+
+	ClearSlot(SlotIndex);
+
+	FWeaponSlotEquipData EquipData;
+	if (!LoadEquipData(NextWeaponID, EquipData))
+	{
+		return;
+	}
+
+	FLoadedEquipClasses Classes;
+	if (!LoadEquipClasses(EquipData, Classes))
+	{
+		return;
+	}
+
+	FGameplayAbilitySpecHandle Handle;
+	if (!RegisterAbility(EquipData, Classes, Handle))
+	{
+		return;
+	}
+
+	CommitSlot(SlotIndex, EquipData, Handle);
+	PendingWeaponID = NAME_None;
 }
