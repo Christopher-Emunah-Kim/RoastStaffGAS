@@ -53,3 +53,13 @@ type: feedback
 11. **DataTableStructs 기본값 미설정**: FSkillAttackHitTypeParamsPierce의 PierceCount, DamageDecay에 기본값 없음. DataTable 누락 행 로드 시 0으로 초기화되어 즉시 소멸 또는 무한 감쇠.
     **Why:** UE DataTable에서 존재하지 않는 행을 로드하면 GENERATED_BODY() 기본 생성자가 호출되어 0 초기화
     **How to apply:** FTableRowBase 상속 구조체의 수치 필드에는 항상 안전한 기본값 지정 (PierceCount=1, HitRadius=100.f 등)
+
+## 발견된 패턴 (2026-03-30) — SR_WeaponUpgradeReplace
+
+12. **UI 오픈/종료 쌍 처리 누락 (TimeDilation)**: RSPlayerController::OnWeaponSlotFull에서 교체 UI 오픈 시 TimeDilation = 0.f 미적용. 레벨업 UI와 동일 패턴인데 교체 UI만 빠진 케이스.
+    **Why:** 서로 다른 함수에 각각 TimeDilation을 넣는 분산 패턴 → 신규 UI 추가 시 누락 위험
+    **How to apply:** UI 오픈+일시정지는 항상 쌍으로 체크리스트 적용. "UI 오픈 → TimeDilation/SetPause 설정 여부" 리뷰 시 최우선 확인 항목으로 추가.
+
+13. **PLAN 문서와 코드 구현의 RowName 규칙 불일치**: PLAN SCHEMA 섹션 "Lv1 WeaponID 기준" 기술 vs 실제 코드 EWeaponBaseType DisplayName 기준 조회 불일치. 코드 구현 후 PLAN 문서 미갱신.
+    **Why:** 구현 단계에서 설계가 변경될 때 PLAN 문서를 즉시 업데이트하지 않으면 문서-코드 드리프트 발생
+    **How to apply:** CurveTable/DataTable RowName 규칙 구현 완료 후 PLAN SCHEMA 섹션과 반드시 대조. 코드가 실제 키라면 문서를 코드에 맞춰 갱신.

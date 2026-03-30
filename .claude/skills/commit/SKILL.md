@@ -16,15 +16,15 @@ policy: .claude/references/commit-policy.md  # 커밋 타입/형식/원칙 전�
 
 ### 커밋 타입 요약 (policy 읽기 전 참고)
 ```
-feat:     새 기능
-fix:      버그 수정
-data:     DataTable/CSV
-refactor: 리팩토링 (동작 변화 없음)
-docs:     문서
-chore:    설정/빌드
-scope:    시스템명 (예: feat(Pierce-Core): ...)
-body:     - 변경 이유/내용 (항목별)
-ref:      ref: PLAN_파일명_vX.X
+<feat>     새 기능
+<fix>      버그 수정
+<data>     DataTable/CSV
+<refactor> 리팩토링 (동작 변화 없음)
+<docs>     문서
+<chore>    설정/빌드
+<scope>    시스템명 (예: feat(Pierce-Core): ...)
+<body>     - 변경 이유/내용 (항목별)
+<ref>      ref: PLAN_파일명_vX.X
 ```
 
 ## STATE_MACHINE
@@ -83,7 +83,7 @@ B) 순서/메시지 조정
 ```bash
 # 커밋 1
 git add 파일A.h 파일A.cpp
-git commit -m "feat(Pierce-Core): 관통 감지 구현
+git commit -m "<feat> Pierce-Core 관통 감지 구현
 
 - ECR_Overlap 충돌 설정
 - PierceHitCount 카운터 분리
