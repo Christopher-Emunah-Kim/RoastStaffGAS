@@ -1,9 +1,9 @@
-# [🟩 Solo Project] (12) UI 관리 시스템 기획 v1.0
+# [🟩 Solo Project] (12) UI 관리 시스템 기획 v1.1
 
 No: 431
 주제: C++, Self
 난이도: ⭐⭐
-최종수정: 2026년 3월 2일 오후 5:46
+최종수정: 2026년 3월 31일
 작성일: 2026년 3월 2일 오후 5:31
 Keyword: 기획
 
@@ -30,7 +30,7 @@ Keyword: 기획
 >     - 위젯의 생성, 캐싱, 뷰포트 추가/제거, 최종 소멸까지의 전체 생명주기를 관리
 >     - 한 번 생성된 위젯은 캐시에 보관되어 반복 생성 비용을 줄임
 > 2. **UI 레이어 관리**
->     - 모든 위젯은 PERSISTENT 또는 POPUP 레이어 중 하나에 속하며, 레이어에 따라 ZOrder와 관리 방식이 결정
+>     - 모든 위젯은 PERSISTENT / PAGE / POPUP / SYSTEM 레이어 중 하나에 속하며, 레이어에 따라 ZOrder와 관리 방식이 결정
 > 3. **Popup 스택 관리**
 >     - 여러 팝업이 중첩될 때 포커스 순서를 보장하고, 최상위 팝업이 닫히면 그 아래 팝업에 포커스를 자동으로 전달
 > 4. **입력 모드 자동 전환**
@@ -111,17 +111,18 @@ UMS는 위젯을 열고 닫는 것만 담당하며,
 > 
 > 
 > 
-> - PERSISTENT와 POPUP 두 레이어만 사용
->     
->     
->     | 레이어 | ZOrder 범위 | 관리 방식 | 해당 위젯 목록 |
+> - 레이어는 4개로 구성된다. 모든 위젯은 반드시 하나의 레이어에 속해야 한다.
+>
+>     | 레이어 | ZOrder | 관리 방식 | 설명 |
 >     | --- | --- | --- | --- |
->     | PERSISTENT | 0 ~ 49 | PersistentUIMap 
->     (클래스 → 인스턴스) | 메인메뉴 위젯, 로비 루트 위젯, 인게임 HUD |
->     | POPUP | 100 + 스택 인덱스 | PopupUIStack 
->     (순서 있는 배열) | 캐릭터 선택, 스테이지 선택, 레벨업 UI, 무기 교체 UI, 일시정지 메뉴, 결과 화면, 리더보드 |
-> - PERSISTENT는 씬 내에서 항상 표시되는 배경 레이어, PopupUIStack이 비어있어도 사라지지 않음.
-> - POPUP은 PERSISTENT 위에 쌓이며, 나중에 열린 것이 더 높은 ZOrder를 가져 항상 최상위에 표시
+>     | PERSISTENT | 100 | PersistentUIMap | HUD 등 항상 표시. 레벨 내 배경 레이어. |
+>     | PAGE | 200 | UIHistory 스택 | 메인 콘텐츠. 동시에 1개. BackPage()로 이전 페이지 복귀. |
+>     | POPUP | 300+ | PopupUIStack (스택당 +10) | 모달. 여러 개 중첩 가능. |
+>     | SYSTEM | 500 | 단일 인스턴스 | 종료 확인/에러. 최상위. |
+>
+> - PERSISTENT는 씬 내에서 항상 표시되는 배경 레이어, 다른 레이어가 열려도 사라지지 않음.
+> - PAGE는 동시에 1개만 표시되며, SwitchPageUI(EUIID)로 전환하고 UIHistory 스택에 이전 페이지를 기록한다.
+> - POPUP은 PAGE 위에 쌓이며, 나중에 열린 것이 더 높은 ZOrder를 가져 항상 최상위에 표시.
 > 
 
 ---
@@ -329,31 +330,71 @@ UMS는 위젯을 열고 닫는 것만 담당하며,
 > 
 > UMS는 별도의 DataTable을 사용하지 않는다. 
 > 
-> 위젯 클래스 매핑은 `UIManagerSettings` (DeveloperSettings 기반 에셋)에서 `EUIID → TSoftClassPtr<UVanguardBaseWidget>` 형태로 관리
-> 
+> 위젯 클래스 매핑은 `UIManagerSettings` (DeveloperSettings 기반 에셋)에서 관리한다.
+>
+> ```cpp
+> // UIManagerSettings 구조
+> TMap<EUIID, TSoftClassPtr<URSBaseWidget>> UIClassMap;
+> TMap<EUIID, EUILayer>                    UILayerMap;
+> ```
+>
 > 이를 통해 `OpenUIByID(EUIID)` 방식으로 ID 기반 UI 오픈이 가능하다.
-> 
-> | EUIID | 위젯 |
+>
+> **EUIID 전체 목록:**
+>
+> | EUIID | 레이어 | 설명 |
+> | --- | --- | --- |
+> | NONE | — | 자식 위젯 전용. 직접 오픈 불가. |
+> | BACKGROUND | PERSISTENT | 배경 오버레이 |
+> | LOADING | PERSISTENT | 로딩 화면 |
+> | INTRO | PAGE | 인트로 화면 |
+> | TITLE | PAGE | 타이틀 화면 |
+> | OUTGAME | PERSISTENT | 아웃게임 공통 프레임 |
+> | LOBBY | PAGE | 메인 로비 |
+> | CHAR_SELECT | PAGE | 캐릭터 선택 |
+> | STAGE_SELECT | PAGE | 스테이지 선택 |
+> | SETTING | POPUP | 설정 메뉴 |
+> | PAUSE | POPUP | 일시정지 메뉴 |
+> | HUD | PERSISTENT | 인게임 HUD |
+> | LEVEL_UP | POPUP | 레벨업 UI |
+> | WEAPON_REPLACE | POPUP | 무기 교체 UI |
+> | GAMEOVER | PAGE | 게임 오버 화면 |
+> | GAMECLEAR | PAGE | 게임 클리어 화면 |
+> | EXIT | SYSTEM | 종료 확인 다이얼로그 |
+>
+> **공개 API:**
+>
+> | API | 설명 |
 > | --- | --- |
-> | MAIN_MENU | 메인메뉴 위젯 |
-> | LOBBY_ROOT | 로비 루트 위젯 |
-> | CHARACTER_SELECT | 캐릭터 선택 위젯 |
-> | STAGE_SELECT | 스테이지 선택 위젯 |
-> | HUD | 인게임 HUD |
-> | LEVEL_UP | 레벨업 UI |
-> | WEAPON_REPLACE | 무기 교체 UI |
-> | PAUSE_MENU | 일시정지 메뉴 |
-> | RESULT | 결과 화면 |
-> | LEADERBOARD | 리더보드 |
-> | LOADING | 로딩 화면 |
-> 
+> | `OpenUIByID(EUIID)` | ID 기반 UI 오픈. UILayerMap 기준으로 레이어 자동 분기. |
+> | `SwitchPageUI(EUIID)` | PAGE 레이어 전환. 현재 PAGE를 UIHistory에 push 후 새 PAGE 오픈. |
+> | `BackPage()` | UIHistory에서 이전 PAGE를 pop하여 복귀. |
+> | `ClearUIHistory()` | UIHistory 스택 초기화. 레벨 전환 시 호출. |
+> | `CloseUIByID(EUIID)` | ID 기반 UI 닫기. PLAN_GameFlow_Data MODULE-4 마이그레이션용. |
+> | `OpenUI<T>()` | 기존 클래스 기반 오픈 (하위 호환 유지). 신규 코드는 OpenUIByID 권장. |
+>
+> **레벨별 UI 요청자 원칙:**
+>
+> | 레벨 | UI 요청자 |
+> | --- | --- |
+> | INTRO 레벨 | RSIntroPlayerController |
+> | TRANSITION 레벨 | RSTransitionPlayerController |
+> | OUTGAME 레벨 | RSOutGamePlayerController |
+> | INGAME 레벨 | RSPlayerController (→ EUIID 마이그레이션 후) |
+>
+> **마이그레이션 계획**: 기존 `OpenUI<T>()` 방식은 하위 호환을 위해 유지한다.
+> 인게임 RSPlayerController → OpenUIByID(EUIID) 마이그레이션은 PLAN_GameFlow_Data MODULE-4에서 처리 예정.
+>
 
 ### UMS 내부 캐시 구조
 
 | 캐시 항목 | 타입 | 설명 |
 | --- | --- | --- |
-| PersistentUIMap | MAP<Class, Widget> | 현재 열려있는 PERSISTENT 위젯 |
+| PersistentUIMap | MAP<EUIID, Widget> | 현재 열려있는 PERSISTENT 위젯 |
+| CurrentPageWidget | Widget | 현재 표시 중인 PAGE 위젯 |
+| UIHistory | STACK<EUIID> | BackPage()용 PAGE 이력 스택 |
 | PopupUIStack | ARRAY<Widget> | 현재 열려있는 POPUP 위젯. Last = 최상위 |
-| CachedWidgets | MAP<Class, Widget> | 생성된 모든 위젯의 캐시. 닫혀도 보존 |
+| SystemWidget | Widget | 현재 표시 중인 SYSTEM 위젯 (최대 1개) |
+| CachedWidgets | MAP<EUIID, Widget> | 생성된 모든 위젯의 캐시. 닫혀도 보존 |
 
 # 💡코드구현(code)
