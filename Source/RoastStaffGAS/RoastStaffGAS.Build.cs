@@ -28,7 +28,9 @@ public class RoastStaffGAS : ModuleRules
 			
 			"UMG",
 			"Slate",
-			"SlateCore"
+			"SlateCore",
+
+			"DeveloperSettings"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
