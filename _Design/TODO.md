@@ -13,8 +13,8 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
-## [FEATURE] 게임플로우 인프라 | PLAN_GameFlow_Infra_v1.0
-> 시작: 2026-03-31 | 기획서: 게임 플로우 아키텍처 기획 v1.0.md
+## ✓ COMMITTED [FEATURE] 게임플로우 인프라 | PLAN_GameFlow_Infra_v1.0
+> 커밋: 2e8a443/3feef02/389e200/f05f3c9/df16494/8150d93 | 2026-03-31
 
   ### ✓ DONE 2026-03-31 [MODULE-1] UITypes.h — EUILayer 4레이어 + EUIID enum
   신규: Source/RoastStaffGAS/Public/Data/EnumUITypes.h

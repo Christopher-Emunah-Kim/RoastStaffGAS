@@ -49,7 +49,8 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
       - Source/RoastStaffGAS/Private/Core/RSGameInstance.cpp
     deleted: []
   summary: "UI 4레이어(EUIID) + UIManagerSettings + RSGameInstance 레벨전환 인프라 구축"
-  status: PENDING_COMMIT
+  status: COMMITTED
+  commits: "2e8a443 / 3feef02 / 389e200 / f05f3c9 / df16494 / 8150d93"
   bugs_found: []
   bugs_fixed: []
 - date: 2026-03-28
