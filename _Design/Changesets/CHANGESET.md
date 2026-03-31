@@ -27,6 +27,40 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ---
 <!-- 신규 항목은 이 줄 아래에 추가 -->
+- date: 2026-04-01
+  plan: PLAN_GameFlow_Levels_v1.0
+  commit: "0f47105 / 6c2c881 / 553dc01 / 2d507f1 / ca83d9f"
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Subsystems/UIManagerSubsystem.h
+      - Source/RoastStaffGAS/Private/Subsystems/UIManagerSubsystem.cpp
+      - Source/RoastStaffGAS/Private/Core/RSGameInstance.cpp
+      - Config/DefaultEngine.ini
+      - Config/DefaultGame.ini
+      - _Design/Reviews/CHANGE_LOG.md
+    created:
+      - Source/RoastStaffGAS/Public/Core/Intro/RSIntroGameMode.h
+      - Source/RoastStaffGAS/Private/Core/Intro/RSIntroGameMode.cpp
+      - Source/RoastStaffGAS/Public/Core/Intro/RSIntroPlayerController.h
+      - Source/RoastStaffGAS/Private/Core/Intro/RSIntroPlayerController.cpp
+      - Source/RoastStaffGAS/Public/UI/Intro/RSIntroWidget.h
+      - Source/RoastStaffGAS/Private/UI/Intro/RSIntroWidget.cpp
+      - Source/RoastStaffGAS/Public/UI/Intro/RSTitleWidget.h
+      - Source/RoastStaffGAS/Private/UI/Intro/RSTitleWidget.cpp
+      - Source/RoastStaffGAS/Public/Core/Transition/RSTransitionGameMode.h
+      - Source/RoastStaffGAS/Private/Core/Transition/RSTransitionGameMode.cpp
+      - Source/RoastStaffGAS/Public/Core/Transition/RSTransitionPlayerController.h
+      - Source/RoastStaffGAS/Private/Core/Transition/RSTransitionPlayerController.cpp
+      - Source/RoastStaffGAS/Public/UI/Transition/RSLoadingWidget.h
+      - Source/RoastStaffGAS/Private/UI/Transition/RSLoadingWidget.cpp
+    deleted: []
+  summary: "GameFlow Levels MODULE-1~2: Intro/Transition GM+PC+Widget + OpenUIByID 반환타입 + OpenLevel URL 수정"
+  status: COMMITTED
+  bugs_found: []
+  bugs_fixed:
+    - "OpenLevel TEXT(\"TRANSITION\") 하드코딩 → MapSettings ShortName으로 수정"
+    - "OpenLevel GetLongPackageName() Invalid URL → GetShortName()으로 수정"
+
 - date: 2026-03-31
   plan: PLAN_GameFlow_Infra_v1.0
   commit: null

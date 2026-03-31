@@ -56,15 +56,19 @@
 ---
 
 ## [FEATURE] 게임플로우 레벨 | PLAN_GameFlow_Levels_v1.0
-> 시작: 미정 (Infra 완료 후) | 기획서: 게임 플로우 아키텍처 기획 v1.0.md
+> 시작: 2026-04-01 | 기획서: 게임 플로우 아키텍처 기획 v1.0.md
 
-  ### [MODULE-1] IntroController + IntroGameMode                           [P1]
-    - [ ] RSIntroGameMode, RSIntroPlayerController 신규                    [P1]
-    - [ ] OpenFirstWidget(): BACKGROUND + INTRO, OpenTitleScreen(), OnStartGameClicked()  [P1]
+  ### ✓ COMMITTED 2026-04-01 [MODULE-1] IntroController + IntroGameMode (6c2c881)
+    - [x] RSIntroGameMode, RSIntroPlayerController 신규
+    - [x] OpenFirstWidget(): BACKGROUND + INTRO, OpenTitleScreen(), OnStartGameClicked()
+    - [x] RSIntroWidget: FadeAnim → OnTitleOpenRequestedDel 브로드캐스트
+    - [x] RSTitleWidget: Btn_Start → OnStartGameRequestedDel → OpenNextLevelByName(OUTGAME)
 
-  ### [MODULE-2] TransitionController + TransitionGameMode                 [P1]
-    - [ ] RSTransitionController, RSTransitionGameMode 신규                [P1]
-    - [ ] PreloadAssetsAsync stub + FakeProgress Tick + StartLevelStreaming  [P1]
+  ### ✓ COMMITTED 2026-04-01 [MODULE-2] TransitionController + TransitionGameMode (553dc01)
+    - [x] RSTransitionGameMode, RSTransitionPlayerController 신규
+    - [x] PreloadAssetsAsync stub + FakeProgress FInterpTo(0→0.9) + StartLevelStreaming
+    - [x] RSLoadingWidget: ProgressBar + Gear/Icon 회전 타이머 애니메이션
+    - [~] RuntimeDataSubsystem::GatherPreloadAssets 연동 — DEFERRED (PLAN_GameFlow_Data MODULE-2)
 
   ### [MODULE-3] OutGameController + OutGameMode                           [P1]
     - [ ] RSOutGameController, RSOutGameMode 신규                          [P1]
