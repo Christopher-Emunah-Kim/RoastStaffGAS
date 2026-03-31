@@ -27,6 +27,31 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ---
 <!-- 신규 항목은 이 줄 아래에 추가 -->
+- date: 2026-03-31
+  plan: PLAN_GameFlow_Infra_v1.0
+  commit: null
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/UI/RSBaseWidget.h
+      - Source/RoastStaffGAS/Public/Subsystems/UIManagerSubsystem.h
+      - Source/RoastStaffGAS/Private/Subsystems/UIManagerSubsystem.cpp
+      - Config/DefaultEngine.ini
+    created:
+      - _Design/Plans/active/PLAN_GameFlow_Infra_v1.0.md
+      - _Design/Plans/active/PLAN_GameFlow_Levels_v1.0.md
+      - _Design/Plans/active/PLAN_GameFlow_Data_v1.0.md
+      - Source/RoastStaffGAS/Public/Data/EnumUITypes.h
+      - Source/RoastStaffGAS/Public/System/UIManagerSettings.h
+      - Source/RoastStaffGAS/Private/System/UIManagerSettings.cpp
+      - Source/RoastStaffGAS/Public/System/MapSettings.h
+      - Source/RoastStaffGAS/Private/System/MapSettings.cpp
+      - Source/RoastStaffGAS/Public/Core/RSGameInstance.h
+      - Source/RoastStaffGAS/Private/Core/RSGameInstance.cpp
+    deleted: []
+  summary: "UI 4레이어(EUIID) + UIManagerSettings + RSGameInstance 레벨전환 인프라 구축"
+  status: PENDING_COMMIT
+  bugs_found: []
+  bugs_fixed: []
 - date: 2026-03-28
   plan: PLAN_WeaponUpgrade_Replace_v1.0
   commit: "b6b18d4 / ed1513a / e35d380 / 0587332 / 07153a4 / aa6d657 / ddf94d8"

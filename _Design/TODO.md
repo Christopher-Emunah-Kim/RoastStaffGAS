@@ -13,6 +13,91 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
+## [FEATURE] 게임플로우 인프라 | PLAN_GameFlow_Infra_v1.0
+> 시작: 2026-03-31 | 기획서: 게임 플로우 아키텍처 기획 v1.0.md
+
+  ### ✓ DONE 2026-03-31 [MODULE-1] UITypes.h — EUILayer 4레이어 + EUIID enum
+  신규: Source/RoastStaffGAS/Public/Data/EnumUITypes.h
+  수정: RSBaseWidget.h
+    - [x] EnumUITypes.h 신규 생성, EUILayer 이전 (RSBaseWidget.h에서 제거)
+    - [x] EUILayer 4개값: PERSISTENT, PAGE, POPUP, SYSTEM
+    - [x] EUIID enum 정의 (NONE~EXIT 전체 목록)
+    - [x] RSBaseWidget.h — EUILayer 인라인 제거, EnumUITypes.h include 추가
+
+  ### ✓ DONE 2026-03-31 [MODULE-2] UIManagerSettings — DeveloperSettings
+  신규: Public/Systems/UIManagerSettings.h, Private/Systems/UIManagerSettings.cpp
+    - [x] UIManagerSettings.h: UDeveloperSettings 파생, Config=Game
+    - [x] UIClassMap: TMap<EUIID, TSoftClassPtr<URSBaseWidget>>
+    - [x] UILayerMap: TMap<EUIID, EUILayer>
+    - [x] static Get() 헬퍼 + GetCategoryName/SectionName
+
+  ### ✓ DONE 2026-03-31 [MODULE-3] UIManagerSubsystem 4레이어 확장
+  수정: UIManagerSubsystem.h/.cpp
+    - [x] OpenUIByID(EUIID), GetOrCreateWidgetByID(EUIID) 추가
+    - [x] PageUIStack, SystemUIStack, UIHistory UPROPERTY 추가
+    - [x] PAGE 열기: 기존 PAGE 닫기 → Push + UIHistory Push
+    - [x] ClearUIHistory(), BackPage(), SwitchPageUI(EUIID) 추가
+    - [x] SYSTEM 레이어 처리, CalculateZOrder/NotifyInputModeChange 수정
+    - [x] ResetAllUIStates()에 Page/System/History Clear 포함
+    - [x] 기존 OpenUI<T>() 하위 호환 완전 유지
+
+  ### ✓ DONE 2026-03-31 [MODULE-4] RSGameInstance + MapSettings
+  신규: Public/Core/RSGameInstance.h, Private/Core/RSGameInstance.cpp
+        Public/Systems/MapSettings.h, Private/Systems/MapSettings.cpp
+    - [x] ELevelName enum: EnumUITypes.h에 추가 (INTRO, TRANSITION, OUTGAME, STAGE)
+    - [x] MapSettings: UDeveloperSettings, TMap<ELevelName, TSoftObjectPtr<UWorld>>
+    - [x] RSGameInstance: SetNextLevelName/GetNextLevelName, SetNextStageID/GetNextStageID
+    - [x] OpenNextLevelByName(ELevelName): ResetAllUIStates + 0.1s → TRANSITION
+    - [x] OpenNextLevelLatent(): MapSettings 조회 → OpenLevel
+    - [x] OpenNextStage(FName): SetNextStageID + OpenNextLevelByName(STAGE)
+    - [x] DefaultEngine.ini GameInstanceClass 설정
+    - [~] StageManagerSubsystem::LoadStage() 호출 — 미구현. DEFERRED (StageManagerSys 완성 후)
+
+---
+
+## [FEATURE] 게임플로우 레벨 | PLAN_GameFlow_Levels_v1.0
+> 시작: 미정 (Infra 완료 후) | 기획서: 게임 플로우 아키텍처 기획 v1.0.md
+
+  ### [MODULE-1] IntroController + IntroGameMode                           [P1]
+    - [ ] RSIntroGameMode, RSIntroPlayerController 신규                    [P1]
+    - [ ] OpenFirstWidget(): BACKGROUND + INTRO, OpenTitleScreen(), OnStartGameClicked()  [P1]
+
+  ### [MODULE-2] TransitionController + TransitionGameMode                 [P1]
+    - [ ] RSTransitionController, RSTransitionGameMode 신규                [P1]
+    - [ ] PreloadAssetsAsync stub + FakeProgress Tick + StartLevelStreaming  [P1]
+
+  ### [MODULE-3] OutGameController + OutGameMode                           [P1]
+    - [ ] RSOutGameController, RSOutGameMode 신규                          [P1]
+    - [ ] OpenFirstWidget(): OUTGAME(PERSISTENT) + LOBBY(PAGE)             [P1]
+    - [ ] 캐릭터/스테이지/설정 버튼 핸들러                                 [P1]
+
+  ### [MODULE-4] 캐릭터 DataTable 스키마                                   [P1]
+    - [ ] CharacterDataStructs.h: FCharacterStaticData (DefaultWeaponID 포함)  [P1]
+    - [ ] DT_CharacterStatic 에셋 생성                                     [P1]
+
+  ### [MODULE-5] 캐릭터 선택 UI + 스테이지 선택 UI                        [P1]
+    - [ ] RSCharacterSelectWidget, RSStageSelectWidget 신규                [P1]
+    - [ ] 델리게이트 브로드캐스트 → OutGameController 연결                 [P1]
+
+---
+
+## [FEATURE] 게임플로우 데이터 | PLAN_GameFlow_Data_v1.0
+> 시작: 미정 (Levels 완료 후) | 기획서: 게임 플로우 아키텍처 기획 v1.0.md
+
+  ### [MODULE-1] SaveGameSubsystem                                         [P2]
+    - [ ] RSGameSave.h + SaveGameSubsystem 신규 (LastSelectedCharacterID + SettingsData)  [P2]
+
+  ### [MODULE-2] RuntimeDataSubsystem                                      [P2]
+    - [ ] RuntimeDataSubsystem 신규 (SSOT, HandleSaveGameLoaded, GatherPreloadAssets)  [P2]
+    - [ ] TransitionGameMode stub → RuntimeDS 실제 연동                    [P2]
+
+  ### [MODULE-3] DefaultWeapon 자동 장착                                   [P2]
+    - [ ] RSGameMode::InitDefaultWeapon() — RuntimeDS → EquipmentComponent  [P2]
+
+  ### [MODULE-4] 인게임 UI EUIID 마이그레이션                              [P2]
+    - [ ] RSPlayerController OpenUI<T> → OpenUIByID(EUIID) 전면 교체      [P2]
+    - [ ] TSubclassOf 프로퍼티 제거, UIManagerSettings로 이전              [P2]
+
 
 
 ---

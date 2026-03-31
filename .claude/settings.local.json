@@ -14,7 +14,12 @@
       "Bash(bash \"C:/Users/KGA/Projects/RoastStaffGAS/.claude/scripts/gemini-review.sh\" code)",
       "Bash(\"C:/Users/KGA/Projects/RoastStaffGAS/_Design/Handoff/HANDOFF_LATEST.md\":*)",
       "Bash(grep -r \"class URSSkillData\\\\|Pool.*Summon\\\\|InitializePool\" C:/Users/KGA/Projects/RoastStaffGAS/Source --include=*.cpp --include=*.h -l)",
-      "Skill(commit)"
+      "Skill(commit)",
+      "Bash(rm \"무기 시스템 기획 v1.2.md\" \"세이브 데이터 시스템 기획 v1.1.md\" \"런타임 데이터 시스템 기획 v1.0.md\" \"게임 데이터 시스템 기획 v1.1.md\" \"UI관리 시스템 기획 v1.0.md\" \"플레이어 조작 시스템 기획 v1.2.md\")",
+      "Bash(ls *.md)",
+      "Bash(\"C:/Program Files/Epic Games/UE_5.6/Engine/Build/BatchFiles/Build.bat\" RoastStaffGASEditor Win64 Development -Project=\"C:/Users/KGA/Projects/RoastStaffGAS/RoastStaffGAS.uproject\" -architecture=x64)",
+      "Bash(dotnet \"C:/Program Files/Epic Games/UE_5.6/Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.dll\" RoastStaffGASEditor Win64 Development -Project=\"C:/Users/KGA/Projects/RoastStaffGAS/RoastStaffGAS.uproject\" -architecture=x64 -verbose)",
+      "Bash(git:*)"
     ]
   },
   "enabledPlugins": {

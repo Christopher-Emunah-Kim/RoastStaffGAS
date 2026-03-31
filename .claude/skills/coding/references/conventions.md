@@ -2,7 +2,7 @@
 
 ## 예외처리 계층
 ### 계층 1 — 일반 유효성 체크 (디버깅용)
-LoggingSystem.h를 참고한다.
+LoggingSystem.h를 참고한다. 일반 UE_LOG는 사용하지 않는다.
 ```cpp
 if (!SkillData)
 {

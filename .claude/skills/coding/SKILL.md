@@ -59,7 +59,11 @@ A: 3~4단계 이내 → 코드 작성
 □ DataTable SCHEMA(FK/컬럼명) 일치
 □ GAS: ASC 소유권, SendGameplayEventToActor
 □ check()/ensureMsgf() 적절
-□ if문 전체 중괄호
+□ if문 전체 중괄호 및 하단 띄어쓰기
+format : if (!SkillData)
+{
+    return;
+}
 □ 하드코딩 없음
 □ UPROPERTY() 강참조 필요한 곳
 □ Replication 비활성

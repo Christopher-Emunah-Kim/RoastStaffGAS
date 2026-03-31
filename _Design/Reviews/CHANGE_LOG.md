@@ -171,3 +171,48 @@
 | 2026-03-30 17:50:05 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
 | 2026-03-30 17:50:26 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\agent-memory\senior-reviewer\review_patterns_001.md` |
 | 2026-03-30 17:50:35 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\agent-memory\senior-reviewer\MEMORY.md` |
+| 2026-03-30 17:57:05 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-03-30 17:57:17 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-03-30 17:57:23 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-03-30 17:57:37 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Changesets\CHANGESET.md` |
+| 2026-03-30 18:00:02 | Edit | `C:\Users\KGA\.claude\projects\C--Users-KGA-Projects-RoastStaffGAS\memory\user_weak_patterns.md` |
+| 2026-03-30 18:00:18 | Edit | `C:\Users\KGA\.claude\projects\C--Users-KGA-Projects-RoastStaffGAS\memory\user_weak_patterns.md` |
+| 2026-03-31 12:22:29 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Plans\active\PLAN_GameFlow_Infra_v1.0.md` |
+| 2026-03-31 12:23:46 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Plans\active\PLAN_GameFlow_Levels_v1.0.md` |
+| 2026-03-31 12:25:17 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Plans\active\PLAN_GameFlow_Data_v1.0.md` |
+| 2026-03-31 12:26:06 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-03-31 12:26:30 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Changesets\CHANGESET.md` |
+| 2026-03-31 12:47:42 | Write | `C:\Users\KGA\.claude\plans\snuggly-tickling-karp.md` |
+| 2026-03-31 13:05:53 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\무기 시스템 기획 v1.3.md` |
+| 2026-03-31 13:07:25 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\세이브 데이터 시스템 기획 v1.2.md` |
+| 2026-03-31 13:08:51 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\런타임 데이터 시스템 기획 v1.1.md` |
+| 2026-03-31 13:13:16 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\게임 데이터 시스템 기획 v1.2.md` |
+| 2026-03-31 13:15:05 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\플레이어 조작 시스템 기획 v1.3.md` |
+| 2026-03-31 14:02:41 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\UI관리 시스템 기획 v2.0.md` |
+| 2026-03-31 14:03:03 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\UI관리 시스템 기획 v2.0.md` |
+| 2026-03-31 14:03:25 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\UI관리 시스템 기획 v2.0.md` |
+| 2026-03-31 14:04:20 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\UI관리 시스템 기획 v2.0.md` |
+| 2026-03-31 14:04:34 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\UI관리 시스템 기획 v2.0.md` |
+| 2026-03-31 14:05:13 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\아웃게임 시스템 기획 v1.0.md` |
+| 2026-03-31 14:05:47 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\인트로_트랜지션 시스템 기획 v1.0.md` |
+| 2026-03-31 14:18:09 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\UI관리 시스템 기획 v1.1.md` |
+| 2026-03-31 14:50:50 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Public\Data\EnumUITypes.h` |
+| 2026-03-31 14:51:03 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Public\UI\RSBaseWidget.h` |
+| 2026-03-31 14:51:20 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Public\Systems\UIManagerSettings.h` |
+| 2026-03-31 14:51:29 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Systems\UIManagerSettings.cpp` |
+| 2026-03-31 14:52:14 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Public\Subsystems\UIManagerSubsystem.h` |
+| 2026-03-31 14:52:57 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Subsystems\UIManagerSubsystem.cpp` |
+| 2026-03-31 14:53:30 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Public\Systems\MapSettings.h` |
+| 2026-03-31 14:56:01 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Systems\MapSettings.cpp` |
+| 2026-03-31 14:56:20 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Public\Core\RSGameInstance.h` |
+| 2026-03-31 14:56:38 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Core\RSGameInstance.cpp` |
+| 2026-03-31 14:56:50 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Config\DefaultEngine.ini` |
+| 2026-03-31 14:57:34 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-03-31 14:57:54 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Changesets\CHANGESET.md` |
+| 2026-03-31 15:01:48 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Core\RSGameInstance.cpp` |
+| 2026-03-31 15:01:54 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Subsystems\UIManagerSubsystem.cpp` |
+| 2026-03-31 15:02:13 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\System\MapSettings.cpp` |
+| 2026-03-31 15:02:19 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\System\UIManagerSettings.cpp` |
+| 2026-03-31 15:02:35 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Changesets\CHANGESET.md` |
+| 2026-03-31 16:21:53 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Public\Data\EnumUITypes.h` |
+| 2026-03-31 16:52:14 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Learning\LEARNING_LOG.md` |

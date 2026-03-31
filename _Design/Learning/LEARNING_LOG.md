@@ -1,3 +1,10 @@
+## 2026-03-31 — UE5BuildSetup
+keywords: [UENUM-generated-h, DeveloperSettings-module, git-core-quotepath, UBT-Korean-filename-crash]
+status:   🟡심화필요
+note:     ① UENUM 있는 .h는 반드시 .generated.h 포함 ② UDeveloperSettings 쓰면 Build.cs에 "DeveloperSettings" 추가 ③ 한글 파일명 프로젝트엔 git config core.quotepath false 필수 (UBT가 octal 이스케이프 경로 파싱 시 .NET 크래시)
+
+---
+
 ## 2026-03-27 — InputMode
 keywords: [SetInputMode, SetShowMouseCursor, SetConsumeCaptureMouseDown, Slate-input-capture, diagnosis-order, git-diff-as-debug-tool]
 status:   🔴미숙 (첫 진단 오류 — GAS 내부로 잘못 진입, 진입점 확인 생략)
