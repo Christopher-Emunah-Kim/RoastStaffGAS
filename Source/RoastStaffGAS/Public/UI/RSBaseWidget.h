@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Data/EnumUITypes.h"
 #include "RSBaseWidget.generated.h"
 
 /**
@@ -11,13 +12,6 @@
  * PlayerController나 다른 시스템에서 구독하여 실제 닫기 처리 수행
  */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCloseUIRequested, URSBaseWidget*, RequestingWidget);
-
-UENUM(BlueprintType)
-enum class EUILayer : uint8
-{
-	PERSISTENT UMETA(DisplayName = "Persistent"),
-	POPUP UMETA(DisplayName = "Popup"),
-};
 
 
 /**
