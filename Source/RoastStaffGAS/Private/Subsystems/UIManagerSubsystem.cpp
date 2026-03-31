@@ -44,44 +44,44 @@ void UUIManagerSubsystem::Deinitialize()
 // ID 기반 API
 // -----------------------------------------------------------------------------
 
-void UUIManagerSubsystem::OpenUIByID(EUIID ID)
+URSBaseWidget* UUIManagerSubsystem::OpenUIByID(EUIID ID)
 {
 	if (ID == EUIID::NONE)
 	{
 		KHS_WARN(TEXT("EUIID::NONE은 직접 오픈 불가"));
-		return;
+		return nullptr;
 	}
 
 	const UUIManagerSettings* Settings = UUIManagerSettings::Get();
 	if (!Settings)
 	{
 		KHS_ERROR(TEXT("UIManagerSettings를 찾을 수 없음"));
-		return;
+		return nullptr;
 	}
 
 	const TSoftClassPtr<URSBaseWidget>* SoftClassPtr = Settings->UIClassMap.Find(ID);
 	if (!SoftClassPtr || SoftClassPtr->IsNull())
 	{
 		KHS_WARN(TEXT("ID(%d)에 매핑된 위젯 클래스 없음. UIManagerSettings 확인 필요"), static_cast<uint8>(ID));
-		return;
+		return nullptr;
 	}
 
 	const EUILayer* LayerPtr = Settings->UILayerMap.Find(ID);
 	if (!LayerPtr)
 	{
 		KHS_WARN(TEXT("ID(%d)에 매핑된 레이어 없음. UIManagerSettings 확인 필요"), static_cast<uint8>(ID));
-		return;
+		return nullptr;
 	}
 
 	URSBaseWidget* Widget = GetOrCreateWidgetByID(ID);
 	if (!ensure(Widget))
 	{
-		return;
+		return nullptr;
 	}
 
 	if (Widget->IsOpen())
 	{
-		return;
+		return Widget;
 	}
 
 	const EUILayer Layer = *LayerPtr;
@@ -94,7 +94,6 @@ void UUIManagerSubsystem::OpenUIByID(EUIID ID)
 	}
 	else if (Layer == EUILayer::PAGE)
 	{
-		// 현재 PAGE가 있으면 닫고 새 PAGE 열기
 		if (PageUIStack.Num() > 0)
 		{
 			CloseUIInternal(PageUIStack.Last());
@@ -121,6 +120,8 @@ void UUIManagerSubsystem::OpenUIByID(EUIID ID)
 		Widget->AddToViewport(CalculateZOrder(Widget));
 		NotifyInputModeChange();
 	}
+
+	return Widget;
 }
 
 void UUIManagerSubsystem::CloseUIByID(EUIID ID)

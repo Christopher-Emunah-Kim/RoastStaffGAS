@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
 #include "System/LoggingSystem.h"
+#include "Misc/PackageName.h"
 
 void URSGameInstance::OpenNextLevelByName(ELevelName Level)
 {
@@ -28,8 +29,18 @@ void URSGameInstance::OpenNextLevelByName(ELevelName Level)
 
 void URSGameInstance::DoOpenTransitionLevel()
 {
-	// TRANSITION 레벨 이름은 MapSettings 없이 고정 — 인프라 레벨이므로 하드코딩 허용
-	UGameplayStatics::OpenLevel(this, TEXT("TRANSITION"));
+	const UMapSettings* Settings = UMapSettings::Get();
+	if (!ensureMsgf(Settings, TEXT("MapSettings를 찾을 수 없음"))) { return; }
+
+	const TSoftObjectPtr<UWorld>* LevelAsset = Settings->LevelMap.Find(ELevelName::TRANSITION);
+	if (!LevelAsset || LevelAsset->IsNull())
+	{
+		KHS_ERROR(TEXT("ELevelName::TRANSITION에 매핑된 레벨 없음. MapSettings 확인 필요"));
+		return;
+	}
+
+	const FName LevelName = FName(*FPackageName::GetShortName(LevelAsset->GetLongPackageName()));
+	UGameplayStatics::OpenLevel(this, LevelName);
 }
 
 void URSGameInstance::OpenNextLevelLatent()
@@ -47,9 +58,10 @@ void URSGameInstance::OpenNextLevelLatent()
 		return;
 	}
 
-	// Soft 경로에서 패키지 이름 추출 후 OpenLevel
-	const FString LevelPath = LevelAsset->GetLongPackageName();
-	UGameplayStatics::OpenLevel(this, *LevelPath);
+	// GetLongPackageName() → /Game/Map/Map_Intro 형식 → ShortName → "Map_Intro"
+	// OpenLevel URL은 패키지 경로가 아닌 맵 파일 이름을 사용해야 함
+	const FName LevelName = FName(*FPackageName::GetShortName(LevelAsset->GetLongPackageName()));
+	UGameplayStatics::OpenLevel(this, LevelName);
 }
 
 void URSGameInstance::OpenNextStage(FName StageID)

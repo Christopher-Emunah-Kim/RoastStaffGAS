@@ -37,7 +37,7 @@ public:
 	 * UIManagerSettings::UIClassMap / UILayerMap을 참조하여 레이어별 처리.
 	 * EUIID::NONE이거나 UIClassMap에 매핑이 없으면 경고 로그 + 조기 반환.
 	 */
-	void OpenUIByID(EUIID ID);
+	URSBaseWidget* OpenUIByID(EUIID ID);
 	/**
 	 * EUIID로 UI를 닫기.
 	 * CachedWidgetsByID에서 인스턴스를 찾아 CloseUIInternal 호출.
