@@ -18,6 +18,9 @@ class ROASTSTAFFGAS_API UGameDataConfig : public UDataAsset
 	
 public:
 	//Character
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+	TSoftObjectPtr<UDataTable> CharacterStaticTable;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level")
 	TSoftObjectPtr<UCurveTable> BaseStatCurveTable;
 	

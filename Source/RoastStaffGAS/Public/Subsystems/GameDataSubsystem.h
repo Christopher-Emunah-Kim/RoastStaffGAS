@@ -34,8 +34,13 @@ public:
     bool IsDataReady() const { return bIsDataReady; }
     
     // -------------------------------------------------------------------------
-    // 캐릭터 스탯 커브 테이블 조회
+    // 캐릭터 정적 데이터 조회
     // -------------------------------------------------------------------------
+    UFUNCTION(BlueprintCallable, Category = "MY|GDS|Character")
+    bool GetCharacterStaticData(FName CharID, FCharacterStaticData& OutData) const;
+    /** 전체 캐릭터 목록 반환. 캐릭터 선택 UI 목록 구성에 사용. 캐시 미로드 시 false 반환. */
+    bool GetAllCharacterStaticData(TArray<FCharacterStaticData>& OutArray) const;
+    /** 레벨별 커브데이터 조회. */
     bool GetLevelCurveValue(FName CurveName, int32 Level, float& OutValue) const;
     
     // -------------------------------------------------------------------------
@@ -82,7 +87,8 @@ public:
     // -------------------------------------------------------------------------
     UFUNCTION(BlueprintCallable, Category = "MY|GDS|Stage")
     bool GetStageData(FName StageID, FStageStaticData& OutData) const;
-
+    /** 전체 스테이지 목록 반환. 스테이지 선택 노드맵 구성에 사용. 캐시 미로드 시 false 반환. */
+    bool GetAllStageStaticData(TArray<FStageStaticData>& OutArray) const;
     /** StageID에 속한 웨이브 목록 반환(WaveIndex 오름차순)  */
     UFUNCTION(BlueprintCallable, Category = "MY|GDS|Stage")
     TArray<FWaveStaticData> GetWaveDataByStage(FName StageID) const;
@@ -98,7 +104,6 @@ private:
     // -------------------------------------------------------------------------
     // 개별 테이블 조회 (복합 조회 내부 헬퍼)
     // -------------------------------------------------------------------------
-    // GetWeaponData — public 섹션으로 승격 (LevelUpSubsystem 카드 상태 판단 사용)
     bool GetSkillStaticData(FName SkillID, FSkillCommonStaticData& OutData) const;
     bool GetSkillResourceData(FName SkillID, FSkillCommonResourceData& OutData) const;
     bool GetSkillCommonParamData(FName SkillEffectID, FSkillCommonParamData& OutData) const;
@@ -135,6 +140,7 @@ private:
     // -------------------------------------------------------------------------
     UPROPERTY() UCurveTable* LoadedCurveTable = nullptr;
     UPROPERTY() UCurveTable* LoadedWeaponDamageCurveTable = nullptr;
+    UPROPERTY() UDataTable* LoadedCharacterTable = nullptr;
     UPROPERTY() UDataTable* LoadedWeaponTable = nullptr;
     UPROPERTY() UDataTable* LoadedEnemyTable = nullptr;
     UPROPERTY() UDataTable* LoadedStageTable = nullptr;
@@ -156,7 +162,8 @@ private:
     // -------------------------------------------------------------------------
     // 캐시 (ID → 구조체)
     // -------------------------------------------------------------------------
-    UPROPERTY() TMap<FName, FWeaponStaticData>                  WeaponCache;   
+    UPROPERTY() TMap<FName, FCharacterStaticData>               CharacterCache;
+    UPROPERTY() TMap<FName, FWeaponStaticData>                  WeaponCache;
     UPROPERTY() TMap<FName, FEnemyStaticData>                   EnemyCache;
     UPROPERTY() TMap<FName, FStageStaticData>                   StageCache;
     UPROPERTY() TMap<FName, FWaveStaticData>                    WaveCache;

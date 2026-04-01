@@ -58,6 +58,8 @@ void UGameDataSubsystem::LoadDataTables()
         return;
     }
 
+    LoadDataTable<FCharacterStaticData>(
+        Config->CharacterStaticTable, LoadedCharacterTable, TEXT("DT_CharacterStatic"));   
     LoadDataTable<FWeaponStaticData>(
         Config->WeaponStaticTable,LoadedWeaponTable,TEXT("DT_Weapon"));                                                        //무기 데이터
     LoadDataTable<FSkillCommonStaticData> (
@@ -108,6 +110,7 @@ void UGameDataSubsystem::LoadDataTables()
 // -----------------------------------------------------------------------------
 void UGameDataSubsystem::CacheAllData()
 {
+    CacheDataTable<FCharacterStaticData>(LoadedCharacterTable, CharacterCache, &FCharacterStaticData::CharacterID, TEXT("DT_CharacterStatic"));
     CacheDataTable<FWeaponStaticData>(LoadedWeaponTable,       WeaponCache,      &FWeaponStaticData::WeaponID,    TEXT("DT_Weapon"));
     CacheDataTable<FSkillCommonStaticData> (LoadedSkillCommonStaticTable,        SkillCommonStaticCache,       &FSkillCommonStaticData::SkillID,      TEXT("DT_Skill_Common_Static"));
     CacheDataTable<FSkillCommonResourceData>(LoadedSkillCommonResourceTable,SkillCommonResourceCache, &FSkillCommonResourceData::SkillID, TEXT("DT_Skill_Common_Resource"));         
@@ -182,6 +185,26 @@ bool UGameDataSubsystem::GetLevelCurveValue(FName CurveName, int32 Level, float&
     }
 
     OutValue = Curve->Eval(static_cast<float>(Level));
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+// 캐릭터 조회
+// -----------------------------------------------------------------------------
+bool UGameDataSubsystem::GetCharacterStaticData(FName CharID, FCharacterStaticData& OutData) const
+{
+    return GetCachedData(CharacterCache, CharID, OutData, TEXT("FCharacterStaticData"));
+}
+
+bool UGameDataSubsystem::GetAllCharacterStaticData(TArray<FCharacterStaticData>& OutArray) const
+{
+    if (!bIsDataReady || CharacterCache.IsEmpty())
+    {
+        KHS_WARN(TEXT("캐릭터 캐시 미로드 또는 비어있음."));
+        return false;
+    }
+
+    CharacterCache.GenerateValueArray(OutArray);
     return true;
 }
 
@@ -293,6 +316,18 @@ bool UGameDataSubsystem::GetEnemyData(FName EnemyID, FEnemyStaticData& OutData) 
 bool UGameDataSubsystem::GetStageData(FName StageID, FStageStaticData& OutData) const
 {
     return GetCachedData(StageCache, StageID, OutData, TEXT("FStageStaticData"));
+}
+
+bool UGameDataSubsystem::GetAllStageStaticData(TArray<FStageStaticData>& OutArray) const
+{
+    if (!bIsDataReady || StageCache.IsEmpty())
+    {
+        KHS_WARN(TEXT("스테이지 캐시 미로드 또는 비어있음."));
+        return false;
+    }
+
+    StageCache.GenerateValueArray(OutArray);
+    return true;
 }
 
 TArray<FWaveStaticData> UGameDataSubsystem::GetWaveDataByStage(FName StageID) const
