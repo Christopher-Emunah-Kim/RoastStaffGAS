@@ -72,5 +72,7 @@ void URSGameInstance::OpenNextStage(FName StageID)
 	// StageManagerSubsystem::LoadStage() 미구현 — DEFERRED
 	// TODO: StageManagerSubsystem 준비 후 LoadStage(StageID) 호출 추가
 
-	OpenNextLevelByName(ELevelName::STAGE);
+	// TODO(PLAN_OutGame_SelectUI MODULE-5): GDS::GetStageStaticData(StageID).WorldLevel로 교체
+	// 현재는 모든 스테이지를 STAGE_1 레벨로 임시 연결
+	OpenNextLevelByName(ELevelName::STAGE_1);
 }

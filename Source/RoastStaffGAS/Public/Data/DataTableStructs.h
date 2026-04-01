@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "EnumTypes.h"
+#include "EnumUITypes.h"
 #include "Abilities/GameplayAbility.h"
 #include "Engine/DataTable.h" 
 #include "BehaviorTree/BehaviorTree.h"
@@ -14,6 +15,66 @@
 // ============================================================================
 // DataTable 구조체
 // ============================================================================
+
+
+// ----------------------------------------------------------------------------
+// DT_CharacterStatic — 캐릭터 정적 데이터
+// 에셋 경로: Content/Data/Character/DT_CharacterStatic
+// ----------------------------------------------------------------------------
+class USkeletalMesh;
+class UAnimInstance;
+
+USTRUCT(BlueprintType)
+struct FCharacterStaticData : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	/** PK */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+	FName CharacterID = NAME_None;
+	/** 캐릭터 표시 이름 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+	FText DisplayName = FText::GetEmpty();
+
+	/** 스켈레탈 메시 에셋 경로 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+	TSoftObjectPtr<USkeletalMesh> Mesh = nullptr;
+	/** 애님 블루프린트 클래스 경로 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+	TSoftClassPtr<UAnimInstance> AnimBP = nullptr;
+	/** 캐릭터 선택 UI에 표시할 초상화 텍스처 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|UI")
+	TSoftObjectPtr<UTexture2D> Portrait = nullptr;
+	
+	/** 스테이지 진입 시 EquipmentComponent 첫 슬롯에 자동 장착할 무기 ID (DT_Weapon FK) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+	FName DefaultWeaponID = NAME_None;
+
+	/** 기본 최대 HP */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+	float BaseHP = 100.f;
+	/** 기본 이동 속도 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+	float BaseMoveSpeed = 600.f;
+	/** 기본 공격력 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+	float BaseAttackPower = 10.f;
+
+	/** 캐릭터 등급 — 그리드 정렬 기준 (SSR > SR > R > N) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|Unlock")
+	ECharacterGrade Grade = ECharacterGrade::N;
+	/** 해금 조건 타입 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|Unlock")
+	ECharacterUnlockType UnlockType = ECharacterUnlockType::DEFAULT;
+	/** UnlockType==STAGE_CLEAR 시 클리어해야 하는 스테이지 ID (DT_Stage FK) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|Unlock")
+	FName UnlockStageID = NAME_None;
+	/** UnlockType==CURRENCY 시 소모 재화량 (재화 시스템 미구현 — stub) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|Unlock")
+	float UnlockCost = 0.f;
+	
+};
+
 // ----------------------------------------------------------------------------
 // DT_Weapon — 무기 기본 데이터
 // ----------------------------------------------------------------------------
@@ -431,6 +492,30 @@ struct FStageStaticData : public FTableRowBase
 	/** 이 스테이지에서 스폰 가능한 에너미 ID 목록 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage")
 	TArray<FName> SpawnEnemyIDs;
+
+	/** 노드맵에 표시할 스테이지 이름 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage|Display")
+	FText DisplayName = FText::GetEmpty();
+
+	/** 순차 해금 체인 — 이 스테이지를 클리어하면 해금되는 다음 스테이지 ID (없으면 체인 끝) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage|Unlock")
+	FName NextStageID = NAME_None;
+
+	/** true이면 보스 노드 아이콘으로 표시 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage|Display")
+	bool bIsBoss = false;
+
+	/** 이 스테이지를 해금하기 위해 클리어해야 하는 직전 스테이지 ID (없으면 항상 진입 가능 — 첫 스테이지) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage|Unlock")
+	FName UnlockStageID = NAME_None;
+
+	/** 이 스테이지가 속한 UE 레벨 (OpenNextLevelByName 대상) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage|Level")
+	ELevelName WorldLevel = ELevelName::STAGE_1;
+
+	/** 노드맵 썸네일 이미지 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage|Display")
+	TSoftObjectPtr<UTexture2D> Thumbnail = nullptr;
 };
 
 
@@ -466,3 +551,5 @@ struct FWaveStaticData : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wave")
 	TArray<float> SpawnWeights;
 };
+
+
