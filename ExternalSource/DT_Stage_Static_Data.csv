@@ -1,2 +1,9 @@
----,StageID,TimeLimit,SpawnEnemyIDs
-STG_001,"STG_001","300.000000","(""ENM_Melee_01"")"
+﻿---,StageID,TimeLimit,SpawnEnemyIDs,DisplayName,NextStageID,bIsBoss,UnlockStageID,WorldLevel,Thumbnail
+STG_001,STG_001,300,"(""ENM_Melee_01"")",1-1스테이지,STG_002,FALSE,None,STAGE_1,/Game/Assets/GuiParts/UiElements/button.button
+STG_002,STG_002,300,"(""ENM_Melee_01"")",1-2스테이지,STG_003,FALSE,STG_001,STAGE_1,/Game/Assets/GuiParts/RPGIcons/armor_icon.armor_icon
+STG_003,STG_003,300,"(""ENM_Melee_01"")",1-3스테이지,STG_004,FALSE,STG_002,STAGE_1,/Game/etc/Text/cat_logo.cat_logo
+STG_004,STG_004,300,"(""ENM_Melee_01"")",1-4 보스,STG_005,TRUE,STG_003,STAGE_1,/Game/etc/Text/bg_catfire.bg_catfire
+STG_005,STG_005,300,"(""ENM_Melee_01"")",2-1스테이지,STG_006,FALSE,STG_004,STAGE_2,/Game/Assets/GuiParts/UiElements/button.button
+STG_006,STG_006,300,"(""ENM_Melee_01"")",2-2스테이지,STG_007,FALSE,STG_005,STAGE_2,/Game/Assets/GuiParts/RPGIcons/armor_icon.armor_icon
+STG_007,STG_007,300,"(""ENM_Melee_01"")",2-3스테이지,STG_008,FALSE,STG_006,STAGE_2,/Game/etc/Text/cat_logo.cat_logo
+STG_008,STG_008,300,"(""ENM_Melee_01"")",2-4 보스,None,TRUE,STG_007,STAGE_2,/Game/etc/Text/bg_catfire.bg_catfire
