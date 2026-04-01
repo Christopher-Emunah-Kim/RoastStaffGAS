@@ -44,32 +44,12 @@ void UUIManagerSubsystem::Deinitialize()
 // ID 기반 API
 // -----------------------------------------------------------------------------
 
+
 URSBaseWidget* UUIManagerSubsystem::OpenUIByID(EUIID ID)
 {
-	if (ID == EUIID::NONE)
+	EUILayer Layer;
+	if (!CheckUILayerSetting(ID, Layer))
 	{
-		KHS_WARN(TEXT("EUIID::NONE은 직접 오픈 불가"));
-		return nullptr;
-	}
-
-	const UUIManagerSettings* Settings = UUIManagerSettings::Get();
-	if (!Settings)
-	{
-		KHS_ERROR(TEXT("UIManagerSettings를 찾을 수 없음"));
-		return nullptr;
-	}
-
-	const TSoftClassPtr<URSBaseWidget>* SoftClassPtr = Settings->UIClassMap.Find(ID);
-	if (!SoftClassPtr || SoftClassPtr->IsNull())
-	{
-		KHS_WARN(TEXT("ID(%d)에 매핑된 위젯 클래스 없음. UIManagerSettings 확인 필요"), static_cast<uint8>(ID));
-		return nullptr;
-	}
-
-	const EUILayer* LayerPtr = Settings->UILayerMap.Find(ID);
-	if (!LayerPtr)
-	{
-		KHS_WARN(TEXT("ID(%d)에 매핑된 레이어 없음. UIManagerSettings 확인 필요"), static_cast<uint8>(ID));
 		return nullptr;
 	}
 
@@ -79,55 +59,19 @@ URSBaseWidget* UUIManagerSubsystem::OpenUIByID(EUIID ID)
 		return nullptr;
 	}
 
-	if (Widget->IsOpen())
+	if (Widget->IsOpen()) //이미 처리되서 열려있다면 그대로 반환
 	{
 		return Widget;
 	}
 
-	const EUILayer Layer = *LayerPtr;
-
-	if (Layer == EUILayer::PERSISTENT)
-	{
-		PersistentUIMap.Add(Widget->GetClass(), Widget);
-		Widget->OpenUI();
-		Widget->AddToViewport(CalculateZOrder(Widget));
-	}
-	else if (Layer == EUILayer::PAGE)
-	{
-		if (PageUIStack.Num() > 0)
-		{
-			CloseUIInternal(PageUIStack.Last());
-		}
-		PageUIStack.Add(Widget);
-		Widget->OpenUI();
-		Widget->AddToViewport(CalculateZOrder(Widget));
-	}
-	else if (Layer == EUILayer::SYSTEM)
-	{
-		SystemUIStack.Add(Widget);
-		Widget->OpenUI();
-		Widget->AddToViewport(CalculateZOrder(Widget));
-		NotifyInputModeChange();
-	}
-	else // POPUP
-	{
-		if (PopupUIStack.Num() > 0)
-		{
-			PopupUIStack.Last()->OnFocusLost();
-		}
-		PopupUIStack.Add(Widget);
-		Widget->OpenUI();
-		Widget->AddToViewport(CalculateZOrder(Widget));
-		NotifyInputModeChange();
-	}
+	HandleWidgetByLayer(Layer, Widget);
 
 	return Widget;
 }
 
 void UUIManagerSubsystem::CloseUIByID(EUIID ID)
 {
-	const uint8 Key = static_cast<uint8>(ID);
-	URSBaseWidget** Found = CachedWidgetsByID.Find(Key);
+	URSBaseWidget** Found = CachedWidgetsByID.Find(static_cast<uint8>(ID));
 	
 	if (!Found || !(*Found))
 	{
@@ -183,6 +127,104 @@ void UUIManagerSubsystem::ClearUIHistory()
 // -----------------------------------------------------------------------------
 // 내부 헬퍼
 // -----------------------------------------------------------------------------
+
+
+bool UUIManagerSubsystem::CheckUILayerSetting(EUIID ID, EUILayer& OutLayer)
+{
+	if (ID == EUIID::NONE)
+	{
+		KHS_WARN(TEXT("EUIID::NONE은 직접 오픈 불가"));
+		return false;
+	}
+
+	const UUIManagerSettings* Settings = UUIManagerSettings::Get();
+	if (!Settings)
+	{
+		KHS_ERROR(TEXT("UIManagerSettings를 찾을 수 없음"));
+		return false;
+	}
+
+	const TSoftClassPtr<URSBaseWidget>* SoftClassPtr = Settings->UIClassMap.Find(ID);
+	if (!SoftClassPtr || SoftClassPtr->IsNull())
+	{
+		KHS_WARN(TEXT("ID(%d)에 매핑된 위젯 클래스 없음. UIManagerSettings 확인 필요"), static_cast<uint8>(ID));
+		return false;
+	}
+
+	const EUILayer* LayerPtr = Settings->UILayerMap.Find(ID);
+	if (!LayerPtr)
+	{
+		KHS_WARN(TEXT("ID(%d)에 매핑된 레이어 없음. UIManagerSettings 확인 필요"), static_cast<uint8>(ID));
+		return false;
+	}
+	
+	OutLayer = *LayerPtr;
+	return true;
+}
+
+
+void UUIManagerSubsystem::HandleWidgetByLayer(EUILayer Layer, URSBaseWidget* Widget)
+{
+	switch (Layer)
+	{
+	case EUILayer::PERSISTENT:
+		{
+			PersistentUIMap.Add(Widget->GetClass(), Widget);
+			Widget->OpenUI();
+			Widget->AddToViewport(CalculateZOrder(Widget));
+		}
+	break;
+		
+	case EUILayer::PAGE:
+		{
+			if (PageUIStack.Num() > 0)
+			{
+				CloseUIInternal(PageUIStack.Last());
+			}
+			PageUIStack.Add(Widget);
+			
+			Widget->OpenUI();
+			Widget->AddToViewport(CalculateZOrder(Widget));
+		}
+		break;
+		
+	case EUILayer::SYSTEM:
+		{
+			SystemUIStack.Add(Widget);
+			
+			Widget->OpenUI();
+			Widget->AddToViewport(CalculateZOrder(Widget));
+			NotifyInputModeChange();
+		}
+		break;
+		
+	case EUILayer::POPUP:
+		{
+			if (PopupUIStack.Num() > 0)
+			{
+				PopupUIStack.Last()->OnFocusLost();
+			}
+			PopupUIStack.Add(Widget);
+			Widget->OpenUI();
+			Widget->AddToViewport(CalculateZOrder(Widget));
+			NotifyInputModeChange();
+		}
+		break;
+		
+	default: //기본처리는 팝업과 동일 처리
+		{
+			if (PopupUIStack.Num() > 0)
+			{
+				PopupUIStack.Last()->OnFocusLost();
+			}
+			PopupUIStack.Add(Widget);
+			Widget->OpenUI();
+			Widget->AddToViewport(CalculateZOrder(Widget));
+			NotifyInputModeChange();
+		}
+		break;
+	}
+}
 
 URSBaseWidget* UUIManagerSubsystem::GetOrCreateWidgetByID(EUIID ID)
 {
@@ -366,12 +408,14 @@ void UUIManagerSubsystem::ResetAllUIStates()
 			{
 				Pair.Value->CloseUI();
 			}
+			
 			if (Pair.Value->IsInViewport())
 			{
 				Pair.Value->RemoveFromParent();
 			}
 		}
 	}
+	
 	for (auto& Pair : CachedWidgetsByID)
 	{
 		if (Pair.Value)
@@ -380,6 +424,7 @@ void UUIManagerSubsystem::ResetAllUIStates()
 			{
 				Pair.Value->CloseUI();
 			}
+			
 			if (Pair.Value->IsInViewport())
 			{
 				Pair.Value->RemoveFromParent();

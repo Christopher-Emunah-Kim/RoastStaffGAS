@@ -40,7 +40,7 @@ private:
 	UFUNCTION()
 	void OnFinishedIntroAnim();
 
-	// ── 바인딩 위젯 ─────────────────────────────────────────────────────────
+	
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UImage> Img_1;
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -48,7 +48,7 @@ private:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UImage> Img_3;
 
-	// ── 바인딩 애니메이션 ────────────────────────────────────────────────────
+	
 	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	TObjectPtr<UWidgetAnimation> FadeAnim;
 };

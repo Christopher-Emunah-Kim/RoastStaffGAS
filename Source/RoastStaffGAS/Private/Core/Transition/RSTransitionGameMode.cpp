@@ -26,7 +26,7 @@ void ARSTransitionGameMode::BeginPlay()
 	}
 	else
 	{
-		KHS_WARN(TEXT("ARSTransitionGameMode::BeginPlay — LoadingWidget 오픈 실패"));
+		KHS_WARN(TEXT("BeginPlay — LoadingWidget 오픈 실패"));
 	}
 
 	PreloadAssetsAsync();
@@ -36,7 +36,10 @@ void ARSTransitionGameMode::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (!bIsLoadingLevel || !LoadingWidget) { return; }
+	if (!bIsLoadingLevel || !LoadingWidget)
+	{
+		return;
+	}
 
 	// FakeProgress: 0 → 0.9 보간 (실제 완료 전 최대 90%까지만)
 	CurrentFakeProgress = FMath::FInterpTo(CurrentFakeProgress, 0.9f, DeltaTime, 1.5f);
@@ -47,6 +50,7 @@ void ARSTransitionGameMode::PreloadAssetsAsync()
 {
 	// TODO(PLAN_Data MODULE-2): RuntimeDS::GatherPreloadAssets(OutPaths) → AssetManager::RequestAsyncLoad 교체 예정
 	// 현재는 에셋 수집 없이 바로 레벨 스트리밍 진행
+	
 	StartLevelStreaming();
 }
 
@@ -54,19 +58,18 @@ void ARSTransitionGameMode::StartLevelStreaming()
 {
 	GET_GI(_GI);
 	URSGameInstance* GI = Cast<URSGameInstance>(_GI);
-	if (!ensure(GI)) { return; }
+	check(GI);
 
 	const UMapSettings* Settings = UMapSettings::Get();
-	if (!ensureMsgf(Settings, TEXT("ARSTransitionGameMode::StartLevelStreaming — MapSettings 없음")))
+	if (!ensureMsgf(Settings, TEXT("StartLevelStreaming — MapSettings 없음")))
 	{
 		return;
 	}
 
-	const TSoftObjectPtr<UWorld>* LevelAsset = Settings->LevelMap.Find(GI->GetNextLevelName());
+	const TSoftObjectPtr<UWorld>* LevelAsset = Settings->GetWorldMapBy(GI->GetNextLevelName());
 	if (!LevelAsset || LevelAsset->IsNull())
 	{
-		UE_LOG(LogTemp, Error,
-			TEXT("ARSTransitionGameMode::StartLevelStreaming — 목적지 레벨 매핑 없음. MapSettings 확인 필요"));
+		KHS_ERROR(TEXT("StartLevelStreaming — 목적지 레벨 매핑 없음. MapSettings 확인 필요"));
 		return;
 	}
 
@@ -88,26 +91,20 @@ void ARSTransitionGameMode::OnLevelPreloadCompleted()
 
 	if (LoadingWidget)
 	{
-		LoadingWidget->SetLoadingProgress(1.f);
 		LoadingWidget->FinishLoading();
 	}
 
-	// 완료 연출 후 1.0s 대기 → 최종 레벨 이동
-	FTimerHandle Unused;
+	// 완료 연출 후 1초 대기 → 최종 레벨 이동
+	FTimerHandle TempTimer;
 	GetWorld()->GetTimerManager().SetTimer(
-		Unused,
-		this,
-		&ARSTransitionGameMode::OpenNextLevel,
-		1.0f,
-		false
-	);
+		TempTimer,this,	&ARSTransitionGameMode::OpenNextLevel,1.0f,false);
 }
 
 void ARSTransitionGameMode::OpenNextLevel()
 {
 	GET_GI(_GI);
 	URSGameInstance* GI = Cast<URSGameInstance>(_GI);
-	if (!ensure(GI)) { return; }
+	check(GI);
 
 	GI->OpenNextLevelLatent();
 }

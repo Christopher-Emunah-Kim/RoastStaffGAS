@@ -13,18 +13,7 @@ class URSLoadingWidget;
  *
  * TRANSITION 레벨 전용 GameMode.
  * 에셋 프리로드(stub) + FakeProgress 보간 + 레벨 스트리밍을 담당한다.
- *
- * 흐름:
- *   BeginPlay → PreloadAssetsAsync()
- *     └→ StartLevelStreaming()
- *          └→ OnLevelPreloadCompleted() 콜백
- *               ├→ bIsLoadingLevel = false
- *               ├→ LoadingWidget::FinishLoading()
- *               └→ SetTimer(1.0s) → GI::OpenNextLevelLatent()
- *
- * Tick(): bIsLoadingLevel 동안 FakeProgress 0→0.9 보간 → LoadingWidget::SetLoadingProgress()
- *
- * BP 설정: TRANSITION 레벨 World Settings → GameMode Override → BP_RSTransitionGameMode
+ * 
  */
 UCLASS()
 class ROASTSTAFFGAS_API ARSTransitionGameMode : public AGameModeBase

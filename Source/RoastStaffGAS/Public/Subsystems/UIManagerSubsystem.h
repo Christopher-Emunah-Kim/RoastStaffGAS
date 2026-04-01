@@ -28,6 +28,8 @@ class ROASTSTAFFGAS_API UUIManagerSubsystem : public UGameInstanceSubsystem
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
+	
+
 
 	// =========================================================================
 	// ID 기반 API 
@@ -90,6 +92,10 @@ private:
 	// =========================================================================
 	// 내부 헬퍼
 	// =========================================================================
+	/** OpenUIByID-> EUIID에 해당하는 UI레이어 체크*/
+	bool CheckUILayerSetting(EUIID ID, EUILayer& OutLayer);
+	/** OpenUIByID-> UI레이어에 따라 UI 처리*/
+	void HandleWidgetByLayer(EUILayer Layer, URSBaseWidget* Widget);
 	/** EUIID에 해당하는 위젯을 캐시에서 반환하거나 신규 생성 */
 	URSBaseWidget* GetOrCreateWidgetByID(EUIID ID);
 	/** 레이어별 ZOrder 계산 */
@@ -98,7 +104,9 @@ private:
 	void NotifyInputModeChange();
 	/** 레이어를 분기하여 실제 닫기 처리 */
 	void CloseUIInternal(URSBaseWidget* Widget);
-
+	
+	
+private:
 	// =========================================================================
 	// 내부 상태
 	// =========================================================================
@@ -123,7 +131,19 @@ private:
 	/** ID 기반 캐시 (신규 — OpenUIByID 전용) */
 	UPROPERTY()
 	TMap<uint8, URSBaseWidget*> CachedWidgetsByID;
+	
 };
+
+
+
+
+
+
+
+
+
+
+
 
 
 // =============================================================================

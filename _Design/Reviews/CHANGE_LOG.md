@@ -253,3 +253,6 @@
 | 2026-04-01 01:21:34 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Core\RSGameInstance.cpp` |
 | 2026-04-01 01:21:43 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Core\RSGameInstance.cpp` |
 | 2026-04-01 01:21:50 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Core\RSGameInstance.cpp` |
+| 2026-04-01 10:24:20 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Public\System\MapSettings.h` |
+| 2026-04-01 10:24:41 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\System\MapSettings.cpp` |
+| 2026-04-01 11:18:49 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Subsystems\UIManagerSubsystem.cpp` |

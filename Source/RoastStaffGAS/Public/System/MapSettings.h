@@ -23,12 +23,19 @@ public:
 	virtual FName GetCategoryName() const override { return FName("RoastStaff"); }
 	virtual FName GetSectionName()  const override { return FName("Map Settings"); }
 
-	/** ELevelName → 레벨 에셋 경로 매핑. 에디터에서 각 항목에 레벨 에셋을 할당할 것. */
-	UPROPERTY(Config, EditAnywhere, Category = "Level Map")
-	TMap<ELevelName, TSoftObjectPtr<UWorld>> LevelMap;
-
+	
 	FORCEINLINE static const UMapSettings* Get()
 	{
 		return GetDefault<UMapSettings>();
 	}
+	
+	FORCEINLINE const TSoftObjectPtr<UWorld>* GetWorldMapBy(ELevelName LevelName) const
+	{
+		return LevelMap.Find(LevelName);
+	}
+	
+private:
+	/** ELevelName → 레벨 에셋 경로 매핑. 에디터에서 각 항목에 레벨 에셋을 할당. */
+	UPROPERTY(Config, EditAnywhere, Category = "Level Map")
+	TMap<ELevelName, TSoftObjectPtr<UWorld>> LevelMap;
 };

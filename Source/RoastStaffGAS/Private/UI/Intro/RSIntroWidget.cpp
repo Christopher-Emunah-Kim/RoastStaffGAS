@@ -33,7 +33,7 @@ void URSIntroWidget::PlayIntroAnimation()
 	}
 	else
 	{
-		KHS_INFO(TEXT("URSIntroWidget::PlayIntroAnimation — FadeAnim 미할당, 즉시 타이틀 전환"));
+		KHS_INFO(TEXT("PlayIntroAnimation — FadeAnim 미할당, 즉시 타이틀 전환"));
 		OnFinishedIntroAnim();
 	}
 }
@@ -42,12 +42,9 @@ void URSIntroWidget::OnFinishedIntroAnim()
 {
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(
-		TimerHandle,
-		[this]()
+		TimerHandle,	[this]()
 		{
 			OnTitleOpenRequestedDel.Broadcast();
 		},
-		0.5f,
-		false
-	);
+		0.5f,	false);
 }

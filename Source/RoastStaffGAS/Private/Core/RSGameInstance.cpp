@@ -19,20 +19,21 @@ void URSGameInstance::OpenNextLevelByName(ELevelName Level)
 		UIManager->ResetAllUIStates();
 	}
 
-	// 동일 프레임에서 OpenLevel을 호출하면 RemoveFromParent 중인 위젯과 충돌할 수 있으므로
-	// 한 프레임 뒤에 실행 — 0.1s는 정리 완료를 보장하는 최소 여유값
-	FTimerHandle Unused;
+	// 동일 프레임에서 OpenLevel을 호출하면 RemoveFromParent 중인 위젯과 충돌할 수 있으므로 한 프레임 뒤에 실행 
+	FTimerHandle TempTimer;
 	GetWorld()->GetTimerManager().SetTimer(
-		Unused,	this,	&URSGameInstance::DoOpenTransitionLevel,
-		0.1f,	false);
+		TempTimer,	this,	&URSGameInstance::DoOpenTransitionLevel,0.1f,	false);
 }
 
 void URSGameInstance::DoOpenTransitionLevel()
 {
 	const UMapSettings* Settings = UMapSettings::Get();
-	if (!ensureMsgf(Settings, TEXT("MapSettings를 찾을 수 없음"))) { return; }
+	if (!ensureMsgf(Settings, TEXT("MapSettings를 찾을 수 없음")))
+	{
+		return;
+	}
 
-	const TSoftObjectPtr<UWorld>* LevelAsset = Settings->LevelMap.Find(ELevelName::TRANSITION);
+	const TSoftObjectPtr<UWorld>* LevelAsset = Settings->GetWorldMapBy(ELevelName::TRANSITION);
 	if (!LevelAsset || LevelAsset->IsNull())
 	{
 		KHS_ERROR(TEXT("ELevelName::TRANSITION에 매핑된 레벨 없음. MapSettings 확인 필요"));
@@ -51,7 +52,7 @@ void URSGameInstance::OpenNextLevelLatent()
 		return;
 	}
 
-	const TSoftObjectPtr<UWorld>* LevelAsset = Settings->LevelMap.Find(NextLevelName);
+	const TSoftObjectPtr<UWorld>* LevelAsset = Settings->GetWorldMapBy(NextLevelName);
 	if (!LevelAsset || LevelAsset->IsNull())
 	{
 		KHS_ERROR(TEXT("ELevelName(%d)에 매핑된 레벨 없음. MapSettings 확인 필요"), static_cast<uint8>(NextLevelName));
@@ -59,7 +60,7 @@ void URSGameInstance::OpenNextLevelLatent()
 	}
 
 	// GetLongPackageName() → /Game/Map/Map_Intro 형식 → ShortName → "Map_Intro"
-	// OpenLevel URL은 패키지 경로가 아닌 맵 파일 이름을 사용해야 함
+	// OpenLevel URL은 패키지 경로가 아닌 맵 파일 이름을 사용
 	const FName LevelName = FName(*FPackageName::GetShortName(LevelAsset->GetLongPackageName()));
 	UGameplayStatics::OpenLevel(this, LevelName);
 }

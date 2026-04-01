@@ -23,29 +23,34 @@ void ARSIntroPlayerController::BeginPlay()
 void ARSIntroPlayerController::OpenFirstWidget()
 {
 	GET_GI_SUBSYSTEM(UUIManagerSubsystem, UMS);
-
+	
 	UMS->OpenUIByID(EUIID::BACKGROUND);
-
-	if (URSIntroWidget* IntroWidget = Cast<URSIntroWidget>(UMS->OpenUIByID(EUIID::INTRO)))
+	URSIntroWidget* IntroWidget = Cast<URSIntroWidget>(UMS->OpenUIByID(EUIID::INTRO));
+	if (!IntroWidget)
 	{
-		IntroWidget->OnTitleOpenRequestedDel.AddUniqueDynamic(this, &ARSIntroPlayerController::OpenTitleScreen);
+		KHS_WARN(TEXT("IntroWidget OPEN FAILED"));
 	}
+	
+	IntroWidget->OnTitleOpenRequestedDel.AddUniqueDynamic(this, &ARSIntroPlayerController::OpenTitleScreen);
 }
 
 void ARSIntroPlayerController::OpenTitleScreen()
 {
 	GET_GI_SUBSYSTEM(UUIManagerSubsystem, UMS);
-	if (URSTitleWidget* TitleWidget = Cast<URSTitleWidget>(UMS->OpenUIByID(EUIID::TITLE)))
+	URSTitleWidget* TitleWidget = Cast<URSTitleWidget>(UMS->OpenUIByID(EUIID::TITLE));
+	if (!TitleWidget)
 	{
-		TitleWidget->OnStartGameRequestedDel.AddUniqueDynamic(this, &ARSIntroPlayerController::OnStartGameClicked);
+		KHS_WARN(TEXT("TitleWidget OPEN FAILED"));
 	}
+	
+	TitleWidget->OnStartGameRequestedDel.AddUniqueDynamic(this, &ARSIntroPlayerController::OnStartGameClicked);
 }
 
 void ARSIntroPlayerController::OnStartGameClicked()
 {
 	GET_GI(_GI);
 	URSGameInstance* GI = Cast<URSGameInstance>(_GI);
-	if (!ensure(GI)) { return; }
+	check(GI);
 
 	GI->OpenNextLevelByName(ELevelName::OUTGAME);
 }

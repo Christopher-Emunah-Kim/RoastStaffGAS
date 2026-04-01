@@ -10,12 +10,8 @@ void URSLoadingWidget::OpenUI()
 	Super::OpenUI();
 
 	GetWorld()->GetTimerManager().SetTimer(
-		LoadingTimerHandle,
-		this,
-		&URSLoadingWidget::UpdateLoadingAnimation,
-		TimerInterval,
-		true
-	);
+		LoadingTimerHandle,	this,	&URSLoadingWidget::UpdateLoadingAnimation,
+		TimerInterval,true	);
 }
 
 void URSLoadingWidget::CloseUI()
