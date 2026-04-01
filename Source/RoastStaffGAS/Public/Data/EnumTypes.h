@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "EnumTypes.generated.h"
 
 // ============================================================================
 // ENUM 정의
@@ -92,4 +93,23 @@ enum class EAIType : uint8
 	CHASE	UMETA(DisplayName = "Chase"),
 	RANGED	UMETA(DisplayName = "Ranged"),
 	ELITE	UMETA(DisplayName = "Elite")
+};
+
+/** 캐릭터 등급 — 그리드 정렬 2순위 기준 (SSR > SR > R > N) */
+UENUM(BlueprintType)
+enum class ECharacterGrade : uint8
+{
+	SSR  UMETA(DisplayName = "SSR"),
+	SR   UMETA(DisplayName = "SR"),
+	R    UMETA(DisplayName = "R"),
+	N    UMETA(DisplayName = "N"),
+};
+
+/** 캐릭터 해금 조건 타입 */
+UENUM(BlueprintType)
+enum class ECharacterUnlockType : uint8
+{
+	DEFAULT      UMETA(DisplayName = "Default"),      // 기본 해금 (조건 없음)
+	STAGE_CLEAR  UMETA(DisplayName = "StageClear"),   // 특정 스테이지 클리어 시 해금
+	CURRENCY     UMETA(DisplayName = "Currency"),     // 재화 소모 해금 (stub — 재화 시스템 미구현)
 };

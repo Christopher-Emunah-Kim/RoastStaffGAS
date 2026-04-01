@@ -23,23 +23,24 @@ enum class EUILayer : uint8
 UENUM(BlueprintType)
 enum class EUIID : uint8
 {
-	NONE           UMETA(DisplayName = "None"),           // 자식 위젯 전용. 직접 오픈 불가
-	BACKGROUND     UMETA(DisplayName = "Background"),
-	LOADING        UMETA(DisplayName = "Loading"),
-	INTRO          UMETA(DisplayName = "Intro"),
-	TITLE          UMETA(DisplayName = "Title"),
-	OUTGAME        UMETA(DisplayName = "OutGame"),
-	LOBBY          UMETA(DisplayName = "Lobby"),
-	CHAR_SELECT    UMETA(DisplayName = "CharSelect"),
-	STAGE_SELECT   UMETA(DisplayName = "StageSelect"),
-	SETTING        UMETA(DisplayName = "Setting"),
-	PAUSE          UMETA(DisplayName = "Pause"),
-	HUD            UMETA(DisplayName = "HUD"),
-	LEVEL_UP       UMETA(DisplayName = "LevelUp"),
-	WEAPON_REPLACE UMETA(DisplayName = "WeaponReplace"),
-	GAMEOVER       UMETA(DisplayName = "GameOver"),
-	GAMECLEAR      UMETA(DisplayName = "GameClear"),
-	EXIT           UMETA(DisplayName = "Exit"),
+	NONE           	 UMETA(DisplayName = "None"),           // 자식 위젯 전용. 직접 오픈 불가
+	BACKGROUND     	 UMETA(DisplayName = "Background"),
+	LOADING        	 UMETA(DisplayName = "Loading"),
+	INTRO          	 UMETA(DisplayName = "Intro"),
+	TITLE          	 UMETA(DisplayName = "Title"),
+	OUTGAME        	 UMETA(DisplayName = "OutGame"),
+	LOBBY          	 UMETA(DisplayName = "Lobby"),
+	CHAR_SELECT    	 UMETA(DisplayName = "CharSelect"),
+	CHAR_GRID_POPUP  UMETA(DisplayName = "CharGridPopup"),
+	STAGE_SELECT     UMETA(DisplayName = "StageSelect"),
+	SETTING          UMETA(DisplayName = "Setting"),
+	PAUSE            UMETA(DisplayName = "Pause"),
+	HUD              UMETA(DisplayName = "HUD"),
+	LEVEL_UP         UMETA(DisplayName = "LevelUp"),
+	WEAPON_REPLACE   UMETA(DisplayName = "WeaponReplace"),
+	GAMEOVER         UMETA(DisplayName = "GameOver"),
+	GAMECLEAR        UMETA(DisplayName = "GameClear"),
+	EXIT             UMETA(DisplayName = "Exit"),
 };
 
 /** 레벨 전환 대상 식별자 - MapSettings에서 실제 레벨 경로와 매핑 */
@@ -49,5 +50,6 @@ enum class ELevelName : uint8
 	INTRO       UMETA(DisplayName = "Intro"),
 	TRANSITION  UMETA(DisplayName = "Transition"),
 	OUTGAME     UMETA(DisplayName = "OutGame"),
-	STAGE       UMETA(DisplayName = "Stage"),
+	STAGE_1     UMETA(DisplayName = "Stage1"),   // 월드 1 스테이지 레벨
+	STAGE_2     UMETA(DisplayName = "Stage2"),   // 월드 2 스테이지 레벨
 };
