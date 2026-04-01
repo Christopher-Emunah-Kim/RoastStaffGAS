@@ -28,6 +28,70 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 ---
 <!-- 신규 항목은 이 줄 아래에 추가 -->
 - date: 2026-04-01
+  plan: PLAN_OutGame_SelectUI_v1.0
+  commit: null
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
+    created:
+      - Source/RoastStaffGAS/Public/UI/OutGame/RSCharacterEntryWidget.h
+      - Source/RoastStaffGAS/Private/UI/OutGame/RSCharacterEntryWidget.cpp
+      - Source/RoastStaffGAS/Public/UI/OutGame/RSCharacterSelectWidget.h
+      - Source/RoastStaffGAS/Private/UI/OutGame/RSCharacterSelectWidget.cpp
+      - Source/RoastStaffGAS/Public/UI/OutGame/RSCharacterGridPopupWidget.h
+      - Source/RoastStaffGAS/Private/UI/OutGame/RSCharacterGridPopupWidget.cpp
+      - Source/RoastStaffGAS/Public/UI/OutGame/RSLobbyWidget.h
+      - Source/RoastStaffGAS/Private/UI/OutGame/RSLobbyWidget.cpp
+    deleted: []
+  summary: "MODULE-3/3b 캐릭터 선택 위젯 구현 (EntryWidget BindWidget 5종+C++ UpdateDisplay + Portrait필드 추가 + 캐러셀PAGE/그리드팝업POPUP + LobbyWidget)"
+  status: PENDING_COMMIT
+  bugs_found: []
+  bugs_fixed: []
+
+- date: 2026-04-01
+  plan: PLAN_OutGame_SelectUI_v1.0
+  commit: null
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Subsystems/GameDataSubsystem.h
+      - Source/RoastStaffGAS/Private/Subsystems/GameDataSubsystem.cpp
+      - Source/RoastStaffGAS/Public/Data/EnumTypes.h
+      - Source/RoastStaffGAS/Public/Data/EnumUITypes.h
+      - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
+      - Source/RoastStaffGAS/Private/Core/RSGameInstance.cpp
+    created:
+      - _Design/Plans/active/PLAN_OutGame_SelectUI_v1.0.md
+      - Source/RoastStaffGAS/Public/Core/RSGameSave.h
+      - Source/RoastStaffGAS/Private/Core/RSGameSave.cpp
+      - Source/RoastStaffGAS/Public/Subsystems/SaveGameSubsystem.h
+      - Source/RoastStaffGAS/Private/Subsystems/SaveGameSubsystem.cpp
+    deleted: []
+  summary: "PLAN_OutGame_SelectUI_v1.0 계획서 + MODULE-1 DataSchema 확장 (ECharacterGrade/UnlockType, CHAR_GRID_POPUP, STAGE_1/2, FCharacterStaticData/FStageStaticData 필드)"
+  status: PENDING_COMMIT
+  bugs_found: []
+  bugs_fixed: []
+
+- date: 2026-04-01
+  plan: PLAN_GameFlow_Levels_v1.0
+  commit: null
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
+      - Source/RoastStaffGAS/Public/Data/GameDataConfig.h
+      - Source/RoastStaffGAS/Public/Subsystems/GameDataSubsystem.h
+      - Source/RoastStaffGAS/Private/Subsystems/GameDataSubsystem.cpp
+    created:
+      - Source/RoastStaffGAS/Public/Core/OutGame/RSOutGameMode.h
+      - Source/RoastStaffGAS/Private/Core/OutGame/RSOutGameMode.cpp
+      - Source/RoastStaffGAS/Public/Core/OutGame/RSOutGamePlayerController.h
+      - Source/RoastStaffGAS/Private/Core/OutGame/RSOutGamePlayerController.cpp
+    deleted: []
+  summary: "GameFlow Levels MODULE-3~4: RSOutGameMode/PC + FCharacterStaticData 스키마 + GDS 캐릭터 조회 stub"
+  status: PENDING_COMMIT
+  bugs_found: []
+  bugs_fixed: []
+
+- date: 2026-04-01
   plan: PLAN_GameFlow_Levels_v1.0
   commit: "0f47105 / 6c2c881 / 553dc01 / 2d507f1 / ca83d9f"
   files:

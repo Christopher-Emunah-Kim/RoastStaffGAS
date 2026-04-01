@@ -70,18 +70,74 @@
     - [x] RSLoadingWidget: ProgressBar + Gear/Icon 회전 타이머 애니메이션
     - [~] RuntimeDataSubsystem::GatherPreloadAssets 연동 — DEFERRED (PLAN_GameFlow_Data MODULE-2)
 
-  ### [MODULE-3] OutGameController + OutGameMode                           [P1]
-    - [ ] RSOutGameController, RSOutGameMode 신규                          [P1]
-    - [ ] OpenFirstWidget(): OUTGAME(PERSISTENT) + LOBBY(PAGE)             [P1]
-    - [ ] 캐릭터/스테이지/설정 버튼 핸들러                                 [P1]
+  ### ✓ DONE 2026-04-01 [MODULE-3] OutGameController + OutGameMode
+    - [x] RSOutGameMode: AGameModeBase 파생, DefaultPawnClass=None, PlayerControllerClass=RSOutGamePlayerController
+    - [x] RSOutGamePlayerController::BeginPlay() → SetShowMouseCursor(true) + SetInputMode(UIOnly) + OpenFirstWidget()
+    - [x] OpenFirstWidget(): OUTGAME(PERSISTENT), ClearUIHistory(), LOBBY(PAGE) 순서 오픈
+    - [x] OnCharacterSelectClicked() UFUNCTION: UIManager::SwitchPageUI(EUIID::CHAR_SELECT)
+    - [x] OnStageSelectClicked() UFUNCTION: UIManager::SwitchPageUI(EUIID::STAGE_SELECT)
+    - [x] OnSettingClicked() UFUNCTION: UIManager::OpenUIByID(EUIID::SETTING)
+    - [x] OnCharacterSelected(FName CharID) UFUNCTION: RuntimeDS stub 주석 + UIManager::BackPage()
+    - [x] OnStageSelected(FName StageID) UFUNCTION: GI->OpenNextStage(StageID)
+    - [~] CharacterSelectWidget, StageSelectWidget 델리게이트 구독 — MODULE-5(RSCharacterSelectWidget/RSStageSelectWidget) 구현 후 연결 | REF: MODULE-5
+    - [ ] OUTGAME 레벨 World Settings → RSOutGameMode 안내                 [P0]
 
-  ### [MODULE-4] 캐릭터 DataTable 스키마                                   [P1]
-    - [ ] CharacterDataStructs.h: FCharacterStaticData (DefaultWeaponID 포함)  [P1]
-    - [ ] DT_CharacterStatic 에셋 생성                                     [P1]
+  ### ✓ DONE 2026-04-01 [MODULE-4] 캐릭터 DataTable 스키마
+    - [x] FCharacterStaticData: DataTableStructs.h에 직접 추가 (CharacterID~BaseAttackPower, USTRUCT 기본값 전체)
+    - [x] GameDataConfig.h: CharacterStaticTable 추가
+    - [x] GameDataSubsystem: LoadedCharacterTable + CharacterCache + GetCharacterStaticData stub
+    - [x] DT_CharacterStatic 에셋 생성 (에디터, Content/Data/Character/DT_CharacterStatic)
 
-  ### [MODULE-5] 캐릭터 선택 UI + 스테이지 선택 UI                        [P1]
-    - [ ] RSCharacterSelectWidget, RSStageSelectWidget 신규                [P1]
-    - [ ] 델리게이트 브로드캐스트 → OutGameController 연결                 [P1]
+  ### [~] [MODULE-5] 캐릭터 선택 UI + 스테이지 선택 UI — PLAN_OutGame_SelectUI_v1.0으로 대체·확장 | REF: PLAN_OutGame_SelectUI_v1.0
+
+---
+
+## [FEATURE] OutGame 선택 UI | PLAN_OutGame_SelectUI_v1.0
+> 시작: 2026-04-01 | 기획서: 아웃게임 시스템 기획 v1.0, 게임 플로우 아키텍처 기획 v1.0
+
+  ### ✓ DONE 2026-04-01 [MODULE-1] DataSchema 확장
+  수정: DataTableStructs.h, EnumUITypes.h, EnumTypes.h, RSGameInstance.cpp
+    - [x] EnumTypes.h: ECharacterGrade(SSR/SR/R/N) 추가
+    - [x] EnumTypes.h: ECharacterUnlockType(DEFAULT/STAGE_CLEAR/CURRENCY) 추가
+    - [x] EnumUITypes.h: EUIID::CHAR_GRID_POPUP 추가
+    - [x] EnumUITypes.h: ELevelName::STAGE → STAGE_1 rename + STAGE_2 추가
+    - [x] RSGameInstance.cpp: ELevelName::STAGE → STAGE_1 수정 (TODO: WorldLevel 조회 로직 MODULE-5에서)
+    - [x] DataTableStructs.h: FCharacterStaticData Grade/UnlockType/UnlockStageID/UnlockCost 추가
+    - [x] DataTableStructs.h: FStageStaticData DisplayName/NextStageID/bIsBoss/UnlockStageID/WorldLevel/Thumbnail 추가
+
+  ### ✓ DONE 2026-04-01 [MODULE-2] SaveGameSubsystem
+  신규: RSGameSave.h, SaveGameSubsystem.h/.cpp
+    - [x] URSSaveGame: UnlockedCharIDs/ClearedStageIDs/LastSelectedCharID/SettingsData/SaveVersion
+    - [x] FRSSettingsData USTRUCT (볼륨 3종 기본값 1.0f)
+    - [x] SaveGameSubsystem: Initialize/Deinit/SaveGame/LoadGame/Is*/Add*/Get/Set API 전체
+    - [x] OnSaveGameLoadedDel 델리게이트
+    - [x] DEFERRED TODO 주석 (FStageRecord/FTransactionState 등)
+
+  ### ✓ DONE 2026-04-01 [MODULE-3] RSCharacterSelectWidget + RSCharacterGridPopupWidget
+  신규: Public/UI/OutGame/ RSCharacterSelectWidget.h/.cpp, RSCharacterGridPopupWidget.h/.cpp
+        Public/UI/OutGame/ RSCharacterEntryWidget.cpp (구현)
+    - [x] RSCharacterSelectWidget: 캐러셀 PAGE, FOnCharacterSelectedDel, PopulateCarousel [P0]
+    - [x] RSCharacterGridPopupWidget: 그리드 POPUP, 정렬(해금→Grade→Level stub) [P0]
+
+  ### ✓ DONE 2026-04-01 [MODULE-3b] RSLobbyWidget
+  신규: Public/UI/OutGame/RSLobbyWidget.h/.cpp
+    - [x] Btn_CharacterSelect/StageSelect/Settings BindWidget + NativeOnInitialized 바인딩
+    - [~] WBP_CharacterSelect 레이아웃 디자인 — 다음 세션에서 진행 [P1] | REF: MODULE-3 TODO
+
+  ### [MODULE-4] RSStageSelectWidget                                       [P1]
+  신규: Public/UI/OutGame/ RSStageSelectWidget.h/.cpp
+    - [ ] 노드맵 PAGE, FOnStageSelectedDel, PopulateNodeMap, AVAILABLE/CLEARED/LOCKED 판정 [P1]
+
+  ### [MODULE-5] OGPC 델리게이트 바인딩 완성                              [P1]
+  수정: RSOutGamePlayerController.h/.cpp
+    - [ ] 위젯 델리게이트 바인딩 완성 (RemoveDynamic 선행) [P0]
+    - [ ] OnCharacterSelected: SGS::SetLastSelectedCharacter + SwitchPageUI(STAGE_SELECT) [P0]
+    - [ ] OnStageSelected: SGS::SaveGame() + GI::OpenNextStage [P0]
+
+  ### ✓ DONE 2026-04-01 [MODULE-6] GDS GetAll API
+  수정: GameDataSubsystem.h/.cpp
+    - [x] GetAllCharacterStaticData(TArray<FCharacterStaticData>&) 추가
+    - [x] GetAllStageStaticData(TArray<FStageStaticData>&) 추가
 
 ---
 
