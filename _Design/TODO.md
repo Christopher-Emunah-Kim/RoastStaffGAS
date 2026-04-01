@@ -55,8 +55,8 @@
 
 ---
 
-## [FEATURE] 게임플로우 레벨 | PLAN_GameFlow_Levels_v1.0
-> 시작: 2026-04-01 | 기획서: 게임 플로우 아키텍처 기획 v1.0.md
+## ✓ COMMITTED [FEATURE] 게임플로우 레벨 | PLAN_GameFlow_Levels_v1.0
+> 커밋: c0be61f / 2118448 | 2026-04-01.md
 
   ### ✓ COMMITTED 2026-04-01 [MODULE-1] IntroController + IntroGameMode (6c2c881)
     - [x] RSIntroGameMode, RSIntroPlayerController 신규
@@ -93,7 +93,7 @@
 ---
 
 ## [FEATURE] OutGame 선택 UI | PLAN_OutGame_SelectUI_v1.0
-> 시작: 2026-04-01 | 기획서: 아웃게임 시스템 기획 v1.0, 게임 플로우 아키텍처 기획 v1.0
+> 시작: 2026-04-01 | 커밋: 1a21f8c~8d68391 (11개) | 기획서: 아웃게임 시스템 기획 v1.0, 게임 플로우 아키텍처 기획 v1.0
 
   ### ✓ DONE 2026-04-01 [MODULE-1] DataSchema 확장
   수정: DataTableStructs.h, EnumUITypes.h, EnumTypes.h, RSGameInstance.cpp

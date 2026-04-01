@@ -28,68 +28,33 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 ---
 <!-- 신규 항목은 이 줄 아래에 추가 -->
 - date: 2026-04-01
-  plan: PLAN_OutGame_SelectUI_v1.0
-  commit: null
-  files:
-    modified:
-      - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
-    created:
-      - Source/RoastStaffGAS/Public/UI/OutGame/RSCharacterEntryWidget.h
-      - Source/RoastStaffGAS/Private/UI/OutGame/RSCharacterEntryWidget.cpp
-      - Source/RoastStaffGAS/Public/UI/OutGame/RSCharacterSelectWidget.h
-      - Source/RoastStaffGAS/Private/UI/OutGame/RSCharacterSelectWidget.cpp
-      - Source/RoastStaffGAS/Public/UI/OutGame/RSCharacterGridPopupWidget.h
-      - Source/RoastStaffGAS/Private/UI/OutGame/RSCharacterGridPopupWidget.cpp
-      - Source/RoastStaffGAS/Public/UI/OutGame/RSLobbyWidget.h
-      - Source/RoastStaffGAS/Private/UI/OutGame/RSLobbyWidget.cpp
-    deleted: []
-  summary: "MODULE-3/3b 캐릭터 선택 위젯 구현 (EntryWidget BindWidget 5종+C++ UpdateDisplay + Portrait필드 추가 + 캐러셀PAGE/그리드팝업POPUP + LobbyWidget)"
-  status: PENDING_COMMIT
-  bugs_found: []
-  bugs_fixed: []
-
-- date: 2026-04-01
-  plan: PLAN_OutGame_SelectUI_v1.0
-  commit: null
-  files:
-    modified:
-      - Source/RoastStaffGAS/Public/Subsystems/GameDataSubsystem.h
-      - Source/RoastStaffGAS/Private/Subsystems/GameDataSubsystem.cpp
-      - Source/RoastStaffGAS/Public/Data/EnumTypes.h
-      - Source/RoastStaffGAS/Public/Data/EnumUITypes.h
-      - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
-      - Source/RoastStaffGAS/Private/Core/RSGameInstance.cpp
-    created:
-      - _Design/Plans/active/PLAN_OutGame_SelectUI_v1.0.md
-      - Source/RoastStaffGAS/Public/Core/RSGameSave.h
-      - Source/RoastStaffGAS/Private/Core/RSGameSave.cpp
-      - Source/RoastStaffGAS/Public/Subsystems/SaveGameSubsystem.h
-      - Source/RoastStaffGAS/Private/Subsystems/SaveGameSubsystem.cpp
-    deleted: []
-  summary: "PLAN_OutGame_SelectUI_v1.0 계획서 + MODULE-1 DataSchema 확장 (ECharacterGrade/UnlockType, CHAR_GRID_POPUP, STAGE_1/2, FCharacterStaticData/FStageStaticData 필드)"
-  status: PENDING_COMMIT
-  bugs_found: []
-  bugs_fixed: []
-
-- date: 2026-04-01
-  plan: PLAN_GameFlow_Levels_v1.0
-  commit: null
+  plan: PLAN_OutGame_SelectUI_v1.0 + PLAN_GameFlow_Levels_v1.0
+  commit: "c0be61f / 2118448 / 1a21f8c / 881f2db / c423f60 / 4a9b984 / 3ff34cb / 7e04f5f / 330fb4c / 47713c3 / 8d68391"
   files:
     modified:
       - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
       - Source/RoastStaffGAS/Public/Data/GameDataConfig.h
       - Source/RoastStaffGAS/Public/Subsystems/GameDataSubsystem.h
       - Source/RoastStaffGAS/Private/Subsystems/GameDataSubsystem.cpp
+      - Source/RoastStaffGAS/Public/Data/EnumTypes.h
+      - Source/RoastStaffGAS/Public/Data/EnumUITypes.h
+      - Source/RoastStaffGAS/Private/Core/RSGameInstance.cpp
     created:
-      - Source/RoastStaffGAS/Public/Core/OutGame/RSOutGameMode.h
-      - Source/RoastStaffGAS/Private/Core/OutGame/RSOutGameMode.cpp
-      - Source/RoastStaffGAS/Public/Core/OutGame/RSOutGamePlayerController.h
-      - Source/RoastStaffGAS/Private/Core/OutGame/RSOutGamePlayerController.cpp
+      - Source/RoastStaffGAS/Public/Core/OutGame/RSOutGameMode.h/.cpp
+      - Source/RoastStaffGAS/Public/Core/OutGame/RSOutGamePlayerController.h/.cpp
+      - Source/RoastStaffGAS/Public/Core/RSGameSave.h/.cpp
+      - Source/RoastStaffGAS/Public/Subsystems/SaveGameSubsystem.h/.cpp
+      - Source/RoastStaffGAS/Public/UI/OutGame/RSLobbyWidget.h/.cpp
+      - Source/RoastStaffGAS/Public/UI/OutGame/RSCharacterEntryWidget.h/.cpp
+      - Source/RoastStaffGAS/Public/UI/OutGame/RSCharacterSelectWidget.h/.cpp
+      - Source/RoastStaffGAS/Public/UI/OutGame/RSCharacterGridPopupWidget.h/.cpp
+      - _Design/Plans/active/PLAN_OutGame_SelectUI_v1.0.md
     deleted: []
-  summary: "GameFlow Levels MODULE-3~4: RSOutGameMode/PC + FCharacterStaticData 스키마 + GDS 캐릭터 조회 stub"
-  status: PENDING_COMMIT
+  summary: "OutGame SelectUI 전체 — OutGameMode/PC + SaveGameSubsystem + 캐릭터선택/그리드/로비 UI + DataSchema 확장"
+  status: COMMITTED
   bugs_found: []
-  bugs_fixed: []
+  bugs_fixed:
+    - "SGS 신규 저장 시 UnlockedCharIDs 빈 배열 → DEFAULT UnlockType 체크 추가로 항상 해금 처리"
 
 - date: 2026-04-01
   plan: PLAN_GameFlow_Levels_v1.0
