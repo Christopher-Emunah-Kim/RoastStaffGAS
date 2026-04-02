@@ -170,8 +170,8 @@
 
 ---
 
-## [FEATURE] 게임플로우 데이터 | PLAN_GameFlow_Data_v1.0
-> 시작: 2026-04-02 | 기획서: 게임 플로우 아키텍처 기획 v1.0.md
+## ✓ COMMITTED [FEATURE] 게임플로우 데이터 | PLAN_GameFlow_Data_v1.0
+> 커밋: d622281 / f10dab1 | 2026-04-02
 
   ### [MODULE-1] SaveGameSubsystem                                         [P2]
     - [x] RSGameSave.h + SaveGameSubsystem 신규 (LastSelectedCharacterID + SettingsData) — SelectUI MODULE-2에서 완료

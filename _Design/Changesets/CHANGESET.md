@@ -29,7 +29,7 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 <!-- 신규 항목은 이 줄 아래에 추가 -->
 - date: 2026-04-02
   plan: BugFix_SummonMultiSlot
-  commit: null
+  commit: "a7b77c7"
   files:
     modified:
       - Source/RoastStaffGAS/Public/Subsystems/EquipmentSubsystem.h
@@ -38,7 +38,7 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
     created:  []
     deleted:  []
   summary: "소환형 무기 2슬롯 동시 장착 버그 수정 — CheckIsActiveSlot/OnSummonAbilityEnded SkillID→SpecHandle 교체"
-  status: PENDING_COMMIT
+  status: COMMITTED
   bugs_found:
     - "CheckIsActiveSlot: SkillID 기반 슬롯 탐색 → SkillID 공유 시 슬롯 0만 읽어 오판"
     - "OnSummonAbilityEnded: SkillID 기반 → 슬롯 1의 쿨타임 타이머 미재시작"
@@ -46,7 +46,7 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
     - "두 함수 모두 AbilitySpecHandle 기반 매칭으로 교체"
 - date: 2026-04-02
   plan: PLAN_GameFlow_Data_v1.0
-  commit: null
+  commit: "d622281 / f10dab1"
   files:
     modified:
       - Source/RoastStaffGAS/Public/Core/RSGameMode.h
@@ -57,7 +57,7 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
     created:  []
     deleted:  []
   summary: "RSGameMode::BeginPlay — SGS/GI 기반 CharID/StageID 적용 + InitDefaultWeapon + RSPlayerState::ApplyCharacterStats (전체 스탯 DT화, ApplyBaseStats 제거)"
-  status: PENDING_COMMIT
+  status: COMMITTED
   bugs_found: []
   bugs_fixed: []
 - date: 2026-04-02
