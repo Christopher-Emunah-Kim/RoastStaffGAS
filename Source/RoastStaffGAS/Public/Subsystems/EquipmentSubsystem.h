@@ -42,7 +42,7 @@ public:
 	//공격 중지
 	void StopAllFire();
 	//GA EndAbility에서 호출(쿨타임 관리)
-	void OnSummonAbilityEnded(FName SkillID); 
+	void OnSummonAbilityEnded(FGameplayAbilitySpecHandle SpecHandle);
 	
 	// 슬롯 데이터 읽기 UI용
 	const FWeaponSlotInstanceData* GetSlotData(int32 SlotIndex) const;

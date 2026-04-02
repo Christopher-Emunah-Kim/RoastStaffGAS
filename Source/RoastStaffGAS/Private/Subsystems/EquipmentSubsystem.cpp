@@ -149,18 +149,17 @@ void UEquipmentSubsystem::StopAllFire()
 	KHS_INFO(TEXT("모든 슬롯 자동발사 타이머 클리어."));
 }
 
-void UEquipmentSubsystem::OnSummonAbilityEnded(FName SkillID)
+void UEquipmentSubsystem::OnSummonAbilityEnded(FGameplayAbilitySpecHandle SpecHandle)
 {
-	for (int32 i = 0; i < SLOT_COUNT; ++i)                                                                       
-	{                                                                                                            
-		if (Slots[i].SlotEquipData.SkillID != SkillID)
-		{                                                                                                        
-	          continue;                                                                                          
+	for (int32 i = 0; i < SLOT_COUNT; ++i)
+	{
+		if (Slots[i].AbilitySpecHandle != SpecHandle)
+		{
+	          continue;
 		}                                                                                                        
 	                                                                                                               
 		const float Cooldown = FMath::Max(0.1f, Slots[i].SlotEquipData.Cooldown);                                
-	                         
-		KHS_INFO(TEXT("[EQS] OnSummonAbilityEnded. SkillID: %s, bIsActive: %s"), *SkillID.ToString(), Slots[i].bIsActive ? TEXT("true") : TEXT("false"));  
+	                          
 	    if (Slots[i].bIsActive)                                                                                  
 	    {                                                                                                      
 	        // Active 모드: GA 재발동 (에임 장판 프리뷰 재시작)                                

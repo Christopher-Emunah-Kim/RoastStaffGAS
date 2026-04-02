@@ -68,7 +68,8 @@ void UGA_SummonBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const F
 	if (!CachedSkillID.IsNone())
 	{
 		GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EQS, GetWorld()->GetGameInstance());
-		EQS->OnSummonAbilityEnded(CachedSkillID);
+		// Handle로 슬롯을 정확히 특정 — SkillID 공유 무기가 여러 슬롯에 있을 때 오작동 방지
+		EQS->OnSummonAbilityEnded(Handle);
 	}
 	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
@@ -225,21 +226,22 @@ void UGA_SummonBase::SpawnPreviewObject()
 
 bool UGA_SummonBase::CheckIsActiveSlot() const
 {
-	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EQS, GetWorld()->GetGameInstance());                              
-                                                                                                                   
-	for (int32 i = 0; i < EQS->GetSlotCount(); ++i)                                                                                     
-	{                                                                                                            
-		const FWeaponSlotInstanceData* Slot = EQS->GetSlotData(i);                                               
-		if (!Slot)                                                                                               
+	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EQS, GetWorld()->GetGameInstance());
+
+	// Handle로 슬롯을 정확히 특정 — SkillID 공유 무기가 여러 슬롯에 있을 때 오작동 방지
+	for (int32 i = 0; i < EQS->GetSlotCount(); ++i)
+	{
+		const FWeaponSlotInstanceData* Slot = EQS->GetSlotData(i);
+		if (!Slot)
 		{
-			break;                                                                                               
-		}                                                                                                      
-		if (Slot->SlotEquipData.SkillID == CachedSkillID)
-		{                                                                                                        
-			return Slot->bIsActive;                                                                              
-		}                                                                                                        
-	}                                                                                                            
-	return false; 
+			break;
+		}
+		if (Slot->AbilitySpecHandle == CurrentSpecHandle)
+		{
+			return Slot->bIsActive;
+		}
+	}
+	return false;
 }
 
 void UGA_SummonBase::FindNearestEnemy(AActor*& OutEnemy) const
