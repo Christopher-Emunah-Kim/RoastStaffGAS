@@ -28,16 +28,14 @@ class ROASTSTAFFGAS_API ARSPlayerState : public APlayerState, public IAbilitySys
 public:
 	ARSPlayerState();
 
-private:
-	// 스탯 기본값 주입 헬퍼
-	void ApplyBaseStats();
-	
 public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return ASC; }
 	
 	UPlayerAttributeSet* GetPlayerAttributeSet() const { return PlayerAttributeSet; }
 	//PlayerCharacter::InitializeAbilitySystem()에서 호출
 	void InitializeAbilitySystem(AActor* AvatarActor);  //Owner = PlayerState, Avatar = PlayerCharacter
+	// DT_Character에서 가져온 실제 스탯을 ASC에 적용 — RSGameMode::BeginPlay에서 호출
+	void ApplyCharacterStats(FName CharID);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MY|GAS")

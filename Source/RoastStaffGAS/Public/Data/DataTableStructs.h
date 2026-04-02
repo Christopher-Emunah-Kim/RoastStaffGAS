@@ -51,14 +51,29 @@ struct FCharacterStaticData : public FTableRowBase
 	FName DefaultWeaponID = NAME_None;
 
 	/** 기본 최대 HP */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|Stats")
 	float BaseHP = 100.f;
-	/** 기본 이동 속도 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
-	float BaseMoveSpeed = 600.f;
 	/** 기본 공격력 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
-	float BaseAttackPower = 10.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|Stats")
+	float BaseATK = 10.f;
+	/** 기본 방어력 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|Stats")
+	float BaseDEF = 5.f;
+	/** 기본 이동 속도 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|Stats")
+	float BaseMoveSpeed = 600.f;
+	/** 기본 공격 속도 배율 (1.0 = 기준) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|Stats")
+	float BaseAttackSpeed = 1.f;
+	/** 기본 캐스팅 속도 배율 (1.0 = 기준) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|Stats")
+	float BaseCastingSpeed = 1.f;
+	/** 기본 치명타 확률 (0.0 ~ 1.0) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|Stats")
+	float BaseCriticalRate = 0.05f;
+	/** 기본 치명타 배율 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|Stats")
+	float BaseCriticalDamage = 1.5f;
 
 	/** 캐릭터 등급 — 그리드 정렬 기준 (SSR > SR > R > N) */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|Unlock")

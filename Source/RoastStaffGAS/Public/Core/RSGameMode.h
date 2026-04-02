@@ -22,7 +22,6 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	/** DT_Stage 행 이름과 일치해야 함 */
-	UPROPERTY(EditDefaultsOnly, Category = "MY|Stage")
-	FName DefaultStageID = TEXT("STG_001");
+	// GDS에서 CharID의 DefaultWeaponID를 조회해 EquipmentSubsystem 첫 슬롯에 장착
+	void InitDefaultWeapon(FName CharID);
 };
