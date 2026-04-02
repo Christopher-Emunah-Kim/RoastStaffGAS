@@ -501,11 +501,40 @@ bool UGameDataSubsystem::GetSkillFXData(FName SkillID, FSkillFXData& OutData) co
         return false;                                                                                            
     }                                                                                                          
                                                                                                                    
-    OutData.SpawnVFX  = ResourceData.SpawnVFX;                                                                   
+    OutData.SpawnVFX  = ResourceData.SpawnVFX;
     OutData.SpawnSFX  = ResourceData.SpawnSFX;
-    OutData.TrailVFX  = ResourceData.TrailVFX;                                                                   
-    OutData.ImpactVFX = ResourceData.ImpactVFX;                                                                  
+    OutData.TrailVFX  = ResourceData.TrailVFX;
+    OutData.ImpactVFX = ResourceData.ImpactVFX;
     OutData.ImpactSFX = ResourceData.ImpactSFX;
 
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+// 프리로드 번들 조회
+// -----------------------------------------------------------------------------
+bool UGameDataSubsystem::GetCharacterPreloadBundle(FName CharID, FCharacterPreloadBundle& OutBundle) const
+{
+    FCharacterStaticData Data;
+    if (!GetCharacterStaticData(CharID, Data))
+    {
+        return false;
+    }
+
+    OutBundle.Mesh   = Data.Mesh;
+    OutBundle.AnimBP = Data.AnimBP;
+    return true;
+}
+
+bool UGameDataSubsystem::GetEnemyPreloadBundle(FName EnemyID, FEnemyPreloadBundle& OutBundle) const
+{
+    FEnemyStaticData Data;
+    if (!GetEnemyData(EnemyID, Data))
+    {
+        return false;
+    }
+
+    OutBundle.EnemyClass   = Data.EnemyClass;
+    OutBundle.BehaviorTree = Data.BehaviorTree;
     return true;
 }

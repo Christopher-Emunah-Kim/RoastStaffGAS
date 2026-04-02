@@ -96,6 +96,16 @@ FName USaveGameSubsystem::GetLastSelectedCharacter() const
 	return CachedSaveGame->LastSelectedCharacterID;
 }
 
+FRSSettingsData USaveGameSubsystem::GetSettingsData() const
+{
+	if (!CachedSaveGame)
+	{
+		return FRSSettingsData{};
+	}
+
+	return CachedSaveGame->SettingsData;
+}
+
 // -----------------------------------------------------------------------------
 // 갱신
 // -----------------------------------------------------------------------------
@@ -130,4 +140,15 @@ void USaveGameSubsystem::SetLastSelectedCharacter(FName CharID)
 	}
 
 	CachedSaveGame->LastSelectedCharacterID = CharID;
+}
+
+void USaveGameSubsystem::UpdateSettingsData(const FRSSettingsData& NewSettings)
+{
+	if (!CachedSaveGame)
+	{
+		KHS_WARN(TEXT("CachedSaveGame nullptr. 설정 업데이트 건너뜀."));
+		return;
+	}
+
+	CachedSaveGame->SettingsData = NewSettings;
 }

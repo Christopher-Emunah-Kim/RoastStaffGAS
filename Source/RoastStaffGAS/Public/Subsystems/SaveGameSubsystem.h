@@ -46,6 +46,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "RS|Save")
 	FName GetLastSelectedCharacter() const;
 
+	FRSSettingsData GetSettingsData() const;
+
 	// -------------------------------------------------------------------------
 	// 갱신 (디스크 즉시 저장 안 함 — 진입 직전 SaveGame() 일괄 처리)
 	// -------------------------------------------------------------------------
@@ -58,12 +60,14 @@ public:
 	/** 선택 캐릭터 변경 시 호출. */
 	void SetLastSelectedCharacter(FName CharID);
 
+	/** 설정 데이터 캐시 갱신. 디스크 저장 안 함 — SetSettingsData(RDS)가 별도 SaveGame() 처리. */
+	void UpdateSettingsData(const FRSSettingsData& NewSettings);
+
+	FORCEINLINE bool IsSaveLoaded() const { return bIsSaveLoaded; }
+	
 	// -------------------------------------------------------------------------
 	// 이벤트
 	// -------------------------------------------------------------------------
-	
-	FORCEINLINE bool IsSaveLoaded() const { return bIsSaveLoaded; }
-	
 	/** LoadGame() 완료 후 브로드캐스트 — RuntimeDataSubsystem 등이 구독 */
 	UPROPERTY(BlueprintAssignable, Category = "RS|Save")
 	FOnSaveGameLoaded OnSaveGameLoadedDel;

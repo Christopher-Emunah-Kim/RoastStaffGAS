@@ -42,7 +42,9 @@ public:
     bool GetAllCharacterStaticData(TArray<FCharacterStaticData>& OutArray) const;
     /** 레벨별 커브데이터 조회. */
     bool GetLevelCurveValue(FName CurveName, int32 Level, float& OutValue) const;
-    
+    /** CharID → 트랜지션 프리로드용 에셋 묶음(Mesh/AnimBP) 반환. */
+    bool GetCharacterPreloadBundle(FName CharID, FCharacterPreloadBundle& OutBundle) const;
+
     // -------------------------------------------------------------------------
     // 무기/스킬 복합 조회
     // -------------------------------------------------------------------------
@@ -81,6 +83,8 @@ public:
     // -------------------------------------------------------------------------
     UFUNCTION(BlueprintCallable, Category = "MY|GDS|Enemy")
     bool GetEnemyData(FName EnemyID, FEnemyStaticData& OutData) const;
+    /** EnemyID → 트랜지션 프리로드용 에셋 묶음(EnemyClass/BehaviorTree) 반환. */
+    bool GetEnemyPreloadBundle(FName EnemyID, FEnemyPreloadBundle& OutBundle) const;
 
     // -------------------------------------------------------------------------
     // 스테이지 / 웨이브 조회
