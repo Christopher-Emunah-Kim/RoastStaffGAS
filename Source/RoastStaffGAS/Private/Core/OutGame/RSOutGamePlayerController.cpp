@@ -4,6 +4,7 @@
 #include "RoastStaffGAS.h"
 #include "Subsystems/UIManagerSubsystem.h"
 #include "Subsystems/SaveGameSubsystem.h"
+#include "Subsystems/RuntimeDataSubsystem.h"
 #include "Core/RSGameInstance.h"
 #include "Data/EnumUITypes.h"
 
@@ -100,25 +101,27 @@ void ARSOutGamePlayerController::OnSettingClicked()
 
 void ARSOutGamePlayerController::OnCharacterSelected(FName CharID)
 {
-	// CharacterSelectWidget::OnStageSelectClicked에서 브로드캐스트
-	// BackPage 없음 — 캐릭터 선택 → 스테이지 선택 순차 진행
-	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS);
+	// 캐릭터 선택 확정 → RDS 메모리 업데이트 (디스크 저장은 스테이지 진입 직전 일괄)
+	GET_GI_SUBSYSTEM(URuntimeDataSubsystem, RDS);
 
-	SGS->SetLastSelectedCharacter(CharID);
+	RDS->SetSelectedCharacter(CharID);
 }
 
 void ARSOutGamePlayerController::OnStageSelected(FName StageID)
 {
-	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS);
+	GET_GI_SUBSYSTEM(URuntimeDataSubsystem, RDS);
 
 	// 캐릭터 미선택 방어 — 정상 흐름에서는 CharSelectWidget이 Btn_StageSelect를 disabled로 유지
-	if (SGS->GetLastSelectedCharacter().IsNone())
+	if (RDS->GetSelectedCharacterID().IsNone())
 	{
-		KHS_WARN(TEXT("ARSOutGamePlayerController::OnStageSelected — 선택된 캐릭터 없음. 진입 취소."));
+		KHS_WARN(TEXT("선택된 캐릭터 없음. 진입 취소."));
 		return;
 	}
 
-	// 선택 상태 영구 저장 후 TRANSITION을 경유해 스테이지 레벨로 전환
+	// RDS 메모리 → SGS 동기화 후 디스크 저장
+	RDS->SerializeToPersistentData();
+
+	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS);
 	SGS->SaveGame();
 
 	GET_GI(_GI);
