@@ -28,6 +28,27 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 ---
 <!-- 신규 항목은 이 줄 아래에 추가 -->
 - date: 2026-04-02
+  plan: PLAN_GameFlow_Data_v1.0
+  commit: "5099b42 / 44567fd / a6ade9f"
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Data/RuntimeDataStructs.h
+      - Source/RoastStaffGAS/Public/Subsystems/GameDataSubsystem.h
+      - Source/RoastStaffGAS/Private/Subsystems/GameDataSubsystem.cpp
+      - Source/RoastStaffGAS/Public/Subsystems/SaveGameSubsystem.h
+      - Source/RoastStaffGAS/Private/Subsystems/SaveGameSubsystem.cpp
+      - Source/RoastStaffGAS/Public/Core/Transition/RSTransitionGameMode.h
+      - Source/RoastStaffGAS/Private/Core/Transition/RSTransitionGameMode.cpp
+      - Source/RoastStaffGAS/Private/Core/OutGame/RSOutGamePlayerController.cpp
+    created:
+      - Source/RoastStaffGAS/Public/Subsystems/RuntimeDataSubsystem.h
+      - Source/RoastStaffGAS/Private/Subsystems/RuntimeDataSubsystem.cpp
+    deleted: []
+  summary: "MODULE-4: RuntimeDataSubsystem SSOT 신규 + 프리로드 번들 API + TransitionGameMode 비동기 프리로드 + OGPC RDS 연동"
+  status: COMMITTED
+  bugs_found: []
+  bugs_fixed: []
+- date: 2026-04-02
   plan: BugFix_SummonMultiSlot
   commit: "a7b77c7"
   files:

@@ -187,15 +187,67 @@
   ### ✓ DONE 2026-04-02 [MODULE-3] DefaultWeapon 자동 장착
     - [x] RSGameMode::InitDefaultWeapon() — GDS::GetCharacterStaticData(CharID).DefaultWeaponID → EquipmentSubsystem::EquipWeapon
 
-  ### [MODULE-4] RuntimeDataSubsystem                                      [P2]
-    - [ ] RuntimeDataSubsystem 신규 (SSOT, HandleSaveGameLoaded, GatherPreloadAssets)  [P2]
-    - [ ] TransitionGameMode stub → RuntimeDS 실제 연동                    [P2]
+  ### ✓ DONE 2026-04-02 [MODULE-4] RuntimeDataSubsystem
+  신규: RuntimeDataSubsystem.h/.cpp
+  수정: RuntimeDataStructs.h, GameDataSubsystem.h/.cpp, SaveGameSubsystem.h/.cpp
+        RSTransitionGameMode.h/.cpp, RSOutGamePlayerController.cpp
+    - [x] FCharacterPreloadBundle / FEnemyPreloadBundle: RuntimeDataStructs.h 추가
+    - [x] GDS: GetCharacterPreloadBundle / GetEnemyPreloadBundle 추가
+    - [x] SGS: GetSettingsData / UpdateSettingsData 추가
+    - [x] URuntimeDataSubsystem: SelectedCharacterID/SettingsData SSOT, SGS 델리게이트 구독
+    - [x] RSTransitionGameMode: stub 제거 → RDS::GatherPreloadAssets + FStreamableManager 비동기 로드
+    - [x] RSOutGamePlayerController: OnCharacterSelected SGS→RDS, OnStageSelected SerializeToPersistentData 경유
 
   ### [MODULE-5] 인게임 UI EUIID 마이그레이션                              [P2]
     - [ ] RSPlayerController OpenUI<T> → OpenUIByID(EUIID) 전면 교체      [P2]
     - [ ] TSubclassOf 프로퍼티 제거, UIManagerSettings로 이전              [P2]
 
 
+
+---
+
+## BACKLOG
+<!-- 의존성 기반 우선순위 정렬. 플랜 없음 → 착수 전 /planning 필수 -->
+
+### [P1] 게임 루프 완성 (최우선)
+
+<!-- #8 → #7 순서: 복귀 로직이 결과 UI의 출구이므로 #7 설계 전에 플로우 먼저 확정 -->
+- [ ] 스테이지 클리어 후 로비 복귀 로직                                   [P1]
+  <!-- TRANSITION 경유 OUTGAME 복귀 + RSGameMode 클리어 판정 트리거 -->
+
+- [ ] 스테이지 결과 UI 및 결과 데이터 RDS/SGS 업데이트                    [P1]
+  <!-- 클리어 시간/점수 표시 UI + SGS ClearedStageIDs 기록 + 재화 집계 준비 -->
+  <!-- 의존: 로비 복귀 플로우 확정 후 진행 -->
+
+- [ ] 더미 데이터 추가 (캐릭터 15종 / 무기 20종 / 에너미 10종)            [P1]
+  <!-- DT_CharacterStatic / DT_Weapon / DT_Enemy 에디터 입력 (메쉬 없이 스탯만도 가능) -->
+  <!-- 시스템 검증 및 밸런싱 기반 — 메쉬/애니 작업과 병렬 진행 가능 -->
+
+### [P2] 기능 확장
+
+- [ ] 재화 시스템 (스테이지 결과 → 재화 획득 → 캐릭터 해금)               [P2]
+  <!-- 의존: 결과 UI(P1) + 더미 데이터(P1) — UnlockType::CURRENCY 경로 활성화 -->
+
+- [ ] 소환형 스킬 추가 제작                                               [P2]
+  <!-- 기존 GA_SummonBase 확장. 독립 작업 가능 -->
+
+- [ ] 설정 UI 및 SaveData 연동                                            [P2]
+  <!-- EUIID::SETTING 위젯 + RDS::SetSettingsData 경로 활성화 -->
+  <!-- MODULE-5(EUIID 마이그레이션) 완료 후 진행 권장 -->
+
+- [ ] 게임 배속 관리 기능                                                 [P2]
+  <!-- CustomTimeDilation or WorldSettings 기반. 독립 작업 가능 -->
+
+### [P3] 에셋 / 폴리싱
+
+- [ ] 캐릭터 메쉬 + 애니메이션 추가 (에셋 탐색 포함)                      [P3]
+  <!-- 더미 데이터(P1)와 병렬 가능. 탐색 → 임포트 → DT 연결 순서 -->
+
+- [ ] 에너미 메쉬 + 애니메이션 추가 (에셋 탐색 포함)                      [P3]
+  <!-- 위와 동일 절차 -->
+
+- [ ] 아웃게임 UI 디자인 개선 (애니메이션 / 디테일 텍스처)                [P3]
+  <!-- 기능 완성 후 폴리싱. 독립 작업 가능하나 우선순위 낮음 -->
 
 ---
 
