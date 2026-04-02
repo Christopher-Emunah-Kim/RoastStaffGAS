@@ -28,6 +28,39 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 ---
 <!-- 신규 항목은 이 줄 아래에 추가 -->
 - date: 2026-04-02
+  plan: BugFix_SummonMultiSlot
+  commit: null
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Subsystems/EquipmentSubsystem.h
+      - Source/RoastStaffGAS/Private/Subsystems/EquipmentSubsystem.cpp
+      - Source/RoastStaffGAS/Private/GAS/Abilities/GA_SummonBase.cpp
+    created:  []
+    deleted:  []
+  summary: "소환형 무기 2슬롯 동시 장착 버그 수정 — CheckIsActiveSlot/OnSummonAbilityEnded SkillID→SpecHandle 교체"
+  status: PENDING_COMMIT
+  bugs_found:
+    - "CheckIsActiveSlot: SkillID 기반 슬롯 탐색 → SkillID 공유 시 슬롯 0만 읽어 오판"
+    - "OnSummonAbilityEnded: SkillID 기반 → 슬롯 1의 쿨타임 타이머 미재시작"
+  bugs_fixed:
+    - "두 함수 모두 AbilitySpecHandle 기반 매칭으로 교체"
+- date: 2026-04-02
+  plan: PLAN_GameFlow_Data_v1.0
+  commit: null
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Core/RSGameMode.h
+      - Source/RoastStaffGAS/Private/Core/RSGameMode.cpp
+      - Source/RoastStaffGAS/Public/Character/Player/RSPlayerState.h
+      - Source/RoastStaffGAS/Private/Character/Player/RSPlayerState.cpp
+      - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
+    created:  []
+    deleted:  []
+  summary: "RSGameMode::BeginPlay — SGS/GI 기반 CharID/StageID 적용 + InitDefaultWeapon + RSPlayerState::ApplyCharacterStats (전체 스탯 DT화, ApplyBaseStats 제거)"
+  status: PENDING_COMMIT
+  bugs_found: []
+  bugs_fixed: []
+- date: 2026-04-02
   plan: PLAN_OutGame_SelectUI_v1.0
   commit: null
   files:
@@ -48,7 +81,8 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
       - Source/RoastStaffGAS/Private/UI/OutGame/RSStageSelectWidget.cpp
     deleted: []
   summary: "StageSelectWidget 노드맵 + CharSelect→StageSelect 순차 플로우 재설계 (LobbyWidget StageSelect 제거)"
-  status: PENDING_COMMIT
+  status: COMMITTED
+  commit: "2944f16 / 71f1ac0 / 1ed214f / 15ac6d4"
   bugs_found: []
   bugs_fixed: []
 - date: 2026-04-01

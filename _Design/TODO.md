@@ -92,8 +92,8 @@
 
 ---
 
-## [FEATURE] OutGame 선택 UI | PLAN_OutGame_SelectUI_v1.0
-> 시작: 2026-04-01 | 커밋: 1a21f8c~8d68391 (11개) | 기획서: 아웃게임 시스템 기획 v1.0, 게임 플로우 아키텍처 기획 v1.0
+## ✓ COMMITTED [FEATURE] OutGame 선택 UI | PLAN_OutGame_SelectUI_v1.0
+> 커밋: 1a21f8c~8d68391 (11개) + 2944f16/71f1ac0/1ed214f/15ac6d4 | 2026-04-01~02
 
   ### ✓ DONE 2026-04-01 [MODULE-1] DataSchema 확장
   수정: DataTableStructs.h, EnumUITypes.h, EnumTypes.h, RSGameInstance.cpp
@@ -171,18 +171,21 @@
 ---
 
 ## [FEATURE] 게임플로우 데이터 | PLAN_GameFlow_Data_v1.0
-> 시작: 미정 (SelectUI 완료 후) | 기획서: 게임 플로우 아키텍처 기획 v1.0.md
-> ⚠️ SelectUI 완료로 P2→P1 격상 — RSGameMode가 GI::NextStageID/SGS::LastSelectedChar 미참조
+> 시작: 2026-04-02 | 기획서: 게임 플로우 아키텍처 기획 v1.0.md
 
   ### [MODULE-1] SaveGameSubsystem                                         [P2]
     - [x] RSGameSave.h + SaveGameSubsystem 신규 (LastSelectedCharacterID + SettingsData) — SelectUI MODULE-2에서 완료
 
-  ### [MODULE-2] RSGameMode 스테이지+캐릭터 적용                           [P1]
-    - [ ] RSGameMode::BeginPlay — DefaultStageID → GI::GetNextStageID() 교체  [P1]
-    - [ ] RSGameMode::BeginPlay — SGS::GetLastSelectedCharacter() 조회 + 캐릭터 스탯 초기화  [P1]
+  ### ✓ DONE 2026-04-02 [MODULE-2] RSGameMode 스테이지+캐릭터 적용
+    - [x] RSGameMode::BeginPlay — DefaultStageID → GI::GetNextStageID() 교체
+    - [x] RSGameMode::BeginPlay — SGS::GetLastSelectedCharacter() 조회 + 캐릭터 스탯 초기화
+    - [x] RSPlayerState::ApplyCharacterStats(FName CharID) — GDS 조회 후 전체 스탯(9개 어트리뷰트) 적용
+    - [x] RSPlayerState::ApplyBaseStats() 제거 — 하드코딩 완전 제거
+    - [x] FCharacterStaticData — BaseDEF/BaseAttackSpeed/BaseCastingSpeed/BaseCriticalRate/BaseCriticalDamage 추가
+    - [ ] DT_CharacterStatic 에디터에서 신규 컬럼(5개) 캐릭터별 값 입력 [에디터 작업]
 
-  ### [MODULE-3] DefaultWeapon 자동 장착                                   [P1]
-    - [ ] RSGameMode::InitDefaultWeapon() — GDS::GetCharacterStaticData(CharID).DefaultWeaponID → EquipmentSubsystem::EquipWeapon  [P1]
+  ### ✓ DONE 2026-04-02 [MODULE-3] DefaultWeapon 자동 장착
+    - [x] RSGameMode::InitDefaultWeapon() — GDS::GetCharacterStaticData(CharID).DefaultWeaponID → EquipmentSubsystem::EquipWeapon
 
   ### [MODULE-4] RuntimeDataSubsystem                                      [P2]
     - [ ] RuntimeDataSubsystem 신규 (SSOT, HandleSaveGameLoaded, GatherPreloadAssets)  [P2]
@@ -202,7 +205,7 @@
 [~] 진화 시스템 (Evolution/Combination) — DT_Combination + 조합 체크 로직. 강화 시스템 완성 후 착수. | [P2] | REF: PLAN_WeaponUpgrade_Replace_v1.0
 [~] 연속 레벨업 시 교체 UI 중첩 처리 — 기획서 미정의, 교체 UI 완성 후 별도 설계 필요 | [P2] | REF: PLAN_WeaponUpgrade_Replace_v1.0
 [x] WeaponSlotWidget 강화 후 SkillIcon visibility 버그 수정 | 07153a4 | 2026-03-30
-[~] [!] SR HIGH#2 — OnWeaponSlotFull 교체UI 오픈 시 TimeDilation = 0.f 미적용. PLAN MODULE-7 SetPause 스펙 불일치. RSPlayerController.cpp:242 수정 필요 | [P1] | REF: SR_20260330_WeaponUpgradeReplace
+[x] SR HIGH#2 — OnWeaponSlotFull 교체UI TimeDilation — 실제 동작 확인됨. 문제 없음으로 종결 | 2026-04-02
 
 ---
 
