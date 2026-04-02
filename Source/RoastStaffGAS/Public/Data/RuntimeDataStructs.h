@@ -251,6 +251,43 @@ struct FWeaponCardDisplayData
 };
 
 // ----------------------------------------------------------------------------
+// FCharacterPreloadBundle — 트랜지션 로딩 캐릭터 에셋 프리로드 묶음
+// GDS.GetCharacterPreloadBundle(CharID) 반환
+// ----------------------------------------------------------------------------
+class USkeletalMesh;
+class UAnimInstance;
+
+USTRUCT()
+struct FCharacterPreloadBundle
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TSoftObjectPtr<USkeletalMesh>  Mesh;
+	UPROPERTY()
+	TSoftClassPtr<UAnimInstance>   AnimBP;
+	// 추후 추가: IdleVFX, PortraitUI 등
+};
+
+// ----------------------------------------------------------------------------
+// FEnemyPreloadBundle — 트랜지션 로딩 에너미 에셋 프리로드 묶음
+// GDS.GetEnemyPreloadBundle(EnemyID) 반환
+// ----------------------------------------------------------------------------
+class AEnemyBaseCharacter;
+class UBehaviorTree;
+
+USTRUCT()
+struct FEnemyPreloadBundle
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TSoftClassPtr<AEnemyBaseCharacter> EnemyClass;
+	UPROPERTY()
+	TSoftObjectPtr<UBehaviorTree>      BehaviorTree;
+};
+
+// ----------------------------------------------------------------------------
 // FWeaponSlotInstanceData — 슬롯 런타임 상태
 // EquipmentSubsystem이 직접 관리
 // ----------------------------------------------------------------------------
