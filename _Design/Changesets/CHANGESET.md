@@ -27,6 +27,30 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ---
 <!-- 신규 항목은 이 줄 아래에 추가 -->
+- date: 2026-04-02
+  plan: PLAN_OutGame_SelectUI_v1.0
+  commit: null
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Subsystems/UIManagerSubsystem.h
+      - Source/RoastStaffGAS/Private/Subsystems/UIManagerSubsystem.cpp
+      - Source/RoastStaffGAS/Public/UI/OutGame/RSLobbyWidget.h
+      - Source/RoastStaffGAS/Private/UI/OutGame/RSLobbyWidget.cpp
+      - Source/RoastStaffGAS/Public/UI/OutGame/RSCharacterSelectWidget.h
+      - Source/RoastStaffGAS/Private/UI/OutGame/RSCharacterSelectWidget.cpp
+      - Source/RoastStaffGAS/Public/Data/EnumTypes.h
+      - Source/RoastStaffGAS/Public/Core/OutGame/RSOutGamePlayerController.h
+      - Source/RoastStaffGAS/Private/Core/OutGame/RSOutGamePlayerController.cpp
+    created:
+      - Source/RoastStaffGAS/Public/UI/OutGame/RSStageNodeWidget.h
+      - Source/RoastStaffGAS/Private/UI/OutGame/RSStageNodeWidget.cpp
+      - Source/RoastStaffGAS/Public/UI/OutGame/RSStageSelectWidget.h
+      - Source/RoastStaffGAS/Private/UI/OutGame/RSStageSelectWidget.cpp
+    deleted: []
+  summary: "StageSelectWidget 노드맵 + CharSelect→StageSelect 순차 플로우 재설계 (LobbyWidget StageSelect 제거)"
+  status: PENDING_COMMIT
+  bugs_found: []
+  bugs_fixed: []
 - date: 2026-04-01
   plan: PLAN_OutGame_SelectUI_v1.0 + PLAN_GameFlow_Levels_v1.0
   commit: "c0be61f / 2118448 / 1a21f8c / 881f2db / c423f60 / 4a9b984 / 3ff34cb / 7e04f5f / 330fb4c / 47713c3 / 8d68391"

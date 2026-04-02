@@ -119,20 +119,49 @@
     - [x] RSCharacterSelectWidget: 캐러셀 PAGE, FOnCharacterSelectedDel, PopulateCarousel [P0]
     - [x] RSCharacterGridPopupWidget: 그리드 POPUP, 정렬(해금→Grade→Level stub) [P0]
 
+  ### [~] [MODULE-3c] CharacterSelectWidget Img_Portrait 정보 패널 — 전체 구현 완료 후 | [P2]
+  수정: RSCharacterSelectWidget.h/.cpp
+    - [~] Img_Portrait BindWidget 추가 + UpdateInfoPanel에서 TSoftObjectPtr<UTexture2D> 비동기 로드 + SetBrushFromTexture [P2]
+
   ### ✓ DONE 2026-04-01 [MODULE-3b] RSLobbyWidget
   신규: Public/UI/OutGame/RSLobbyWidget.h/.cpp
     - [x] Btn_CharacterSelect/StageSelect/Settings BindWidget + NativeOnInitialized 바인딩
     - [~] WBP_CharacterSelect 레이아웃 디자인 — 다음 세션에서 진행 [P1] | REF: MODULE-3 TODO
 
-  ### [MODULE-4] RSStageSelectWidget                                       [P1]
-  신규: Public/UI/OutGame/ RSStageSelectWidget.h/.cpp
-    - [ ] 노드맵 PAGE, FOnStageSelectedDel, PopulateNodeMap, AVAILABLE/CLEARED/LOCKED 판정 [P1]
+  ### ✓ DONE 2026-04-02 [MODULE-0] LobbyWidget + CharacterSelectWidget 플로우 수정
+  수정: RSLobbyWidget.h/.cpp, RSCharacterSelectWidget.h/.cpp
+    - [x] RSLobbyWidget: Btn_StageSelect BindWidget 제거, OnStageSelectClicked 제거
+    - [x] RSCharacterSelectWidget: FOnStageSelectRequested 델리게이트 추가
+    - [x] RSCharacterSelectWidget: NativeConstruct — Btn_StageSelect.SetIsEnabled(false)
+    - [x] RSCharacterSelectWidget: OnCharacterEntryClicked — Btn_StageSelect 활성화
+    - [x] RSCharacterSelectWidget: OnStageSelectClicked — NAME_None 가드 + Broadcast
 
-  ### [MODULE-5] OGPC 델리게이트 바인딩 완성                              [P1]
+  ### ✓ DONE 2026-04-02 [MODULE-4] RSStageNodeWidget + RSStageSelectWidget (신규)
+  신규: Public/UI/OutGame/ RSStageNodeWidget.h/.cpp, RSStageSelectWidget.h/.cpp
+  수정: Public/Data/EnumTypes.h (EStageNodeState 추가)
+    - [x] EnumTypes.h: EStageNodeState { AVAILABLE, CLEARED, LOCKED } 추가
+    - [x] RSStageNodeWidget.h: URSBaseWidget 파생, BindWidget 6종 (Btn_Node, Img_Thumbnail, Img_BossIcon, Img_LockIcon, Img_ClearMark, Txt_NodeName), FOnStageNodeClickedDel, SetNodeState()
+    - [x] RSStageNodeWidget.cpp: NativeOnInitialized Btn_Node 바인딩, SetNodeState 상태별 Visibility + SetIsEnabled
+    - [x] RSStageSelectWidget.h: URSBaseWidget 파생, FOnStageSelectedDel, BindWidget 7종 (Btn_Back, NodeMapContainer, Txt_SelectedName, Txt_TimeLimit, Txt_NodeStatus, Img_SelectedThumb, Btn_Confirm), TSubclassOf<URSStageNodeWidget> NodeWidgetClass, PopulateNodeMap()
+    - [x] RSStageSelectWidget.cpp: NativeOnInitialized — Btn_Back/Btn_Confirm 바인딩
+    - [x] RSStageSelectWidget.cpp: NativeConstruct — 미선택 초기화 + PopulateNodeMap()
+    - [x] RSStageSelectWidget.cpp: PopulateNodeMap() — GDS 조회 + SGS 기반 EStageNodeState 판정 + 동적 생성
+    - [x] RSStageSelectWidget.cpp: OnNodeClicked — 상세 패널 갱신, Btn_Confirm 활성 제어
+    - [x] RSStageSelectWidget.cpp: OnConfirmClicked — NAME_None 가드 + OnStageSelectedDel.Broadcast
+    - [x] RSStageSelectWidget.cpp: OnBackClicked — UMS::BackPage()
+    - [x] RSStageSelectWidget.cpp: NativeDestruct — NodeWidget RemoveDynamic 루프
+
+  ### ✓ DONE 2026-04-02 [MODULE-5] OGPC 델리게이트 바인딩 완성
   수정: RSOutGamePlayerController.h/.cpp
-    - [ ] 위젯 델리게이트 바인딩 완성 (RemoveDynamic 선행) [P0]
-    - [ ] OnCharacterSelected: SGS::SetLastSelectedCharacter + SwitchPageUI(STAGE_SELECT) [P0]
-    - [ ] OnStageSelected: SGS::SaveGame() + GI::OpenNextStage [P0]
+    - [x] CachedCharSelectWidget / CachedStageSelectWidget UPROPERTY() 추가 (GC 추적)
+    - [x] EndPlay() override 선언 + RemoveDynamic 해제 구현
+    - [x] OpenFirstWidget: GetOrCreateWidgetByID(CHAR_SELECT/STAGE_SELECT) 미리 생성 + 델리게이트 일괄 바인딩
+    - [x] OnStageSelectClicked: SwitchPageUI(STAGE_SELECT) — CharacterSelectWidget::OnStageSelectRequestedDel 수신
+    - [x] OnCharacterSelected: SGS::SetLastSelectedCharacter (BackPage 제거)
+    - [x] OnStageSelected: SGS::GetLastSelectedCharacter NAME_None 가드 + SaveGame() + OpenNextStage
+    - [x] OnCharacterSelectClicked 복원 — LobbyWidget이 OGPC 경유하도록 변경
+    - [x] UIManagerSubsystem::SwitchPageUI void → URSBaseWidget* 반환 타입 변경
+    - [x] RSLobbyWidget::OnCharacterSelectClicked → OGPC::OnCharacterSelectClicked 경유
 
   ### ✓ DONE 2026-04-01 [MODULE-6] GDS GetAll API
   수정: GameDataSubsystem.h/.cpp
@@ -142,19 +171,24 @@
 ---
 
 ## [FEATURE] 게임플로우 데이터 | PLAN_GameFlow_Data_v1.0
-> 시작: 미정 (Levels 완료 후) | 기획서: 게임 플로우 아키텍처 기획 v1.0.md
+> 시작: 미정 (SelectUI 완료 후) | 기획서: 게임 플로우 아키텍처 기획 v1.0.md
+> ⚠️ SelectUI 완료로 P2→P1 격상 — RSGameMode가 GI::NextStageID/SGS::LastSelectedChar 미참조
 
   ### [MODULE-1] SaveGameSubsystem                                         [P2]
-    - [ ] RSGameSave.h + SaveGameSubsystem 신규 (LastSelectedCharacterID + SettingsData)  [P2]
+    - [x] RSGameSave.h + SaveGameSubsystem 신규 (LastSelectedCharacterID + SettingsData) — SelectUI MODULE-2에서 완료
 
-  ### [MODULE-2] RuntimeDataSubsystem                                      [P2]
+  ### [MODULE-2] RSGameMode 스테이지+캐릭터 적용                           [P1]
+    - [ ] RSGameMode::BeginPlay — DefaultStageID → GI::GetNextStageID() 교체  [P1]
+    - [ ] RSGameMode::BeginPlay — SGS::GetLastSelectedCharacter() 조회 + 캐릭터 스탯 초기화  [P1]
+
+  ### [MODULE-3] DefaultWeapon 자동 장착                                   [P1]
+    - [ ] RSGameMode::InitDefaultWeapon() — GDS::GetCharacterStaticData(CharID).DefaultWeaponID → EquipmentSubsystem::EquipWeapon  [P1]
+
+  ### [MODULE-4] RuntimeDataSubsystem                                      [P2]
     - [ ] RuntimeDataSubsystem 신규 (SSOT, HandleSaveGameLoaded, GatherPreloadAssets)  [P2]
     - [ ] TransitionGameMode stub → RuntimeDS 실제 연동                    [P2]
 
-  ### [MODULE-3] DefaultWeapon 자동 장착                                   [P2]
-    - [ ] RSGameMode::InitDefaultWeapon() — RuntimeDS → EquipmentComponent  [P2]
-
-  ### [MODULE-4] 인게임 UI EUIID 마이그레이션                              [P2]
+  ### [MODULE-5] 인게임 UI EUIID 마이그레이션                              [P2]
     - [ ] RSPlayerController OpenUI<T> → OpenUIByID(EUIID) 전면 교체      [P2]
     - [ ] TSubclassOf 프로퍼티 제거, UIManagerSettings로 이전              [P2]
 

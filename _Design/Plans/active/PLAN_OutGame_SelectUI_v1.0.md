@@ -23,6 +23,8 @@ new_files:
   - Private/UI/OutGame/RSCharacterSelectWidget.cpp
   - Public/UI/OutGame/RSCharacterGridPopupWidget.h
   - Private/UI/OutGame/RSCharacterGridPopupWidget.cpp
+  - Public/UI/OutGame/RSStageNodeWidget.h           # 2026-04-02 추가
+  - Private/UI/OutGame/RSStageNodeWidget.cpp         # 2026-04-02 추가
   - Public/UI/OutGame/RSStageSelectWidget.h
   - Private/UI/OutGame/RSStageSelectWidget.cpp
 
@@ -44,29 +46,35 @@ new_tags: []
 
 ## FLOW
 ```
+[변경 이력: 2026-04-02]
+  - Lobby의 Btn_StageSelect 제거 → 캐릭터 선택 후에만 스테이지 진입 가능
+  - CharacterSelectWidget의 Btn_StageSelect: 캐릭터 미선택 시 disabled
+  - OnCharacterSelected에서 BackPage() 제거 (CharSelect → StageSelect 순차 플로우)
+
 [로비 → 캐릭터 선택 경로]
-OGPC::OnCharacterSelectClicked()
-    └→ UMS::SwitchPageUI(EUIID::CHAR_SELECT)
+OGPC::OnCharacterSelectClicked()    ← LobbyWidget::Btn_CharacterSelect에서 트리거
+    └→ UMS::SwitchPageUI(EUIID::CHAR_SELECT) + GetOrCreateWidgetByID → 캐시
          └→ RSCharacterSelectWidget::NativeConstruct()
-              └→ PopulateCarousel()
+              └→ PopulateCarousel() — Btn_StageSelect.SetIsEnabled(false) 초기화
                    ├─ GDS::GetAllCharacterStaticData()
                    └─ SGS::IsCharacterUnlocked(CharID) → UNLOCKED/LOCKED 상태 결정
 
-[로비 → 스테이지 선택 경로]
-OGPC::OnStageSelectClicked()
-    └→ UMS::SwitchPageUI(EUIID::STAGE_SELECT)
-         └→ RSStageSelectWidget::NativeConstruct()
-              └→ PopulateNodeMap()
-                   ├─ GDS::GetAllStageStaticData()
-                   └─ SGS::IsStageCleared(UnlockStageID) → AVAILABLE/CLEARED/LOCKED 판정
+[캐릭터 선택 → Btn_StageSelect 활성]
+RSCharacterSelectWidget::OnCharacterEntryClicked(CharID)
+    └→ SelectedCharID 갱신 + Btn_StageSelect.SetIsEnabled(true)
+         └→ OnCharacterSelectedDel.Broadcast(CharID)
+              └→ OGPC::OnCharacterSelected(CharID) — SGS::SetLastSelectedCharacter(CharID)
 
 [캐릭터 선택 → 스테이지 선택 이동]
-RSCharacterSelectWidget::OnSwitchToStageSelect()
-    └→ UMS::SwitchPageUI(EUIID::STAGE_SELECT)
-
-[스테이지 선택 → 캐릭터 변경]
-RSStageSelectWidget::OnSwitchToCharSelect()
-    └→ UMS::SwitchPageUI(EUIID::CHAR_SELECT)
+RSCharacterSelectWidget::OnStageSelectClicked()    ← Btn_StageSelect 클릭
+    ├─ SelectedCharID == NAME_None → 경고 로그 + 리턴 (가드)
+    └→ OnStageSelectRequestedDel.Broadcast()
+         └→ OGPC::OnStageSelectClicked()
+              └→ UMS::SwitchPageUI(EUIID::STAGE_SELECT) + GetOrCreateWidgetByID → 캐시
+                   └→ RSStageSelectWidget::NativeConstruct()
+                        └→ PopulateNodeMap()
+                             ├─ GDS::GetAllStageStaticData()
+                             └─ SGS::IsStageCleared(UnlockStageID) → AVAILABLE/CLEARED/LOCKED 판정
 
 [캐릭터 그리드 팝업]
 RSCharacterSelectWidget → UMS::OpenUIByID(EUIID::CHAR_GRID_POPUP)
