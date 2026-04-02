@@ -10,6 +10,7 @@
 #include "RoastStaffGAS.h"
 #include "Components/ScrollBox.h"
 #include "Components/Button.h"
+#include "Components/Image.h"
 #include "Components/TextBlock.h"
 
 // ECharacterGrade → 표시 문자열 (EntryWidget과 동일 변환 — 공용 헬퍼로 분리 시 TODO)
@@ -262,7 +263,7 @@ void URSCharacterSelectWidget::UpdateInfoPanel(FName CharID)
 	FCharacterStaticData Data;
 	if (!GDS->GetCharacterStaticData(CharID, Data))
 	{
-		KHS_WARN(TEXT("RSCharacterSelectWidget::UpdateInfoPanel — CharID %s 데이터 조회 실패."), *CharID.ToString());
+		KHS_WARN(TEXT("CharID %s 데이터 조회 실패."), *CharID.ToString());
 		ClearInfoPanel();
 		return;
 	}
@@ -289,8 +290,15 @@ void URSCharacterSelectWidget::UpdateInfoPanel(FName CharID)
 
 	if (Txt_StatAttack)
 	{
-		Txt_StatAttack->SetText(FText::AsNumber(static_cast<int32>(Data.BaseAttackPower)));
+		Txt_StatAttack->SetText(FText::AsNumber(static_cast<int32>(Data.BaseATK)));
 	}
+	
+	UTexture2D* Tex = Data.Portrait.LoadSynchronous();
+	if (Tex && Img_Portrait)
+	{
+		Img_Portrait->SetBrushFromTexture(Tex);
+	}
+	
 }
 
 void URSCharacterSelectWidget::ClearInfoPanel()

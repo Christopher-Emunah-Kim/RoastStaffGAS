@@ -10,6 +10,7 @@
 class UScrollBox;
 class UButton;
 class UTextBlock;
+class UImage;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharacterSelected, FName, CharID);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStageSelectRequested);   
@@ -83,6 +84,9 @@ protected:
 	TObjectPtr<UTextBlock> Txt_StatAttack;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> Btn_StageSelect;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> Img_Portrait;;
+	
 
 	// -------------------------------------------------------------------------
 	// 상태
