@@ -58,7 +58,7 @@ void URSCharacterEntryWidget::SetupEntry(const FCharacterStaticData& InData, boo
 
 void URSCharacterEntryWidget::UpdateDisplay()
 {
-	// ── 초상화 ──────────────────────────────────────────────────────────────────
+	// 초상화 
 	if (Img_Portrait)
 	{
 		// TODO(PLAN_CharAsset): 비동기 로드로 교체 — 현재는 UI 오픈 시점에만 호출되므로 동기 로드 허용
@@ -72,19 +72,19 @@ void URSCharacterEntryWidget::UpdateDisplay()
 		Img_Portrait->SetColorAndOpacity(bUnlocked ? GPortraitUnlockedTint : GPortraitLockedTint);
 	}
 
-	// ── 잠금 오버레이 (자물쇠 아이콘/딤) ────────────────────────────────────────
+	// 잠금 오버레이 (자물쇠 아이콘/딤)
 	if (Overlay_Locked)
 	{
 		Overlay_Locked->SetVisibility(bUnlocked ? ESlateVisibility::Collapsed: ESlateVisibility::SelfHitTestInvisible);
 	}
 
-	// ── 등급 텍스트 ─────────────────────────────────────────────────────────────
+	// 등급 텍스트
 	if (Txt_Grade)
 	{
 		Txt_Grade->SetText(GetGradeText(CharData.Grade));
 	}
 
-	// ── 캐릭터 이름 (LOCKED 시 Hidden) ──────────────────────────────────────────
+	// 캐릭터 이름 (LOCKED 시 Hidden)
 	if (Txt_Name)
 	{
 		if (bUnlocked)
@@ -98,7 +98,7 @@ void URSCharacterEntryWidget::UpdateDisplay()
 		}
 	}
 
-	// ── 버튼 활성화 (LOCKED 카드는 클릭 불가) ────────────────────────────────────
+	// 버튼 활성화 (LOCKED 카드는 클릭 불가) 
 	if (Btn_Card)
 	{
 		Btn_Card->SetIsEnabled(bUnlocked);

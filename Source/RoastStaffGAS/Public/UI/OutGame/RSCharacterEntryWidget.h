@@ -51,9 +51,6 @@ public:
 	FOnCharacterEntryClicked OnEntryClickedDel;
 
 protected:
-	// -------------------------------------------------------------------------
-	// BindWidget — WBP에서 아래 이름과 정확히 일치하는 위젯 생성 필수
-	// -------------------------------------------------------------------------
 	/** 카드 전체 클릭 영역 */
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> Btn_Card;

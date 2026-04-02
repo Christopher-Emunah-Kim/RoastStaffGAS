@@ -19,11 +19,6 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharacterFocusRequested, FName, C
  * 전체 캐릭터 목록을 그리드로 표시하는 POPUP 위젯.
  * 해금 → 등급(SSR>SR>R>N) → 레벨(stub) 순으로 정렬.
  * 엔트리 선택 시 OnCharacterFocusRequestedDel 브로드캐스트 + 팝업 자동 닫기.
- *
- * [WBP 필수 위젯 이름 목록]
- *   Txt_Title    — UTextBlock, 팝업 제목 (C++에서 "전체 캐릭터" 설정)
- *   Btn_Close    — UButton,    팝업 닫기
- *   GridContainer — UWrapBox,  캐릭터 카드 그리드 컨테이너
  */
 UCLASS()
 class ROASTSTAFFGAS_API URSCharacterGridPopupWidget : public URSBaseWidget
@@ -51,9 +46,6 @@ public:
 	FOnCharacterFocusRequested OnCharacterFocusRequestedDel;
 
 protected:
-	// -------------------------------------------------------------------------
-	// BindWidget — WBP에서 아래 이름과 정확히 일치하는 위젯 생성 필수
-	// -------------------------------------------------------------------------
 	/** 팝업 닫기 버튼 */
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> Btn_Close;

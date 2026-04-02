@@ -52,6 +52,13 @@ void URSCharacterSelectWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	// 캐릭터 미선택 상태로 초기화 — PopulateCarousel에서 해금 초기 포커스 확정 시 재활성
+	SelectedCharID = NAME_None;
+	if (Btn_StageSelect)
+	{
+		Btn_StageSelect->SetIsEnabled(false);
+	}
+
 	PopulateCarousel();
 }
 
@@ -107,8 +114,15 @@ void URSCharacterSelectWidget::PopulateCarousel()
 	}
 
 	// 초기 포커스: 마지막 선택 캐릭터 → 없으면 첫 번째 해금 캐릭터 → 없으면 첫 번째 카드
+	// 해금된 캐릭터로 초기 포커스 확정 시 선택 상태 복원 + Btn_StageSelect 활성화
+	bool bInitialFocusIsUnlocked = false;
 	FName InitialFocus = SGS->GetLastSelectedCharacter();
-	if (InitialFocus.IsNone())
+	if (!InitialFocus.IsNone())
+	{
+		// 이전 세션에서 선택된 캐릭터는 해금 보장
+		bInitialFocusIsUnlocked = true;
+	}
+	else
 	{
 		// 첫 번째 해금 캐릭터 탐색
 		for (const URSCharacterEntryWidget* Entry : EntryWidgets)
@@ -116,6 +130,7 @@ void URSCharacterSelectWidget::PopulateCarousel()
 			if (Entry && Entry->IsUnlocked())
 			{
 				InitialFocus = Entry->GetCharacterID();
+				bInitialFocusIsUnlocked = true;
 				break;
 			}
 		}
@@ -123,13 +138,24 @@ void URSCharacterSelectWidget::PopulateCarousel()
 
 	if (InitialFocus.IsNone() && EntryWidgets.Num() > 0 && EntryWidgets[0])
 	{
-		// 해금 캐릭터 없음 — 첫 번째 카드 포커스
+		// 해금 캐릭터 없음 — 첫 번째 카드 포커스(선택 상태는 복원하지 않음)
 		InitialFocus = EntryWidgets[0]->GetCharacterID();
 	}
 
 	if (!InitialFocus.IsNone())
 	{
 		FocusCarouselOn(InitialFocus);
+
+		// 해금된 캐릭터로 초기 포커스 시 선택 상태 복원 + Btn_StageSelect 활성화
+		if (bInitialFocusIsUnlocked)
+		{
+			SelectedCharID = InitialFocus;
+			
+			if (Btn_StageSelect)
+			{
+				Btn_StageSelect->SetIsEnabled(true);
+			}
+		}
 	}
 }
 
@@ -188,16 +214,16 @@ void URSCharacterSelectWidget::OnGridPopupClicked()
 
 void URSCharacterSelectWidget::OnStageSelectClicked()
 {
-	// 선택된 캐릭터가 있으면 확정 브로드캐스트 → OGPC가 SGS 저장 + 페이지 전환 처리
-	// 없으면 단순 페이지 이동 (OGPC::OnStageSelectClicked 흐름과 동일)
-	if (!SelectedCharID.IsNone())
+	// Btn_StageSelect는 캐릭터 미선택 시 disabled — 방어 가드
+	if (SelectedCharID.IsNone())
 	{
-		OnCharacterSelectedDel.Broadcast(SelectedCharID);
+		KHS_WARN(TEXT("선택된 캐릭터가 없습니다."));
 		return;
 	}
 
-	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetWorld()->GetGameInstance());
-	UMS->SwitchPageUI(EUIID::STAGE_SELECT);
+	// 먼저 캐릭터 선택을 확정 브로드캐스트(OGPC가 SGS 저장)한 뒤 페이지 전환 요청
+	OnCharacterSelectedDel.Broadcast(SelectedCharID);
+	OnStageSelectRequestedDel.Broadcast();
 }
 
 // ── Entry 이벤트 ──────────────────────────────────────────────────────────────
@@ -207,13 +233,24 @@ void URSCharacterSelectWidget::OnCharacterEntryClicked(FName CharID)
 	// 카드 클릭 → 포커스(정보 패널 갱신) + 선택 저장. 확정은 Btn_StageSelect에서.
 	SelectedCharID = CharID;
 	UpdateInfoPanel(CharID);
+
+	// 첫 선택 시 Btn_StageSelect 활성화 (이후 중복 호출은 무해)
+	if (Btn_StageSelect)
+	{
+		Btn_StageSelect->SetIsEnabled(true);
+	}
 }
 
 void URSCharacterSelectWidget::OnCharacterFocusFromGrid(FName CharID)
 {
-	// 그리드 팝업에서 선택 → 캐러셀로 포커스 이동
+	// 그리드 팝업에서 선택된 캐릭터는 해금 보장 → 캐러셀 포커스 + Btn_StageSelect 활성화
 	SelectedCharID = CharID;
 	FocusCarouselOn(CharID);
+
+	if (Btn_StageSelect)
+	{
+		Btn_StageSelect->SetIsEnabled(true);
+	}
 }
 
 // ── 정보 패널 ─────────────────────────────────────────────────────────────────

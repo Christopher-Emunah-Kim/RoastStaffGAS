@@ -12,6 +12,7 @@ class UButton;
 class UTextBlock;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharacterSelected, FName, CharID);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStageSelectRequested);   
 
 /**
  * URSCharacterSelectWidget
@@ -57,11 +58,12 @@ public:
 	/** 선택 확정 — OGPC::OnCharacterSelected() 바인딩 대상 */
 	UPROPERTY(BlueprintAssignable, Category = "RS|CharacterSelect")
 	FOnCharacterSelected OnCharacterSelectedDel;
-
+	/** Btn_StageSelect 클릭 시 브로드캐스트 — OGPC::OnStageSelectClicked() 바인딩 대상 */         
+	UPROPERTY(BlueprintAssignable, Category = "RS|CharacterSelect")                                
+	FOnStageSelectRequested OnStageSelectRequestedDel; 
+	
+	
 protected:
-	// -------------------------------------------------------------------------
-	// BindWidget — WBP에서 아래 이름과 정확히 일치하는 위젯 생성 필수
-	// -------------------------------------------------------------------------
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> Btn_Back;
 	UPROPERTY(meta = (BindWidget))

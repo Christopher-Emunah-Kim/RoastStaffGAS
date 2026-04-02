@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UI/OutGame/RSLobbyWidget.h"
+#include "Core/OutGame/RSOutGamePlayerController.h"
 #include "Subsystems/UIManagerSubsystem.h"
 #include "Data/EnumUITypes.h"
 #include "RoastStaffGAS.h"
@@ -15,11 +16,6 @@ void URSLobbyWidget::NativeOnInitialized()
 		Btn_CharacterSelect->OnClicked.AddDynamic(this, &URSLobbyWidget::OnCharacterSelectClicked);
 	}
 
-	if (Btn_StageSelect)
-	{
-		Btn_StageSelect->OnClicked.AddDynamic(this, &URSLobbyWidget::OnStageSelectClicked);
-	}
-
 	if (Btn_Settings)
 	{
 		Btn_Settings->OnClicked.AddDynamic(this, &URSLobbyWidget::OnSettingsClicked);
@@ -28,16 +24,12 @@ void URSLobbyWidget::NativeOnInitialized()
 
 void URSLobbyWidget::OnCharacterSelectClicked()
 {
-	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetWorld()->GetGameInstance());
-
-	UMS->SwitchPageUI(EUIID::CHAR_SELECT);
-}
-
-void URSLobbyWidget::OnStageSelectClicked()
-{
-	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetWorld()->GetGameInstance());
-
-	UMS->SwitchPageUI(EUIID::STAGE_SELECT);
+	// 페이지 전환 + 델리게이트 바인딩은 OGPC가 담당
+	ARSOutGamePlayerController* OGPC = Cast<ARSOutGamePlayerController>(GetOwningPlayer());
+	if (OGPC)
+	{
+		OGPC->OnCharacterSelectClicked();
+	}
 }
 
 void URSLobbyWidget::OnSettingsClicked()
