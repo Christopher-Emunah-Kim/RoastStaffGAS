@@ -113,3 +113,12 @@ enum class ECharacterUnlockType : uint8
 	STAGE_CLEAR  UMETA(DisplayName = "StageClear"),   // 특정 스테이지 클리어 시 해금
 	CURRENCY     UMETA(DisplayName = "Currency"),     // 재화 소모 해금 (stub — 재화 시스템 미구현)
 };
+
+/** 스테이지 노드 진입 가능 상태 */
+UENUM(BlueprintType)
+enum class EStageNodeState : uint8
+{
+	AVAILABLE  UMETA(DisplayName = "Available"),   // 진입 가능 (미클리어)
+	CLEARED    UMETA(DisplayName = "Cleared"),     // 클리어 완료
+	LOCKED     UMETA(DisplayName = "Locked"),      // 해금 조건 미충족
+};
