@@ -4,13 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "UI/OutGame/RSCharacterSelectWidget.h"
+#include "UI/OutGame/RSStageSelectWidget.h"
 #include "RSOutGamePlayerController.generated.h"
 
 /**
  * ARSOutGamePlayerController
  *
  * OUTGAME 레벨 전용 PlayerController.
- * 로비/캐릭터선택/스테이지선택 페이지 전환과 UI 이벤트 처리를 담당
+ * UI 페이지 전환 요청을 수신 → SwitchPageUI 호출 후 반환된 위젯에 델리게이트 바인딩.
+ * 바인딩은 페이지가 실제로 열리는 시점에 발생(레이지).
  */
 UCLASS()
 class ROASTSTAFFGAS_API ARSOutGamePlayerController : public APlayerController
@@ -19,27 +22,37 @@ class ROASTSTAFFGAS_API ARSOutGamePlayerController : public APlayerController
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type Reason) override;
 
 public:
-	/** OUTGAME 로비 — 캐릭터 선택 페이지로 전환. WBP_Lobby 버튼에서 호출 */
+	/** LobbyWidget::Btn_CharacterSelect → 경유 호출. 캐릭터 선택 PAGE 열기 + 델리게이트 바인딩 */
 	UFUNCTION(BlueprintCallable, Category = "RS|OutGame")
 	void OnCharacterSelectClicked();
-	/** OUTGAME 로비 — 스테이지 선택 페이지로 전환. WBP_Lobby 버튼에서 호출 */
+
+	/** CharacterSelectWidget::OnStageSelectRequestedDel 수신. 스테이지 선택 PAGE 열기 + 델리게이트 바인딩 */
 	UFUNCTION(BlueprintCallable, Category = "RS|OutGame")
 	void OnStageSelectClicked();
-	/** OUTGAME 로비 — 설정 팝업 열기. WBP_Lobby 버튼에서 호출 */
+
+	/** 설정 팝업 열기 */
 	UFUNCTION(BlueprintCallable, Category = "RS|OutGame")
 	void OnSettingClicked();
-	
-	/** 캐릭터 선택 완료 콜백 — 선택 데이터 저장 후 로비로 복귀 */
-	UFUNCTION(BlueprintCallable, Category = "RS|OutGame")
+
+	/** 캐릭터 선택 확정 콜백 — SGS에 마지막 선택 캐릭터 저장 */
+	UFUNCTION()
 	void OnCharacterSelected(FName CharID);
-	/** 스테이지 선택 완료 콜백 — 해당 스테이지 레벨로 전환 */
-	UFUNCTION(BlueprintCallable, Category = "RS|OutGame")
+
+	/** 스테이지 선택 확정 콜백 — SGS 저장 후 스테이지 레벨로 전환 */
+	UFUNCTION()
 	void OnStageSelected(FName StageID);
 
 private:
 	/** OUTGAME 레벨 진입 시 PERSISTENT HUD + 첫 PAGE(로비) 오픈 */
 	void OpenFirstWidget();
-	
+
+	// ── 위젯 캐시 — GC 추적 필수 ──────────────────────────────────────────────
+	UPROPERTY()
+	TObjectPtr<URSCharacterSelectWidget> CachedCharSelectWidget;
+
+	UPROPERTY()
+	TObjectPtr<URSStageSelectWidget> CachedStageSelectWidget;
 };

@@ -81,17 +81,16 @@ void UUIManagerSubsystem::CloseUIByID(EUIID ID)
 	CloseUIInternal(*Found);
 }
 
-void UUIManagerSubsystem::SwitchPageUI(EUIID ID)
+URSBaseWidget* UUIManagerSubsystem::SwitchPageUI(EUIID ID)
 {
 	// 히스토리를 기록할 데이터가 없는 경우 즉시 다음 단계로 진행
 	const UUIManagerSettings* Settings = UUIManagerSettings::Get();
-	
+
 	if (PageUIStack.Num() == 0 || !Settings)
 	{
-		OpenUIByID(ID);
-		return;
+		return OpenUIByID(ID);
 	}
-	
+
 	// 현재 열려있는 PAGE의 EUIID를 방향 조회하여 히스토리 저장
 	URSBaseWidget* CurrentPage = PageUIStack.Last();
 	for (const auto& Pair : CachedWidgetsByID)
@@ -102,9 +101,9 @@ void UUIManagerSubsystem::SwitchPageUI(EUIID ID)
 			break;
 		}
 	}
-	
-	// 현재 PAGE를 히스토리에 기록한 뒤 새 PAGE 열기
-	OpenUIByID(ID);
+
+	// 현재 PAGE를 히스토리에 기록한 뒤 새 PAGE 열기 후 반환
+	return OpenUIByID(ID);
 }
 
 void UUIManagerSubsystem::BackPage()

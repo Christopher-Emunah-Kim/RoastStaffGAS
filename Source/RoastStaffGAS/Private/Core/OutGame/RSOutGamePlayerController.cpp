@@ -3,6 +3,7 @@
 #include "Core/OutGame/RSOutGamePlayerController.h"
 #include "RoastStaffGAS.h"
 #include "Subsystems/UIManagerSubsystem.h"
+#include "Subsystems/SaveGameSubsystem.h"
 #include "Core/RSGameInstance.h"
 #include "Data/EnumUITypes.h"
 
@@ -16,6 +17,23 @@ void ARSOutGamePlayerController::BeginPlay()
 	SetInputMode(UIOnlyMode);
 
 	OpenFirstWidget();
+}
+
+void ARSOutGamePlayerController::EndPlay(const EEndPlayReason::Type Reason)
+{
+	// 레벨 종료 전 위젯 델리게이트 해제
+	if (CachedCharSelectWidget)
+	{
+		CachedCharSelectWidget->OnCharacterSelectedDel.RemoveDynamic(this, &ThisClass::OnCharacterSelected);
+		CachedCharSelectWidget->OnStageSelectRequestedDel.RemoveDynamic(this, &ThisClass::OnStageSelectClicked);
+	}
+
+	if (CachedStageSelectWidget)
+	{
+		CachedStageSelectWidget->OnStageSelectedDel.RemoveDynamic(this, &ThisClass::OnStageSelected);
+	}
+
+	Super::EndPlay(Reason);
 }
 
 void ARSOutGamePlayerController::OpenFirstWidget()
@@ -32,33 +50,45 @@ void ARSOutGamePlayerController::OpenFirstWidget()
 	URSBaseWidget* LobbyWidget = UMS->OpenUIByID(EUIID::LOBBY);
 	if (!LobbyWidget)
 	{
-		KHS_WARN(TEXT("LobbyWidget OPEN FAILED"));
+		KHS_WARN(TEXT("ARSOutGamePlayerController::OpenFirstWidget — LobbyWidget OPEN FAILED"));
 	}
 
-	// RSLobbyWidget이 UIManager를 직접 호출해 PAGE 전환을 처리하므로
-	// OGPC 측 추가 델리게이트 바인딩 불필요
 }
 
 void ARSOutGamePlayerController::OnCharacterSelectClicked()
 {
 	GET_GI_SUBSYSTEM(UUIManagerSubsystem, UMS);
 
-	// 현재 로비 PAGE를 히스토리에 쌓고 캐릭터 선택 PAGE로 전환
-	UMS->SwitchPageUI(EUIID::CHAR_SELECT);
-
-	// TODO(PLAN_GameFlow_Levels MODULE-5): RSCharacterSelectWidget 구현 완료 후 델리게이트 바인딩
-	// Cast<URSCharacterSelectWidget>(UMS->OpenUIByID(EUIID::CHAR_SELECT))->OnCharacterSelectedDel.AddUniqueDynamic(this, &ARSOutGamePlayerController::OnCharacterSelected);
+	// 페이지 전환 후 반환된 위젯에 델리게이트 바인딩 (AddUniqueDynamic — 중복 방지)
+	URSBaseWidget* Raw = UMS->SwitchPageUI(EUIID::CHAR_SELECT);
+	CachedCharSelectWidget = Cast<URSCharacterSelectWidget>(Raw);
+	if (CachedCharSelectWidget)
+	{
+		CachedCharSelectWidget->OnCharacterSelectedDel.AddUniqueDynamic(this, &ThisClass::OnCharacterSelected);
+		CachedCharSelectWidget->OnStageSelectRequestedDel.AddUniqueDynamic(this, &ThisClass::OnStageSelectClicked);
+	}
+	else
+	{
+		KHS_WARN(TEXT("Cast 실패"));
+	}
 }
 
 void ARSOutGamePlayerController::OnStageSelectClicked()
 {
 	GET_GI_SUBSYSTEM(UUIManagerSubsystem, UMS);
 
-	// 현재 로비 PAGE를 히스토리에 쌓고 스테이지 선택 PAGE로 전환
-	UMS->SwitchPageUI(EUIID::STAGE_SELECT);
-
-	// TODO(PLAN_GameFlow_Levels MODULE-5): RSStageSelectWidget 구현 완료 후 델리게이트 바인딩
-	// Cast<URSStageSelectWidget>(UMS->OpenUIByID(EUIID::STAGE_SELECT))->OnStageSelectedDel.AddUniqueDynamic(this, &ARSOutGamePlayerController::OnStageSelected);
+	// CharacterSelectWidget::OnStageSelectRequestedDel 수신 → 스테이지 선택 PAGE 전환 + 바인딩
+	URSBaseWidget* Raw = UMS->SwitchPageUI(EUIID::STAGE_SELECT);
+	
+	CachedStageSelectWidget = Cast<URSStageSelectWidget>(Raw);
+	if (CachedStageSelectWidget)
+	{
+		CachedStageSelectWidget->OnStageSelectedDel.AddUniqueDynamic(this, &ThisClass::OnStageSelected);
+	}
+	else
+	{
+		KHS_WARN(TEXT("ARSOutGamePlayerController::OnStageSelectClicked — Cast 실패"));
+	}
 }
 
 void ARSOutGamePlayerController::OnSettingClicked()
@@ -70,20 +100,30 @@ void ARSOutGamePlayerController::OnSettingClicked()
 
 void ARSOutGamePlayerController::OnCharacterSelected(FName CharID)
 {
-	// TODO(PLAN_GameFlow_Data MODULE-2): RuntimeDataSubsystem::SetSelectedCharacter(CharID)
+	// CharacterSelectWidget::OnStageSelectClicked에서 브로드캐스트
+	// BackPage 없음 — 캐릭터 선택 → 스테이지 선택 순차 진행
+	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS);
 
-	GET_GI_SUBSYSTEM(UUIManagerSubsystem, UMS);
-
-	// 선택 완료 후 이전 PAGE(로비)로 복귀
-	UMS->BackPage();
+	SGS->SetLastSelectedCharacter(CharID);
 }
 
 void ARSOutGamePlayerController::OnStageSelected(FName StageID)
 {
+	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS);
+
+	// 캐릭터 미선택 방어 — 정상 흐름에서는 CharSelectWidget이 Btn_StageSelect를 disabled로 유지
+	if (SGS->GetLastSelectedCharacter().IsNone())
+	{
+		KHS_WARN(TEXT("ARSOutGamePlayerController::OnStageSelected — 선택된 캐릭터 없음. 진입 취소."));
+		return;
+	}
+
+	// 선택 상태 영구 저장 후 TRANSITION을 경유해 스테이지 레벨로 전환
+	SGS->SaveGame();
+
 	GET_GI(_GI);
 	URSGameInstance* GI = Cast<URSGameInstance>(_GI);
 	check(GI);
 
-	// 선택한 스테이지 ID 저장 후 TRANSITION을 경유해 STAGE 레벨로 전환
 	GI->OpenNextStage(StageID);
 }

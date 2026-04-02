@@ -48,8 +48,9 @@ public:
 	/**
 	 * PAGE 레이어 전환 편의 함수.
 	 * 현재 PAGE를 UIHistory에 push한 뒤 새 PAGE를 OpenUIByID로 열기.
+	 * 반환값: 열린 위젯 포인터 (바인딩 등 즉시 활용 가능), 실패 시 nullptr.
 	 */
-	void SwitchPageUI(EUIID ID);
+	URSBaseWidget* SwitchPageUI(EUIID ID);
 	/**
 	 * UIHistory에서 이전 PAGE를 꺼내 복귀.
 	 * 히스토리가 비어있으면 no-op.
