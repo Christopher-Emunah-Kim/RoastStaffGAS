@@ -29,7 +29,7 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 <!-- 신규 항목은 이 줄 아래에 추가 -->
 - date: 2026-04-03
   plan: PLAN_GameFlow_Data_v1.0
-  commit: null
+  commit: "783b4e7"
   files:
     modified:
       - Source/RoastStaffGAS/Public/Character/Player/RSPlayerController.h
@@ -37,7 +37,7 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
     created:  []
     deleted:  []
   summary: "[MODULE-5] RSPlayerController 인게임 UI EUIID 마이그레이션 — OpenUI<T>/TSubclassOf 제거, OpenUIByID+CloseUIByID 전환"
-  status: PENDING_COMMIT
+  status: COMMITTED
   bugs_found: []
   bugs_fixed: []
 - date: 2026-04-02

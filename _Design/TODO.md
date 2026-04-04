@@ -198,7 +198,7 @@
     - [x] RSTransitionGameMode: stub 제거 → RDS::GatherPreloadAssets + FStreamableManager 비동기 로드
     - [x] RSOutGamePlayerController: OnCharacterSelected SGS→RDS, OnStageSelected SerializeToPersistentData 경유
 
-  ### ✓ DONE 2026-04-03 [MODULE-5] 인게임 UI EUIID 마이그레이션
+  ### ✓ COMMITTED 783b4e7 2026-04-03 [MODULE-5] 인게임 UI EUIID 마이그레이션
   수정: RSPlayerController.h/.cpp
     - [x] RSPlayerController OpenUI<T> → OpenUIByID(EUIID) 전면 교체
     - [x] TSubclassOf 프로퍼티 제거 (HUDWidgetClass/LevelUpUIClass/WeaponReplaceUIClass), UIManagerSettings로 이전
