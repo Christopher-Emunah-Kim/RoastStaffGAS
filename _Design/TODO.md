@@ -80,7 +80,7 @@
     - [x] OnCharacterSelected(FName CharID) UFUNCTION: RuntimeDS stub 주석 + UIManager::BackPage()
     - [x] OnStageSelected(FName StageID) UFUNCTION: GI->OpenNextStage(StageID)
     - [~] CharacterSelectWidget, StageSelectWidget 델리게이트 구독 — MODULE-5(RSCharacterSelectWidget/RSStageSelectWidget) 구현 후 연결 | REF: MODULE-5
-    - [ ] OUTGAME 레벨 World Settings → RSOutGameMode 안내                 [P0]
+    - [x] OUTGAME 레벨 World Settings → RSOutGameMode 지정 [에디터 완료]
 
   ### ✓ DONE 2026-04-01 [MODULE-4] 캐릭터 DataTable 스키마
     - [x] FCharacterStaticData: DataTableStructs.h에 직접 추가 (CharacterID~BaseAttackPower, USTRUCT 기본값 전체)
@@ -182,7 +182,7 @@
     - [x] RSPlayerState::ApplyCharacterStats(FName CharID) — GDS 조회 후 전체 스탯(9개 어트리뷰트) 적용
     - [x] RSPlayerState::ApplyBaseStats() 제거 — 하드코딩 완전 제거
     - [x] FCharacterStaticData — BaseDEF/BaseAttackSpeed/BaseCastingSpeed/BaseCriticalRate/BaseCriticalDamage 추가
-    - [ ] DT_CharacterStatic 에디터에서 신규 컬럼(5개) 캐릭터별 값 입력 [에디터 작업]
+    - [x] DT_CharacterStatic 에디터에서 신규 컬럼(5개) 캐릭터별 값 입력 [에디터 완료]
 
   ### ✓ DONE 2026-04-02 [MODULE-3] DefaultWeapon 자동 장착
     - [x] RSGameMode::InitDefaultWeapon() — GDS::GetCharacterStaticData(CharID).DefaultWeaponID → EquipmentSubsystem::EquipWeapon
@@ -198,9 +198,12 @@
     - [x] RSTransitionGameMode: stub 제거 → RDS::GatherPreloadAssets + FStreamableManager 비동기 로드
     - [x] RSOutGamePlayerController: OnCharacterSelected SGS→RDS, OnStageSelected SerializeToPersistentData 경유
 
-  ### [MODULE-5] 인게임 UI EUIID 마이그레이션                              [P2]
-    - [ ] RSPlayerController OpenUI<T> → OpenUIByID(EUIID) 전면 교체      [P2]
-    - [ ] TSubclassOf 프로퍼티 제거, UIManagerSettings로 이전              [P2]
+  ### ✓ DONE 2026-04-03 [MODULE-5] 인게임 UI EUIID 마이그레이션
+  수정: RSPlayerController.h/.cpp
+    - [x] RSPlayerController OpenUI<T> → OpenUIByID(EUIID) 전면 교체
+    - [x] TSubclassOf 프로퍼티 제거 (HUDWidgetClass/LevelUpUIClass/WeaponReplaceUIClass), UIManagerSettings로 이전
+    - [x] CachedHUDUI/CachedLevelUpWidget/CachedWeaponReplaceWidget 제거 — UIManagerSubsystem CachedWidgetsByID로 일원화
+    - [x] BP RSPlayerController에서 기존 위젯 클래스 프로퍼티 제거 + UIManagerSettings에서 설정 안내 [에디터 작업]
 
 
 

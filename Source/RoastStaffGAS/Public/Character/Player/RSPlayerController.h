@@ -11,10 +11,7 @@
  * - 플레이어 입력처리 및 UI 관리 책임
  */
 
-class URSHUDWidget;
 class UFloatingDamageWidget;
-class ULevelUpWeaponSelectWidget;
-class UWeaponReplaceWidget;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
@@ -75,25 +72,7 @@ private:
 	void OnSlotActivate(const FInputActionValue& Value, int32 SlotIndex);
 
 protected:
-	// UI — HUD
-	UPROPERTY(EditAnywhere, Category = "UI")
-	TSubclassOf<URSHUDWidget> HUDWidgetClass;
-	UPROPERTY()
-	TObjectPtr<URSHUDWidget> CachedHUDUI;
-
-	// UI — 레벨업 무기 선택 팝업
-	UPROPERTY(EditDefaultsOnly, Category = "MY|UI")
-	TSubclassOf<ULevelUpWeaponSelectWidget> LevelUpUIClass;
-	UPROPERTY()
-	TObjectPtr<ULevelUpWeaponSelectWidget> CachedLevelUpWidget;
-
-	// UI — 무기 교체 팝업
-	UPROPERTY(EditDefaultsOnly, Category = "MY|UI")
-	TSubclassOf<UWeaponReplaceWidget> WeaponReplaceUIClass;
-	UPROPERTY()
-	TObjectPtr<UWeaponReplaceWidget> CachedWeaponReplaceWidget;
-
-	// UI — FloatingDamageWidget 
+	// UI — FloatingDamageWidget
 	UPROPERTY(EditDefaultsOnly, Category = "MY|UI")
 	TSubclassOf<UFloatingDamageWidget> FloatingDamageWidgetClass;
 	/** 사용 가능한 비활성 위젯 풀 */

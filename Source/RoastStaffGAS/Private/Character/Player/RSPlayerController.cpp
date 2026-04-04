@@ -15,6 +15,7 @@
 #include "UI/FloatingDamageWidget.h"
 #include "UI/LevelUpWeaponSelectWidget.h"
 #include "UI/WeaponReplaceWidget.h"
+#include "Data/EnumUITypes.h"
 #include "Data/RuntimeDataStructs.h"
 
 void ARSPlayerController::BeginPlay()
@@ -45,18 +46,10 @@ void ARSPlayerController::BeginPlay()
 	LevelUpSys->OnWeaponCandidatesReadyDel.AddUniqueDynamic(this, &ARSPlayerController::OnWeaponCandidatesReady);
 	KHS_INFO(TEXT("델리게이트 구독 완료 (SlotUpdated / SlotFull / WeaponCandidatesReady)"));
 
-	//HUD UI오픈
-	if (!HUDWidgetClass)
+	// UIManagerSettings 매핑 기반으로 HUD 오픈 — TSubclassOf 직접 참조 제거
+	URSHUDWidget* HUDWidget = Cast<URSHUDWidget>(UMS->OpenUIByID(EUIID::HUD));
+	if (!ensureMsgf(HUDWidget, TEXT("HUD Widget 오픈 실패 — UIManagerSettings HUD 매핑 확인 필요")))
 	{
-		KHS_WARN(TEXT("HUD WBP 미할당"));
-		return;
-	}
-	
-	CachedHUDUI = UMS->OpenUI<URSHUDWidget>(HUDWidgetClass);
-
-	if (!CachedHUDUI)
-	{
-		KHS_WARN(TEXT("HUD Widget 생성 실패"));
 		return;
 	}
 
@@ -106,8 +99,17 @@ void ARSPlayerController::OnSlotUpdated(int32 SlotIndex)
 void ARSPlayerController::RefreshSlotUI(int32 SlotIndex)
 {
 	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetGameInstance());
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance());
 
-	UWeaponSlotContainerWidget* SlotContainer = CachedHUDUI->GetSlotContainerWidget();
+	// BeginPlay에서 이미 열렸으므로 IsOpen() 체크 후 캐시 반환 — 재생성 없음
+	URSHUDWidget* HUD = Cast<URSHUDWidget>(UMS->OpenUIByID(EUIID::HUD));
+	if (!HUD)
+	{
+		KHS_WARN(TEXT("HUD Widget 획득 실패"));
+		return;
+	}
+
+	UWeaponSlotContainerWidget* SlotContainer = HUD->GetSlotContainerWidget();
 	if (!SlotContainer)
 	{
 		KHS_WARN(TEXT("WeaponSlotContainer 획득 실패"));
@@ -185,24 +187,17 @@ void ARSPlayerController::OnSlotActivate(const FInputActionValue& Value, int32 S
 
 void ARSPlayerController::OnWeaponCandidatesReady(const TArray<FWeaponCardDisplayData>& WeaponCards)
 {
-	if (!ensureMsgf(LevelUpUIClass, TEXT("LevelUpUIClass 미할당 — BP_PlayerController에서 설정 필요")))
-	{
-		GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
-		LevelUpSys->NotifyWeaponSelectCompleted();
-		return;
-	}
-
 	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance());
-	ULevelUpWeaponSelectWidget* Widget = UMS->OpenUI<ULevelUpWeaponSelectWidget>(LevelUpUIClass);
 
-	if (!ensureMsgf(Widget, TEXT("LevelUpWeaponSelectWidget 오픈 실패")))
+	// UIManagerSettings LEVEL_UP 매핑으로 위젯 오픈 — 클래스 프로퍼티 직접 참조 제거
+	ULevelUpWeaponSelectWidget* Widget = Cast<ULevelUpWeaponSelectWidget>(UMS->OpenUIByID(EUIID::LEVEL_UP));
+	if (!ensureMsgf(Widget, TEXT("LevelUpWeaponSelectWidget 오픈 실패 — UIManagerSettings LEVEL_UP 매핑 확인 필요")))
 	{
 		GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
 		LevelUpSys->NotifyWeaponSelectCompleted();
 		return;
 	}
 
-	CachedLevelUpWidget = Widget;
 	Widget->OnWeaponSelectCompletedDel.AddDynamic(this, &ARSPlayerController::OnWeaponSelectCompleted);
 	Widget->SetCandidates(WeaponCards);
 
@@ -217,11 +212,14 @@ void ARSPlayerController::OnWeaponCandidatesReady(const TArray<FWeaponCardDispla
 
 void ARSPlayerController::OnWeaponSelectCompleted()
 {
-	if (CachedLevelUpWidget)
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance());
+
+	// 위젯이 열려있는 상태에서 호출되므로 IsOpen() 통과 — 캐시에서 반환
+	if (ULevelUpWeaponSelectWidget* Widget = Cast<ULevelUpWeaponSelectWidget>(UMS->OpenUIByID(EUIID::LEVEL_UP)))
 	{
-		CachedLevelUpWidget->OnWeaponSelectCompletedDel.RemoveDynamic(this, &ARSPlayerController::OnWeaponSelectCompleted);
-		CachedLevelUpWidget = nullptr;
+		Widget->OnWeaponSelectCompletedDel.RemoveDynamic(this, &ARSPlayerController::OnWeaponSelectCompleted);
 	}
+	UMS->CloseUIByID(EUIID::LEVEL_UP);
 
 	// 게임 재개 (추후 StageSystem 위임으로 교체 예정)
 	if (UWorld* World = GetWorld())
@@ -241,24 +239,17 @@ void ARSPlayerController::OnWeaponSelectCompleted()
 
 void ARSPlayerController::OnWeaponSlotFull(FName PendingWeaponID)
 {
-	if (!ensureMsgf(WeaponReplaceUIClass, TEXT("WeaponReplaceUIClass 미할당 — BP_PlayerController에서 설정 필요")))
-	{
-		GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
-		LevelUpSys->NotifyWeaponSelectCompleted();
-		return;
-	}
-
 	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance());
-	UWeaponReplaceWidget* Widget = UMS->OpenUI<UWeaponReplaceWidget>(WeaponReplaceUIClass);
 
-	if (!ensureMsgf(Widget, TEXT("WeaponReplaceWidget 오픈 실패")))
+	// UIManagerSettings WEAPON_REPLACE 매핑으로 위젯 오픈 — 클래스 프로퍼티 직접 참조 제거
+	UWeaponReplaceWidget* Widget = Cast<UWeaponReplaceWidget>(UMS->OpenUIByID(EUIID::WEAPON_REPLACE));
+	if (!ensureMsgf(Widget, TEXT("WeaponReplaceWidget 오픈 실패 — UIManagerSettings WEAPON_REPLACE 매핑 확인 필요")))
 	{
 		GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
 		LevelUpSys->NotifyWeaponSelectCompleted();
 		return;
 	}
 
-	CachedWeaponReplaceWidget = Widget;
 	Widget->OnReplaceCompletedDel.AddDynamic(this, &ARSPlayerController::OnWeaponReplaceCompleted);
 	Widget->InitWidget(PendingWeaponID);
 
@@ -267,11 +258,14 @@ void ARSPlayerController::OnWeaponSlotFull(FName PendingWeaponID)
 
 void ARSPlayerController::OnWeaponReplaceCompleted()
 {
-	if (CachedWeaponReplaceWidget)
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance());
+
+	// 위젯이 열려있는 상태에서 호출되므로 IsOpen() 통과 — 캐시에서 반환
+	if (UWeaponReplaceWidget* Widget = Cast<UWeaponReplaceWidget>(UMS->OpenUIByID(EUIID::WEAPON_REPLACE)))
 	{
-		CachedWeaponReplaceWidget->OnReplaceCompletedDel.RemoveDynamic(this, &ARSPlayerController::OnWeaponReplaceCompleted);
-		CachedWeaponReplaceWidget = nullptr;
+		Widget->OnReplaceCompletedDel.RemoveDynamic(this, &ARSPlayerController::OnWeaponReplaceCompleted);
 	}
+	UMS->CloseUIByID(EUIID::WEAPON_REPLACE);
 
 	// CHG: 교체 UI 완료 후 게임 재개 — LevelUpWeaponSelectWidget와 동일한 복구 경로
 	if (UWorld* World = GetWorld())
