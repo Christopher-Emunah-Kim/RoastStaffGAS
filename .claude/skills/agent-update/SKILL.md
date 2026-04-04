@@ -1,6 +1,6 @@
 ---
 name: agent-update
-version: 1.1.0
+version: 1.2.0
 depends-on: []
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 ---
@@ -34,11 +34,12 @@ INIT ──→ [A] 요청 분석
 ```
 
 ### [B] 시스템 구조 파악
-```bash
-find . -maxdepth 2 -name "CLAUDE.md" -o -name "claude.md" | head -5
-find . -path "*/.claude/skills/*/SKILL.md" | head -10
-find . -path "*/.claude/agents/*.md" | head -10
-find . -path "*/.claude/references/*.md" | head -10
+Glob 도구로 탐색 (Bash find 금지):
+```
+CLAUDE.md 위치:      Glob("**/CLAUDE.md", maxdepth=2)
+Skills 목록:         Glob(".claude/skills/*/SKILL.md")
+Agents 목록:         Glob(".claude/agents/*.md")
+References 목록:     Glob(".claude/references/*.md")
 ```
 
 ### [C] 영향 범위 파악

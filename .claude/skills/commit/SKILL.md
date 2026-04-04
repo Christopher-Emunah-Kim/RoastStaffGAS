@@ -109,6 +109,10 @@ _Design/TODO.md:
 ```
 COMMITTED 항목 5개 초과 시 CHANGESET compact 제안.
 
+compact/archive 임계값 체크 (protocols.md TODO_COMPACT + PLAN_ARCHIVE 기준):
+- ACTIVE_WORK 커밋완료 FEATURE 4개 이상 → TODO_COMPACT 제안
+- Plans/active/ 완료 플랜 5개 이상 → PLAN_ARCHIVE 제안 (TODO_COMPACT와 동시 수행 권장)
+
 ## RULES
 ```
 - "커밋해줘" 발언 전 커밋 언급 금지

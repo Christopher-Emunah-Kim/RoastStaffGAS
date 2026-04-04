@@ -44,6 +44,7 @@ COMMIT
 ```yaml
 트리거:
   - COMPLETED_LOG 10개 초과
+  - ACTIVE_WORK 내 커밋완료(✓ COMMITTED) FEATURE 4개 이상 누적
   - 세션 종료 시 사용자 요청
   - "TODO 정리해줘" 발언
 
@@ -55,6 +56,23 @@ COMMIT
   ACTIVE_WORK: 진행 중인 것만
   DEFERRED:    아직 유효한 것만
   COMPLETED_LOG: 한 줄 요약만
+```
+
+## PLAN_ARCHIVE
+```yaml
+트리거:
+  - Plans/active/ 내 커밋완료 플랜 5개 이상 누적
+  - /commit 스킬 [F] 갱신 단계에서 함께 처리 권장
+  - "플랜 정리해줘" 발언
+
+방법:
+  대상: Plans/active/ 내 COMPLETED_LOG에 기록된 FEATURE와 일치하는 PLAN_*.md
+  이동: Plans/active/PLAN_*.md → Plans/completed/PLAN_*.md
+  순서: TODO_COMPACT와 동시 수행 권장
+
+결과:
+  Plans/active/: 진행 중(미커밋) 플랜만
+  Plans/completed/: 커밋 완료 플랜 전체
 ```
 
 ## SESSION_END
