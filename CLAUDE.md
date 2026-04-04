@@ -70,6 +70,9 @@ COMMIT: trigger: ["커밋해줘","커밋하자","commit"]
 
 UPDATE: trigger: ["플로우 개선","스킬 수정","규칙 바꿔","agent-update","시스템 업데이트"]
         load:    [.claude/skills/agent-update/SKILL.md]
+
+HARNESS: trigger: ["하네스","워크플로 강화","실수 막아","구조적 차단","harness"]
+         load:    [.claude/skills/harness/SKILL.md]
 ```
 
 ## PIPELINE_FLOW
