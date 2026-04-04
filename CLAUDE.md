@@ -73,6 +73,9 @@ UPDATE: trigger: ["플로우 개선","스킬 수정","규칙 바꿔","agent-upda
 
 HARNESS: trigger: ["하네스","워크플로 강화","실수 막아","구조적 차단","harness"]
          load:    [.claude/skills/harness/SKILL.md]
+
+GC:     trigger: ["청소","gc","전체 점검","가비지","안티패턴 정리","코드 정리"]
+        load:    [.claude/skills/gc/SKILL.md]
 ```
 
 ## PIPELINE_FLOW

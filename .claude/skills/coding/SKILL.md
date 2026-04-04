@@ -262,4 +262,19 @@ oop:         .claude/skills/coding/references/oop-principles.md # OOP 위반 판
 - [HARNESS] 승인 요청 시 반드시 수정 내역 명시 (🤖 자동 수정 내역 섹션)
 - [HARNESS] 빌드 검증 없이 승인 요청 금지
 - [HARNESS] UE_LOG 사용 금지 (LoggingSystem.h의 KHS_* 매크로만 허용)
+
+[HARNESS] 접근 금지 경로 (Read/Write/Edit 절대 금지):
+  - .git/config, .git/hooks/ (Git 설정 보호)
+  - Binaries/, Intermediate/, Saved/ (빌드 산출물, 읽기도 금지)
+  - .env, *.key, credentials.json (비밀 파일)
+
+[HARNESS] 읽기 전용 경로 (Write/Edit 금지):
+  - _Design/References/Systems/ (기획서 수정은 /update-design 담당)
+  - .clang-tidy (린터 설정은 /harness 담당)
+
+[HARNESS] Bash 명령 금지:
+  - rm -rf / 또는 rm -rf * (대규모 파일 삭제)
+  - git push --force (강제 푸시)
+  - git reset --hard (작업 파기)
+  - chmod 777 (권한 전체 개방)
 ```
