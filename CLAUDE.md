@@ -23,6 +23,10 @@ refs:
 5. [TEST][SR][LEARN]은 사용자 승인 후 실행
 6. 3회 실패 → BLOCKED 자동 선언
 7. 무거운 작업 시작 전 반드시 사용자 확인 (HEAVY_OP_POLICY 참조)
+8. git commit 실행 전 반드시 스테이지 구성 + 커밋 메시지를 제안하고 사용자 승인 대기
+   - "커밋해줘" 발언 없이 git commit 실행 절대 금지
+   - 커밋은 기능 완성 + 테스트 완료 상태에서만 실행
+   - 승인 없이 git commit 실행 = ABSOLUTE 위반
 ```
 
 
