@@ -122,4 +122,7 @@ compact/archive 임계값 체크 (protocols.md TODO_COMPACT + PLAN_ARCHIVE 기�
 - [ABSOLUTE] git commit 명령 실행 전 반드시 [C] 계획 제안 + 사용자 승인 수령
 - [ABSOLUTE] 승인 없이 git commit 실행 금지 (어떤 상황에서도 예외 없음)
 - [ABSOLUTE] 커밋 = 기능 완성 + 테스트 완료 상태. 중간 작업 상태 커밋 금지
+- [ABSOLUTE] 커밋 메시지에 다음 문구 포함 금지:
+  "🤖 Generated with [Claude Code]"
+  "Co-Authored-By: Claude Sonnet"
 ```

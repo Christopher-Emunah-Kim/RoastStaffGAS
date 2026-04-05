@@ -106,6 +106,17 @@ FRSSettingsData USaveGameSubsystem::GetSettingsData() const
 	return CachedSaveGame->SettingsData;
 }
 
+FStageRecord USaveGameSubsystem::GetStageRecord(FName StageID) const
+{
+	if (!CachedSaveGame)
+	{
+		return FStageRecord{};
+	}
+
+	const FStageRecord* Found = CachedSaveGame->StageRecords.Find(StageID);
+	return Found ? *Found : FStageRecord{};
+}
+
 // -----------------------------------------------------------------------------
 // 갱신
 // -----------------------------------------------------------------------------
@@ -151,4 +162,50 @@ void USaveGameSubsystem::UpdateSettingsData(const FRSSettingsData& NewSettings)
 	}
 
 	CachedSaveGame->SettingsData = NewSettings;
+}
+
+void USaveGameSubsystem::UpdateStageRecord(FName StageID, const FStageResultData& ResultData)
+{
+	if (!CachedSaveGame)
+	{
+		KHS_WARN(TEXT("CachedSaveGame nullptr. StageID: %s"), *StageID.ToString());
+		return;
+	}
+
+	// 기존 기록 조회 또는 신규 생성
+	FStageRecord& Record = CachedSaveGame->StageRecords.FindOrAdd(StageID);
+
+	// BestSurvivalTime 갱신 (더 크면)
+	if (ResultData.SurvivalTime > Record.BestSurvivalTime)
+	{
+		Record.BestSurvivalTime = ResultData.SurvivalTime;
+	}
+
+	// BestKillCount 갱신 (더 크면)
+	if (ResultData.KillCount > Record.BestKillCount)
+	{
+		Record.BestKillCount = ResultData.KillCount;
+	}
+
+	// bIsCleared 갱신 (한 번 true가 되면 false로 복귀 금지)
+	if (ResultData.bCleared)
+	{
+		Record.bIsCleared = true;
+
+		// ClearedStageIDs 목록에도 추가
+		CachedSaveGame->ClearedStageIDs.AddUnique(StageID);
+	}
+
+	// PlayCount 증가
+	Record.PlayCount++;
+
+	// 디스크 즉시 저장
+	SaveGame();
+
+	KHS_INFO(TEXT("스테이지 기록 갱신: %s | 생존: %.1f | 처치: %d | 클리어: %s | 플레이: %d"),
+		*StageID.ToString(),
+		Record.BestSurvivalTime,
+		Record.BestKillCount,
+		Record.bIsCleared ? TEXT("O") : TEXT("X"),
+		Record.PlayCount);
 }

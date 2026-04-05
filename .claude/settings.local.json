@@ -9,7 +9,8 @@
       "mcp__ide__getDiagnostics",
       "Bash(wc -l .claude/skills/*/SKILL.md .claude/agents/*.md)",
       "Bash(wc -c .claude/skills/*/SKILL.md .claude/agents/*.md)",
-      "Skill(commit)"
+      "Skill(commit)",
+      "SlashCommand(/coding)"
     ],
     "deny": [],
     "ask": []

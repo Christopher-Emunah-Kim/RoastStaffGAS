@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Core/RSGameSave.h"
+#include "Data/RuntimeDataStructs.h"
 #include "SaveGameSubsystem.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSaveGameLoaded);
@@ -48,6 +49,10 @@ public:
 
 	FRSSettingsData GetSettingsData() const;
 
+	/** 스테이지별 기록 조회. 기록이 없으면 기본값(0, 0, false, 0) 반환 */
+	UFUNCTION(BlueprintCallable, Category = "RS|Save")
+	FStageRecord GetStageRecord(FName StageID) const;
+
 	// -------------------------------------------------------------------------
 	// 갱신 (디스크 즉시 저장 안 함 — 진입 직전 SaveGame() 일괄 처리)
 	// -------------------------------------------------------------------------
@@ -62,6 +67,17 @@ public:
 
 	/** 설정 데이터 캐시 갱신. 디스크 저장 안 함 — SetSettingsData(RDS)가 별도 SaveGame() 처리. */
 	void UpdateSettingsData(const FRSSettingsData& NewSettings);
+
+	/**
+	 * 스테이지 플레이 기록 갱신 (스테이지 종료 시 RSGameMode가 호출)
+	 * - BestSurvivalTime: 더 크면 갱신
+	 * - BestKillCount: 더 크면 갱신
+	 * - bIsCleared: 한 번 true가 되면 false로 복귀 금지
+	 * - PlayCount: +1 증가
+	 * - ClearedStageIDs 목록 갱신 (bCleared=true 시)
+	 * - SaveGame() 즉시 호출하여 디스크 저장
+	 */
+	void UpdateStageRecord(FName StageID, const FStageResultData& ResultData);
 
 	FORCEINLINE bool IsSaveLoaded() const { return bIsSaveLoaded; }
 	

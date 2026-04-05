@@ -1,13 +1,13 @@
 ---
 name: coding
-version: 3.4.0
+version: 3.5.0
 depends-on: ["_Design/Plans/active/ 내 PLAN 파일", "_Design/TODO.md MODULE 항목"]
 suggests-next: ["TEST(선택)", "SR(선택)"]
 allowed-tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob
 ---
 # /coding RUNBOOK
 > 페르소나: 20년차 시니어 UE5 C++ 게임 개발자
-> 역할: TODO의 MODULE 단위로 코드 작성 → 자동 검증 → 셀프리뷰 → TODO/CHANGESET 갱신
+> 역할: TODO의 MODULE 단위로 코드 작성 → 자동 검증+리팩토링 → 셀프리뷰 → TODO/CHANGESET 갱신
 
 ## STATE_MACHINE
 ```
@@ -15,7 +15,7 @@ INIT ──→ [A] TODO + 플랜 확인
           └─ 플랜 없음 → /planning 안내 → BLOCKED
           └─ 있음 → [B] Q&A (새 개념 시만)
                      └─ [C] 코드 작성 (파일 단위)
-                           └─ [C2] 자동 검증 + 수정 🤖 (3회 실패 → BLOCKED)
+                           └─ [C2] 자동 검증+수정+리팩토링 🤖 (3회 실패 → BLOCKED)
                                  └─ [D] 셀프 리뷰
                                        └─ [D2] 빌드 검증 (필수)
                                              └─ 성공 → 승인 요청 🧑
@@ -41,7 +41,7 @@ SESSION_START에서 읽힌 파일 재읽기 금지.
 - 하드코딩 금지 (DataTable/EditDefaultsOnly)
 ```
 
-### [C2] 자동 검증 + 수정
+### [C2] 자동 검증 + 수정 + 리팩토링
 ```
 Grep → 패턴 발견 → Edit 즉시 수정 → 재검증 (최대 3회)
 
@@ -60,6 +60,17 @@ Grep → 패턴 발견 → Edit 즉시 수정 → 재검증 (최대 3회)
   → private 헬퍼 함수 추출. 함수명: [동작]만 (예: CalculateDamage)
   → 헤더 배치: public생성자/가상 → protected가상 → public공개API
                → protected상속API → private헬퍼 → [변수] public/protected/private
+
+[P1] 중복 로직 추출 (DRY 원칙)
+  대상: 동일/유사 로직 블록 (20줄+) 2회 이상 반복
+  → private 헬퍼로 추출 + 차이점은 인자로 전달
+  예: OnStageCleared/OnStageFailed 중복 → EndStage(bool bCleared)
+
+[P1] 고수준 흐름 개선
+  대상: 함수 50줄+ (복잡도와 무관)
+  → 고수준 흐름만 남기고 세부 로직은 private 헬퍼로 추출
+  예: BeginPlay 50줄 → InitializePlayer/InitializeStage/StartStageFlow 헬퍼 호출
+  목표: 함수 본문 읽으면 전체 흐름이 한눈에 파악되도록
 
 [P2] 접근 지정자 최적화 (외부 미사용 public → private/protected)
 
@@ -82,10 +93,17 @@ Grep → 패턴 발견 → Edit 즉시 수정 → 재검증 (최대 3회)
 
 ### [D2] 빌드 검증
 ```
-Rider: Build → Build Solution  /  VS: 프로젝트 우클릭 → 빌드
+사용자에게 빌드 요청:
+  "📌 빌드 검증 요청
+   Rider에서 Build Solution 실행 후 결과 전달 부탁드립니다.
+   - 성공: '빌드 성공' 입력
+   - 실패: 에러 메시지 전체 복사해서 전달"
 
-실패 시 원인 분류 → 수정 → [D] 복귀. 3회 실패 → BLOCKED.
-⚠️ 빌드 없이 승인 요청 금지.
+에러 전달받으면:
+  → 원인 분석 → 수정 → [D] 복귀 → 재빌드 요청
+  → 3회 실패 → BLOCKED
+
+⚠️ 빌드 검증 없이 승인 요청 금지
 ```
 
 ### [E] TODO + CHANGESET 갱신
@@ -97,9 +115,13 @@ CHANGESET.md: files.modified / files.created 갱신
 ### 승인 요청
 ```
 📌 [CODE] | MODULE-N [이름]
-상황: 코드 작성 완료. 자동 검증 + 셀프 리뷰 통과.
+상황: 코드 작성 완료. 자동 검증 + 리팩토링 + 셀프 리뷰 통과.
 
-🤖 자동 수정: [P0]UE_LOG N건 / 데드코드 N건 / [P1]include N건 / 함수추출 N건
+🤖 자동 수정:
+  [P0] UE_LOG→KHS_* N건 / 데드코드 N건
+  [P1] #include N건 / 함수복잡도 N건
+  [P1] 중복로직 추출 N건 / 고수준흐름 개선 N건
+
 수정 파일: | 파일 | 유형 | 상세 |
 
 📝 최종 코드: [수정 완료 코드]
@@ -122,8 +144,8 @@ oop:         .claude/skills/coding/references/oop-principles.md     # OOP 위반
 - 테스트 실행 금지 (/test 담당)
 - MODULE 완료 시 TODO.md 갱신 필수
 - 커밋 제안 금지
-- [HARNESS] [C2] 자동 검증 필수 / 3회 실패 → BLOCKED
-- [HARNESS] 승인 요청 시 수정 내역 명시 필수
+- [HARNESS] [C2] 자동 검증 + 리팩토링 필수 / 3회 실패 → BLOCKED
+- [HARNESS] 승인 요청 시 자동 수정/리팩토링 내역 명시 필수
 - [HARNESS] 빌드 검증 없이 승인 요청 금지
 - [HARNESS] UE_LOG 금지 (KHS_* 만)
 - [HARNESS] 접근 금지: .git/config, Binaries/, .env, *.key

@@ -9,6 +9,7 @@
 #include "Character/Player/RSPlayerState.h"
 #include "Component/EquipmentComponent.h"
 #include "GAS/Attributes/PlayerAttributeSet.h"
+#include "Core/RSGameMode.h"
 #include "AbilitySystemComponent.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
@@ -123,7 +124,7 @@ void ARSPlayerCharacter::HandleDeath()
 		KHS_WARN(TEXT("PlayerController is NULL."));
 		return;
 	}
-	
+
 	PC->SetIgnoreMoveInput(true);
 	PC->SetIgnoreLookInput(true);
 
@@ -131,8 +132,12 @@ void ARSPlayerCharacter::HandleDeath()
 	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys);
 	EquipSys->StopAllFire();
 
-	// TODO : 스테이지 시스템 생기면 사망 이벤트 전달
-	// TODO : 결과 화면 전환
+	// 스테이지 실패 처리 (GameMode에 전달)
+	ARSGameMode* GM = GetWorld()->GetAuthGameMode<ARSGameMode>();
+	if (GM)
+	{
+		GM->OnStageFailed();
+	}
 
 	KHS_INFO(TEXT("플레이어 고유 사망 처리 완료."));
 }

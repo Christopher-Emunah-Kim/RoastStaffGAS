@@ -291,22 +291,42 @@ struct FEnemyPreloadBundle
 // FWeaponSlotInstanceData — 슬롯 런타임 상태
 // EquipmentSubsystem이 직접 관리
 // ----------------------------------------------------------------------------
-USTRUCT()                                                                                                        
+USTRUCT()
 struct FWeaponSlotInstanceData
-{                                                                                                                
-    GENERATED_BODY()                                                                                               
-	/** GDS에서 받아온 장착 데이터 */                                                                          
+{
+    GENERATED_BODY()
+	/** GDS에서 받아온 장착 데이터 */
     FWeaponSlotEquipData SlotEquipData;
-                                                                                                               
-    /** GA 핸들 */                                                                                           
-    FGameplayAbilitySpecHandle AbilitySpecHandle;                                                              
-                                                                                                             
+
+    /** GA 핸들 */
+    FGameplayAbilitySpecHandle AbilitySpecHandle;
+
     int32 SlotIndex;
     float CooldownRemaining;
     bool bIsActive;
-                                                                                                               
-    FTimerHandle AutoFireTimerHandle;                                                                          
-                                                                                                               
-    bool IsEmpty() const { return SlotEquipData.WeaponID.IsNone(); }                                           
+
+    FTimerHandle AutoFireTimerHandle;
+
+    bool IsEmpty() const { return SlotEquipData.WeaponID.IsNone(); }
+};
+
+// ----------------------------------------------------------------------------
+// FStageResultData — 스테이지 종료 시 결과 데이터
+// RSGameMode → SaveGameSubsystem::UpdateStageRecord() 전달용
+// ----------------------------------------------------------------------------
+USTRUCT(BlueprintType)
+struct FStageResultData
+{
+	GENERATED_BODY()
+
+	/** 플레이 시간 (초) */
+	UPROPERTY(BlueprintReadOnly)
+	float SurvivalTime = 0.f;
+	/** 처치한 적 수 */
+	UPROPERTY(BlueprintReadOnly)
+	int32 KillCount = 0;
+	/** 클리어 여부 (true: 타임오버 생존, false: 플레이어 사망) */
+	UPROPERTY(BlueprintReadOnly)
+	bool bCleared = false;
 };                                                                                                             
 

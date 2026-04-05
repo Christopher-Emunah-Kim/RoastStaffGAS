@@ -11,43 +11,73 @@
 #include "Character/Player/RSPlayerState.h"
 #include "Core/RSGameInstance.h"
 #include "Data/DataTableStructs.h"
+#include "Data/RuntimeDataStructs.h"
 #include "Kismet/GameplayStatics.h"
+
+ARSGameMode::ARSGameMode()
+{
+	PrimaryActorTick.bCanEverTick = true;
+}
 
 void ARSGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// SGS에서 선택된 캐릭터 ID 조회
 	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS);
 	const FName CharID = SGS->GetLastSelectedCharacter();
 
-	// 선택된 캐릭터 스탯을 PlayerState에 적용
-	// (Possession은 BeginPlay 이전에 완료되므로 ASC는 초기화된 상태)
-	APlayerController* PC = GetWorld()->GetFirstPlayerController();
-	if (PC)
+	InitializePlayer(CharID);
+
+	if (InitializeStage())
 	{
-		ARSPlayerState* PS = PC->GetPlayerState<ARSPlayerState>();
-		if (PS)
-		{
-			PS->ApplyCharacterStats(CharID);
-		}
-		else
-		{
-			KHS_WARN(TEXT("PlayerState 조회 실패. 캐릭터 스탯 미적용."));
-		}
+		StartStageFlow();
+	}
+}
+
+void ARSGameMode::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (!bIsStageEnded)
+	{
+		CheckStageClearCondition();
+	}
+}
+
+void ARSGameMode::InitializePlayer(FName CharID)
+{
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	check(PC);
+
+	ARSPlayerState* PS = PC->GetPlayerState<ARSPlayerState>();
+	if (!ensureMsgf(PS, TEXT("PlayerState 조회 실패. 캐릭터 스탯 미적용.")))
+	{
+		check(false);
 	}
 
-	// GI에서 다음 스테이지 ID 조회
+	PS->ApplyCharacterStats(CharID);
+	InitDefaultWeapon(CharID);
+}
+
+bool ARSGameMode::InitializeStage()
+{
 	URSGameInstance* GI = Cast<URSGameInstance>(GetGameInstance());
 	check(GI);
-	const FName StageID = GI->GetNextStageID();
-	if (StageID.IsNone())
+
+	CurrentStageID = GI->GetNextStageID();
+	if (CurrentStageID.IsNone())
 	{
 		KHS_WARN(TEXT("NextStageID가 NAME_None. 스테이지 시작 불가."));
-		return;
+		return false;
 	}
 
-	// 맵에 배치된 EnemySpawner 탐색
+	StageStartTime = GetWorld()->GetTimeSeconds();
+	return true;
+}
+
+void ARSGameMode::StartStageFlow()
+{
+	//에너미 스포너 가동
 	AEnemySpawner* Spawner = Cast<AEnemySpawner>(
 		UGameplayStatics::GetActorOfClass(GetWorld(), AEnemySpawner::StaticClass()));
 
@@ -57,14 +87,11 @@ void ARSGameMode::BeginPlay()
 		return;
 	}
 
-	// DefaultWeapon 장착 (스테이지 진입 시 첫 무기 자동 세팅)
-	InitDefaultWeapon(CharID);
-
-	// StageManager에 Spawner 등록 후 스테이지 시작
-	// (InitPools는 StartStage 내부에서 DT_Stage.SpawnEnemyIDs 기반으로 호출됨)
 	GET_WORLD_SUBSYSTEM(UStageManagerSubsystem, StageMgr);
 	StageMgr->SetSpawner(Spawner);
-	StageMgr->StartStage(StageID);
+	StageMgr->StartStage(CurrentStageID);
+
+	KHS_INFO(TEXT("스테이지 시작 — StageID: %s"), *CurrentStageID.ToString());
 }
 
 void ARSGameMode::InitDefaultWeapon(FName CharID)
@@ -90,10 +117,89 @@ void ARSGameMode::InitDefaultWeapon(FName CharID)
 		return;
 	}
 
-	// EquipmentSubsystem은 PossessedBy 시점에 이미 InitializeSubsystem된 상태
 	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys);
 	EquipSys->EquipWeapon(CharData.DefaultWeaponID);
 
 	KHS_INFO(TEXT("DefaultWeapon 장착 완료 — CharID: %s / WeaponID: %s"),
 		*CharID.ToString(), *CharData.DefaultWeaponID.ToString());
+}
+
+void ARSGameMode::CheckStageClearCondition()
+{
+	if (CurrentStageID.IsNone())
+	{
+		return;
+	}
+
+	// GDS에서 스테이지 데이터 조회 (TimeLimit)
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
+	FStageStaticData StageData;
+	if (!GDS->GetStageData(CurrentStageID, StageData))
+	{
+		KHS_WARN(TEXT("StageID [%s] 데이터 조회 실패. 클리어 판정 불가."), *CurrentStageID.ToString());
+		return;
+	}
+
+	// TimeLimit이 0 이하면 클리어 판정 비활성화 (무한 모드)
+	if (StageData.TimeLimit <= 0.f)
+	{
+		return;
+	}
+
+	// 경과 시간 계산
+	const float ElapsedTime = GetWorld()->GetTimeSeconds() - StageStartTime;
+
+	// TimeLimit 초과 시 클리어
+	if (ElapsedTime >= StageData.TimeLimit)
+	{
+		OnStageCleared();
+	}
+}
+
+void ARSGameMode::OnStageCleared()
+{
+	EndStage(true);
+}
+
+void ARSGameMode::OnStageFailed()
+{
+	EndStage(false);
+}
+
+void ARSGameMode::EndStage(bool bCleared)
+{
+	if (bIsStageEnded)
+	{
+		return;
+	}
+	bIsStageEnded = true;
+
+	const float ElapsedTime = GetWorld()->GetTimeSeconds() - StageStartTime;
+
+	GET_WORLD_SUBSYSTEM(UStageManagerSubsystem, StageMgr);
+	const int32 KillCount = StageMgr->GetKillCount();
+
+	FStageResultData ResultData;
+	ResultData.SurvivalTime = ElapsedTime;
+	ResultData.KillCount = KillCount;
+	ResultData.bCleared = bCleared;
+
+	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS);
+	SGS->UpdateStageRecord(CurrentStageID, ResultData);
+
+	KHS_INFO(TEXT("스테이지 %s — StageID: %s | 생존: %.1fs | 처치: %d"),
+		bCleared ? TEXT("클리어!") : TEXT("실패"),
+		*CurrentStageID.ToString(), ElapsedTime, KillCount);
+
+	OnResultConfirmed();
+}
+
+void ARSGameMode::OnResultConfirmed()
+{
+	// OUTGAME 레벨로 복귀
+	URSGameInstance* GI = Cast<URSGameInstance>(GetGameInstance());
+	check(GI);
+
+	KHS_INFO(TEXT("OUTGAME 레벨로 복귀 시작..."));
+	GI->OpenNextLevelByName(ELevelName::OUTGAME);
 }
