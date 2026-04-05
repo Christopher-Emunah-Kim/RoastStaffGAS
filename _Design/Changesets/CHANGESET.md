@@ -29,16 +29,17 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 <!-- 신규 항목은 이 줄 아래에 추가 -->
 - date: 2026-04-06
   plan: PLAN_StageResult_v1.0
-  commit: null
+  commit: "067b08a"
   files:
     modified:
       - Source/RoastStaffGAS/Public/Data/EnumUITypes.h
+      - .claude/settings.local.json
     created:
       - Source/RoastStaffGAS/Public/UI/InGame/RSStageResultWidget.h
       - Source/RoastStaffGAS/Private/UI/InGame/RSStageResultWidget.cpp
     deleted: []
   summary: "[MODULE-4~6] 스테이지 결과 UI 구현 — URSStageResultWidget C++ 위젯 + EUIID::STAGE_RESULT enum + WBP_StageResultWidget 블루프린트 생성 안내 (에디터 작업 필요)"
-  status: PENDING_COMMIT
+  status: COMMITTED
   bugs_found: []
   bugs_fixed: []
 - date: 2026-04-05

@@ -35,7 +35,7 @@
     - [x] OnResultConfirmed() 구현                                         [P0]
     - [x] RSPlayerCharacter::HandleDeath() → GameMode 연동                [P0]
 
-  ### [MODULE-4~6] 결과 UI 구현 ✓ DONE 2026-04-06
+  ### [MODULE-4~6] 결과 UI 구현 ✓ COMMITTED 067b08a 2026-04-06
   수정: RSStageResultWidget.h/.cpp, EnumUITypes.h
     - [x] URSStageResultWidget C++ 구현                                    [P0]
     - [x] EUIID::STAGE_RESULT 추가                                         [P0]
