@@ -29,7 +29,7 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 <!-- 신규 항목은 이 줄 아래에 추가 -->
 - date: 2026-04-05
   plan: PLAN_StageResult_v1.0
-  commit: null
+  commit: "8f7c6b6,78378ee,6c7f997"
   files:
     modified:
       - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
@@ -41,11 +41,13 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
       - Source/RoastStaffGAS/Private/Core/RSGameMode.cpp
       - Source/RoastStaffGAS/Private/Character/Player/RSPlayerCharacter.cpp
       - .claude/skills/coding/SKILL.md
+      - .claude/skills/commit/SKILL.md
+      - .git/hooks/pre-commit
     created:
       - _Design/Plans/active/PLAN_StageResult_v1.0.md
     deleted: []
-  summary: "[MODULE-1~3] 스테이지 클리어 로직 완료 — FStageRecord/FStageResultData + SaveGameSubsystem::UpdateStageRecord() + RSGameMode::Tick클리어판정+EndStage리팩토링+BeginPlay리팩토링 + RSPlayerCharacter사망연동 | coding스킬 v3.5.0 (자동리팩토링 추가)"
-  status: PENDING_COMMIT
+  summary: "[MODULE-1~3] 스테이지 클리어 로직 완료 — FStageRecord/FStageResultData + SaveGameSubsystem::UpdateStageRecord() + RSGameMode::Tick클리어판정+EndStage리팩토링+BeginPlay리팩토링 + RSPlayerCharacter사망연동 | coding스킬 v3.5.0 (자동리팩토링) + commit스킬 규칙 개선"
+  status: COMMITTED
   bugs_found: []
   bugs_fixed: []
 - date: 2026-04-03

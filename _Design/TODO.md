@@ -16,18 +16,18 @@
 ## [FEATURE] 스테이지 클리어 로직 + 결과 UI | PLAN_StageResult_v1.0
 > 시작: 2026-04-05 | 기획서: 게임 플로우 아키텍처 기획 v1.0.md, UI관리 시스템 기획 v1.1.md
 
-  ### [MODULE-1] FStageRecord 구조체 확장 ✓ DONE 2026-04-05
+  ### [MODULE-1] FStageRecord 구조체 확장 ✓ COMMITTED 78378ee 2026-04-05
   수정: DataTableStructs.h, RSGameSave.h
     - [x] FStageRecord에 bIsCleared 필드 추가                              [P0]
     - [x] 기존 사용처 컴파일 확인                                          [P0]
 
-  ### [MODULE-2] SaveGameSubsystem 스테이지 기록 업데이트 ✓ DONE 2026-04-05
+  ### [MODULE-2] SaveGameSubsystem 스테이지 기록 업데이트 ✓ COMMITTED 6c7f997 2026-04-05
   수정: SaveGameSubsystem.h/.cpp, RuntimeDataStructs.h
     - [x] FStageResultData 런타임 구조체 정의                              [P0]
     - [x] UpdateStageRecord() API 구현                                     [P0]
     - [x] BestTime/BestKill/bIsCleared 갱신 로직                          [P0]
 
-  ### [MODULE-3] RSGameMode 스테이지 종료 로직 ✓ DONE 2026-04-05
+  ### [MODULE-3] RSGameMode 스테이지 종료 로직 ✓ COMMITTED 6c7f997 2026-04-05
   수정: RSGameMode.h/.cpp, RSPlayerCharacter.cpp
     - [x] CheckStageClearCondition() 구현 (Tick 기반)                     [P0]
     - [x] OnStageCleared/OnStageFailed → EndStage(bool) 리팩토링          [P0]
