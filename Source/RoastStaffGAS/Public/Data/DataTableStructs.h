@@ -568,3 +568,27 @@ struct FWaveStaticData : public FTableRowBase
 };
 
 
+// ----------------------------------------------------------------------------
+// FStageRecord — 스테이지 플레이 기록 (런타임/세이브 데이터)
+// SaveGameSubsystem이 TMap<FName, FStageRecord> StageRecords로 관리
+// ----------------------------------------------------------------------------
+USTRUCT(BlueprintType)
+struct FStageRecord
+{
+	GENERATED_BODY()
+
+	/** 최장 생존 시간 (초) */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "StageRecord")
+	float BestSurvivalTime = 0.f;
+	/** 최다 처치 수 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "StageRecord")
+	int32 BestKillCount = 0;
+	/** 클리어 여부 (한 번 true가 되면 false로 복귀 금지) */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "StageRecord")
+	bool bIsCleared = false;
+	/** 플레이 횟수 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "StageRecord")
+	int32 PlayCount = 0;
+};
+
+

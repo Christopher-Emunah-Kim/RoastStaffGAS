@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
+#include "Data/DataTableStructs.h"
 #include "RSGameSave.generated.h"
 
 // ----------------------------------------------------------------------------
@@ -43,6 +44,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Save|Stage")
 	TArray<FName> ClearedStageIDs;
 
+	/** 스테이지별 플레이 기록 (StageID → FStageRecord) */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Save|Stage")
+	TMap<FName, FStageRecord> StageRecords;
+
 	/** 마지막으로 선택한 캐릭터 ID */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Save|Character")
 	FName LastSelectedCharacterID = NAME_None;
@@ -55,7 +60,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Save|Meta")
 	int32 SaveVersion = 1;
 
-	// TODO(PLAN_SGS_Full): FStageRecord (클리어 시간/점수 등 상세 기록)
 	// TODO(PLAN_SGS_Full): FTransactionState (재화 잔액, 누적 획득량 등)
 	// TODO(PLAN_SGS_Full): TotalPlayCount / TotalClearCount / TotalGoldEarned
 };
