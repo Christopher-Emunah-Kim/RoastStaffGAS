@@ -10,7 +10,8 @@
       "Bash(wc -l .claude/skills/*/SKILL.md .claude/agents/*.md)",
       "Bash(wc -c .claude/skills/*/SKILL.md .claude/agents/*.md)",
       "Skill(commit)",
-      "SlashCommand(/coding)"
+      "SlashCommand(/coding)",
+      "SlashCommand(/commit)"
     ],
     "deny": [],
     "ask": []

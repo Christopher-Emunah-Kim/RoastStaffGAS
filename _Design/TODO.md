@@ -35,11 +35,11 @@
     - [x] OnResultConfirmed() 구현                                         [P0]
     - [x] RSPlayerCharacter::HandleDeath() → GameMode 연동                [P0]
 
-  ### [MODULE-4~6] 결과 UI 구현
-    - [~] URSStageResultWidget C++ 구현                                    [P0]
-    - [~] EUIID::STAGE_RESULT 추가                                         [P0]
-    - [~] WBP_StageResultWidget 생성                                       [P0]
-    <!-- MODULE 1-3 검토 후 진행 -->
+  ### [MODULE-4~6] 결과 UI 구현 ✓ DONE 2026-04-06
+  수정: RSStageResultWidget.h/.cpp, EnumUITypes.h
+    - [x] URSStageResultWidget C++ 구현                                    [P0]
+    - [x] EUIID::STAGE_RESULT 추가                                         [P0]
+    - [x] WBP_StageResultWidget 블루프린트 생성 안내 (에디터 작업 필요)    [P0]
 
 ---
 

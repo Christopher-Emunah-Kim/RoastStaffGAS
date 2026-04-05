@@ -38,6 +38,7 @@ enum class EUIID : uint8
 	HUD              UMETA(DisplayName = "HUD"),
 	LEVEL_UP         UMETA(DisplayName = "LevelUp"),
 	WEAPON_REPLACE   UMETA(DisplayName = "WeaponReplace"),
+	STAGE_RESULT     UMETA(DisplayName = "StageResult"),
 	GAMEOVER         UMETA(DisplayName = "GameOver"),
 	GAMECLEAR        UMETA(DisplayName = "GameClear"),
 	EXIT             UMETA(DisplayName = "Exit"),
