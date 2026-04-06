@@ -29,6 +29,24 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 <!-- 신규 항목은 이 줄 아래에 추가 -->
 - date: 2026-04-06
   plan: PLAN_StageResult_v1.0
+  commit: "4bb9bcb,3c93d19,59551fb"
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Core/RSGameMode.h
+      - Source/RoastStaffGAS/Private/Core/RSGameMode.cpp
+    created: []
+    deleted: []
+  summary: "[StageResult 버그픽스+리팩] EndStage UI 연동 누락 수정 + AutoFire 타이머 크래시 수정 + 게임 일시정지 + EndStage 헬퍼 분리 (StopStageActivities/BuildResultData/SaveResult/ShowResultUI)"
+  status: COMMITTED
+  bugs_found:
+    - "EndStage가 결과 UI 없이 OnResultConfirmed() 직접 호출 — 결과 화면 미표시"
+    - "AutoFire 타이머 미정리 → 레벨 전환 중 ASC->GetAvatarActor() 크래시"
+  bugs_fixed:
+    - "StopAllFire() 선행 호출로 크래시 수정"
+    - "ShowResultUI 헬퍼에서 OpenUIByID + SetResultData + 델리게이트 바인딩"
+    - "SetGamePaused(true/false)로 결과 UI 중 게임 일시정지"
+- date: 2026-04-06
+  plan: PLAN_StageResult_v1.0
   commit: "067b08a"
   files:
     modified:

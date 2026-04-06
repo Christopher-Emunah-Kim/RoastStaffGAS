@@ -35,7 +35,7 @@
     - [x] OnResultConfirmed() 구현                                         [P0]
     - [x] RSPlayerCharacter::HandleDeath() → GameMode 연동                [P0]
 
-  ### [MODULE-4~6] 결과 UI 구현 ✓ COMMITTED 067b08a 2026-04-06
+  ### [MODULE-4~6] 결과 UI 구현 + EndStage 연동 ✓ COMMITTED 067b08a,4bb9bcb 2026-04-06
   수정: RSStageResultWidget.h/.cpp, EnumUITypes.h
     - [x] URSStageResultWidget C++ 구현                                    [P0]
     - [x] EUIID::STAGE_RESULT 추가                                         [P0]
@@ -49,12 +49,8 @@
 ### [P1] 게임 루프 완성 (최우선)
 
 <!-- #8 → #7 순서: 복귀 로직이 결과 UI의 출구이므로 #7 설계 전에 플로우 먼저 확정 -->
-- [ ] 스테이지 클리어 후 로비 복귀 로직                                   [P1]
-  <!-- TRANSITION 경유 OUTGAME 복귀 + RSGameMode 클리어 판정 트리거 -->
-
-- [ ] 스테이지 결과 UI 및 결과 데이터 RDS/SGS 업데이트                    [P1]
-  <!-- 클리어 시간/점수 표시 UI + SGS ClearedStageIDs 기록 + 재화 집계 준비 -->
-  <!-- 의존: 로비 복귀 플로우 확정 후 진행 -->
+- [x] 스테이지 클리어 후 로비 복귀 로직 | 4bb9bcb | PLAN_StageResult_v1.0
+- [x] 스테이지 결과 UI 및 결과 데이터 RDS/SGS 업데이트 | 067b08a,4bb9bcb | PLAN_StageResult_v1.0
 
 - [ ] 더미 데이터 추가 (캐릭터 15종 / 무기 20종 / 에너미 10종)            [P1]
   <!-- DT_CharacterStatic / DT_Weapon / DT_Enemy 에디터 입력 (메쉬 없이 스탯만도 가능) -->
