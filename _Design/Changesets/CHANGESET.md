@@ -28,6 +28,26 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 ---
 <!-- 신규 항목은 이 줄 아래에 추가 -->
 - date: 2026-04-06
+  plan: null
+  commit: "e92f46b"
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Data/EnumUITypes.h
+      - Content/Data/Character/DT_Character_Static_Data.uasset
+      - Content/Data/Enemy/DT_Enemy_Static_Data.uasset
+      - Content/Data/Stage/DT_Stage_Static_Data.uasset
+      - Content/Data/Stage/DT_Wave_Static_Data.uasset
+      - ExternalSource/DT_Character_Static_Data.csv
+      - ExternalSource/DT_Enemy_Static_Data.csv
+      - ExternalSource/DT_Stage_Static_Data.csv
+      - ExternalSource/DT_Wave_Static_Data.csv
+    created: []
+    deleted: []
+  summary: "더미 데이터 추가 — 캐릭터 6→15종 / 에너미 2→16종 / 스테이지 STAGE_3(STG_009~012) + 웨이브 12행 / ELevelName::STAGE_3 추가"
+  status: COMMITTED
+  bugs_found: []
+  bugs_fixed: []
+- date: 2026-04-06
   plan: PLAN_StageResult_v1.0
   commit: "4bb9bcb,3c93d19,59551fb"
   files:

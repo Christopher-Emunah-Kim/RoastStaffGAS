@@ -52,9 +52,7 @@
 - [x] 스테이지 클리어 후 로비 복귀 로직 | 4bb9bcb | PLAN_StageResult_v1.0
 - [x] 스테이지 결과 UI 및 결과 데이터 RDS/SGS 업데이트 | 067b08a,4bb9bcb | PLAN_StageResult_v1.0
 
-- [ ] 더미 데이터 추가 (캐릭터 15종 / 무기 20종 / 에너미 10종)            [P1]
-  <!-- DT_CharacterStatic / DT_Weapon / DT_Enemy 에디터 입력 (메쉬 없이 스탯만도 가능) -->
-  <!-- 시스템 검증 및 밸런싱 기반 — 메쉬/애니 작업과 병렬 진행 가능 -->
+- [x] 더미 데이터 추가 (캐릭터 15종 / 에너미 16종 / 스테이지 STAGE_3 4개) | e92f46b
 
 ### [P2] 기능 확장
 
