@@ -7,14 +7,12 @@
 #include "EnemySpawner.generated.h"
 
 class AEnemyBaseCharacter;
+class AEnemyProjectile;
 
 /**
  * AEnemySpawner
  *
  * - 레벨에 배치하는 에너미 스폰 담당 Actor.
- * - UStageManagerSubsystem::StartStage → InitPools(EnemyIDs) : DT_Enemy 기반 클래스 풀 초기화
- * - UStageManagerSubsystem의 SpawnEnemy 요청을 받아 화면 외곽에 에너미를 스폰한다.
- * - 스폰된 에너미에 InitializeEnemy, SetInitialTargetLocation, RegisterAliveEnemy를 순서대로 호출한다.
  */
 UCLASS()
 class ROASTSTAFFGAS_API AEnemySpawner : public AActor
@@ -32,6 +30,12 @@ public:
 private:
 	/** 플레이어 위치 기준 랜덤 방향 외곽 스폰 위치 계산 */
 	FVector CalculateOffScreenSpawnLocation(const FVector& PlayerLocation) const;
+	/** AIType에 따라 타입별 확장 초기화 (ExtData 주입) */
+	void InitializeEnemyByType(AEnemyBaseCharacter* Enemy, FName EnemyID) const;
+
+	/** 보스 사망 시 호출 — HUD 해제 담당 (TODO: WBP_BossHPBar 구현 후 구체화) */
+	UFUNCTION()
+	void OnBossKilled();
 
 private:
 	/** EnemyID → 에너미 클래스 런타임 캐시 (DT_Enemy.EnemyClass 로드 결과) */
@@ -40,7 +44,15 @@ private:
 	/** 플레이어로부터의 스폰 반경 (언리얼 유닛) */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Spawn")
 	float OffScreenDistance = 1500.f;
+	
 	/** 클래스당 풀 예비 수량 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Spawn")
 	int32 PoolCountPerClass = 30;
+	/** 에너미 투사체 풀 예비 수량 (동시 사격 가능한 최대 에너미 수 * 여유분) */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Spawn")
+	int32 ProjectilePoolCount = 60;
+
+	/** 투사체 풀에 등록할 AEnemyProjectile 파생 클래스 — BP에서 할당 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Spawn")
+	TSubclassOf<AEnemyProjectile> EnemyProjectileClass;
 };
