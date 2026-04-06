@@ -13,33 +13,74 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
-## [FEATURE] 스테이지 클리어 로직 + 결과 UI | PLAN_StageResult_v1.0
-> 시작: 2026-04-05 | 기획서: 게임 플로우 아키텍처 기획 v1.0.md, UI관리 시스템 기획 v1.1.md
+## [FEATURE] Enemy Ranged + Elite + Boss 시스템 | PLAN_EnemyExpansion_v1.0
+> 시작: 2026-04-06 | 기획서: AI_에너미 시스템 기획 v1.1.md, 스킬 시스템 기획 v1.4.md
 
-  ### [MODULE-1] FStageRecord 구조체 확장 ✓ COMMITTED 78378ee 2026-04-05
-  수정: DataTableStructs.h, RSGameSave.h
-    - [x] FStageRecord에 bIsCleared 필드 추가                              [P0]
-    - [x] 기존 사용처 컴파일 확인                                          [P0]
+  ### [MODULE-1] DataTable 구조체 확장 ✓ DONE 2026-04-06
+  수정: DataTableStructs.h, EnumTypes.h
+    - [x] FEnemyStaticData에 bIsBoss bool 추가                              [P0]
+    - [x] FEnemyExtData USTRUCT 신규 정의 (12컬럼)                          [P0]
+    - [x] EAIType에 BOSS 추가                                               [P0]
+    - [x] DT_EnemyExtData 에셋 생성 + DT_Enemy bIsBoss 컬럼 추가 (에디터)   [P0]
 
-  ### [MODULE-2] SaveGameSubsystem 스테이지 기록 업데이트 ✓ COMMITTED 6c7f997 2026-04-05
-  수정: SaveGameSubsystem.h/.cpp, RuntimeDataStructs.h
-    - [x] FStageResultData 런타임 구조체 정의                              [P0]
-    - [x] UpdateStageRecord() API 구현                                     [P0]
-    - [x] BestTime/BestKill/bIsCleared 갱신 로직                          [P0]
+  ### [MODULE-2] AEnemyProjectile — 에너미 전용 투사체 (풀링) ✓ DONE 2026-04-06
+  신규: EnemyProjectile.h/.cpp
+  수정: EnemySpawner.h/.cpp
+    - [x] AEnemyProjectile: AActor + IPoolableInterface 독립 구현            [P0]
+    - [x] InitEnemyProjectile(Dir, Speed, Lifetime, Damage, GEClass, SourceASC) 구현 [P0]
+    - [x] OnHit → 플레이어 ASC GE 직접 적용 → ReturnToPool                  [P0]
+    - [x] OnPoolActivate/Deactivate 구현                                     [P0]
+    - [x] EnemySpawner::InitPools에 투사체 풀 사전 등록                      [P0]
+    - [x] BP_EnemySpawner에 EnemyProjectileClass 할당 (에디터)               [P0]
 
-  ### [MODULE-3] RSGameMode 스테이지 종료 로직 ✓ COMMITTED 6c7f997 2026-04-05
-  수정: RSGameMode.h/.cpp, RSPlayerCharacter.cpp
-    - [x] CheckStageClearCondition() 구현 (Tick 기반)                     [P0]
-    - [x] OnStageCleared/OnStageFailed → EndStage(bool) 리팩토링          [P0]
-    - [x] BeginPlay 리팩토링 (Initialize* 헬퍼 추출)                      [P0]
-    - [x] OnResultConfirmed() 구현                                         [P0]
-    - [x] RSPlayerCharacter::HandleDeath() → GameMode 연동                [P0]
+  ### [MODULE-3] ARangedEnemy ✓ DONE 2026-04-06
+  신규: RangedEnemy.h/.cpp
+    - [x] AEnemyBaseCharacter 상속 + InitializeRangedParams(float, FEnemyExtData) [P0]
+    - [x] FireProjectile() 구현 (풀 고갈 시 경고 + 스킵)                    [P0]
+    - [x] BP_RangedEnemy 생성 + AttackGEClass(GE_RangedAttack)/ProjectileClass 할당 (에디터) [P0]
 
-  ### [MODULE-4~6] 결과 UI 구현 + EndStage 연동 ✓ COMMITTED 067b08a,4bb9bcb 2026-04-06
-  수정: RSStageResultWidget.h/.cpp, EnumUITypes.h
-    - [x] URSStageResultWidget C++ 구현                                    [P0]
-    - [x] EUIID::STAGE_RESULT 추가                                         [P0]
-    - [x] WBP_StageResultWidget 블루프린트 생성 안내 (에디터 작업 필요)    [P0]
+  ### [MODULE-4] AEliteEnemy ✓ DONE 2026-04-06
+  신규: EliteEnemy.h/.cpp
+    - [x] AEnemyBaseCharacter 상속 + InitializeEliteParams(float, FEnemyExtData) [P0]
+    - [x] FireProjectile() 구현 (ARangedEnemy 패턴 공유)                     [P0]
+    - [x] MeleeCharge() / EndCharge() / HandleDeath() 구현                  [P0]
+    - [x] BP_EliteEnemy 생성 + GE/ProjectileClass 할당 (에디터)              [P0]
+    - [x] DT_Enemy_StaticData + DT_EnemyExtData Elite 행 추가 (에디터)       [P0]
+
+  ### [MODULE-5] ABossEnemy ✓ DONE 2026-04-06
+  신규: BossEnemy.h/.cpp
+  수정: EnemySpawner.h/.cpp, EnemyAIController.h/.cpp
+    - [x] AEnemyBaseCharacter 상속 + InitializeBossParams(float, FEnemyExtData) [P0]
+    - [x] CheckPhaseTransition() — HP비율 감시, 1회 트리거                   [P0]
+    - [x] Phase2 전환: PauseAI → Montage + FX → ActivatePhase2 → ResumeAI   [P0]
+    - [x] ExecuteShockwave() — 범위 내 플레이어 ASC에 GE 적용                [P0]
+    - [x] FireSpreadProjectile() — 45도 간격 8방향 투사체 (Phase2DamageMult) [P0]
+    - [x] OnBossKilledDel 델리게이트 선언 + EnemySpawner 구독                [P0]
+    - [x] HandleDeath() 오버라이드 — 전환 타이머 취소 + Broadcast            [P0]
+    - [x] EnemyAIController: PauseAI/ResumeAI + BBKey_bIsPhase2 추가        [P0]
+    - [x] BP_BossEnemy 생성 + GE/ProjectileClass 할당 (에디터)               [P0]
+    - [~] Boss HUD 등록 (EnemySpawner.OnBossKilled) — WBP_BossHPBar 미구현  [P1] DEFERRED
+    - [~] DT_Enemy_StaticData Boss 행 AIType=BOSS + BT_BossEnemy — BT 생성 후 갱신 필요 [P0]
+
+  ### [MODULE-6] GDS GetEnemyExtData 확장 ✓ DONE 2026-04-06
+  수정: GameDataSubsystem.h/.cpp, GameDataConfig.h
+    - [x] GetEnemyExtData(FName EnemyID, FEnemyExtData& Out) 구현            [P0]
+    - [x] DT_EnemyExtData 테이블 포인터 UPROPERTY 추가                       [P0]
+
+  ### [MODULE-7] BT 노드 + 행동트리 에셋
+  신규: BTTask_RangedReposition, BTTask_FireProjectile, BTTask_MeleeCharge,
+        BTTask_ExecuteShockwave, BTDecorator_ShockwaveReady,
+        BTDecorator_IsPhase2, BTDecorator_RandomChance (.h/.cpp 각 7쌍)
+    - [ ] BTTask_RangedReposition — 거리 기반 전진/후퇴                      [P1]
+    - [ ] BTTask_FireProjectile — FireProjectile() 호출                      [P1]
+    - [ ] BTTask_MeleeCharge — MeleeCharge() 호출                           [P1]
+    - [ ] BTTask_ExecuteShockwave — PrepareTime 선딜 + ExecuteShockwave()    [P1]
+    - [ ] BTDecorator_ShockwaveReady — 쿨타임 체크                           [P1]
+    - [ ] BTDecorator_IsPhase2 — ABossEnemy::IsPhase2() 체크                [P1]
+    - [ ] BTDecorator_RandomChance — 확률 판정 (EliteEnemy 돌진용)           [P1]
+    - [ ] BT_RangedEnemy 에셋 구성                                           [P1]
+    - [ ] BT_EliteEnemy 에셋 구성                                            [P1]
+    - [ ] BT_BossEnemy 에셋 구성 (Phase1/2 분기)                            [P1]
 
 ---
 
@@ -94,6 +135,7 @@
 
 ## COMPLETED_LOG
 <!-- compact 형식: [x] FEATURE명 | 커밋 | 날짜 | 플랜파일 -->
+[x] 스테이지 클리어 로직 + 결과 UI (WBP 포함) | 78378ee,6c7f997,067b08a,4bb9bcb | 2026-04-05~06 | PLAN_StageResult_v1.0
 [x] 게임플로우 데이터(RuntimeDS/캐릭터적용) | d622281,f10dab1,783b4e7 | 2026-04-02~03 | PLAN_GameFlow_Data_v1.0
 [x] OutGame 선택 UI(캐릭터·스테이지 선택) | 1a21f8c~8d68391,2944f16,71f1ac0,1ed214f,15ac6d4 | 2026-04-01~02 | PLAN_OutGame_SelectUI_v1.0
 [x] 게임플로우 레벨(Intro/Transition/OutGame) | c0be61f,2118448,6c2c881,553dc01 | 2026-04-01 | PLAN_GameFlow_Levels_v1.0
