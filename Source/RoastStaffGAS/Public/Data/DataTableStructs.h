@@ -447,6 +447,8 @@ struct FStatusEffectData : public FTableRowBase
 // DT_Enemy — 에너미 기본 데이터
 // ----------------------------------------------------------------------------
 class AEnemyBaseCharacter;
+class UNiagaraSystem;
+class UAnimMontage;
 
 USTRUCT(BlueprintType)
 struct FEnemyStaticData : public FTableRowBase
@@ -479,13 +481,72 @@ struct FEnemyStaticData : public FTableRowBase
 	/** 웨이브 스폰 가중치 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
 	float SpawnWeight;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
 	int32 DropEXP;
 
 	/** 스폰할 BP 에너미 클래스 에셋 경로 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
 	TSoftClassPtr<AEnemyBaseCharacter> EnemyClass;
+
+	/** 보스 에너미 여부 — EnemySpawner HUD 등록 판단용 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
+	bool bIsBoss = false;
+};
+
+
+// ----------------------------------------------------------------------------
+// DT_EnemyExtData — Ranged / Elite / Boss 확장 수치
+// 에셋 경로: Content/Data/Enemy/DT_EnemyExtData
+// Row Key = EnemyID (FEnemyStaticData FK)
+// ----------------------------------------------------------------------------
+USTRUCT(BlueprintType)
+struct FEnemyExtData : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	// ── Ranged / Elite / Boss 공통 ──────────────────────────────────────────
+	/** 유지하려는 최소 거리 (BTTask_RangedReposition 후퇴 기준) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Ranged")
+	float PreferredRange = 0.f;
+	/** 투사체 공격 최대 사거리 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Ranged")
+	float MaxAttackRange = 0.f;
+	/** 투사체 초기 속도 (cm/s) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Ranged")
+	float ProjectileSpeed = 0.f;
+	/** 투사체 수명 (초) — 수명 만료 시 ReturnToPool */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Ranged")
+	float ProjectileLifetime = 0.f;
+
+	// ── Boss 전용 ───────────────────────────────────────────────────────────
+	/** 충격파 피해 반경 (cm) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Boss")
+	float ShockwaveRadius = 0.f;
+	/** 충격파 데미지 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Boss")
+	float ShockwaveDamage = 0.f;
+	/** 충격파 재사용 대기시간 (초) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Boss")
+	float ShockwaveCooldown = 0.f;
+	/** 충격파 시전 선딜레이 (초) — 경고 이펙트 표시 구간 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Boss")
+	float ShockwavePrepareTime = 0.f;
+
+	/** Phase2 전환 HP 비율 (0~1, 예: 0.5 = 50%) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Boss|Phase2")
+	float Phase2HPRatio = 0.5f;
+	/** Phase2 이동속도 배율 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Boss|Phase2")
+	float Phase2MoveSpeedMult = 1.f;
+	/** Phase2 투사체 데미지 배율 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Boss|Phase2")
+	float Phase2DamageMult = 1.f;
+	/** Phase2 전환 나이아가라 이펙트 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Boss|Phase2")
+	TSoftObjectPtr<UNiagaraSystem> Phase2TransitionFX;
+	/** Phase2 전환 애니메이션 몽타주 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Boss|Phase2")
+	TSoftObjectPtr<UAnimMontage> Phase2TransitionMontage;
 };
 
 

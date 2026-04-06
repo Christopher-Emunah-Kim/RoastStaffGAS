@@ -86,8 +86,10 @@ void UGameDataSubsystem::LoadDataTables()
         Config->SkillDefenseCommonParamsTable,LoadedSkillDefenseCommonParamsTable, TEXT("DT_Skill_Defense_Common_Params"));    //방어 스킬 공통 파라미터                       
     LoadDataTable<FStatusEffectData>(
         Config->StatusEffectStaticTable,LoadedStatusEffectTable, TEXT("DT_Status_Effect"));                                    //상태이상 데이터
-    LoadDataTable<FEnemyStaticData> (
-        Config->EnemyTable,  LoadedEnemyTable,  TEXT("DT_Enemy"));                                                             //적 데이터
+    LoadDataTable<FEnemyStaticData>(
+        Config->EnemyTable,    LoadedEnemyTable,    TEXT("DT_Enemy"));                                                         //적 기본 데이터
+    LoadDataTable<FEnemyExtData>(
+        Config->EnemyExtTable, LoadedEnemyExtTable, TEXT("DT_EnemyExtData"));                                                  //적 확장 데이터(Ranged/Elite/Boss)
     LoadDataTable<FStageStaticData> (
         Config->StageTable,  LoadedStageTable,  TEXT("DT_Stage"));                                                             //스테이지 스폰 데이터
     LoadDataTable<FWaveStaticData>  (
@@ -307,6 +309,24 @@ bool UGameDataSubsystem::GetStatusEffectData(FName StatusEffectID, FStatusEffect
 bool UGameDataSubsystem::GetEnemyData(FName EnemyID, FEnemyStaticData& OutData) const
 {
     return GetCachedData(EnemyCache, EnemyID, OutData, TEXT("FEnemyStaticData"));
+}
+
+bool UGameDataSubsystem::GetEnemyExtData(FName EnemyID, FEnemyExtData& OutData) const
+{
+    if (!LoadedEnemyExtTable)
+    {
+        KHS_WARN(TEXT("GetEnemyExtData — LoadedEnemyExtTable null. GDA에서 EnemyExtTable 할당 필요."));
+        return false;
+    }
+
+    if (FEnemyExtData* Row = LoadedEnemyExtTable->FindRow<FEnemyExtData>(EnemyID, TEXT("")))
+    {
+        OutData = *Row;
+        return true;
+    }
+
+    KHS_WARN(TEXT("EnemyID '%s' 행 없음. DT_EnemyExtData 확인 필요."), *EnemyID.ToString());
+    return false;
 }
 
 // -----------------------------------------------------------------------------

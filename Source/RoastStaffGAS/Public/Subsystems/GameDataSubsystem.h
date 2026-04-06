@@ -83,6 +83,8 @@ public:
     // -------------------------------------------------------------------------
     UFUNCTION(BlueprintCallable, Category = "MY|GDS|Enemy")
     bool GetEnemyData(FName EnemyID, FEnemyStaticData& OutData) const;
+    /** EnemyID → Ranged / Elite / Boss 확장 수치 반환. 행 없으면 false. */
+    bool GetEnemyExtData(FName EnemyID, FEnemyExtData& OutData) const;
     /** EnemyID → 트랜지션 프리로드용 에셋 묶음(EnemyClass/BehaviorTree) 반환. */
     bool GetEnemyPreloadBundle(FName EnemyID, FEnemyPreloadBundle& OutBundle) const;
 
@@ -146,7 +148,8 @@ private:
     UPROPERTY() UCurveTable* LoadedWeaponDamageCurveTable = nullptr;
     UPROPERTY() UDataTable* LoadedCharacterTable = nullptr;
     UPROPERTY() UDataTable* LoadedWeaponTable = nullptr;
-    UPROPERTY() UDataTable* LoadedEnemyTable = nullptr;
+    UPROPERTY() UDataTable* LoadedEnemyTable    = nullptr;
+    UPROPERTY() UDataTable* LoadedEnemyExtTable = nullptr;
     UPROPERTY() UDataTable* LoadedStageTable = nullptr;
     UPROPERTY() UDataTable* LoadedWaveTable = nullptr;
     UPROPERTY() UDataTable* LoadedStatusEffectTable = nullptr;  

@@ -92,7 +92,8 @@ enum class EAIType : uint8
 {
 	CHASE	UMETA(DisplayName = "Chase"),
 	RANGED	UMETA(DisplayName = "Ranged"),
-	ELITE	UMETA(DisplayName = "Elite")
+	ELITE	UMETA(DisplayName = "Elite"),
+	BOSS	UMETA(DisplayName = "Boss")
 };
 
 /** 캐릭터 등급 — 그리드 정렬 2순위 기준 (SSR > SR > R > N) */

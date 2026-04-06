@@ -72,6 +72,10 @@ public:
 	//Enemy / Stage / Wave
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
 	TSoftObjectPtr<UDataTable> EnemyTable;
+
+	/** DT_EnemyExtData — Ranged / Elite / Boss 확장 수치 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
+	TSoftObjectPtr<UDataTable> EnemyExtTable;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage")
 	TSoftObjectPtr<UDataTable> StageTable;
