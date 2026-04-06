@@ -27,6 +27,8 @@ refs:
    - "커밋해줘" 발언 없이 git commit 실행 절대 금지
    - 커밋은 기능 완성 + 테스트 완료 상태에서만 실행
    - 승인 없이 git commit 실행 = ABSOLUTE 위반
+9. 작업 완료 후 판단 구조 공개: 이 결정에서 고려한 선택지들과 각각을 선택/버린 이유를 간략히 설명할 것
+10. 세션 마무리 시 역질문 1개: "이 부분에서 시니라면 어떻게 했을 것 같아요?" — 시니의 사고를 자극하는 질문으로 마무리
 ```
 
 
@@ -58,6 +60,7 @@ SR_F:   trigger: ["전체리뷰","@senior-reviewer-full"]
 
 LEARN:  trigger: ["학습리포트","@learning-coach"]
         load:    [.claude/agents/learning-coach.md]
+        note: LEARN은 세션 마다 자동 권장 — 시니의 성장 추적이 목적
 
 CROSS:  trigger: ["Gemini리뷰","@cross-reviewer"]
         load:    [.claude/agents/cross-reviewer.md]
