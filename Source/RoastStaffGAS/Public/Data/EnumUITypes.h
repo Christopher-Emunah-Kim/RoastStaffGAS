@@ -53,4 +53,6 @@ enum class ELevelName : uint8
 	OUTGAME     UMETA(DisplayName = "OutGame"),
 	STAGE_1     UMETA(DisplayName = "Stage1"),   // 월드 1 스테이지 레벨
 	STAGE_2     UMETA(DisplayName = "Stage2"),   // 월드 2 스테이지 레벨
+	STAGE_3     UMETA(DisplayName = "Stage3"),   // 월드 3 스테이지 레벨
+	
 };
