@@ -29,36 +29,27 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 <!-- 신규 항목은 이 줄 아래에 추가 -->
 - date: 2026-04-06
   plan: PLAN_EnemyExpansion_v1.0
-  commit: null
+  commit: "dc117ce,550074a,a6f40d1,9cb3a61,11ff81d,0a9ad42"
   files:
     modified:
       - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
       - Source/RoastStaffGAS/Public/Data/EnumTypes.h
+      - Source/RoastStaffGAS/Public/Data/GameDataConfig.h
       - Source/RoastStaffGAS/Public/Subsystems/GameDataSubsystem.h
       - Source/RoastStaffGAS/Private/Subsystems/GameDataSubsystem.cpp
-      - Source/RoastStaffGAS/Private/Core/RSGameMode.cpp
       - Source/RoastStaffGAS/Public/System/EnemySpawner.h
       - Source/RoastStaffGAS/Private/System/EnemySpawner.cpp
+      - Source/RoastStaffGAS/Public/Character/Enemy/EnemyAIController.h
+      - Source/RoastStaffGAS/Private/Character/Enemy/EnemyAIController.cpp
     created:
-      - Source/RoastStaffGAS/Public/Character/Enemy/RangedEnemy.h
-      - Source/RoastStaffGAS/Private/Character/Enemy/RangedEnemy.cpp
-      - Source/RoastStaffGAS/Public/Character/Enemy/EliteEnemy.h
-      - Source/RoastStaffGAS/Private/Character/Enemy/EliteEnemy.cpp
-      - Source/RoastStaffGAS/Public/Character/Enemy/BossEnemy.h
-      - Source/RoastStaffGAS/Private/Character/Enemy/BossEnemy.cpp
-      - Source/RoastStaffGAS/Public/Objects/Projectile/EnemyProjectile.h
-      - Source/RoastStaffGAS/Private/Objects/Projectile/EnemyProjectile.cpp
-      - Source/RoastStaffGAS/Public/AI/BTTask_RangedReposition.h/.cpp
-      - Source/RoastStaffGAS/Public/AI/BTTask_FireProjectile.h/.cpp
-      - Source/RoastStaffGAS/Public/AI/BTTask_MeleeCharge.h/.cpp
-      - Source/RoastStaffGAS/Public/AI/BTTask_ExecuteShockwave.h/.cpp
-      - Source/RoastStaffGAS/Public/AI/BTDecorator_ShockwaveReady.h/.cpp
-      - Source/RoastStaffGAS/Public/AI/BTDecorator_IsPhase2.h/.cpp
-      - Source/RoastStaffGAS/Public/AI/BTDecorator_RandomChance.h/.cpp
+      - Source/RoastStaffGAS/Public/Character/Enemy/RangedEnemy.h/.cpp
+      - Source/RoastStaffGAS/Public/Character/Enemy/EliteEnemy.h/.cpp
+      - Source/RoastStaffGAS/Public/Character/Enemy/BossEnemy.h/.cpp
+      - Source/RoastStaffGAS/Public/Objects/Projectile/EnemyProjectile.h/.cpp
       - _Design/Plans/active/PLAN_EnemyExpansion_v1.0.md
     deleted: []
-  summary: "Enemy Ranged/Elite/Boss 시스템 — 3종 에너미 클래스 + 투사체 풀링 + AI 행동트리 전체"
-  status: PENDING_COMMIT
+  summary: "EnemyExpansion — ARangedEnemy/AEliteEnemy/ABossEnemy + AEnemyProjectile 풀링 + EnemyAIController PauseAI/ResumeAI (MODULE-1~6 완료, MODULE-7 다음 세션)"
+  status: COMMITTED
   bugs_found: []
   bugs_fixed: []
 - date: 2026-04-06
