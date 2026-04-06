@@ -8,6 +8,9 @@
 #include "Subsystems/SaveGameSubsystem.h"
 #include "Subsystems/GameDataSubsystem.h"
 #include "Subsystems/EquipmentSubsystem.h"
+#include "Subsystems/UIManagerSubsystem.h"
+#include "UI/InGame/RSStageResultWidget.h"
+#include "Data/EnumUITypes.h"
 #include "Character/Player/RSPlayerState.h"
 #include "Core/RSGameInstance.h"
 #include "Data/DataTableStructs.h"
@@ -174,29 +177,71 @@ void ARSGameMode::EndStage(bool bCleared)
 	}
 	bIsStageEnded = true;
 
+	StopStageActivities();
+	const FStageResultData ResultData = BuildResultData(bCleared);
+	SaveResult(ResultData);
+	ShowResultUI(ResultData, bCleared);
+}
+
+void ARSGameMode::StopStageActivities()
+{
+	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys);
+	EquipSys->StopAllFire();
+
+	UGameplayStatics::SetGamePaused(GetWorld(), true);
+}
+
+FStageResultData ARSGameMode::BuildResultData(bool bCleared)
+{
 	const float ElapsedTime = GetWorld()->GetTimeSeconds() - StageStartTime;
 
 	GET_WORLD_SUBSYSTEM(UStageManagerSubsystem, StageMgr);
 	const int32 KillCount = StageMgr->GetKillCount();
 
-	FStageResultData ResultData;
-	ResultData.SurvivalTime = ElapsedTime;
-	ResultData.KillCount = KillCount;
-	ResultData.bCleared = bCleared;
-
-	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS);
-	SGS->UpdateStageRecord(CurrentStageID, ResultData);
-
-	KHS_INFO(TEXT("스테이지 %s — StageID: %s | 생존: %.1fs | 처치: %d"),
-		bCleared ? TEXT("클리어!") : TEXT("실패"),
+	KHS_INFO(TEXT("스테이지 %s — StageID: %s | 생존: %.1fs | 처치: %d"), bCleared ? TEXT("클리어!") : TEXT("실패"),
 		*CurrentStageID.ToString(), ElapsedTime, KillCount);
 
-	OnResultConfirmed();
+	FStageResultData ResultData;
+	ResultData.SurvivalTime = ElapsedTime;
+	ResultData.KillCount    = KillCount;
+	ResultData.bCleared     = bCleared;
+	return ResultData;
+}
+
+void ARSGameMode::SaveResult(const FStageResultData& ResultData)
+{
+	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS);
+	SGS->UpdateStageRecord(CurrentStageID, ResultData);
+}
+
+void ARSGameMode::ShowResultUI(const FStageResultData& ResultData, bool bCleared)
+{
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance());
+	URSStageResultWidget* ResultWidget = Cast<URSStageResultWidget>(UMS->OpenUIByID(EUIID::STAGE_RESULT));
+	if (!ensureMsgf(ResultWidget, TEXT("StageResultWidget 오픈 실패 — UIManagerSettings STAGE_RESULT 매핑 확인 필요")))
+	{
+		OnResultConfirmed();
+		return;
+	}
+
+	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS);
+	const FStageRecord Record = SGS->GetStageRecord(CurrentStageID);
+	ResultWidget->SetResultData(
+		bCleared,
+		ResultData.SurvivalTime,
+		ResultData.KillCount,
+		Record.BestSurvivalTime,
+		Record.BestKillCount,
+		CurrentStageID.ToString()
+	);
+	
+	ResultWidget->OnConfirmClickedDel.AddDynamic(this, &ARSGameMode::OnResultConfirmed);
 }
 
 void ARSGameMode::OnResultConfirmed()
 {
-	// OUTGAME 레벨로 복귀
+	UGameplayStatics::SetGamePaused(GetWorld(), false);
+
 	URSGameInstance* GI = Cast<URSGameInstance>(GetGameInstance());
 	check(GI);
 

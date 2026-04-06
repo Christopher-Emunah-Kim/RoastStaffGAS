@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Data/RuntimeDataStructs.h"
 #include "RSGameMode.generated.h"
 
 /**
@@ -39,14 +40,22 @@ private:
 
 	// 스테이지 클리어 판정 (매 프레임 TimeLimit 체크)
 	void CheckStageClearCondition();
-
 	// 스테이지 클리어 처리 (TimeLimit 초과 생존)
 	void OnStageCleared();
-
-	// 스테이지 종료 공통 처리 (결과 데이터 구성 + 저장 + OUTGAME 복귀)
+	// 스테이지 종료 공통 처리
 	void EndStage(bool bCleared);
+	
+	// 자동발사 타이머 정리 + 게임 일시정지
+	void StopStageActivities();
+	// 경과 시간·처치 수로 결과 데이터 구성
+	FStageResultData BuildResultData(bool bCleared);
+	// 세이브 서브시스템에 결과 저장
+	void SaveResult(const FStageResultData& ResultData);
+	// 결과 UI 오픈 + 데이터 주입 + 확인 버튼 바인딩
+	void ShowResultUI(const FStageResultData& ResultData, bool bCleared);
 
-	// 결과 확인 후 OUTGAME 복귀 (현재는 즉시 복귀, MODULE-4에서 UI 연동)
+	// 결과 UI 확인 버튼 클릭 시 호출 — OnConfirmClickedDel에 바인딩
+	UFUNCTION()
 	void OnResultConfirmed();
 
 private:
