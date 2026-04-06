@@ -41,6 +41,10 @@ public:
 
 	/** 풀 반납 시 BT 로직 중단 및 이동 정지 */
 	void StopAI();
+	/** 보스 페이즈 전환 시 BT 일시 중단 (StopLogic이 아닌 PauseLogic — 재개 가능) */
+	void PauseAI();
+	/** PauseAI 이후 재개 — 페이즈 전환 완료 시 호출 */
+	void ResumeAI();
 
 private:
 	// tick 체크용 캐싱
@@ -50,4 +54,5 @@ public:
 	// Blackboard 키 이름 상수
 	static const FName BBKey_PlayerLocation;
 	static const FName BBKey_bPlayerDead;
+	static const FName BBKey_bIsPhase2;
 };

@@ -13,6 +13,7 @@
 
 const FName AEnemyAIController::BBKey_PlayerLocation = TEXT("PlayerLocation");
 const FName AEnemyAIController::BBKey_bPlayerDead    = TEXT("bPlayerDead");
+const FName AEnemyAIController::BBKey_bIsPhase2      = TEXT("bIsPhase2");
 
 AEnemyAIController::AEnemyAIController()
 {
@@ -137,4 +138,23 @@ void AEnemyAIController::StopAI()
 	}
 	StopMovement();
 	KHS_INFO(TEXT("%s — AI 중단."), *GetName());
+}
+
+void AEnemyAIController::PauseAI()
+{
+	if (UBrainComponent* Brain = GetBrainComponent())
+	{
+		Brain->PauseLogic(TEXT("Boss phase transition"));
+	}
+	StopMovement();
+	KHS_DEBUG(TEXT("%s — AI 일시 중단 (페이즈 전환)."), *GetName());
+}
+
+void AEnemyAIController::ResumeAI()
+{
+	if (UBrainComponent* Brain = GetBrainComponent())
+	{
+		Brain->ResumeLogic(TEXT("Boss phase transition complete"));
+	}
+	KHS_DEBUG(TEXT("%s — AI 재개 (페이즈2 활성)."), *GetName());
 }
