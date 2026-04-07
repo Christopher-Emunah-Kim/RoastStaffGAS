@@ -67,20 +67,26 @@
     - [x] GetEnemyExtData(FName EnemyID, FEnemyExtData& Out) 구현            [P0]
     - [x] DT_EnemyExtData 테이블 포인터 UPROPERTY 추가                       [P0]
 
-  ### [MODULE-7] BT 노드 + 행동트리 에셋
+  ### [MODULE-7] BT 노드 + 행동트리 에셋 ✓ DONE 2026-04-07
   신규: BTTask_RangedReposition, BTTask_FireProjectile, BTTask_MeleeCharge,
         BTTask_ExecuteShockwave, BTDecorator_ShockwaveReady,
         BTDecorator_IsPhase2, BTDecorator_RandomChance (.h/.cpp 각 7쌍)
-    - [ ] BTTask_RangedReposition — 거리 기반 전진/후퇴                      [P1]
-    - [ ] BTTask_FireProjectile — FireProjectile() 호출                      [P1]
-    - [ ] BTTask_MeleeCharge — MeleeCharge() 호출                           [P1]
-    - [ ] BTTask_ExecuteShockwave — PrepareTime 선딜 + ExecuteShockwave()    [P1]
-    - [ ] BTDecorator_ShockwaveReady — 쿨타임 체크                           [P1]
-    - [ ] BTDecorator_IsPhase2 — ABossEnemy::IsPhase2() 체크                [P1]
-    - [ ] BTDecorator_RandomChance — 확률 판정 (EliteEnemy 돌진용)           [P1]
+    - [x] BTTask_RangedReposition — 거리 기반 전진/후퇴                      [P1]
+    - [x] BTTask_FireProjectile — FireProjectile() 호출                      [P1]
+    - [x] BTTask_MeleeCharge — MeleeCharge() 호출                           [P1]
+    - [x] BTTask_ExecuteShockwave — PrepareTime 선딜 + ExecuteShockwave()    [P1]
+    - [x] BTDecorator_ShockwaveReady — 쿨타임 체크                           [P1]
+    - [x] BTDecorator_IsPhase2 — ABossEnemy::IsPhase2() 체크                [P1]
+    - [x] BTDecorator_RandomChance — 확률 판정 (EliteEnemy 돌진용)           [P1]
     - [ ] BT_RangedEnemy 에셋 구성                                           [P1]
     - [ ] BT_EliteEnemy 에셋 구성                                            [P1]
     - [ ] BT_BossEnemy 에셋 구성 (Phase1/2 분기)                            [P1]
+
+---
+
+## NEXT_SESSION
+- [ ] 시니어 리뷰 (@senior-reviewer) — EnemyExpansion 전체 (MODULE-1~7 + 버그픽스)  [P0]
+- [ ] 로비 전환 시 크래시 재현 확인 (WeakThis 패치 적용됨)                          [P0]
 
 ---
 

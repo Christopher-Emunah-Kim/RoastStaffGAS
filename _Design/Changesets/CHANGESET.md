@@ -27,6 +27,33 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ---
 <!-- 신규 항목은 이 줄 아래에 추가 -->
+- date: 2026-04-07
+  plan: PLAN_EnemyExpansion_v1.0
+  commit: null
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Character/Enemy/BossEnemy.h
+      - Source/RoastStaffGAS/Private/Character/Enemy/BossEnemy.cpp
+    created:
+      - Source/RoastStaffGAS/Public/AI/BTTask_RangedReposition.h
+      - Source/RoastStaffGAS/Private/AI/BTTask_RangedReposition.cpp
+      - Source/RoastStaffGAS/Public/AI/BTTask_FireProjectile.h
+      - Source/RoastStaffGAS/Private/AI/BTTask_FireProjectile.cpp
+      - Source/RoastStaffGAS/Public/AI/BTTask_MeleeCharge.h
+      - Source/RoastStaffGAS/Private/AI/BTTask_MeleeCharge.cpp
+      - Source/RoastStaffGAS/Public/AI/BTTask_ExecuteShockwave.h
+      - Source/RoastStaffGAS/Private/AI/BTTask_ExecuteShockwave.cpp
+      - Source/RoastStaffGAS/Public/AI/BTDecorator_ShockwaveReady.h
+      - Source/RoastStaffGAS/Private/AI/BTDecorator_ShockwaveReady.cpp
+      - Source/RoastStaffGAS/Public/AI/BTDecorator_IsPhase2.h
+      - Source/RoastStaffGAS/Private/AI/BTDecorator_IsPhase2.cpp
+      - Source/RoastStaffGAS/Public/AI/BTDecorator_RandomChance.h
+      - Source/RoastStaffGAS/Private/AI/BTDecorator_RandomChance.cpp
+    deleted: []
+  summary: "EnemyExpansion MODULE-7 — BT Task 4종 + Decorator 3종 + BossEnemy 쿨타임 추적 추가 (BT 에셋 3개는 에디터 작업 대기)"
+  status: PENDING_COMMIT
+  bugs_found: []
+  bugs_fixed: []
 - date: 2026-04-06
   plan: PLAN_EnemyExpansion_v1.0
   commit: "dc117ce,550074a,a6f40d1,9cb3a61,11ff81d,0a9ad42"

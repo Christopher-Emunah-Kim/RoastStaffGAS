@@ -1,3 +1,12 @@
+## 2026-04-07 — MODULE7Debug
+keywords: [UE_LOG-Verbose-filtering, Instigator-pattern, FTransform-Scale-trap, AutoPossessAI, TWeakObjectPtr-lambda, YAGNI, custom-collision-channel]
+status:   🟡심화필요
+score:    정합:N/A GAS:N/A 메모리:N/A OOP:N/A 컨벤션:N/A (SR 없음 — 디버깅 세션)
+note:     KHS_DEBUG 에디터 필터링 실전 고리 누락(애매해). Instigator 방향 직관은 맞았으나 API 연결 부재. FTransform Scale 함정 이미 알고도 걸림. YAGNI / 커스텀 채널 즉답 ✅
+report:   _Design/Learning/reports/LEARN_20260407_MODULE7Debug.md
+
+---
+
 ## 2026-03-31 — UE5BuildSetup
 keywords: [UENUM-generated-h, DeveloperSettings-module, git-core-quotepath, UBT-Korean-filename-crash]
 status:   🟡심화필요
