@@ -23,6 +23,7 @@ AEnemyAIController::AEnemyAIController()
 void AEnemyAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
+	KHS_INFO(TEXT("[AI] OnPossess — %s → %s"), *GetName(), InPawn ? *InPawn->GetName() : TEXT("NULL"));
 }
 
 void AEnemyAIController::Tick(float DeltaTime)

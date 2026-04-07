@@ -38,14 +38,17 @@ public:
 	/** BTTask_FireSpreadProjectile가 Phase2에서 호출 */
 	UFUNCTION(BlueprintCallable, Category = "MY|Enemy|Boss")
 	void FireSpreadProjectile();
-
+	/** BTDecorator_ShockwaveReady가 쿨타임 만료 여부를 조회 */
+	bool IsShockwaveReady() const;
+	/** BTTask_ExecuteShockwave가 완료 후 호출 — 쿨타임 시작 */
+	void MarkShockwaveUsed();
+	
 	FORCEINLINE bool  IsPhase2()             const { return bPhaseTransitioned; }
 	FORCEINLINE float GetShockwaveRadius()   const { return ShockwaveRadius; }
 	FORCEINLINE float GetShockwaveCooldown() const { return ShockwaveCooldown; }
 	FORCEINLINE float GetShockwavePrepareTime() const { return ShockwavePrepareTime; }
 	FORCEINLINE float GetPreferredRange()    const { return PreferredRange; }
 	FORCEINLINE float GetMaxAttackRange()    const { return MaxAttackRange; }
-
 
 protected:
 	virtual void BeginPlay() override;
@@ -86,6 +89,8 @@ private:
 	float Phase2MoveSpeedMult = 1.f;
 	float Phase2DamageMult    = 1.f;
 	bool  bPhaseTransitioned  = false;
+	/** 마지막 Shockwave 사용 시각 — 초기값 -999로 설정해 게임 시작 즉시 준비 상태 */
+	float LastShockwaveTime   = -999.f;
 
 	/** 전환 연출용 에셋 — InitializeBossParams에서 동기 로드 */
 	UPROPERTY()

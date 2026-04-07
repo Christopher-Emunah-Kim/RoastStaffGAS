@@ -147,6 +147,19 @@ void ABossEnemy::ActivatePhase2()
 // Shockwave
 // ─────────────────────────────────────────────────────────────────────────────
 
+bool ABossEnemy::IsShockwaveReady() const
+{
+	return GetWorld() && (GetWorld()->GetTimeSeconds() - LastShockwaveTime >= ShockwaveCooldown);
+}
+
+void ABossEnemy::MarkShockwaveUsed()
+{
+	if (GetWorld())
+	{
+		LastShockwaveTime = GetWorld()->GetTimeSeconds();
+	}
+}
+
 void ABossEnemy::ExecuteShockwave()
 {
 	if (!ShockwaveGEClass)
@@ -231,6 +244,7 @@ void ABossEnemy::FireSpreadProjectile()
 	KHS_DEBUG(TEXT("%s — 보스 방사형 투사체 발사. 데미지: %.0f"), *GetName(), DamageWithMult);
 }
 
+
 void ABossEnemy::LaunchProjectileInDirection(const FVector& Direction, float DamageOverride)
 {
 	UPoolingSubsystem* PoolSys = GetWorld()->GetSubsystem<UPoolingSubsystem>();
@@ -247,7 +261,8 @@ void ABossEnemy::LaunchProjectileInDirection(const FVector& Direction, float Dam
 		return;
 	}
 
-	Projectile->InitEnemyProjectile(Direction, ProjectileSpeed, ProjectileLifetime,	DamageOverride, ProjectileGEClass, GetAbilitySystemComponent());
+	Projectile->SetInstigator(this);
+	Projectile->InitEnemyProjectile(Direction, ProjectileSpeed, ProjectileLifetime, DamageOverride, ProjectileGEClass, GetAbilitySystemComponent());
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
