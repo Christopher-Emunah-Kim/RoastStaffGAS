@@ -96,7 +96,8 @@ void ABaseCharacter::BindAttributeDelegates()
 		return;
 	}
 
-	// 사망 델리게이트 구독
+	// 사망 델리게이트 구독 (재초기화 시 중복 방지)
+	AS->OnDeathDel.RemoveDynamic(this, &ABaseCharacter::HandleDeath);
 	AS->OnDeathDel.AddDynamic(this, &ABaseCharacter::HandleDeath);
 
 	KHS_INFO(TEXT(" %s — ATTRIBUTE DELEGATE BINDING SUCCESS"), *GetName());

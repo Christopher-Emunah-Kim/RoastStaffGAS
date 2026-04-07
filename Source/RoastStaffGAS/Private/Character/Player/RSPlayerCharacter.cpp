@@ -15,6 +15,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "TimerManager.h"
@@ -22,6 +23,9 @@
 ARSPlayerCharacter::ARSPlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;
+
+	// 에너미 투사체 피격 허용 — EnemyProjectile 채널 Overlap
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Overlap);
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);

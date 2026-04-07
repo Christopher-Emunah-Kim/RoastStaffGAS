@@ -15,16 +15,23 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GAS/Tags/RSGameplayTags.h"
 #include "Components/WidgetComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "UI/Enemy/EnemyHPBarWidget.h"
 
 AEnemyBaseCharacter::AEnemyBaseCharacter()
 {
+	// 스폰 즉시 AIController가 자동 점유 — 풀링 재사용 시에도 GetController() 유효
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
 	// ASC
 	ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
 
 	// EnemyAttributeSet - ASC 등록
 	EnemyAttributeSet = CreateDefaultSubobject<UEnemyAttributeSet>(TEXT("EnemyAttributeSet"));
 	ASC->AddAttributeSetSubobject<UEnemyAttributeSet>(EnemyAttributeSet);
+
+	// 에너미 투사체는 적끼리 통과 — EnemyProjectile 채널 Ignore
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
 
 	// HPBar WidgetComponent — 월드 스페이스, 머리 위 부착
 	// 위치는 BP 에디터의 컴포넌트 트랜스폼에서 조정 가능
@@ -152,13 +159,19 @@ void AEnemyBaseCharacter::HandleDeath()
 	OnEnemyKilledDel.Broadcast(EnemyID);
 
 	// 사망 연출 후 풀 반납 (SetLifeSpan 대신 ReturnToPool — 액터 재사용)
+	// WeakThis: 레벨 전환 중 액터 소멸 시 람다가 dangling this에 접근하는 것을 방지
+	TWeakObjectPtr<AEnemyBaseCharacter> WeakThis(this);
 	GetWorldTimerManager().SetTimer(
 		DeathReturnTimerHandle,
-		[this]()
+		[WeakThis]()
 		{
-			if (UPoolingSubsystem* PoolSys = GetWorld()->GetSubsystem<UPoolingSubsystem>())
+			if (!WeakThis.IsValid())
 			{
-				PoolSys->ReturnToPool(this);
+				return;
+			}
+			if (UPoolingSubsystem* PoolSys = WeakThis->GetWorld()->GetSubsystem<UPoolingSubsystem>())
+			{
+				PoolSys->ReturnToPool(WeakThis.Get());
 			}
 		},
 		DeathPoolReturnDelay,
@@ -236,6 +249,7 @@ void AEnemyBaseCharacter::SetupHPBar()
 	}
 
 	HPBarWidget->BindToASC(ASC);
+	HPBarWidget->SetEnemyName(FText::FromName(EnemyID));
 }
 
 bool AEnemyBaseCharacter::ApplyStatData(FEnemyStaticData& EnemyData)

@@ -75,8 +75,9 @@ void ARangedEnemy::LaunchProjectile(const FVector& Direction)
 		return;
 	}
 
-	Projectile->InitEnemyProjectile(Direction,	ProjectileSpeed, ProjectileLifetime,
-		AttackDamage, AttackGEClass,	GetAbilitySystemComponent());
+	Projectile->SetInstigator(this);
+	Projectile->InitEnemyProjectile(Direction, ProjectileSpeed, ProjectileLifetime,
+		AttackDamage, AttackGEClass, GetAbilitySystemComponent());
 
 	KHS_DEBUG(TEXT("%s — 투사체 발사. 방향: %s"), *GetName(), *Direction.ToString());
 }

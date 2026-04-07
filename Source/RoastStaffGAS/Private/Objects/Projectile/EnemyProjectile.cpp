@@ -18,6 +18,7 @@ AEnemyProjectile::AEnemyProjectile()
 	SphereComp->SetSphereRadius(30.f);
 	// 벽만 Block, Pawn은 Overlap — 에너미끼리 투사체 미차단
 	SphereComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	SphereComp->SetCollisionObjectType(ECC_GameTraceChannel1);  // 커스텀 "EnemyProjectile" 채널
 	SphereComp->SetCollisionResponseToAllChannels(ECR_Ignore);
 	SphereComp->SetCollisionResponseToChannel(ECC_WorldStatic,  ECR_Block);
 	SphereComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
@@ -73,6 +74,12 @@ void AEnemyProjectile::InitEnemyProjectile(const FVector& Direction,float Speed,
 	CachedDamageGEClass = InDamageGEClass;
 	SourceASC           = InSourceASC;
 
+	// 스폰한 에너미(Instigator) 충돌 무시 — 자기 자신 즉시 충돌 방지
+	if (AActor* MyInstigator = GetInstigator())
+	{
+		SphereComp->IgnoreActorWhenMoving(MyInstigator, true);
+	}
+
 	// 방향·속도 설정
 	ProjectileComp->Velocity = Direction.GetSafeNormal() * Speed;
 
@@ -83,7 +90,7 @@ void AEnemyProjectile::InitEnemyProjectile(const FVector& Direction,float Speed,
 	// 수명 타이머
 	GetWorldTimerManager().SetTimer(LifetimeTimerHandle,	this, &AEnemyProjectile::OnLifetimeExpired,Lifetime, false);
 
-	KHS_DEBUG(TEXT("EnemyProjectile 발사 — Speed: %.0f / Lifetime: %.1f / Damage: %.0f"), Speed, Lifetime, Damage);
+	KHS_DEBUG(TEXT("%s — 투사체 발사. Speed:%.0f / Lifetime:%.1f / Damage:%.0f"), *GetName(), Speed, Lifetime, Damage);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -93,7 +100,7 @@ void AEnemyProjectile::InitEnemyProjectile(const FVector& Direction,float Speed,
 void AEnemyProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	// WorldStatic/WorldDynamic Block 충돌 — 벽·지형
+	// 벽/지형 Block 충돌 — 데미지 없이 반납
 	ReturnToPool();
 }
 
