@@ -81,6 +81,10 @@ UPDATE: trigger: ["플로우 개선","스킬 수정","규칙 바꿔","agent-upda
 HARNESS: trigger: ["하네스","워크플로 강화","실수 막아","구조적 차단","harness"]
          load:    [.claude/skills/harness/SKILL.md]
 
+END:    trigger: ["세션 종료","핸드오프","종료할게"]
+        flow:    .claude/references/protocols.md#SESSION_END 실행
+        note:    TODO 정리 → [PR] 파이프라인 자가 진단 → 승인 후 파이프라인 파일 수정 → Handoff
+
 GC:     trigger: ["청소","gc","전체 점검","가비지","안티패턴 정리","코드 정리"]
         load:    [.claude/skills/gc/SKILL.md]
 ```
@@ -88,8 +92,9 @@ GC:     trigger: ["청소","gc","전체 점검","가비지","안티패턴 정리
 ## PIPELINE_FLOW
 > 상세: .claude/references/protocols.md#pipeline
 ```
-[PLAN] → [CODE] → [TEST]* → [SR]* → [LEARN]* → COMMIT
+[PLAN] → [CODE] → [EXPLAIN_IMPL]* → [TEST]* → [SR]* → [LEARN]* → COMMIT
   * = 사용자 승인 필요
+  EXPLAIN_IMPL: CODE 완료 후 구현 결정 설명 + 알아/몰라/애매해 응답 → KnowledgeGaps.md 축적
 ```
 
 ## LOAD_STRATEGY

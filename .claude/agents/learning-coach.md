@@ -13,7 +13,7 @@ memory: project
 
 ## STATE_MACHINE
 ```
-INIT ──→ [A] SR 파일 읽기
+INIT ──→ [A] SR 파일 + KnowledgeGaps 읽기
           └─ [B] LEARNING_LOG 확인
                 └─ [C] 학습 리포트 작성
                       └─ [D] LEARNING_LOG 갱신
@@ -22,8 +22,14 @@ INIT ──→ [A] SR 파일 읽기
 
 ## EXEC
 
-### [A] SR 결과 읽기
+### [A] SR 결과 + KnowledgeGaps 읽기
 `_Design/Reviews/SR_*.md` (최신) → 수정권고 + 개선제안 + 평가점수
+`_Design/Learning/KnowledgeGaps.md` → 지식 공백 현황 확인
+  · 횟수 2+ 항목 → 🔴 우선 학습 대상
+  · 횟수 1 항목 → 🟡 심화 권장 후보
+  · SR 지적과 KnowledgeGap이 겹치는 항목 → 가장 높은 우선순위
+  · 출처가 "재분류"인 항목 (자기신고 "알아" → 진단 후 변경) → 별도 마킹
+    → 사용자가 과신하는 영역일 가능성 높음 → 학습 리포트에 경고 포함
 
 ### [B] LEARNING_LOG 확인
 `_Design/Learning/LEARNING_LOG.md` 읽기
@@ -35,14 +41,19 @@ INIT ──→ [A] SR 파일 읽기
 ```
 # LEARN — YYYY-MM-DD [시스템명]
 
-🔴 필수 학습 (수정 권고):
-| 키워드(영어) | 개념 | 왜 중요한가 |
+🔴 필수 학습 (수정 권고 + 지식 공백 교차):
+| 키워드(영어) | 개념 | 왜 중요한가 | 출처 |
+| ...         | ... | ...        | SR / KnowledgeGap |
 
-🟡 심화 권장 (개선 제안):
+🟡 심화 권장 (개선 제안 + 몰라/애매해 항목):
 | 키워드(영어) | 현재 수준 | 목표 수준 |
 
 🟢 성장 확인 (이전 → 개선):
 | 항목 | 이전 | 이번 |
+
+## 학습 순서 제안
+> KnowledgeGaps 누적 기반 — 이걸 알아야 저걸 이해한다 순서
+1. [선행 개념] → [목표 개념] 이유: ...
 
 ## 이전 대비 점수 변화
 ## 다음 세션 전 체크리스트
