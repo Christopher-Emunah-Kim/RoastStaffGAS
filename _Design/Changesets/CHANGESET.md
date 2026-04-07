@@ -29,7 +29,7 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 <!-- 신규 항목은 이 줄 아래에 추가 -->
 - date: 2026-04-07
   plan: PLAN_EnemyExpansion_v1.0
-  commit: null
+  commit: "6aa574e,21f442d,d91100d,092f785,4e16aa5,f805711,cba108d,d263f02,d5ada42"
   files:
     modified:
       - Source/RoastStaffGAS/Public/Character/Enemy/BossEnemy.h
@@ -50,10 +50,15 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
       - Source/RoastStaffGAS/Public/AI/BTDecorator_RandomChance.h
       - Source/RoastStaffGAS/Private/AI/BTDecorator_RandomChance.cpp
     deleted: []
-  summary: "EnemyExpansion MODULE-7 — BT Task 4종 + Decorator 3종 + BossEnemy 쿨타임 추적 추가 (BT 에셋 3개는 에디터 작업 대기)"
-  status: PENDING_COMMIT
+  summary: "EnemyExpansion MODULE-7 — BT Task 4종 + Decorator 3종 + BossEnemy 쿨타임 추적 + 투사체 충돌채널 + Instigator 패턴 + 보스1회 스폰 + Pool Scale 보존"
+  status: COMMITTED
   bugs_found: []
-  bugs_fixed: []
+  bugs_fixed:
+    - "EnemyProjectile ECC_Pawn 채널 — 적끼리 충돌 → ECC_GameTraceChannel1 커스텀 채널로 해결"
+    - "투사체 자기 자신 즉시 충돌 — 80u 오프셋 → SetInstigator + IgnoreActorWhenMoving으로 교체"
+    - "풀 재사용 시 AddDynamic ensure 오류 — RemoveDynamic 선행 호출로 수정"
+    - "BossEnemy BP Scale 리셋 — SetActorTransform → SetActorLocationAndRotation"
+    - "보스 중복 스폰 — bBossSpawned bool 가드"
 - date: 2026-04-06
   plan: PLAN_EnemyExpansion_v1.0
   commit: "dc117ce,550074a,a6f40d1,9cb3a61,11ff81d,0a9ad42"
