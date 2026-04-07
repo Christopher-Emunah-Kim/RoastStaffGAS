@@ -57,6 +57,9 @@ private:
 	int32 KillCount        = 0;
 	int32 CurrentWaveIndex = 0;
 
+	/** 보스 스폰 여부 — 스테이지당 1회 보장 */
+	bool bBossSpawned = false;
+
 	/** 현재 웨이브 스폰 간격 반복 타이머 */
 	FTimerHandle SpawnTimerHandle;
 	/** 웨이브 전환 타이머 목록 — 인덱스가 CachedWaveData와 대응 */

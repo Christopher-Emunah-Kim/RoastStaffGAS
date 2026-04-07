@@ -81,7 +81,8 @@ AActor* UPoolingSubsystem::SpawnPooledActor(TSubclassOf<AActor> ActorClass, cons
         }
     }                                                                                                          
 
-    Actor->SetActorTransform(SpawnTransform);
+    // Scale은 BP 기본값 유지 — 위치/회전만 적용
+    Actor->SetActorLocationAndRotation(SpawnTransform.GetLocation(), SpawnTransform.GetRotation());
 
     if (IPoolableInterface* Interface = Cast<IPoolableInterface>(Actor))                                     
     {

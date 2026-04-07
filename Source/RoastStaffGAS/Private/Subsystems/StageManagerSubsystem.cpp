@@ -57,6 +57,7 @@ void UStageManagerSubsystem::StartStage(FName StageID)
 	KillCount          = 0;
 	CurrentWaveIndex   = 0;
 	AliveEnemies.Empty();
+	bBossSpawned = false;
 
 	// 웨이브 전환 타이머 예약
 	WaveTransitionTimers.SetNum(CachedWaveData.Num());
@@ -170,7 +171,7 @@ void UStageManagerSubsystem::OnSpawnTimer()
 	// 스포너 유효성 검사
 	if (!Spawner.IsValid())
 	{
-		KHS_WARN(TEXT("UStageManagerSubsystem::OnSpawnTimer — Spawner가 유효하지 않음"));
+		KHS_WARN(TEXT("OnSpawnTimer — Spawner가 유효하지 않음"));
 		return;
 	}
 
@@ -178,8 +179,20 @@ void UStageManagerSubsystem::OnSpawnTimer()
 	const FName EnemyID = SelectEnemyIDByWeight();
 	if (EnemyID.IsNone())
 	{
-		KHS_WARN(TEXT("UStageManagerSubsystem::OnSpawnTimer — SelectEnemyIDByWeight 실패"));
+		KHS_WARN(TEXT("OnSpawnTimer — SelectEnemyIDByWeight 실패"));
 		return;
+	}
+
+	// 보스 여부 확인 — 이미 스폰됐으면 스킵
+	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance())
+	FEnemyStaticData EnemyData;
+	if (GDS->GetEnemyData(EnemyID, EnemyData) && EnemyData.bIsBoss)
+	{
+		if (bBossSpawned)
+		{
+			return;
+		}
+		bBossSpawned = true;
 	}
 
 	Spawner->SpawnEnemy(EnemyID, PlayerPawn->GetActorLocation());
