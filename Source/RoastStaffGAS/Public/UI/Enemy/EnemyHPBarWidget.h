@@ -10,6 +10,7 @@
 class UProgressBar;
 class UImage;
 class UAbilitySystemComponent;
+class UTextBlock;
 
 /**
  * UEnemyHPBarWidget
@@ -17,21 +18,22 @@ class UAbilitySystemComponent;
  * - 에너미 WidgetComponent에 부착되는 월드 스페이스 체력바
  * - BindToASC() 호출로 ASC 델리게이트를 직접 구독
  * - GhostBar: 피격 후 딜레이를 두고 보간하여 추종
- * - LowHealth: HP 비율이 LowHealthThreshold 이하일 때 DangerGlow/애니메이션 활성화
  */
 UCLASS()
 class ROASTSTAFFGAS_API UEnemyHPBarWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
-public:
-	/** ASC에 바인딩하고 초기 HP 값으로 위젯을 렌더링 */
-	void BindToASC(UAbilitySystemComponent* InASC);
-
 protected:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual void NativeDestruct() override;
 
+public:
+	/** ASC에 바인딩하고 초기 HP 값으로 위젯을 렌더링 */
+	void BindToASC(UAbilitySystemComponent* InASC);
+	/** EnemyID를 Txt_EnemyName에 표시 (디버그 식별용) */
+	void SetEnemyName(const FText& InName);
+	
 private:
 	/** ASC 어트리뷰트 변경 델리게이트 콜백 */
 	void OnCurrentHPChanged(const FOnAttributeChangeData& Data);
@@ -52,6 +54,8 @@ private:
 	TObjectPtr<UProgressBar> PBar_Ghost;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UImage> Img_DangerGlow;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> Txt_EnemyName;
 	UPROPERTY(Transient, meta = (BindWidgetAnimOptional))
 	TObjectPtr<UWidgetAnimation> Anim_LowHealth;
 	UPROPERTY(Transient, meta = (BindWidgetAnimOptional))

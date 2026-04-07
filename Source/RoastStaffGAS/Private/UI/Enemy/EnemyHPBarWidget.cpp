@@ -3,9 +3,18 @@
 #include "UI/Enemy/EnemyHPBarWidget.h"
 #include "Components/ProgressBar.h"
 #include "Components/Image.h"
+#include "Components/TextBlock.h"
 #include "AbilitySystemComponent.h"
 #include "GAS/Attributes/BaseAttributeSet.h"
 #include "System/LoggingSystem.h"
+
+void UEnemyHPBarWidget::SetEnemyName(const FText& InName)
+{
+	if (Txt_EnemyName)
+	{
+		Txt_EnemyName->SetText(InName);
+	}
+}
 
 void UEnemyHPBarWidget::BindToASC(UAbilitySystemComponent* InASC)
 {
