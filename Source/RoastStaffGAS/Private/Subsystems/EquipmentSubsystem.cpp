@@ -136,6 +136,14 @@ void UEquipmentSubsystem::EquipWeapon(const FName& WeaponID)
 	OnSlotFull.Broadcast(WeaponID);
 }
 
+void UEquipmentSubsystem::DeinitializeSubsystem()
+{
+	StopAllFire();
+	ASC             = nullptr;
+	bIsInitialized  = false;
+	KHS_INFO(TEXT("EquipmentSubsystem 해제 완료."));
+}
+
 void UEquipmentSubsystem::StopAllFire()
 {
 	for (FWeaponSlotInstanceData& Slot : Slots)
@@ -203,6 +211,11 @@ const FWeaponSlotInstanceData* UEquipmentSubsystem::GetSlotData(int32 SlotIndex)
 
 void UEquipmentSubsystem::FireSlot(int32 SlotIndex, const FVector& AimLocation)
 {
+	if (!bIsInitialized || !IsValid(ASC))
+	{
+		return;
+	}
+
 	FWeaponSlotInstanceData& Slot = Slots[SlotIndex];
 
 	FGameplayEventData Payload;

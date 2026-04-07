@@ -240,6 +240,10 @@ void ARSGameMode::ShowResultUI(const FStageResultData& ResultData, bool bCleared
 
 void ARSGameMode::OnResultConfirmed()
 {
+	// 레벨 전환 전 타이머 전량 정리 — SetGamePaused(false) 이전에 실행해야 함
+	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys);
+	EquipSys->DeinitializeSubsystem();
+
 	UGameplayStatics::SetGamePaused(GetWorld(), false);
 
 	URSGameInstance* GI = Cast<URSGameInstance>(GetGameInstance());

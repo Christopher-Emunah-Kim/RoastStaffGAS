@@ -31,6 +31,8 @@ class ROASTSTAFFGAS_API UEquipmentSubsystem : public UGameInstanceSubsystem
 public:
 	// PlayerCharacter에서 호출
 	void InitializeSubsystem(UAbilitySystemComponent* InASC);
+	/** 레벨 전환 직전 호출 — 타이머 전량 정리 + ASC 참조 해제 */
+	void DeinitializeSubsystem();
 	void RequestManualFire(const FVector& AimLocation);
 	void RequestSlotActivate(int32 SlotIndex);
 	
