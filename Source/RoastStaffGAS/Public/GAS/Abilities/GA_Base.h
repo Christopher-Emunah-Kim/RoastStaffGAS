@@ -57,7 +57,8 @@ protected:
 	TSubclassOf<T> LoadOptionalClass(const TSoftClassPtr<T>& SoftPtr, const FName& ContextID) const;
 	
 protected:
-	const float SPAWN_OFFSET = 200.f;
+	UPROPERTY(EditDefaultsOnly, Category = "MY|GA")
+	float SPAWN_OFFSET = 200.f;
 	
 	// 이벤트 발생자 - ActivateAbility에서 캐싱
 	UPROPERTY()

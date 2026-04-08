@@ -41,11 +41,12 @@ private:
 	bool TrySpawnActor(TSubclassOf<AActor> ActorClass, AActor*& Actor);
 	
 private:                                                                                                         
-  	// ── Actor Pool ──────────────────────────────────────────────────────────── 
-  	/** 비활성 액터 풀 */ 
-	TMap<UClass*, TArray<TObjectPtr<AActor>>> ActorPool;                                                       
-  	/** 활성 액터 추적 */                                  
-  	UPROPERTY() //GC방지 강한 참조 필수                                                                                              
+  	// ── Actor Pool ────────────────────────────────────────────────────────────
+  	/** 비활성 액터 풀 — GC 방지 강한 참조 필수 */
+	UPROPERTY()
+	TMap<TObjectPtr<UClass>, TArray<TObjectPtr<AActor>>> ActorPool;
+  	/** 활성 액터 추적 */
+  	UPROPERTY() //GC방지 강한 참조 필수
   	TSet<TObjectPtr<AActor>> ActiveActors;                                                                       
   	                                                                                                             
   	// ── Widget Pool (데미지 플로팅 위젯 등) ─────────                                

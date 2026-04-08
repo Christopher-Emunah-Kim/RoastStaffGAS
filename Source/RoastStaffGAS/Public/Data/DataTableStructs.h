@@ -325,13 +325,13 @@ struct FSkillAttackMoveTypeParamsArc : public FTableRowBase
 	FName SkillEffectID;
 	/** 초기 발사 각도 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight|Arc")
-	float LaunchAngle;
+	float LaunchAngle = 45.f;
 	/** 중력 배율 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight|Arc")
-	float GravityScale;
+	float GravityScale = 1.f;
 	/** 타격 판정 반경 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight|Arc")
-	float HitRadius;
+	float HitRadius = 50.f;
 	
 };
 
@@ -389,10 +389,10 @@ struct FSkillAttackHitTypeParamsArea : public FTableRowBase
 	FName SkillEffectID;
 	/** 타격 판정 반경 (직접 충돌용) */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight|Explode")
-	float HitRadius;
+	float HitRadius = 50.f;
 	/** 거리 기반 데미지 감쇠 배율 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight|Explode")
-	float ExplosionDamageMultiplier;
+	float ExplosionDamageMultiplier = 1.f;
 	
 };
 
@@ -413,10 +413,10 @@ struct FSkillDefenseCommonParamsData : public FTableRowBase
 	EDefenseType DefenseType;
 	/** 방어 어트리뷰트에 적용할 추가 수치  */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defense")
-	float ArmorAmount;
+	float ArmorAmount = 0.f;
 	/** 데미지 경감 비율 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defense")
-	float ArmorMultiplier;
+	float ArmorMultiplier = 1.f;
 	
 };
 

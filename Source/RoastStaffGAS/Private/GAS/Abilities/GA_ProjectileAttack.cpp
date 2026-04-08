@@ -233,7 +233,7 @@ bool UGA_ProjectileAttack::HandleArcType(FProjectileInitData& OutInitData, const
 		return false;
 	}
 	
-	constexpr int32 LAUNCH_ANGLE_CLAMP = 80.f;
+	constexpr float LAUNCH_ANGLE_CLAMP = 80.f;
 	OutInitData.LaunchAngle  = FMath::Clamp(ArcData.LaunchAngle, -LAUNCH_ANGLE_CLAMP, LAUNCH_ANGLE_CLAMP);
 	OutInitData.GravityScale = ArcData.GravityScale;
 	return true;
