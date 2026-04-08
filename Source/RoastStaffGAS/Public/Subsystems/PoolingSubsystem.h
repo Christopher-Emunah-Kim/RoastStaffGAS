@@ -6,7 +6,21 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "PoolingSubsystem.generated.h"
 
-/**                                                                                                              
+/**
+ * FActorPoolBucket
+ * UHT는 TMap<Key, TArray<Value>> 중첩 컨테이너에 UPROPERTY를 지원하지 않음.
+ * TArray를 USTRUCT로 래핑해 GC 추적을 확보
+ */
+USTRUCT()
+struct FActorPoolBucket
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TArray<TObjectPtr<AActor>> Actors;
+};
+
+/**
  * URSPoolingSubsystem (UWorldSubsystem)                                                                         
  * 인게임 오브젝트의 Spawn/Destroy GC 부하를 방지하는 풀링 서브시스템.                                         
  *                                                                                                               
@@ -42,9 +56,9 @@ private:
 	
 private:                                                                                                         
   	// ── Actor Pool ────────────────────────────────────────────────────────────
-  	/** 비활성 액터 풀 — GC 방지 강한 참조 필수 */
+  	/** 비활성 액터 풀 — FActorPoolBucket 래퍼로 UHT 중첩 컨테이너 제한 우회 */
 	UPROPERTY()
-	TMap<TObjectPtr<UClass>, TArray<TObjectPtr<AActor>>> ActorPool;
+	TMap<TObjectPtr<UClass>, FActorPoolBucket> ActorPool;
   	/** 활성 액터 추적 */
   	UPROPERTY() //GC방지 강한 참조 필수
   	TSet<TObjectPtr<AActor>> ActiveActors;                                                                       

@@ -14,19 +14,19 @@ void UPoolingSubsystem::InitializePool(TSubclassOf<AActor> ActorClass, int32 Cou
     }
     
                                                                                                                  
-    TArray<TObjectPtr<AActor>>& Pool = ActorPool.FindOrAdd(ActorClass);                                          
-                                                                                                                 
-    for (int32 i = 0; i < Count; ++i)                                                                            
-    {         
+    TArray<TObjectPtr<AActor>>& Pool = ActorPool.FindOrAdd(ActorClass).Actors;
+
+    for (int32 i = 0; i < Count; ++i)
+    {
         AActor* Actor = nullptr;
         if (!TrySpawnActor(ActorClass, Actor))
         {
-            KHS_WARN(TEXT("SpawnActor 실패 — Class: %s [%d/%d]"), *ActorClass->GetName(), i + 1, Count);                                                           
-            continue;       
+            KHS_WARN(TEXT("SpawnActor 실패 — Class: %s [%d/%d]"), *ActorClass->GetName(), i + 1, Count);
+            continue;
         }
-        
-        // Actor::BeginPlay → OnPoolDeactivate 호출 → 비활성 상태로 시작                                         
-        Pool.Add(Actor);                                                                                         
+
+        // Actor::BeginPlay → OnPoolDeactivate 호출 → 비활성 상태로 시작
+        Pool.Add(Actor);
     }
                                                                                                                  
     KHS_INFO(TEXT("InitializePool 완료 — Class: %s, Count: %d"), *ActorClass->GetName(), Pool.Num());
@@ -55,18 +55,19 @@ AActor* UPoolingSubsystem::SpawnPooledActor(TSubclassOf<AActor> ActorClass, cons
                                                                                                                  
     AActor* Actor = nullptr;
                                                                                                                  
-    // 풀에서 유효 액터 팝                                                                                       
-    if (TArray<TObjectPtr<AActor>>* Pool = ActorPool.Find(ActorClass))
-    {                                                                                                            
-        while (!Pool->IsEmpty())                                                                                 
-        {                                                                                                        
-            TObjectPtr<AActor> Candidate = Pool->Pop();                                                          
-            if (IsValid(Candidate))                                                                              
-            {                                                                                                    
-                Actor = Candidate;                                                                               
-                break;                                                                                           
-            }                                                                                                    
-        }                                                                                                      
+    // 풀에서 유효 액터 팝
+    if (FActorPoolBucket* Bucket = ActorPool.Find(ActorClass))
+    {
+        TArray<TObjectPtr<AActor>>& Pool = Bucket->Actors;
+        while (!Pool.IsEmpty())
+        {
+            TObjectPtr<AActor> Candidate = Pool.Pop();
+            if (IsValid(Candidate))
+            {
+                Actor = Candidate;
+                break;
+            }
+        }
     }
 
     // 풀에 없다면 신규 스폰 시도                                       
@@ -115,7 +116,7 @@ void UPoolingSubsystem::ReturnToPool(AActor* Actor)
         Interface->OnPoolDeactivate();                                                                           
     }                                                                                                          
                                                                                                                    
-    ActorPool.FindOrAdd(Actor->GetClass()).Add(Actor);   
+    ActorPool.FindOrAdd(Actor->GetClass()).Actors.Add(Actor);   
 }
 
 void UPoolingSubsystem::ReturnAllActiveActors()
