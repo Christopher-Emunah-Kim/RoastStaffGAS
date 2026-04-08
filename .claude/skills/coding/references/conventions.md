@@ -47,6 +47,23 @@ if (!SkillData)
 - **네트워크 코드** 주석 처리 유지 (싱글플레이어 프로젝트)
 - **CSV 인코딩:** UTF-8-BOM 필수
 
+## Private 헬퍼 배치 원칙
+
+```
+헤더 private 선언 필수:
+  - 클래스 멤버 함수는 예외 없이 헤더 private에 선언
+  - 헤더만 읽어도 내부 호출 흐름을 파악할 수 있어야 함
+
+cpp-only 자유 함수 허용 조건 (anonymous namespace):
+  - 해당 클래스와 무관한 순수 유틸리티 (타입 제네릭 등)
+  - 클래스 멤버에 접근하지 않음
+  - 2개 이상의 클래스에서 공유할 가능성이 있으면 별도 헤더로 분리
+
+판단 기준 요약:
+  "이 함수가 이 클래스의 동작을 설명하는가?" → YES → 헤더 private
+  "단순 데이터 변환/조회인가?"              → NO  → anonymous namespace 가능
+```
+
 ## GC 참조 규칙
 
 - `FGameplayAbilitySpec.SourceObject`는 약참조(Weak)이므로 런타임 데이터 오브젝트 보관에 불충분

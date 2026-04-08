@@ -81,7 +81,7 @@ UPDATE: trigger: ["플로우 개선","스킬 수정","규칙 바꿔","agent-upda
 HARNESS: trigger: ["하네스","워크플로 강화","실수 막아","구조적 차단","harness"]
          load:    [.claude/skills/harness/SKILL.md]
 
-END:    trigger: ["세션 종료","핸드오프","종료할게"]
+END:    trigger: ["세션 종료","핸드오프","종료할게","세션 마칠","끝낼게","마무리할게","세션 끝"]
         flow:    .claude/references/protocols.md#SESSION_END 실행
         note:    TODO 정리 → [PR] 파이프라인 자가 진단 → 승인 후 파이프라인 파일 수정 → Handoff
 

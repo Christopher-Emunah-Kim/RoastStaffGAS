@@ -83,10 +83,12 @@ COMMIT
 
 ## SESSION_END
 ```
-트리거: "세션 종료" / "핸드오프" / "종료할게" 언급 시
+트리거: "세션 종료" / "핸드오프" / "종료할게" / "세션 마칠" / "끝낼게" / "마무리할게" 언급 시
 
 절차:
-1. _Design/TODO.md 정리 (완료 항목 COMPLETED_LOG 이동)
+1. _Design/TODO.md 정리
+   - commit [F]에서 처리된 FEATURE(COMPLETED_LOG 이동 완료)는 스킵
+   - 미처리 완료 FEATURE만 COMPLETED_LOG 이동 + Plan active→completed 이동
 2. [PR] 파이프라인 자가 진단 (아래 참조)
 3. touch "$CLAUDE_PROJECT_DIR/.claude/.session_end_flag"
 4. Stop Hook이 Handoff 생성 (Claude 직접 작성 금지)
