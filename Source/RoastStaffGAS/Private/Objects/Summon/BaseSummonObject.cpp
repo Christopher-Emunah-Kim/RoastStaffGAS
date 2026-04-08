@@ -11,12 +11,14 @@
 // Sets default values
 ABaseSummonObject::ABaseSummonObject()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
-	
-	VFXComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("VFXComp"));                                        
-	VFXComp->SetupAttachment(GetRootComponent());                                                                
-	VFXComp->bAutoActivate = false;     
+
+	USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+	SetRootComponent(Root);
+
+	VFXComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("VFXComp"));
+	VFXComp->SetupAttachment(Root);
+	VFXComp->bAutoActivate = false;
 }
 
 void ABaseSummonObject::InitSummon(const FSummonObjectInitData& InInitData)

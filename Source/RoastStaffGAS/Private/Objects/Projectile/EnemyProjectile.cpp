@@ -32,6 +32,13 @@ AEnemyProjectile::AEnemyProjectile()
 	ProjectileComp->ProjectileGravityScale   = 0.f;
 }
 
+void AEnemyProjectile::BeginPlay()
+{
+	Super::BeginPlay();
+	// 최초 스폰 시 비활성 상태로 시작 — ProjectileMovement 즉시 실행 방지
+	OnPoolDeactivate();
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // IPoolableInterface
 // ─────────────────────────────────────────────────────────────────────────────

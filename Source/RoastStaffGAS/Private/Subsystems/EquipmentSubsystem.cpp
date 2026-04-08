@@ -4,6 +4,7 @@
 #include "Subsystems/EquipmentSubsystem.h"
 #include "RoastStaffGAS.h"
 #include "Subsystems/GameDataSubsystem.h"
+#include "Subsystems/PoolingSubsystem.h"
 #include "Data/RuntimeDataStructs.h"
 #include "GAS/Tags/RSGameplayTags.h"
 #include "Objects/Data/RSSkillData.h"
@@ -413,6 +414,7 @@ void UEquipmentSubsystem::CommitSlot(int32 TargetSlot, const FWeaponSlotEquipDat
 
 	KHS_INFO(TEXT("무기 장착 완료: %s → Slot %d"), *EquipData.WeaponID.ToString(), TargetSlot);
 
+	InitWeaponPool(EquipData);
 	StartAutoFire(TargetSlot);
 	//이벤트 발행
 	OnSlotUpdatedDel.Broadcast(TargetSlot);
@@ -446,6 +448,9 @@ void UEquipmentSubsystem::ClearSlot(int32 SlotIndex)
 
 	StopAutoFire(SlotIndex);
 	ASC->ClearAbility(Slot.AbilitySpecHandle);
+
+	// 교체되는 무기 풀 버킷 정리 — 슬롯 리셋 전에 호출해야 EquipData 유효
+	ClearWeaponPool(Slot.SlotEquipData);
 
 	// 슬롯 초기화 (SlotIndex 보존)
 	Slot = FWeaponSlotInstanceData();
@@ -487,4 +492,74 @@ void UEquipmentSubsystem::UpgradeWeapon(int32 SlotIndex, FName NextWeaponID)
 
 	CommitSlot(SlotIndex, EquipData, Handle);
 	PendingWeaponID = NAME_None;
+}
+
+void UEquipmentSubsystem::InitWeaponPool(const FWeaponSlotEquipData& EquipData)
+{
+	UWorld* World = GetGameInstance()->GetWorld();
+	check(World);
+
+	UPoolingSubsystem* PoolSys = World->GetSubsystem<UPoolingSubsystem>();
+	check(PoolSys);
+
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
+
+	FSkillExecutionData ExecData;
+	if (!GDS->GetSkillExecutionData(EquipData.SkillID, ExecData, EquipData.WeaponID))
+	{
+		KHS_WARN(TEXT("SkillExecutionData 조회 실패 — SkillID: %s"), *EquipData.SkillID.ToString());
+		return;
+	}
+
+	//스킬 종류에 따라 스킬 소환 오브젝트 풀링
+	if (!ExecData.ProjectileClass.IsNull())
+	{
+		if (TSubclassOf<AActor> ProjClass = ExecData.ProjectileClass.LoadSynchronous())
+		{
+			PoolSys->InitializePool(ProjClass, WeaponProjectilePoolCount);
+			KHS_INFO(TEXT("ProjectilePool 추가 — Class: %s, Count: %d"), *ProjClass->GetName(), WeaponProjectilePoolCount);
+		}
+	}
+
+	if (!ExecData.SummonObjectClass.IsNull())
+	{
+		if (TSubclassOf<AActor> SummonClass = ExecData.SummonObjectClass.LoadSynchronous())
+		{
+			PoolSys->InitializePool(SummonClass, WeaponSummonPoolCount);
+			KHS_INFO(TEXT("SummonObjectPool 추가 — Class: %s, Count: %d"), *SummonClass->GetName(), WeaponSummonPoolCount);
+		}
+	}
+}
+
+void UEquipmentSubsystem::ClearWeaponPool(const FWeaponSlotEquipData& EquipData)
+{
+	if (EquipData.SkillID.IsNone())
+	{
+		return;
+	}
+
+	UWorld* World = GetGameInstance()->GetWorld();
+	check(World);
+
+	UPoolingSubsystem* PoolSys = World->GetSubsystem<UPoolingSubsystem>();
+	check(PoolSys);
+
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
+
+	FSkillExecutionData ExecData;
+	if (!GDS->GetSkillExecutionData(EquipData.SkillID, ExecData, EquipData.WeaponID))
+	{
+		return;
+	}
+
+	// Get()만 사용 — 이미 메모리에 올라온 클래스만 풀 존재, 없으면 드레인 불필요
+	if (TSubclassOf<AActor> ProjClass = ExecData.ProjectileClass.Get())
+	{
+		PoolSys->DrainPool(ProjClass);
+	}
+
+	if (TSubclassOf<AActor> SummonClass = ExecData.SummonObjectClass.Get())
+	{
+		PoolSys->DrainPool(SummonClass);
+	}
 }

@@ -40,6 +40,8 @@ public:
 		TSubclassOf<UGameplayEffect> InDamageGEClass,	UAbilitySystemComponent* InSourceASC);
 
 protected:
+	virtual void BeginPlay() override;
+
 	/** 벽/지형(WorldStatic·WorldDynamic) Block 충돌 — ReturnToPool */
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,

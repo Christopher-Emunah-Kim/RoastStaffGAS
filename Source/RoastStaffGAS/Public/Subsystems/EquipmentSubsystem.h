@@ -71,6 +71,10 @@ private:
 	bool LoadEquipClasses(const FWeaponSlotEquipData& EquipData, FLoadedEquipClasses& OutClasses) const;
 	bool RegisterAbility(const FWeaponSlotEquipData& EquipData, const FLoadedEquipClasses& Classes, FGameplayAbilitySpecHandle& OutHandle);
 	void CommitSlot(int32 TargetSlot,const FWeaponSlotEquipData& EquipData, const FGameplayAbilitySpecHandle& Handle);
+	/** 무기 장착/강화 시 ProjectileClass / SummonObjectClass 풀 초기화 */
+	void InitWeaponPool(const FWeaponSlotEquipData& EquipData);
+	/** 슬롯 클리어 시 해당 무기 풀 버킷 제거 — 무기 교체로 불필요해진 클래스 정리 */
+	void ClearWeaponPool(const FWeaponSlotEquipData& EquipData);
 	
 	template<typename T>
 	bool LoadRequiredClass(const TSoftClassPtr<T>& SoftPtr, TSubclassOf<T>& OutClass, const FName& ContextID) const;
@@ -90,6 +94,8 @@ public:
 	
 private:
 	static constexpr int32 SLOT_COUNT = 3;
+	static constexpr int32 WeaponProjectilePoolCount = 10;
+	static constexpr int32 WeaponSummonPoolCount     = 5;
 	
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> ASC;

@@ -20,7 +20,6 @@ AEnemySpawner::AEnemySpawner()
 
 void AEnemySpawner::InitPools(const TArray<FName>& EnemyIDs)
 {
-	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys);
 	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());
 
 	ClassCache.Empty();
@@ -48,21 +47,9 @@ void AEnemySpawner::InitPools(const TArray<FName>& EnemyIDs)
 		}
 
 		ClassCache.Add(EnemyID, LoadedClass);
-		PoolSys->InitializePool(LoadedClass, PoolCountPerClass);
 	}
 
-	// 에너미 투사체 풀 등록 (Ranged / Elite / Boss 공용)
-	if (EnemyProjectileClass)
-	{
-		PoolSys->InitializePool(EnemyProjectileClass, ProjectilePoolCount);
-		KHS_INFO(TEXT("EnemyProjectile 풀 등록. Count: %d"), ProjectilePoolCount);
-	}
-	else
-	{
-		KHS_WARN(TEXT("EnemyProjectileClass 미할당. BP_EnemySpawner에서 설정 필요."));
-	}
-
-	KHS_INFO(TEXT(" %d개 에너미 클래스 풀 초기화 완료"), ClassCache.Num());
+	KHS_INFO(TEXT("InitPools — ClassCache %d개 빌드 완료 (풀 초기화는 PoolingSubsystem 위임)"), ClassCache.Num());
 }
 
 void AEnemySpawner::SpawnEnemy(FName EnemyID, const FVector& PlayerLocation)

@@ -40,8 +40,6 @@ public:
 	void ReturnFloatingDamageToPool(UFloatingDamageWidget* Widget);
 
 private:
-	/** BeginPlay에서 PoolInitialSize만큼 위젯을 미리 생성 */
-	void PrewarmFloatingDamagePool();
 
 	//========================================================
 	// UI 관리
@@ -75,15 +73,6 @@ protected:
 	// UI — FloatingDamageWidget
 	UPROPERTY(EditDefaultsOnly, Category = "MY|UI")
 	TSubclassOf<UFloatingDamageWidget> FloatingDamageWidgetClass;
-	/** 사용 가능한 비활성 위젯 풀 */
-	UPROPERTY()
-	TArray<TObjectPtr<UFloatingDamageWidget>> FloatingDamagePool;
-	/** 미리 생성할 위젯 수 */
-	UPROPERTY(EditDefaultsOnly, Category = "MY|UI", meta = (ClampMin = "0"))
-	int32 PoolInitialSize = 10;
-	/** 동시 생성 가능한 위젯 총 상한 (prewarm + 온디맨드 합산) */
-	UPROPERTY(EditDefaultsOnly, Category = "MY|UI", meta = (ClampMin = "1"))
-	int32 PoolMaxSize = 30;
 
 	// 입력 에셋
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
@@ -105,7 +94,4 @@ protected:
 	float     AimAngle           = 0.f;
 
 private:
-	/** 총 생성된 FloatingDamageWidget 수 — 풀 상한 판단에 사용 */
-	int32 TotalCreatedCount = 0;
-	
 };

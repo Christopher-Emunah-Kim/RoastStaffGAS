@@ -5,13 +5,17 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "Data/RuntimeDataStructs.h"
+#include "Subsystems/PoolingSubsystem.h"
 #include "RSGameMode.generated.h"
+
+class AEnemySpawner;
+class URSLoadingWidget;
 
 /**
  * ARSGameMode
  *
  * - 스테이지 시작 진입점. 초기화 순서를 보장하는 조율자 역할만 담당한다.
- * - Pool 초기화: UStageManagerSubsystem::StartStage → AEnemySpawner::InitPools()로 이관.
+ * - PreWarm: BeginPlay → PoolingSubsystem::RequestAsyncPreWarm → OnPreWarmCompleted → StartStageFlow
  * - 웨이브/스폰 로직: UStageManagerSubsystem에 위임.
  * - 스테이지 클리어/실패 판정 및 OUTGAME 복귀 처리
  */
@@ -32,33 +36,53 @@ public:
 	void OnStageFailed();
 	
 private:
-	// BeginPlay 초기화 헬퍼
+	// ── 초기화 흐름 ──────────────────────────────────────────────────────────
 	void InitializePlayer(FName CharID);
 	bool InitializeStage();
+	/** PoolingSubsystem 프리웜 시작 + OnPreWarmComplete 구독 */
+	void InitializePreWarm(AEnemySpawner* Spawner);
+	/** GDS + EnemySpawner 기반 프리웜 요청 배열 구성 */
+	TArray<FPoolPreWarmRequest> BuildPreWarmList(AEnemySpawner* Spawner);
+	/** 프리웜 완료 핸들러 — 입력 복구 + 스테이지 시작 */
+	void OnPreWarmCompleted();
+	/** Tick에서 LoadingWidget 진행률 반영 */
+	void UpdatePreWarmProgress();
 	void StartStageFlow();
 	void InitDefaultWeapon(FName CharID);
 
-	// 스테이지 클리어 판정 (매 프레임 TimeLimit 체크)
+	/** EUIID::LOADING 위젯 조회 헬퍼 — nullptr 가능 */
+	URSLoadingWidget* GetLoadingWidget() const;
+	/** GDS 기반 현재 스테이지 웨이브에서 고유 에너미 클래스 수집 */
+	TSet<TSubclassOf<AActor>> CollectUniqueEnemyClasses() const;
+	/** FPoolPreWarmRequest 생성 헬퍼 */
+	FPoolPreWarmRequest MakeActorRequest(TSubclassOf<AActor> Class, int32 Count);
+	FPoolPreWarmRequest MakeWidgetRequest(TSubclassOf<UUserWidget> Class, int32 Count);
+
+	// ── 스테이지 판정 ─────────────────────────────────────────────────────────
 	void CheckStageClearCondition();
-	// 스테이지 클리어 처리 (TimeLimit 초과 생존)
 	void OnStageCleared();
-	// 스테이지 종료 공통 처리
 	void EndStage(bool bCleared);
-	
-	// 자동발사 타이머 정리 + 게임 일시정지
 	void StopStageActivities();
-	// 경과 시간·처치 수로 결과 데이터 구성
 	FStageResultData BuildResultData(bool bCleared);
-	// 세이브 서브시스템에 결과 저장
 	void SaveResult(const FStageResultData& ResultData);
-	// 결과 UI 오픈 + 데이터 주입 + 확인 버튼 바인딩
 	void ShowResultUI(const FStageResultData& ResultData, bool bCleared);
 
-	// 결과 UI 확인 버튼 클릭 시 호출 — OnConfirmClickedDel에 바인딩
 	UFUNCTION()
 	void OnResultConfirmed();
 
 private:
+	/** 레벨에 배치된 EnemySpawner 캐시 */
+	UPROPERTY()
+	AEnemySpawner* CachedSpawner = nullptr;
+	/** 프리웜 진행 중 플래그 — Tick에서 LoadingWidget 폴링 제어 */
+	bool bIsPreWarmActive = false;
+	/** 데미지 플로팅 위젯 프리웜 클래스 — BP에서 할당 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|PreWarm")
+	TSubclassOf<UUserWidget> DamageFloatingWidgetClass;
+	/** 데미지 플로팅 위젯 프리웜 수량 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|PreWarm")
+	int32 DamageFloatingWidgetPoolCount = 20;
+
 	/** 스테이지 시작 시간 (GetWorld()->GetTimeSeconds() 기준) */
 	float StageStartTime = 0.f;
 	/** 현재 진행 중인 스테이지 ID */

@@ -4,18 +4,38 @@
 #include "Core/RSGameMode.h"
 #include "RoastStaffGAS.h"
 #include "System/EnemySpawner.h"
+#include "Subsystems/PoolingSubsystem.h"
 #include "Subsystems/StageManagerSubsystem.h"
 #include "Subsystems/SaveGameSubsystem.h"
 #include "Subsystems/GameDataSubsystem.h"
 #include "Subsystems/EquipmentSubsystem.h"
 #include "Subsystems/UIManagerSubsystem.h"
 #include "UI/InGame/RSStageResultWidget.h"
+#include "UI/Transition/RSLoadingWidget.h"
 #include "Data/EnumUITypes.h"
 #include "Character/Player/RSPlayerState.h"
+#include "Character/Enemy/EnemyBaseCharacter.h"
+#include "Objects/Projectile/EnemyProjectile.h"
 #include "Core/RSGameInstance.h"
 #include "Data/DataTableStructs.h"
 #include "Data/RuntimeDataStructs.h"
 #include "Kismet/GameplayStatics.h"
+
+FPoolPreWarmRequest ARSGameMode::MakeActorRequest(TSubclassOf<AActor> Class, int32 Count)
+{
+	FPoolPreWarmRequest Req;
+	Req.ActorClass = Class;
+	Req.Count = Count;
+	return Req;
+}
+
+FPoolPreWarmRequest ARSGameMode::MakeWidgetRequest(TSubclassOf<UUserWidget> Class, int32 Count)
+{
+	FPoolPreWarmRequest Req;
+	Req.WidgetClass = Class;
+	Req.Count = Count;
+	return Req;
+}
 
 ARSGameMode::ARSGameMode()
 {
@@ -26,20 +46,35 @@ void ARSGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS);
+	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS)
 	const FName CharID = SGS->GetLastSelectedCharacter();
 
 	InitializePlayer(CharID);
 
-	if (InitializeStage())
+	if (!InitializeStage())
 	{
-		StartStageFlow();
+		return;
 	}
+
+	CachedSpawner = Cast<AEnemySpawner>(UGameplayStatics::GetActorOfClass(GetWorld(), AEnemySpawner::StaticClass()));
+
+	if (!CachedSpawner)
+	{
+		KHS_WARN(TEXT("EnemySpawner를 찾지 못했습니다. 스테이지 시작 불가."));
+		return;
+	}
+
+	InitializePreWarm(CachedSpawner);
 }
 
 void ARSGameMode::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (bIsPreWarmActive)
+	{
+		UpdatePreWarmProgress();
+	}
 
 	if (!bIsStageEnded)
 	{
@@ -78,20 +113,130 @@ bool ARSGameMode::InitializeStage()
 	return true;
 }
 
-void ARSGameMode::StartStageFlow()
+void ARSGameMode::InitializePreWarm(AEnemySpawner* Spawner)
 {
-	//에너미 스포너 가동
-	AEnemySpawner* Spawner = Cast<AEnemySpawner>(
-		UGameplayStatics::GetActorOfClass(GetWorld(), AEnemySpawner::StaticClass()));
+	TArray<FPoolPreWarmRequest> PreWarmList = BuildPreWarmList(Spawner);
 
-	if (!Spawner)
+	if (PreWarmList.IsEmpty())
 	{
-		KHS_WARN(TEXT("EnemySpawner를 찾지 못했습니다. 스테이지 시작 불가."));
+		KHS_WARN(TEXT("PreWarmList가 비어있음. 즉시 스테이지 시작."));
+		StartStageFlow();
 		return;
 	}
 
-	GET_WORLD_SUBSYSTEM(UStageManagerSubsystem, StageMgr);
-	StageMgr->SetSpawner(Spawner);
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (PC)
+	{
+		PC->DisableInput(PC);
+	}
+
+	bIsPreWarmActive = true;
+
+	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys)
+	PoolSys->OnPreWarmComplete.AddUObject(this, &ARSGameMode::OnPreWarmCompleted);
+	PoolSys->RequestAsyncPreWarm(MoveTemp(PreWarmList));
+
+	KHS_INFO(TEXT("프리웜 시작 — StageID: %s"), *CurrentStageID.ToString());
+}
+
+TSet<TSubclassOf<AActor>> ARSGameMode::CollectUniqueEnemyClasses() const
+{
+	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetGameInstance())
+	
+	TSet<TSubclassOf<AActor>> UniqueClasses;
+	for (const FWaveStaticData& Wave : GDS->GetWaveDataByStage(CurrentStageID))
+	{
+		for (const FName& EnemyID : Wave.SpawnEnemyIDs)
+		{
+			FEnemyStaticData EnemyData;
+			if (!GDS->GetEnemyData(EnemyID, EnemyData) || EnemyData.EnemyClass.IsNull())
+			{
+				continue;
+			}
+			if (TSubclassOf<AEnemyBaseCharacter> Loaded = EnemyData.EnemyClass.LoadSynchronous())
+			{
+				UniqueClasses.Add(Loaded);
+			}
+		}
+	}
+	return UniqueClasses;
+}
+
+TArray<FPoolPreWarmRequest> ARSGameMode::BuildPreWarmList(AEnemySpawner* Spawner)
+{
+	TArray<FPoolPreWarmRequest> PreWarmList;
+
+	const TSet<TSubclassOf<AActor>> UniqueEnemyClasses = CollectUniqueEnemyClasses();
+
+	// 에너미 클래스 — 클래스당 풀 수량
+	const int32 PerClassCount = Spawner->GetPoolCountPerClass();
+	for (TSubclassOf<AActor> EnemyClass : UniqueEnemyClasses)
+	{
+		PreWarmList.Add(MakeActorRequest(EnemyClass, PerClassCount));
+	}
+
+	// 에너미 투사체
+	if (TSubclassOf<AEnemyProjectile> ProjClass = Spawner->GetEnemyProjectileClass())
+	{
+		PreWarmList.Add(MakeActorRequest(ProjClass, Spawner->GetProjectilePoolCount()));
+	}
+
+	// 데미지 플로팅 위젯
+	if (DamageFloatingWidgetClass && DamageFloatingWidgetPoolCount > 0)
+	{
+		PreWarmList.Add(MakeWidgetRequest(DamageFloatingWidgetClass, DamageFloatingWidgetPoolCount));
+	}
+
+	KHS_INFO(TEXT("BuildPreWarmList — 요청 %d건 (에너미 %d클래스 + 투사체 + 위젯)"),
+		PreWarmList.Num(), UniqueEnemyClasses.Num());
+	return PreWarmList;
+}
+
+void ARSGameMode::OnPreWarmCompleted()
+{
+	bIsPreWarmActive = false;
+
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (PC)
+	{
+		PC->EnableInput(PC);
+	}
+
+	if (URSLoadingWidget* LoadingWidget = GetLoadingWidget())
+	{
+		LoadingWidget->FinishLoading();
+	}
+
+	StartStageFlow();
+
+	KHS_INFO(TEXT("프리웜 완료 — 스테이지 시작"));
+}
+
+URSLoadingWidget* ARSGameMode::GetLoadingWidget() const
+{
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance())
+	return Cast<URSLoadingWidget>(UMS->GetWidgetByID(EUIID::LOADING));
+}
+
+void ARSGameMode::UpdatePreWarmProgress()
+{
+	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys)
+	if (URSLoadingWidget* LoadingWidget = GetLoadingWidget())
+	{
+		LoadingWidget->SetLoadingProgress(PoolSys->GetPreWarmProgress());
+	}
+}
+
+void ARSGameMode::StartStageFlow()
+{
+	if (!CachedSpawner)
+	{
+		KHS_WARN(TEXT("CachedSpawner가 없습니다. 스테이지 시작 불가."));
+		return;
+	}
+
+	GET_WORLD_SUBSYSTEM(UStageManagerSubsystem, StageMgr)
+	StageMgr->SetSpawner(CachedSpawner);
 	StageMgr->StartStage(CurrentStageID);
 
 	KHS_INFO(TEXT("스테이지 시작 — StageID: %s"), *CurrentStageID.ToString());
@@ -105,7 +250,7 @@ void ARSGameMode::InitDefaultWeapon(FName CharID)
 		return;
 	}
 
-	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS)
 
 	FCharacterStaticData CharData;
 	if (!GDS->GetCharacterStaticData(CharID, CharData))
@@ -120,7 +265,7 @@ void ARSGameMode::InitDefaultWeapon(FName CharID)
 		return;
 	}
 
-	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys);
+	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys)
 	EquipSys->EquipWeapon(CharData.DefaultWeaponID);
 
 	KHS_INFO(TEXT("DefaultWeapon 장착 완료 — CharID: %s / WeaponID: %s"),
@@ -135,7 +280,7 @@ void ARSGameMode::CheckStageClearCondition()
 	}
 
 	// GDS에서 스테이지 데이터 조회 (TimeLimit)
-	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS)
 	FStageStaticData StageData;
 	if (!GDS->GetStageData(CurrentStageID, StageData))
 	{
@@ -150,7 +295,7 @@ void ARSGameMode::CheckStageClearCondition()
 	}
 
 	// 경과 시간 계산
-	const float ElapsedTime = GetWorld()->GetTimeSeconds() - StageStartTime;
+	const float ElapsedTime = (static_cast<float>(GetWorld()->GetTimeSeconds()) - StageStartTime);
 
 	// TimeLimit 초과 시 클리어
 	if (ElapsedTime >= StageData.TimeLimit)
@@ -195,7 +340,7 @@ FStageResultData ARSGameMode::BuildResultData(bool bCleared)
 {
 	const float ElapsedTime = GetWorld()->GetTimeSeconds() - StageStartTime;
 
-	GET_WORLD_SUBSYSTEM(UStageManagerSubsystem, StageMgr);
+	GET_WORLD_SUBSYSTEM(UStageManagerSubsystem, StageMgr)
 	const int32 KillCount = StageMgr->GetKillCount();
 
 	KHS_INFO(TEXT("스테이지 %s — StageID: %s | 생존: %.1fs | 처치: %d"), bCleared ? TEXT("클리어!") : TEXT("실패"),

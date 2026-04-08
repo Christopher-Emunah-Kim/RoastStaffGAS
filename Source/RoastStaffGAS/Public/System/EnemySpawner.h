@@ -22,10 +22,15 @@ class ROASTSTAFFGAS_API AEnemySpawner : public AActor
 public:
 	AEnemySpawner();
 
-	/** UStageManagerSubsystem::StartStage에서 호출 — EnemyIDs 목록 기반 DT_Enemy 조회 후 풀 초기화 */
+	/** UStageManagerSubsystem::StartStage에서 호출 — EnemyIDs 목록 기반 DT_Enemy 조회 후 ClassCache 빌드 */
 	void InitPools(const TArray<FName>& EnemyIDs);
 	/** UStageManagerSubsystem이 호출 — EnemyID 기반 스폰 실행 */
 	void SpawnEnemy(FName EnemyID, const FVector& PlayerLocation);
+
+	/** RSGameMode::BuildPreWarmList에서 풀 요청 구성용 */
+	TSubclassOf<AEnemyProjectile> GetEnemyProjectileClass() const { return EnemyProjectileClass; }
+	int32 GetProjectilePoolCount() const { return ProjectilePoolCount; }
+	int32 GetPoolCountPerClass() const { return PoolCountPerClass; }
 
 private:
 	/** 플레이어 위치 기준 랜덤 방향 외곽 스폰 위치 계산 */

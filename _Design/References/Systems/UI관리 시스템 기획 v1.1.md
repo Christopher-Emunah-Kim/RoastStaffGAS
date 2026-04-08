@@ -1,9 +1,9 @@
-# [🟩 Solo Project] (12) UI 관리 시스템 기획 v1.1
+# [🟩 Solo Project] (12) UI 관리 시스템 기획 v1.2
 
 No: 431
 주제: C++, Self
 난이도: ⭐⭐
-최종수정: 2026년 3월 31일
+최종수정: 2026년 4월 8일
 작성일: 2026년 3월 2일 오후 5:31
 Keyword: 기획
 
@@ -64,9 +64,11 @@ Keyword: 기획
 >   → GameInstance.OpenNextLevel(Lobby) 호출
 >   → UIManager.ResetAllUIStates() 실행
 >   → [Transition 레벨] 진입
->       로딩 화면 표시 (GameInstance 직접 관리)
->       OutGame 레벨 사전 로딩
->       로딩 완료 → FinishLoading()
+>       로딩 화면 표시 (UMS::OpenUIByID(LOADING))
+>       다음 레벨 에셋 사전 로딩
+>       로딩 완료 → [다음 레벨] 진입
+>           → (스테이지인 경우) 풀 PreWarm 완료 후 FinishLoading()
+>           → (아웃게임인 경우) 레벨 진입 즉시 FinishLoading()
 >       → [OutGame 레벨] 진입
 >           OutGame 루트 위젯 PERSISTENT 표시
 >           → 캐릭터 선택 POPUP 오픈
@@ -213,9 +215,10 @@ UMS는 위젯을 열고 닫는 것만 담당하며,
 > - 다음 레벨 열기(`GameInstance.OpenNextLevel()`)가 호출되면 레벨 전환 전에 반드시 모든 UI를 리셋한다.( `UMS.ResetAllUIStates()`)
 >     - 이 함수는 열려있는 모든 위젯을 닫고, PopupUIStack과 PersistentUIMap, CachedWidgets를 전부 비운다.
 >     - Transition 레벨에서 UIManager는 새로 초기화된 상태로 시작한다.
-> - 로딩 화면은 UIManager가 아닌 **GameInstance가 직접 관리**한다.
->     - 이유는 Transition 레벨 진입 직후 UIManager가 완전히 초기화되기 전에도 로딩 화면이 즉시 표시되어야 하기 때문이다.
->     - `TransitionController.OpenFirstWidget()`이 UIManager를 통해 로딩 UI를 여는 시점까지는 GameInstance가 로딩 화면의 생명주기를 보장한다.
+> - 로딩 화면은 PERSISTENT 레이어로 **UMS가 관리**한다.
+>     - RSTransitionGameMode::BeginPlay()에서 OpenUIByID(EUIID::LOADING)으로 열린다.
+>     - UMS는 GameInstanceSubsystem이므로 레벨 전환 후에도 캐시가 생존한다.
+>     - 스테이지 게임모드는 이 캐시에서 LOADING 위젯을 꺼내 PreWarm 진행률을 반영하고, 완료 시 FinishLoading()을 호출한다.
 > 
 > **예외처리:**
 > 
@@ -260,7 +263,7 @@ UMS는 위젯을 열고 닫는 것만 담당하며,
 | 일시정지 메뉴 | POPUP | true | InGame | 플레이어 조작 시스템 |
 | 결과 화면 | POPUP | true | InGame | 스테이지 시스템 |
 | 리더보드 | POPUP | true | InGame | 결과 화면 위젯 |
-| 로딩 화면 | (GameInstance 직접 관리) | — | Transition | TransitionController |
+| 로딩 화면 | PERSISTENT | false | Transition | RSTransitionGameMode |
 
 > **UMS 레이어 시스템 적용 제외 위젯**
 >
@@ -273,6 +276,11 @@ UMS는 위젯을 열고 닫는 것만 담당하며,
 > | `EnemyDamageWidget` | `ARSPlayerController` (직접 풀 소유) | 월드 이벤트 기반 일시적 UI 이펙트. 복수 인스턴스 동시 운용 필요로 UMS 단일 인스턴스 캐싱 구조와 양립 불가 |
 >
 > 정정 이력: 2026-03-26 — `PLAN_EnemyHPBar_DamageWidget_v1.0` 구현 계획서에 따라 추가
+>
+> 정정 이력: 2026-04-08 — `PLAN_PoolingCentralize_v1.0` 구현 결과 반영
+> - 위젯 목록: 로딩 화면 관리 주체 수정 (GameInstance 직접 관리 → PERSISTENT/UMS 관리)
+> - 레벨 전환 규칙: "GameInstance 직접 관리" 설명 제거, UMS PERSISTENT 캐시 생존 방식으로 갱신
+> - 전체 흐름: Transition 구간 FinishLoading 호출 주체 명시 (스테이지=GameMode, 아웃게임=즉시)
 
 ### 인게임 Popup 스택 예시
 

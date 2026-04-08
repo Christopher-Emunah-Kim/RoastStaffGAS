@@ -8,6 +8,7 @@
 #include "RoastStaffGAS.h"
 #include "Subsystems/EquipmentSubsystem.h"
 #include "Subsystems/LevelUpSubsystem.h"
+#include "Subsystems/PoolingSubsystem.h"
 #include "Subsystems/UIManagerSubsystem.h"
 #include "UI/RSHUDWidget.h"
 #include "UI/WeaponSlotContainerWidget.h"
@@ -53,7 +54,6 @@ void ARSPlayerController::BeginPlay()
 		return;
 	}
 
-	PrewarmFloatingDamagePool();
 }
 
 void ARSPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -280,31 +280,8 @@ void ARSPlayerController::OnWeaponReplaceCompleted()
 }
 
 // ============================================================================
-// FloatingDamageWidget 풀
+// FloatingDamageWidget 풀 — PoolingSubsystem 위임
 // ============================================================================
-
-void ARSPlayerController::PrewarmFloatingDamagePool()
-{
-	if (!FloatingDamageWidgetClass)
-	{
-		KHS_WARN(TEXT("FloatingDamageWidgetClass가 할당되지 않아 prewarm을 건너뜁니다."));
-		return;
-	}
-
-	const int32 PrewarmCount = FMath::Min(PoolInitialSize, PoolMaxSize);
-	for (int32 i = 0; i < PrewarmCount; ++i)
-	{
-		UFloatingDamageWidget* Widget = CreateWidget<UFloatingDamageWidget>(this, FloatingDamageWidgetClass);
-		if (Widget)
-		{
-			Widget->SetVisibility(ESlateVisibility::Collapsed);
-			FloatingDamagePool.Add(Widget);
-			++TotalCreatedCount;
-		}
-	}
-
-	KHS_INFO(TEXT("FloatingDamageWidget prewarm 완료: %d개"), TotalCreatedCount);
-}
 
 void ARSPlayerController::SpawnFloatingDamage(FVector WorldPos, float Damage)
 {
@@ -314,37 +291,17 @@ void ARSPlayerController::SpawnFloatingDamage(FVector WorldPos, float Damage)
 		return;
 	}
 
-	UFloatingDamageWidget* Widget = nullptr;
+	// 화면 밖 방어 — 스크린 변환 실패 시 풀 접근 자체를 건너뜀
+	FVector2D ScreenPos;
+	if (!ProjectWorldLocationToScreen(WorldPos, ScreenPos, true)) { return; }
 
-	if (FloatingDamagePool.Num() > 0)
-	{
-		Widget = FloatingDamagePool.Pop();
-	}
-	else if (TotalCreatedCount < PoolMaxSize)
-	{
-		Widget = CreateWidget<UFloatingDamageWidget>(this, FloatingDamageWidgetClass);
-		if (Widget)
-		{
-			++TotalCreatedCount;
-		}
-	}
-	else
-	{
-		KHS_WARN(TEXT("FloatingDamageWidget 풀 상한(%d) 초과 — 스폰 스킵"), PoolMaxSize);
-		return;
-	}
+	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys);
+	UFloatingDamageWidget* Widget = Cast<UFloatingDamageWidget>(
+		PoolSys->SpawnPooledWidget(FloatingDamageWidgetClass, this));
 
 	if (!Widget)
 	{
-		KHS_WARN(TEXT("FloatingDamageWidget 생성 실패"));
-		return;
-	}
-
-	// 화면 밖 방어 — 스크린 변환 실패 시 풀 반납 후 반환
-	FVector2D ScreenPos;
-	if (!ProjectWorldLocationToScreen(WorldPos, ScreenPos, true))
-	{
-		FloatingDamagePool.Add(Widget);
+		KHS_WARN(TEXT("FloatingDamageWidget 풀 획득 실패"));
 		return;
 	}
 
@@ -352,7 +309,7 @@ void ARSPlayerController::SpawnFloatingDamage(FVector WorldPos, float Damage)
 
 	if (!Widget->IsInViewport())
 	{
-		Widget->AddToViewport(200);
+		Widget->AddToViewport(UUIManagerSubsystem::ZOrder_PAGE);
 	}
 
 	Widget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
@@ -361,12 +318,10 @@ void ARSPlayerController::SpawnFloatingDamage(FVector WorldPos, float Damage)
 
 void ARSPlayerController::ReturnFloatingDamageToPool(UFloatingDamageWidget* Widget)
 {
-	if (!Widget)
-	{
-		return;
-	}
+	if (!Widget) { return; }
 
 	Widget->RemoveFromParent();
-	Widget->SetVisibility(ESlateVisibility::Collapsed);
-	FloatingDamagePool.Add(Widget);
+
+	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys);
+	PoolSys->ReturnWidgetToPool(Widget);
 }
