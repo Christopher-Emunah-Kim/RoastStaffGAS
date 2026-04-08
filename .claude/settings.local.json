@@ -12,7 +12,10 @@
       "Skill(commit)",
       "SlashCommand(/coding)",
       "SlashCommand(/commit)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Skill(planning)",
+      "Skill(update-design)",
+      "Skill(gc)"
     ],
     "deny": [],
     "ask": []
