@@ -74,6 +74,18 @@ C) 무시 — 의도적 결정으로 기록
 ```
 저장: `_Design/Reviews/SR_YYYYMMDD_[시스템명].md`
 
+### [E2] DEVLOG 기록 (포트폴리오)
+```
+[E] 출력 직후. 아래 중 하나 해당 시 _Design/Portfolio/DEVLOG.md에 항목 추가:
+  · 버그 원인이 즉각 자명하지 않았던 HIGH 이슈 (진단 과정 포함)
+  · 구조적 문제로 판단되는 반복 패턴 (3회 에스컬레이션 포함)
+  · UPROPERTY·GC·ASC 소유권 등 UE 내부 메커니즘과 관련된 이슈
+
+타입: BUG_FIX (버그 원인 비자명) / ARCH (구조 개선 권고)
+형식: ## [YYYY-MM-DD] [TYPE] 제목 / **상황** / **문제·과제** / **검토한 선택지** / **결정** / **결과** / **포트폴리오 포인트** / **관련 파일**
+해당 없으면: 기록 생략
+```
+
 ### [F] 갱신
 ```
 .claude/agent-memory/senior-reviewer/MEMORY.md:
