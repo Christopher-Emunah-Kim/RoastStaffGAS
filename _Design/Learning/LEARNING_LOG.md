@@ -1,3 +1,12 @@
+## 2026-04-08 — SR-FULL (전체 아키텍처 리뷰)
+keywords: [UPROPERTY-TMap-GC, hardcoding-4th-recurrence, USTRUCT-defaults, Template-Method-Pattern-Enemy, constexpr-type-mismatch, AddDynamic-PC-guard, LoadRequiredClass-duplication, FEnemyRangedParams]
+status:   🔴미숙 (하드코딩 4회차 미해결, UPROPERTY TMap 3회차 미해결)
+score:    아키텍처:4 일관성:4 중복:3 기술부채:3 /5 (종합 3.5)
+note:     아키텍처 기반 견고(Clean Arch 위반 없음). Enemy 측 추상화 부재 신규 발견. 하드코딩/UPROPERTY 반복 패턴 잔류. AddDynamic은 위젯 레벨 해결됐으나 PC 레벨 미적용.
+report:   _Design/Learning/reports/LEARN_20260408_SRFULL.md
+
+---
+
 ## 2026-04-07 — MODULE7Debug
 keywords: [UE_LOG-Verbose-filtering, Instigator-pattern, FTransform-Scale-trap, AutoPossessAI, TWeakObjectPtr-lambda, YAGNI, custom-collision-channel]
 status:   🟡심화필요
