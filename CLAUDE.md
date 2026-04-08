@@ -105,8 +105,10 @@ on_route:   해당 SKILL.md 또는 agent.md 만
 on_demand:  각 SKILL의 ON_DEMAND_REFS 명시 시만
 never_auto: _Design/References/Systems/ 전체 순회 금지
 
-# 중복 읽기 방지
-no_reread:  SESSION_START에서 읽힌 파일(TODO.md, PLAN_*.md)은 같은 세션 내 재읽기 금지
+# 중복 읽기 방지 (ReadOnce)
+no_reread:  |
+  같은 세션 내 이미 Read한 파일은 재읽기 금지 (SESSION_START 파일 포함 전체 적용).
+  필요한 정보가 있다면 이미 읽은 내용을 참조하거나 Grep으로 보완.
 
 # Grep-first 원칙
 grep_first: |
@@ -122,6 +124,29 @@ agent_policy:
   기타 에이전트:    사용자 명시 요청 시만
 ```
 
+
+## TOOL_EFFICIENCY
+```yaml
+# 불필요한 도구 호출 금지
+no_redundant_calls: |
+  이미 알고 있는 정보를 재확인하기 위한 도구 호출 금지.
+  추론으로 답할 수 있는 경우 도구를 사용하지 않는다.
+
+# 병렬 실행 원칙
+parallel_calls: |
+  서로 의존성이 없는 도구 호출은 단일 메시지에서 동시에 실행.
+  순차 실행은 이전 결과가 다음 호출의 파라미터에 필요한 경우에만 허용.
+
+# 대용량 출력 위임
+large_output_delegation: |
+  20줄 이상의 결과가 예상되는 탐색/분석 작업은 서브에이전트(Explore 등)에게 위임.
+  단, HEAVY_OP_POLICY의 사용자 확인 절차 선행.
+
+# 반복 설명 금지
+no_repeat_summary: |
+  이미 사용자에게 설명하거나 확인된 내용(설정값, 결정사항, 파일 내용 요약 등)은
+  같은 세션 내 재반복 금지. 참조가 필요하면 "앞서 확인한 내용"으로 한 줄 언급만 허용.
+```
 
 ## HEAVY_OP_POLICY
 ```yaml

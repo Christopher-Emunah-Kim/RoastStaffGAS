@@ -10,6 +10,24 @@ compact 트리거: COMMITTED 항목 5개 초과 시
 compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/completed/에 이미 반영)
 ```
 
+## PENDING_COMMIT
+
+
+
+---
+<!-- 신규 항목은 이 줄 위에 추가 -->
+- date: 2026-04-08
+  plan: GC+Refactor
+  commit: "8011f7f"
+  summary: "GC 안티패턴 청소 + ZOrder 매직넘버 제거"
+  status: COMMITTED
+
+- date: 2026-04-08
+  plan: PLAN_PoolingCentralize_v1.0
+  commit: "af3c5cd"
+  summary: "풀링 초기화 중앙화 + AsyncPreWarm + 로딩 연동 (MODULE 1~6, 8 완료)"
+  status: COMMITTED
+
 ## FORMAT
 ```yaml
 - date: YYYY-MM-DD
@@ -27,6 +45,62 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ---
 <!-- 신규 항목은 이 줄 아래에 추가 -->
+- date: 2026-04-08
+  plan: Hotfix-L1L2-PoolingBucket
+  commit: "8a578b1,be6e42e"
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Character/Enemy/EnemyBaseCharacter.h
+      - Source/RoastStaffGAS/Private/Character/Enemy/EnemyBaseCharacter.cpp
+      - Source/RoastStaffGAS/Public/Character/Enemy/RangedEnemy.h
+      - Source/RoastStaffGAS/Private/Character/Enemy/RangedEnemy.cpp
+      - Source/RoastStaffGAS/Public/Character/Enemy/EliteEnemy.h
+      - Source/RoastStaffGAS/Private/Character/Enemy/EliteEnemy.cpp
+      - Source/RoastStaffGAS/Public/Character/Enemy/BossEnemy.h
+      - Source/RoastStaffGAS/Private/Character/Enemy/BossEnemy.cpp
+      - Source/RoastStaffGAS/Public/Character/Enemy/MeleeEnemy.h
+      - Source/RoastStaffGAS/Public/Subsystems/PoolingSubsystem.h
+      - Source/RoastStaffGAS/Private/Subsystems/PoolingSubsystem.cpp
+  summary: "L1+L2 Enemy 투사체 공통화 + FActorPoolBucket으로 ActorPool GC 추적 확보"
+  status: COMMITTED
+  bugs_found: []
+  bugs_fixed:
+    - L1: Ranged/Elite/Boss 투사체 발사 로직 3중 중복 제거
+    - L2: 공통 파라미터 5개 + AttackGEClass/ProjectileClass Base 이동
+    - PoolingSubsystem ActorPool UPROPERTY 등록 (FActorPoolBucket 래퍼)
+
+- date: 2026-04-08
+  plan: SR-FULL_20260408
+  commit: "837e8db"
+  files:
+    created:
+      - _Design/Reviews/SR-FULL_20260408.md
+      - _Design/Learning/reports/LEARN_20260408_SRFULL.md
+    modified:
+      - _Design/Reviews/CHANGE_LOG.md
+      - _Design/Learning/LEARNING_LOG.md
+  summary: "SR-FULL 아키텍처 리뷰 (3.5/5) + 학습 리포트 생성"
+  status: COMMITTED
+  bugs_found: []
+  bugs_fixed: []
+
+- date: 2026-04-08
+  plan: Hotfix-SR-FULL-H1~H4
+  commit: "4bbf1d6"
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Subsystems/PoolingSubsystem.h
+      - Source/RoastStaffGAS/Public/GAS/Abilities/GA_Base.h
+      - Source/RoastStaffGAS/Private/GAS/Abilities/GA_ProjectileAttack.cpp
+      - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
+  summary: "SR-FULL H1~H4 핫픽스: ActorPool UPROPERTY, SPAWN_OFFSET 외부화, constexpr 타입, DataTable 기본값"
+  status: COMMITTED
+  bugs_found: []
+  bugs_fixed:
+    - H1: PoolingSubsystem::ActorPool GC 수집 위험
+    - H2: GA_Base::SPAWN_OFFSET 하드코딩 4회차
+    - H3: constexpr int32 = 80.f 타입 절삭
+    - H4: DataTableStructs Arc/Area/Defense 기본값 누락
 - date: 2026-04-07
   plan: PLAN_EnemyExpansion_v1.0
   commit: "6aa574e,21f442d,d91100d,092f785,4e16aa5,f805711,cba108d,d263f02,d5ada42"
