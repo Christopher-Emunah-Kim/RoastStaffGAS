@@ -164,7 +164,7 @@ void URSCharacterSelectWidget::FocusCarouselOn(FName CharID)
 {
 	if (CharID.IsNone())
 	{
-		UE_LOG(LogTemp, Verbose, TEXT("FocusCarouselOn — CharID가 None입니다. 무시."));
+		KHS_INFO(TEXT("FocusCarouselOn — CharID가 None입니다. 무시."));
 		return;
 	}
 

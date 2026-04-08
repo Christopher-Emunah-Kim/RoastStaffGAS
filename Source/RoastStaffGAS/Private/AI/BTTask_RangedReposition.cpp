@@ -59,12 +59,11 @@ EBTNodeResult::Type UBTTask_RangedReposition::ExecuteTask(UBehaviorTreeComponent
 		return EBTNodeResult::Failed;
 	}
 
-	float PreferredRange = 400.f;
-	float MaxAttackRange = 800.f;
+	float PreferredRange = 0.f;  // out-param — GetRangeParams가 채움
+	float MaxAttackRange = 0.f;  // out-param — GetRangeParams가 채움
 	if (!GetRangeParams(Pawn, PreferredRange, MaxAttackRange))
 	{
-		KHS_WARN(TEXT("[BTRepos] GetRangeParams FAILED — 타입 불일치. Pawn: %s / Class: %s"),
-			*Pawn->GetName(), *Pawn->GetClass()->GetName());
+		KHS_WARN(TEXT("[BTRepos] GetRangeParams FAILED — 타입 불일치. Pawn: %s / Class: %s"),	*Pawn->GetName(), *Pawn->GetClass()->GetName());
 		return EBTNodeResult::Failed;
 	}
 

@@ -278,14 +278,14 @@ int32 UUIManagerSubsystem::CalculateZOrder(URSBaseWidget* Widget) const
 	switch (Widget->UILayer)
 	{
 	case EUILayer::PERSISTENT:
-		return 100;
+		return ZOrder_PERSISTENT;
 	case EUILayer::PAGE:
-		return 200;
+		return ZOrder_PAGE;
 	case EUILayer::POPUP:
-		// POPUP은 스택 깊이에 따라 10씩 증가
-		return 300 + (PopupUIStack.Num() * 10);
+		// POPUP은 스택 깊이에 따라 ZOrder_POPUP_STEP씩 증가
+		return ZOrder_POPUP_BASE + (PopupUIStack.Num() * ZOrder_POPUP_STEP);
 	case EUILayer::SYSTEM:
-		return 500;
+		return ZOrder_SYSTEM;
 	default:
 		return Widget->ZOrder;
 	}
@@ -445,4 +445,11 @@ void UUIManagerSubsystem::ResetAllUIStates()
 		PC->SetInputMode(FInputModeGameOnly());
 		PC->SetShowMouseCursor(false);
 	}
+}
+
+URSBaseWidget* UUIManagerSubsystem::GetWidgetByID(EUIID ID) const
+{
+	const URSBaseWidget* const* Found = CachedWidgetsByID.Find(static_cast<uint8>(ID));
+	
+	return Found ? const_cast<URSBaseWidget*>(*Found) : nullptr;
 }

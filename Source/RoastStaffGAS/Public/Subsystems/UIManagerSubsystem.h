@@ -29,8 +29,6 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 	
-
-
 	// =========================================================================
 	// ID 기반 API 
 	// =========================================================================
@@ -51,6 +49,10 @@ public:
 	 * 반환값: 열린 위젯 포인터 (바인딩 등 즉시 활용 가능), 실패 시 nullptr.
 	 */
 	URSBaseWidget* SwitchPageUI(EUIID ID);
+	
+	/** ID 기반 캐시에서 위젯 조회. 없으면 nullptr */
+	URSBaseWidget* GetWidgetByID(EUIID ID) const;
+	
 	/**
 	 * UIHistory에서 이전 PAGE를 꺼내 복귀.
 	 * 히스토리가 비어있으면 no-op.
@@ -85,9 +87,12 @@ public:
 	void RefreshTopPopupUI();
 	/** 레벨 전환 시 모든 UI 상태 리셋 (캐시 포함) */
 	void ResetAllUIStates();
+	
 
 	FORCEINLINE bool HasOpenPopupUI()    const { return PopupUIStack.Num() > 0; }
 	FORCEINLINE int  GetPopupStackSize() const { return PopupUIStack.Num(); }
+
+	
 
 private:
 	// =========================================================================
@@ -106,6 +111,15 @@ private:
 	/** 레이어를 분기하여 실제 닫기 처리 */
 	void CloseUIInternal(URSBaseWidget* Widget);
 	
+public:
+	// =========================================================================
+	// ZOrder 상수 — CalculateZOrder 내부 및 외부(PC FloatingDamage 등) 공유
+	// =========================================================================
+	static constexpr int32 ZOrder_PERSISTENT = 100;
+	static constexpr int32 ZOrder_PAGE       = 200;
+	static constexpr int32 ZOrder_POPUP_BASE = 300;
+	static constexpr int32 ZOrder_POPUP_STEP =  10;
+	static constexpr int32 ZOrder_SYSTEM     = 500;
 	
 private:
 	// =========================================================================
@@ -134,13 +148,6 @@ private:
 	TMap<uint8, URSBaseWidget*> CachedWidgetsByID;
 	
 };
-
-
-
-
-
-
-
 
 
 
