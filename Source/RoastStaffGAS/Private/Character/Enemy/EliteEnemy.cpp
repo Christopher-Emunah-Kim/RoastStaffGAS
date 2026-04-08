@@ -1,8 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Character/Enemy/EliteEnemy.h"
-#include "Objects/Projectile/EnemyProjectile.h"
-#include "Subsystems/PoolingSubsystem.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AbilitySystemInterface.h"
@@ -10,6 +8,7 @@
 #include "GameplayEffectTypes.h"
 #include "GAS/Tags/RSGameplayTags.h"
 #include "RoastStaffGAS.h"
+#include "Objects/Projectile/EnemyProjectile.h"
 
 AEliteEnemy::AEliteEnemy()
 {
@@ -48,18 +47,6 @@ void AEliteEnemy::InitializeEliteParams(float InAttackDamage, const FEnemyExtDat
 
 void AEliteEnemy::FireProjectile()
 {
-	if (!AttackGEClass)
-	{
-		KHS_WARN(TEXT("%s — AttackGEClass 미할당."), *GetName());
-		return;
-	}
-
-	if (!ProjectileClass)
-	{
-		KHS_WARN(TEXT("%s — ProjectileClass 미할당."), *GetName());
-		return;
-	}
-
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();
 	if (!PC || !PC->GetPawn())
 	{
@@ -68,30 +55,7 @@ void AEliteEnemy::FireProjectile()
 	}
 
 	const FVector Direction = (PC->GetPawn()->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-	LaunchProjectile(Direction);
-}
-
-void AEliteEnemy::LaunchProjectile(const FVector& Direction)
-{
-	UPoolingSubsystem* PoolSys = GetWorld()->GetSubsystem<UPoolingSubsystem>();
-	if (!PoolSys)
-	{
-		KHS_WARN(TEXT("%s — PoolingSubsystem 없음."), *GetName());
-		return;
-	}
-
-	const FTransform SpawnTransform(FRotator::ZeroRotator, GetActorLocation());
-	AEnemyProjectile* Projectile = PoolSys->SpawnPooledActor<AEnemyProjectile>(ProjectileClass, SpawnTransform);
-	if (!Projectile)
-	{
-		KHS_WARN(TEXT("%s — EnemyProjectile 풀 고갈. 발사 스킵."), *GetName());
-		return;
-	}
-
-	Projectile->SetInstigator(this);
-	Projectile->InitEnemyProjectile(Direction, ProjectileSpeed, ProjectileLifetime, AttackDamage, AttackGEClass, GetAbilitySystemComponent());
-
-	KHS_DEBUG(TEXT("%s — 투사체 발사. 방향: %s"), *GetName(), *Direction.ToString());
+	LaunchEnemyProjectile(Direction, AttackDamage);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

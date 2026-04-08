@@ -7,9 +7,8 @@
 #include "Data/DataTableStructs.h"
 #include "EliteEnemy.generated.h"
 
-class AEnemyProjectile;
-class UGameplayEffect;
 class USphereComponent;
+class UGameplayEffect;
 
 /**
  * AEliteEnemy
@@ -54,17 +53,9 @@ private:
 	void OnChargeHitBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	void LaunchProjectile(const FVector& Direction);
 	void ApplyChargeDamage(AActor* Target);
 
 private:
-	// ── 원거리 파라미터 (FEnemyExtData 주입) ──────────────────────────────
-	float PreferredRange    = 400.f;
-	float MaxAttackRange    = 800.f;
-	float ProjectileSpeed   = 600.f;
-	float ProjectileLifetime = 3.f;
-	float AttackDamage      = 0.f;
-
 	// ── 근접 돌진 파라미터 ────────────────────────────────────────────────
 	/** 돌진 시 속도 배율 — BP에서 조정 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Elite")
@@ -81,13 +72,7 @@ private:
 	TObjectPtr<USphereComponent> ChargeHitSphere;
 
 	// ── GE / 투사체 클래스 (BP 할당) ─────────────────────────────────────
-	/** 투사체 데미지 GE */
-	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Elite")
-	TSubclassOf<UGameplayEffect> AttackGEClass;
 	/** 근접 돌진 데미지 GE */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Elite")
 	TSubclassOf<UGameplayEffect> ChargeGEClass;
-	/** 투사체 클래스 */
-	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Elite")
-	TSubclassOf<AEnemyProjectile> ProjectileClass;
 };

@@ -47,12 +47,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "MY|Enemy|Attack")
 	TObjectPtr<USphereComponent> AttackRangeSphere;
 
-	// 플레이어에게 적용할 데미지 GE
-	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Attack")
-	TSubclassOf<UGameplayEffect> AttackGEClass;
-
 	// DT_Enemy에서 주입받는 공격 파라미터
-	float AttackDamage = 0.f;
 	float AttackCooldown = 1.f;
 
 	// 현재 공격 대상 플레이어(범위 내)

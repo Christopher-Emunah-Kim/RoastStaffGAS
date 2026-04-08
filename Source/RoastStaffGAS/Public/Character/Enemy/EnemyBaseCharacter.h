@@ -23,6 +23,8 @@ class UGameDataSubsystem;
 class UWidgetComponent;
 class UEnemyHPBarWidget;
 class UFloatingDamageWidget;
+class AEnemyProjectile;
+class UGameplayEffect;
 
 // 에너미 처치 델리게이트 — StageWaveSubsystem이 구독
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyKilled, FName, EnemyID);
@@ -55,6 +57,9 @@ protected:
 	virtual void OnPoolActivate() override;
 	virtual void OnPoolDeactivate() override;
 
+	/** 투사체 발사 공통 헬퍼 — AttackGEClass/ProjectileClass 방어 체크 후 풀 획득 → InitEnemyProjectile 호출 */
+	void LaunchEnemyProjectile(const FVector& Direction, float Damage);
+
 private:
 	bool ApplyStatData(FEnemyStaticData& EnemyData);
 	bool StartEnemyAI(FEnemyStaticData EnemyData);
@@ -66,6 +71,21 @@ public:
 	// 처치 델리게이트
 	UPROPERTY(BlueprintAssignable, Category = "MY|Enemy")
 	FOnEnemyKilled OnEnemyKilledDel;
+
+
+protected:
+	// ── 공통 파라미터 (InitializeXxxParams에서 FEnemyExtData 기반 주입) ──
+	float PreferredRange     = 400.f;
+	float MaxAttackRange     = 800.f;
+	float ProjectileSpeed    = 600.f;
+	float ProjectileLifetime = 3.f;
+	float AttackDamage       = 0.f;
+
+	// ── 투사체 공통 클래스 (BP에서 할당) ──
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Projectile")
+	TSubclassOf<UGameplayEffect> AttackGEClass;
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Projectile")
+	TSubclassOf<AEnemyProjectile> ProjectileClass;
 
 private:
 	// ASC

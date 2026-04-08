@@ -7,9 +7,6 @@
 #include "Data/DataTableStructs.h"
 #include "RangedEnemy.generated.h"
 
-class AEnemyProjectile;
-class UGameplayEffect;
-
 /**
  * ARangedEnemy
  *
@@ -33,21 +30,4 @@ public:
 	FORCEINLINE float GetPreferredRange()  const { return PreferredRange; }
 	FORCEINLINE float GetMaxAttackRange()  const { return MaxAttackRange; }
 
-private:
-	/** PoolingSubsystem에서 EnemyProjectile 획득 후 초기화 */
-	void LaunchProjectile(const FVector& Direction);
-
-private:
-	float PreferredRange  = 400.f;
-	float MaxAttackRange  = 800.f;
-	float ProjectileSpeed = 600.f;
-	float ProjectileLifetime = 3.f;
-	float AttackDamage    = 0.f;
-
-	/** 플레이어 ASC에 적용할 데미지 GE — BP에서 할당 */
-	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Ranged")
-	TSubclassOf<UGameplayEffect> AttackGEClass;
-	/** 투사체 클래스 — BP에서 할당 (BP_EnemyProjectile) */
-	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Ranged")
-	TSubclassOf<AEnemyProjectile> ProjectileClass;
 };

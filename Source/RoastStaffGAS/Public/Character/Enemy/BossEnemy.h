@@ -63,7 +63,6 @@ private:
 	void ActivatePhase2();
 
 	void ApplyShockwaveDamage(AActor* Target);
-	void LaunchProjectileInDirection(const FVector& Direction, float DamageOverride);
 
 public:
 	/** EnemySpawner가 구독 — 보스 사망 시 HUD 해제 트리거 */
@@ -71,13 +70,6 @@ public:
 	FOnBossKilled OnBossKilledDel;
 
 private:
-	// ── 공통 파라미터 ────────────────────────────────────────────────────
-	float AttackDamage     = 0.f;
-	float PreferredRange   = 500.f;
-	float MaxAttackRange   = 800.f;
-	float ProjectileSpeed  = 600.f;
-	float ProjectileLifetime = 4.f;
-
 	// ── Shockwave 파라미터 ───────────────────────────────────────────────
 	float ShockwaveRadius      = 300.f;
 	float ShockwaveDamage      = 0.f;
@@ -108,10 +100,4 @@ private:
 	/** Shockwave 범위 데미지 GE */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Boss")
 	TSubclassOf<UGameplayEffect> ShockwaveGEClass;
-	/** Phase2 8방향 투사체 데미지 GE */
-	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Boss")
-	TSubclassOf<UGameplayEffect> ProjectileGEClass;
-	/** 투사체 클래스 */
-	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Boss")
-	TSubclassOf<AEnemyProjectile> ProjectileClass;
 };

@@ -2,8 +2,6 @@
 
 #include "Character/Enemy/BossEnemy.h"
 #include "Character/Enemy/EnemyAIController.h"
-#include "Objects/Projectile/EnemyProjectile.h"
-#include "Subsystems/PoolingSubsystem.h"
 #include "GAS/Attributes/BaseAttributeSet.h"
 #include "AbilitySystemInterface.h"
 #include "AbilitySystemComponent.h"
@@ -13,6 +11,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GAS/Tags/RSGameplayTags.h"
 #include "RoastStaffGAS.h"
+#include "Objects/Projectile/EnemyProjectile.h"
 
 ABossEnemy::ABossEnemy()
 {
@@ -220,49 +219,16 @@ void ABossEnemy::ApplyShockwaveDamage(AActor* Target)
 
 void ABossEnemy::FireSpreadProjectile()
 {
-	if (!ProjectileGEClass)
-	{
-		KHS_WARN(TEXT("%s — ProjectileGEClass 미할당."), *GetName());
-		return;
-	}
-
-	if (!ProjectileClass)
-	{
-		KHS_WARN(TEXT("%s — ProjectileClass 미할당."), *GetName());
-		return;
-	}
-
 	const float DamageWithMult = AttackDamage * Phase2DamageMult;
 
 	for (int32 i = 0; i < 8; ++i)
 	{
 		const float AngleRad = FMath::DegreesToRadians(i * 45.f);
 		const FVector Direction(FMath::Cos(AngleRad), FMath::Sin(AngleRad), 0.f);
-		LaunchProjectileInDirection(Direction, DamageWithMult);
+		LaunchEnemyProjectile(Direction, DamageWithMult);
 	}
 
 	KHS_DEBUG(TEXT("%s — 보스 방사형 투사체 발사. 데미지: %.0f"), *GetName(), DamageWithMult);
-}
-
-
-void ABossEnemy::LaunchProjectileInDirection(const FVector& Direction, float DamageOverride)
-{
-	UPoolingSubsystem* PoolSys = GetWorld()->GetSubsystem<UPoolingSubsystem>();
-	if (!PoolSys)
-	{
-		return;
-	}
-
-	const FTransform SpawnTransform(FRotator::ZeroRotator, GetActorLocation());
-	AEnemyProjectile* Projectile = PoolSys->SpawnPooledActor<AEnemyProjectile>(ProjectileClass, SpawnTransform);
-	if (!Projectile)
-	{
-		KHS_WARN(TEXT("%s — EnemyProjectile 풀 고갈. 방향 %s 스킵."), *GetName(), *Direction.ToString());
-		return;
-	}
-
-	Projectile->SetInstigator(this);
-	Projectile->InitEnemyProjectile(Direction, ProjectileSpeed, ProjectileLifetime, DamageOverride, ProjectileGEClass, GetAbilitySystemComponent());
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -2,6 +2,7 @@
 
 
 #include "Character/Enemy/EnemyBaseCharacter.h"
+#include "Objects/Projectile/EnemyProjectile.h"
 #include "RoastStaffGAS.h"
 #include "AbilitySystemComponent.h"
 #include "BrainComponent.h"
@@ -250,6 +251,45 @@ void AEnemyBaseCharacter::SetupHPBar()
 
 	HPBarWidget->BindToASC(ASC);
 	HPBarWidget->SetEnemyName(FText::FromName(EnemyID));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 투사체 공통 헬퍼
+// ─────────────────────────────────────────────────────────────────────────────
+
+void AEnemyBaseCharacter::LaunchEnemyProjectile(const FVector& Direction, float Damage)
+{
+	if (!AttackGEClass)
+	{
+		KHS_WARN(TEXT("%s — AttackGEClass 미할당. BP에서 설정 필요."), *GetName());
+		return;
+	}
+
+	if (!ProjectileClass)
+	{
+		KHS_WARN(TEXT("%s — ProjectileClass 미할당. BP에서 설정 필요."), *GetName());
+		return;
+	}
+
+	UPoolingSubsystem* PoolSys = GetWorld()->GetSubsystem<UPoolingSubsystem>();
+	if (!PoolSys)
+	{
+		KHS_WARN(TEXT("%s — PoolingSubsystem 없음."), *GetName());
+		return;
+	}
+
+	const FTransform SpawnTransform(FRotator::ZeroRotator, GetActorLocation());
+	AEnemyProjectile* Projectile = PoolSys->SpawnPooledActor<AEnemyProjectile>(ProjectileClass, SpawnTransform);
+	if (!Projectile)
+	{
+		KHS_WARN(TEXT("%s — EnemyProjectile 풀 고갈. 발사 스킵."), *GetName());
+		return;
+	}
+
+	Projectile->SetInstigator(this);
+	Projectile->InitEnemyProjectile(Direction, ProjectileSpeed, ProjectileLifetime,	Damage, AttackGEClass, GetAbilitySystemComponent());
+
+	KHS_DEBUG(TEXT("%s — 투사체 발사. 방향: %s"), *GetName(), *Direction.ToString());
 }
 
 bool AEnemyBaseCharacter::ApplyStatData(FEnemyStaticData& EnemyData)
