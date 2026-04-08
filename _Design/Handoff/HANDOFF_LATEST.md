@@ -1,74 +1,83 @@
-# HANDOFF — 2026-04-08 세션 종료
+# 세션 핸드오프 — 2026-04-08 23:36:34
 
-## 완료된 작업
+## Worktree 정보
+없음 — main 브랜치에서 직접 작업
 
-### PLAN_PoolingCentralize_v1.0 — 전 MODULE 완료 (MODULE-7 제외)
-MODULE 1~6, 8 구현 완료 + 빌드/실행 검증 완료.
-MODULE-7 기획서 충돌 해소 완료 → DEFERRED 해제 (착수 가능 상태).
+## 파이프라인 진행 상태
+**완료** — GC + 리팩토링 + 커밋 + 세션 종료까지 전 파이프라인 완료
 
-| 이번 세션 수정 항목 | 내용 |
-|---|---|
-| EquipmentSubsystem | MODULE-8: InitWeaponPool + ClearWeaponPool (무기 장착/교체 시 풀 관리) |
-| PoolingSubsystem | DrainPool(ActorClass) API 추가 |
-| EnemyProjectile | BeginPlay에서 OnPoolDeactivate() 호출 누락 버그 수정 (PreWarm 시 날아가는 현상) |
-| BaseSummonObject | RootComponent 미지정 경고 수정 (USceneComponent Root 추가) |
-| 기획서 정정 | 인트로_트랜지션 v1.0 → v1.1 (FakeProgress 제거, FinishLoading 주체 = 스테이지 게임모드) |
-| 기획서 정정 | UI관리 v1.1 → v1.2 (LOADING = PERSISTENT/UMS 관리, GameInstance 직접관리 표기 제거) |
+| FEATURE | 상태 | 커밋 |
+|---------|------|------|
+| PoolingCentralize (MODULE 1~6, 8) | ✅ COMMITTED | af3c5cd |
+| GC + 가독성 리팩토링 | ✅ COMMITTED | 8011f7f |
+| docs (CHANGESET/TODO/CLAUDE.md) | ✅ COMMITTED | a83cf54 |
 
----
+## 마지막 작업 내용
+**SPRINT-5: 풀링 시스템 중앙화 + AsyncPreWarm + GC 리팩토링**
 
-## 다음 세션 작업 순서
+1. **GC 청소**
+   - UE_LOG → KHS_INFO (RSCharacterSelectWidget)
+   - BTTask_RangedReposition out-param 초기값 0.f 명확화
+   - UIManagerSubsystem ZOrder constexpr 상수 5개 추가
 
+2. **PoolingSubsystem + RSGameMode 가독성 리팩토링**
+   - `PopFirstValid<T>` 템플릿 — SpawnPooledActor/Widget Pop 루프 추출
+   - `AddActorToPool` — InitializePool/TickPreWarm 중복 제거
+   - `SpawnOnePreWarmUnit` — TickPreWarm Actor/Widget 분기 추출
+   - `GetLoadingWidget()` / `CollectUniqueEnemyClasses()` / `MakeActorRequest/Widget` — RSGameMode 헬퍼 추출
+   - 모든 private 헬퍼 헤더 선언 확보 (anonymous namespace → private member 논의 완료)
+
+3. **파이프라인 개선**
+   - conventions.md: Private 헬퍼 배치 원칙 추가
+   - CLAUDE.md END 트리거 구어체 확장
+   - commit [F]: FEATURE 완료 시 COMPLETED_LOG 이동 통합
+   - protocols.md SESSION_END: commit 처리 항목 중복 스킵 명시
+
+## 미완료 사항
 ```
-1. /gc   — PoolingSubsystem.cpp + RSGameMode.cpp (BACKLOG 항목)
-2. SR    — @senior-reviewer
-3. LEARN — @learning-coach
-4. COMMIT
-```
-
-## 커밋 대상 파일
-
-```
-Source/RoastStaffGAS/Public/Subsystems/PoolingSubsystem.h
-Source/RoastStaffGAS/Private/Subsystems/PoolingSubsystem.cpp
-Source/RoastStaffGAS/Public/Subsystems/UIManagerSubsystem.h
-Source/RoastStaffGAS/Private/Subsystems/UIManagerSubsystem.cpp
-Source/RoastStaffGAS/Public/Subsystems/EquipmentSubsystem.h
-Source/RoastStaffGAS/Private/Subsystems/EquipmentSubsystem.cpp
-Source/RoastStaffGAS/Public/System/EnemySpawner.h
-Source/RoastStaffGAS/Private/System/EnemySpawner.cpp
-Source/RoastStaffGAS/Public/Core/RSGameMode.h
-Source/RoastStaffGAS/Private/Core/RSGameMode.cpp
-Source/RoastStaffGAS/Public/Character/Player/RSPlayerController.h
-Source/RoastStaffGAS/Private/Character/Player/RSPlayerController.cpp
-Source/RoastStaffGAS/Public/Objects/Projectile/EnemyProjectile.h
-Source/RoastStaffGAS/Private/Objects/Projectile/EnemyProjectile.cpp
-Source/RoastStaffGAS/Private/Objects/Summon/BaseSummonObject.cpp
-_Design/References/Systems/인트로_트랜지션 시스템 기획 v1.0.md
-_Design/References/Systems/UI관리 시스템 기획 v1.1.md
-_Design/TODO.md
-_Design/Changesets/CHANGESET.md
-_Design/Plans/active/PLAN_PoolingCentralize_v1.0.md
+[ ] 로비 전환 시 크래시 재현 확인 (WeakThis 패치 적용됨)     [P0] ← 최우선
+[ ] BT_RangedEnemy / BT_EliteEnemy / BT_BossEnemy 에셋 구성  [P1]
+[ ] 풀링 미적용 대상 초기화: BaseProjectile + BaseSummonObject [P1]
+[~] MODULE-7: RSTransitionGameMode FinishLoading 타이밍       [P1] DEFERRED
 ```
 
-## 알아둘 것
+## ⭐ Main으로 전달할 내용 (Worktree 작업 시 필수)
+> 다음 내용을 main의 HANDOFF_LATEST.md에 통합하세요:
+> 
+> ### [작업 이름]
+> - 완료 사항: 
+> - 변경 파일: 
+> - 다음 단계:
 
-### PoolableInterface 계약 — 신규 발견 패턴
-`TrySpawnActor`로 스폰되는 모든 클래스는 **BeginPlay에서 OnPoolDeactivate() 호출 필수**.
-EnemyProjectile이 이를 빠뜨려 PreWarm 시 투사체가 날아가는 버그 발생 → 수정 완료.
-새 Poolable Actor 추가 시 반드시 체크할 것.
+## 최근 변경 파일
+| 2026-04-08 23:22:21 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\planning\SKILL.md` |
+| 2026-04-08 23:22:37 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\agents\senior-reviewer.md` |
+| 2026-04-08 23:22:52 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Changesets\CHANGESET.md` |
+| 2026-04-08 23:23:05 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Changesets\CHANGESET.md` |
+| 2026-04-08 23:23:12 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-04-08 23:24:18 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\commit\SKILL.md` |
+| 2026-04-08 23:24:23 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\PoolingSystem_변경리포트_v2.0.md` |
+| 2026-04-08 23:24:36 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\commit\SKILL.md` |
+| 2026-04-08 23:26:37 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\commit\SKILL.md` |
+| 2026-04-08 23:28:14 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\coding\SKILL.md` |
+| 2026-04-08 23:28:24 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\planning\SKILL.md` |
+| 2026-04-08 23:28:34 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\agents\senior-reviewer.md` |
+| 2026-04-08 23:28:44 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\commit\SKILL.md` |
+| 2026-04-08 23:29:46 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-04-08 23:29:52 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-04-08 23:30:01 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-04-08 23:32:30 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\coding\references\conventions.md` |
+| 2026-04-08 23:32:48 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\CLAUDE.md` |
+| 2026-04-08 23:33:03 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\commit\SKILL.md` |
+| 2026-04-08 23:33:16 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\references\protocols.md` |
 
-### 실행 검증 결과 (정상)
-- DefaultWeapon(소환형) 장착 → SummonObjectPool 5개 초기화 확인
-- PreWarm 5건 / 총 180개 인스턴스 정상 수집 (에너미 4클래스 + 투사체 + 위젯 20)
-- EnemySpawner InitPools → ClassCache만 (풀 초기화 제거) 확인
-- OnPreWarmCompleted 이후 StartStageFlow 순서 정상
+## 토큰 사용 체감
+GC 스캔 + 리팩토링 단계에서 파일 다수 읽기로 컨텍스트 소모 큼.
+anonymous namespace vs private 멤버 논의 3회 왕복으로 약간의 낭비 발생.
 
-### 잔존 이슈 (낮은 우선순위)
-- `WBP_TempUMG` — TestMap에 삭제된 위젯 레퍼런스 잔존. 기능 영향 없음.
-- MODULE-7 (RSTransitionGameMode) — 착수 가능하나 이번 PLAN 범위 외.
-
-### 기획서 파일명 변경 필요
-커밋 시 아래 파일 rename 처리:
-- `인트로_트랜지션 시스템 기획 v1.0.md` → `인트로_트랜지션 시스템 기획 v1.1.md`
-- `UI관리 시스템 기획 v1.1.md` → `UI관리 시스템 기획 v1.2.md`
+## 참고사항
+- **다음 세션 최우선**: 로비 전환 크래시 재현 확인 (WeakThis 패치 이후 미검증)
+- PoolingSystem 변경 리포트: `_Design/References/Systems/PoolingSystem_변경리포트_v2.0.md`
+- Private 헬퍼 배치 원칙 새로 확정: "클래스 동작 설명 → 헤더 private / 순수 유틸리티 → anonymous namespace"
+- EnemyExpansion FEATURE는 BT 에셋 구성([P1]) 남아있어 ACTIVE_WORK에 잔류 중
+- commit [F] 개선: FEATURE 완료 시 COMPLETED_LOG 이동 + Plan 이동이 커밋 시점에 처리되도록 변경됨

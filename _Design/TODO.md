@@ -13,72 +13,6 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
-## [FEATURE] 풀링 시스템 중앙화 + AsyncPreWarm | PLAN_PoolingCentralize_v1.0 ✓ COMMITTED af3c5cd 2026-04-08
-> 시작: 2026-04-08 | 기획서: 스테이지_스폰 v1.3 / 인트로_트랜지션 v1.0 / UI관리 v1.1
-
-  ### [MODULE-1] FPoolPreWarmRequest USTRUCT 정의 ✓ DONE 2026-04-08
-  수정: Source/RoastStaffGAS/Public/Subsystems/PoolingSubsystem.h
-    - [x] FPoolPreWarmRequest USTRUCT — ActorClass, WidgetClass, Count 필드          [P0]
-    - [x] USTRUCT 기본값 명시 (Count=0, nullptr)                                     [P0]
-
-  ### [MODULE-2a] PoolingSubsystem — PreWarm 큐 + Tick 배치 스폰 (Actor) ✓ DONE 2026-04-08
-  수정: Source/RoastStaffGAS/Public/Subsystems/PoolingSubsystem.h
-        Source/RoastStaffGAS/Private/Subsystems/PoolingSubsystem.cpp
-    - [x] RequestAsyncPreWarm(TArray<FPoolPreWarmRequest>) 선언 및 구현              [P0]
-    - [x] UTickableWorldSubsystem으로 변경하여 Tick 활성화                           [P0]
-    - [x] Tick에서 프레임당 N개 Actor 배치 스폰 → ActorPool 적재                    [P0]
-    - [x] PreWarmBatchSize UPROPERTY(EditDefaultsOnly) 노출                          [P0]
-    - [x] PreWarmTotalCount / PreWarmDoneCount 멤버 추가                             [P0]
-
-  ### [MODULE-2b] PoolingSubsystem — Progress + OnPreWarmComplete 델리게이트 ✓ DONE 2026-04-08
-  수정: Source/RoastStaffGAS/Public/Subsystems/PoolingSubsystem.h
-        Source/RoastStaffGAS/Private/Subsystems/PoolingSubsystem.cpp
-    - [x] GetPreWarmProgress() → float 구현 (0 나누기 방어)                         [P0]
-    - [x] FSimpleMulticastDelegate OnPreWarmComplete Public 선언                     [P0]
-    - [x] Tick 내 완료 감지 시 OnPreWarmComplete.Broadcast()                        [P0]
-
-  ### [MODULE-3] PoolingSubsystem — WidgetPool 활성화 ✓ DONE 2026-04-08
-  수정: Source/RoastStaffGAS/Public/Subsystems/PoolingSubsystem.h
-        Source/RoastStaffGAS/Private/Subsystems/PoolingSubsystem.cpp
-    - [x] FWidgetPoolBucket USTRUCT 추가 (FActorPoolBucket 패턴 동일)               [P1]
-    - [x] InitializeWidgetPool(TSubclassOf<UUserWidget>, int32, APlayerController*)  [P1]
-    - [x] SpawnPooledWidget(TSubclassOf<UUserWidget>, APlayerController*) 구현       [P1]
-    - [x] ReturnWidgetToPool(UUserWidget*) 구현                                      [P1]
-    - [x] PreWarm Tick에서 WidgetClass 요청 분기 추가                               [P1]
-
-  ### [MODULE-4] EnemySpawner — InitializePool 제거 + getter 추가 ✓ DONE 2026-04-08
-  수정: Source/RoastStaffGAS/Public/System/EnemySpawner.h
-        Source/RoastStaffGAS/Private/System/EnemySpawner.cpp
-    - [x] InitPools()에서 PoolingSubsystem->InitializePool() 호출 2개 제거          [P0]
-    - [x] GetEnemyProjectileClass() const 추가                                       [P0]
-    - [x] GetProjectilePoolCount() const 추가                                        [P0]
-
-  ### [MODULE-5] RSGameMode — BuildPreWarmList + RequestAsyncPreWarm ✓ DONE 2026-04-08
-  수정: Source/RoastStaffGAS/Public/Core/RSGameMode.h
-        Source/RoastStaffGAS/Private/Core/RSGameMode.cpp
-    - [x] BuildPreWarmList() — GDS+EnemySpawner getter로 FPoolPreWarmRequest 배열 구성 [P0]
-    - [x] GDS->GetWaveDataByStage(StageID) → EnemyID → EnemyClass 수집              [P0]
-    - [x] EnemySpawner getter로 EnemyProjectileClass + 수량 수집                    [P0]
-    - [x] DamageFloatingWidgetClass + 수량 UPROPERTY(EditDefaultsOnly) 노출         [P0]
-    - [x] PoolingSubsystem->RequestAsyncPreWarm(PreWarmList) 호출                   [P0]
-    - [x] OnPreWarmComplete 구독 → EnableInput + LoadingWidget FinishLoading         [P0]
-    - [x] Tick에서 GetPreWarmProgress() 폴링 → LoadingWidget->SetLoadingProgress()  [P0]
-
-  ### [MODULE-6] RSPlayerController — FloatingDamagePool PoolingSubsystem 위임 ✓ DONE 2026-04-08
-  수정: Source/RoastStaffGAS/Public/Character/Player/RSPlayerController.h
-        Source/RoastStaffGAS/Private/Character/Player/RSPlayerController.cpp
-    - [x] FloatingDamagePool TArray 멤버 제거                                        [P1]
-    - [x] SpawnFloatingDamage() → PoolingSubsystem->SpawnPooledWidget() 호출로 교체 [P1]
-    - [x] 반납 시 PoolingSubsystem->ReturnWidgetToPool() 호출로 교체               [P1]
-
-  ### [MODULE-8] EquipmentSubsystem — EquipWeapon 시 InitializePool ✓ DONE 2026-04-08
-  실제 구현: EquipmentSubsystem (계획서 EquipmentComponent 표기 오류)
-  수정: Source/RoastStaffGAS/Public/Subsystems/EquipmentSubsystem.h
-        Source/RoastStaffGAS/Private/Subsystems/EquipmentSubsystem.cpp
-    - [x] CommitSlot() 내 InitWeaponPool() 호출 (EquipWeapon/UpgradeWeapon 공통 경로) [P1]
-    - [x] GDS->GetSkillExecutionData() → ProjectileClass/SummonObjectClass 조회       [P1]
-    - [x] PoolingSubsystem->InitializePool(Class, Count) 호출                         [P1]
-    - [x] 풀 수량 static constexpr (ProjectilePoolCount=10, SummonPoolCount=5)         [P1]
 
 ## [FEATURE] Enemy Ranged + Elite + Boss 시스템 | PLAN_EnemyExpansion_v1.0
 > 시작: 2026-04-06 | 기획서: AI_에너미 시스템 기획 v1.1.md, 스킬 시스템 기획 v1.4.md
@@ -165,11 +99,6 @@
 ## BACKLOG
 <!-- 의존성 기반 우선순위 정렬. 플랜 없음 → 착수 전 /planning 필수 -->
 
-### [GC] 풀링 중앙화 완료 후 리팩토링 대상
-> PLAN_PoolingCentralize 전 MODULE 완료 후 /gc 실행
-  - PoolingSubsystem.cpp — 함수 길이 증가, 복잡도 검토
-  - RSGameMode.cpp — InitializePreWarm/BuildPreWarmList 흐름 헬퍼 분리 검토
-
 ### [P1] 게임 루프 완성 (최우선)
 
 <!-- #8 → #7 순서: 복귀 로직이 결과 UI의 출구이므로 #7 설계 전에 플로우 먼저 확정 -->
@@ -219,6 +148,7 @@
 
 ## COMPLETED_LOG
 <!-- compact 형식: [x] FEATURE명 | 커밋 | 날짜 | 플랜파일 -->
+[x] 풀링 시스템 중앙화 + AsyncPreWarm + GC리팩토링 | af3c5cd,8011f7f | 2026-04-08 | PLAN_PoolingCentralize_v1.0
 [x] 스테이지 클리어 로직 + 결과 UI (WBP 포함) | 78378ee,6c7f997,067b08a,4bb9bcb | 2026-04-05~06 | PLAN_StageResult_v1.0
 [x] 게임플로우 데이터(RuntimeDS/캐릭터적용) | d622281,f10dab1,783b4e7 | 2026-04-02~03 | PLAN_GameFlow_Data_v1.0
 [x] OutGame 선택 UI(캐릭터·스테이지 선택) | 1a21f8c~8d68391,2944f16,71f1ac0,1ed214f,15ac6d4 | 2026-04-01~02 | PLAN_OutGame_SelectUI_v1.0
