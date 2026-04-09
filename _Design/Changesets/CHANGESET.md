@@ -13,6 +13,16 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 ## PENDING_COMMIT
 
 - date: 2026-04-09
+  plan: BugFix-MaxHP-CurveTable
+  commit: "a86af95"
+  summary: "레벨업 시 MaxHP CurveTable 미갱신 수정 — ApplyLevelUp MaxHP/CurrentHP 갱신 + PreAttributeChange 클램핑 방어 로직"
+  status: COMMITTED
+  files.modified:
+    - Source/RoastStaffGAS/Private/Subsystems/LevelUpSubsystem.cpp
+    - Source/RoastStaffGAS/Private/GAS/Attributes/BaseAttributeSet.cpp
+    - Content/Data/Character/CT_BaseStatCurve.uasset
+
+- date: 2026-04-09
   plan: PLAN_LastPlayedStageRestore_v1.0
   commit: "7d586e6,34e2df6,7279505"
   summary: "LastPlayedStage UX 연속성 복원 — SGS API 추가 + StageSelectWidget 자동 복원"
