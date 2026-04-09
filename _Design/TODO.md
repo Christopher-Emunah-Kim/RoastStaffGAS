@@ -23,54 +23,16 @@
     - [x] OnLevelPreloadCompleted()에서 1초 타이머 제거 → 즉시 OpenNextLevelLatent() [P0]
     - [x] bIsLoadingLevel 멤버변수 + 연관 로직 제거 (FakeProgress 전용이었으면) [P0]
 
-  ### [MODULE-2] RSLoadingWidget CloseUI 분리 확인
-  수정: RSLoadingWidget.h, RSLoadingWidget.cpp
-    - [ ] FinishLoading()이 CloseUI 호출하지 않음 확인 (Progress 1.f 표시만)  [P0]
-    - [ ] IsVisible() Guard — 이미 닫힌 상태 재호출 방지                       [P0]
+  ### [MODULE-2] RSLoadingWidget CloseUI 분리 확인 ✓ DONE 2026-04-09
+  수정: RSLoadingWidget.cpp
+    - [x] FinishLoading()이 CloseUI 호출하지 않음 확인 (Progress 1.f 표시만)  [P0]
+    - [x] IsVisible() Guard — 이미 닫힌 상태 재호출 방지                       [P0]
 
   ### [MODULE-3] RSGameMode OnPreWarmCompleted CloseUI 추가
   수정: RSGameMode.cpp
     - [ ] OnPreWarmCompleted()에서 FinishLoading() 후 UMS::CloseUIByID(LOADING) 호출 [P0]
     - [ ] PreWarmList 비어있을 때(즉시 StartStageFlow) CloseUI 경로 방어 처리  [P0]
 
-## [FEATURE] Boss HP Bar UI 파이프라인 | PLAN_BossHPBar_v1.0
-> 시작: 2026-04-09 | 기획서: AI_에너미 시스템 기획 v1.1.md, UI관리 시스템 기획 v1.1.md
-
-  ### [MODULE-1] EnumExtension — EUIID::BOSS_HP_BAR 추가 ✓ DONE 2026-04-09
-  수정: EnumUITypes.h
-    - [x] EUIID enum에 BOSS_HP_BAR 열거값 추가                                [P0]
-
-  ### [MODULE-2] BossHPBarWidget C++ 클래스 신규 ✓ DONE 2026-04-09
-  신규: BossHPBarWidget.h, BossHPBarWidget.cpp
-    - [x] URSBaseWidget 상속, UILayer=PERSISTENT 생성자 설정                  [P0]
-    - [x] BindToASC(UAbilitySystemComponent*, float InPhase2Ratio) 구현        [P0]
-    - [x] OnHealthChanged — ProgressBar 비율 갱신                              [P0]
-    - [x] UPROPERTY 바인딩: PBar_BossHP, Anim_FadeOut 선언                    [P0]
-    - [x] NativeDestruct에서 ASC 델리게이트 구독 해제                         [P0]
-    - [x] bIsClosing 플래그로 이중 CloseUI 방지                               [P0]
-
-  ### [MODULE-3] EnemySpawner + BossEnemy 연동 ✓ DONE 2026-04-09
-  수정: EnemySpawner.cpp, BossEnemy.h, EnemySpawner.h
-    - [x] ABossEnemy에 GetPhase2HPRatio() getter 추가                         [P0]
-    - [x] case BOSS: OpenUIByID + BindToASC 호출 (TODO 교체)                  [P0]
-    - [x] OnBossKilled(): bIsClosing 체크 후 CloseUIByID (TODO 교체)          [P0]
-    - [x] EnemySpawner.cpp에 BossHPBarWidget.h + UIManagerSubsystem.h include [P0]
-
-  ### [MODULE-4] WBP_BossHPBar UMG 위젯 제작 [EDITOR]
-    - [ ] [EDITOR] WBP_BossHPBar 생성, Parent = BossHPBarWidget (C++)         [P0]
-    - [ ] [EDITOR] PBar_BossHP ProgressBar 배치 (C++ 이름 일치 필수)          [P0]
-    - [ ] [EDITOR] Anim_FadeOut 애니메이션 생성                               [P0]
-    - [ ] [EDITOR] 화면 상단 중앙 앵커 배치                                   [P0]
-
-  ### [MODULE-5] UIManagerSettings 매핑 등록 [EDITOR]
-    - [ ] [EDITOR] UIClassMap: BOSS_HP_BAR → WBP_BossHPBar                    [P0]
-    - [ ] [EDITOR] UILayerMap: BOSS_HP_BAR → PERSISTENT                       [P0]
-
-  ### [MODULE-6] Phase2 시각 피드백
-  수정: BossHPBarWidget.h, BossHPBarWidget.cpp
-    - [ ] OnHealthChanged에서 Phase2 임계값 이하 최초 진입 시 색상 전환        [P1]
-    - [ ] bPhase2Triggered 플래그로 중복 색상 전환 방지                       [P1]
-    - [ ] [EDITOR] WBP_BossHPBar Phase2 경고색 Material/LinearColor 설정      [P1]
 
 
 
@@ -197,6 +159,7 @@
 
 ## DEFERRED
 <!-- "나중에" 항목. 이유+우선순위 필수 -->
+[~] MODULE-6: BossHPBar Phase2 시각 피드백 — WBP에서 경고색 Material/LinearColor 설정 필요, 아트 확정 후 착수 | [P1] | REF: PLAN_BossHPBar_v1.0
 [~] Txt_PlayerName 업데이트 로직 — 캐릭터 이름 시스템 미구현, BP에서만 텍스트 지정 | [P2] | REF: PLAN_PlayerHPBarWidget_v1.0
 [~] MODULE-7: RSTransitionGameMode FinishLoading 타이밍 변경 — 기획서 충돌 해소 완료(2026-04-08), 착수 가능 | [P1] | REF: PLAN_PoolingCentralize_v1.0
 [~] 진화 시스템 (Evolution/Combination) — DT_Combination + 조합 체크 로직. 강화 시스템 완성 후 착수. | [P2] | REF: PLAN_WeaponUpgrade_Replace_v1.0
@@ -208,6 +171,7 @@
 
 ## COMPLETED_LOG
 <!-- compact 형식: [x] FEATURE명 | 커밋 | 날짜 | 플랜파일 -->
+[x] Boss HP Bar UI 파이프라인 (C++ MODULE 1~4) | d43254d,b7e3b05,02d92c1,c45823d | 2026-04-09 | PLAN_BossHPBar_v1.0
 [x] LastPlayedStage UX 연속성 복원 | 7d586e6,34e2df6,7279505 | 2026-04-09 | PLAN_LastPlayedStageRestore_v1.0
 [x] PlayerStatusBarWidget HP/EXP TextBlock 실시간 갱신 | d22fcd1 | 2026-04-09 | ad-hoc
 [x] 풀링 시스템 중앙화 + AsyncPreWarm + GC리팩토링 | af3c5cd,8011f7f | 2026-04-08 | PLAN_PoolingCentralize_v1.0

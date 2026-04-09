@@ -25,9 +25,9 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 - date: 2026-04-09
   plan: PLAN_BossHPBar_v1.0
-  commit: ~
+  commit: "d43254d, b7e3b05, 02d92c1, c45823d"
   summary: "보스 HP Bar UI 파이프라인 — BossHPBarWidget 신규 + EUIID::BOSS_HP_BAR + EnemySpawner 연동"
-  status: IN_PROGRESS
+  status: COMMITTED
   files.new:
     - Source/RoastStaffGAS/Public/UI/Enemy/BossHPBarWidget.h
     - Source/RoastStaffGAS/Private/UI/Enemy/BossHPBarWidget.cpp
