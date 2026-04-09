@@ -14,13 +14,15 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 - date: 2026-04-09
   plan: PLAN_TransitionFinishLoading_v1.0
-  commit: ~
+  commit: "c5588b2"
   summary: "LoadingWidget 닫힘 타이밍 수정 — TransitionGameMode FinishLoading 제거, PreWarm 완료 시 CloseUI"
-  status: IN_PROGRESS
+  status: COMMITTED
   files.new: []
   files.modified:
+    - Source/RoastStaffGAS/Public/Core/Transition/RSTransitionGameMode.h
     - Source/RoastStaffGAS/Private/Core/Transition/RSTransitionGameMode.cpp
     - Source/RoastStaffGAS/Private/UI/Transition/RSLoadingWidget.cpp
+    - Source/RoastStaffGAS/Public/Core/RSGameMode.h
     - Source/RoastStaffGAS/Private/Core/RSGameMode.cpp
 
 - date: 2026-04-09
