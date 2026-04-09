@@ -225,10 +225,24 @@ void ULevelUpSubsystem::SelectWeaponCandidates()
 
 void ULevelUpSubsystem::ApplyLevelUp(int32 CurrentLevel, float OverflowEXP)
 {
-	ASC->SetNumericAttributeBase(AttributeSet->GetLevelAttribute(), static_cast<float>(CurrentLevel + 1));
+	const int32 NewLevel = CurrentLevel + 1;
+	ASC->SetNumericAttributeBase(AttributeSet->GetLevelAttribute(), static_cast<float>(NewLevel));
 	ASC->SetNumericAttributeBase(AttributeSet->GetEXPAttribute(), OverflowEXP);
 
-	KHS_INFO(TEXT("어트리뷰트 갱신 — Level: %d, EXP: %.0f"), CurrentLevel + 1, OverflowEXP);
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
+	float NewMaxHP = 0.f;
+	if (GDS->GetLevelCurveValue(FName("MaxHP"), NewLevel, NewMaxHP) && NewMaxHP > 0.f)
+	{
+		ASC->SetNumericAttributeBase(UBaseAttributeSet::GetMaxHPAttribute(), NewMaxHP);
+		ASC->SetNumericAttributeBase(UBaseAttributeSet::GetCurrentHPAttribute(), NewMaxHP);
+		KHS_INFO(TEXT("MaxHP 갱신 — Level: %d, MaxHP: %.0f"), NewLevel, NewMaxHP);
+	}
+	else
+	{
+		KHS_WARN(TEXT("MaxHP 커브 조회 실패 — Level: %d"), NewLevel);
+	}
+
+	KHS_INFO(TEXT("어트리뷰트 갱신 — Level: %d, EXP: %.0f"), NewLevel, OverflowEXP);
 }
 
 void ULevelUpSubsystem::NotifyWeaponSelectCompleted()

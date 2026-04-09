@@ -22,6 +22,12 @@ void UBaseAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, 
 		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxHP());
 	}
 
+	// MaxHP 감소 시 CurrentHP가 초과하지 않도록 클램핑
+	if (Attribute == GetMaxHPAttribute())
+	{
+		SetCurrentHP(FMath::Min(GetCurrentHP(), NewValue));
+	}
+
 	// MoveSpeed 하한 고정 — 0 이하로 내려가지 않도록
 	if (Attribute == GetMoveSpeedAttribute())
 	{
