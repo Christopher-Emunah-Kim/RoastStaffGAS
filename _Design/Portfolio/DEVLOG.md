@@ -38,6 +38,26 @@
 
 ## 2026-04
 
+### [2026-04-09] [ARCH] StageSelectWidget 복원 — 저장 시점 선택과 기존 함수 재사용
+
+**상황**: 로비 복귀 시 스테이지 선택 화면이 항상 초기화 상태로 시작 — 재도전 UX 단절.
+
+**문제·과제**: LastPlayedStageID를 언제 저장할지, 복원 시 UpdateDetailPanel / SelectedStageID / Btn_Confirm 3개 상태를 중복 없이 정확히 복원하는 방법.
+
+**검토한 선택지**:
+- 저장 시점: OnStageSelected(진입 확정) vs UpdateStageRecord(스테이지 종료) — UpdateStageRecord는 실패 케이스도 포함하므로 "마지막 진입 스테이지" 의미와 불일치
+- 복원 방법: OnNodeClicked 재사용 vs 3개 상태 직접 조작 — 직접 조작 시 OnNodeClicked 내부 변경에 취약 (LOCKED 방어 로직 누락 위험)
+
+**결정**: 저장은 OnStageSelected에서 SaveGame() 직전 일괄 (세이브 기획서 트리거 정책 준수). 복원은 OnNodeClicked 재사용 — LOCKED 방어 자동 처리 + DRY 보장. PopulateNodeMap() 이후 순서 고정으로 NodeDataCache 선행 조건 보장.
+
+**결과**: 6개 파일 수정, 신규 파일 없음. 재도전 UX 복원 완료.
+
+**포트폴리오 포인트**: 기존 함수 재사용으로 3개 상태 동기화 문제를 없앤 판단 + 저장 시점의 의미 정합 고려 (진입 확정 vs 종료 결과).
+
+**관련 파일**: RSGameSave.h, SaveGameSubsystem.h/.cpp, RSOutGamePlayerController.cpp, RSStageSelectWidget.h/.cpp
+
+---
+
 ### [2026-04-08] [ARCH] Private 헬퍼 배치 — anonymous namespace vs private member
 
 **상황**: PoolingSubsystem과 RSGameMode 리팩토링 중 `.cpp`에서만 사용되는 헬퍼 함수(`PopFirstValid<T>`, `SpawnOnePreWarmUnit`, `CollectUniqueEnemyClasses` 등)의 배치 위치를 결정해야 했다.
