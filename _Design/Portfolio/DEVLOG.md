@@ -313,4 +313,24 @@ UENUM()이 있는 헤더에는 반드시 `#include "파일명.generated.h"` 가 
 
 ---
 
+## [2026-04-09] ARCH — 보스 HP Bar 위젯 이중 Close 타이밍 충돌 처리
+
+**상황**: 보스 HP Bar(WBP_BossHPBar)는 HP=0 감지 시 FadeOut 애니메이션을 재생하고, 완료 후 UIManagerSubsystem에 정리를 요청하는 구조. 그러나 보스 사망 이벤트(OnBossKilled)가 FadeOut 도중 EnemySpawner에 먼저 도달해 `CloseUIByID`를 즉시 호출하면 FadeOut이 강제 중단되고, UMS의 `CloseUIInternal` 이 `RemoveFromParent`까지 즉시 실행해 애니메이션이 끊기는 문제가 존재.
+
+**문제·과제**: 위젯이 FadeOut을 자율적으로 처리하면서도 UMS의 PERSISTENT 레이어 정리(PersistentUIMap cleanup)까지 보장해야 함. `CloseUI()` 오버라이드만으로는 UMS가 `CloseUI` 직후 `RemoveFromParent`를 호출하는 구조를 막을 수 없음.
+
+**검토한 선택지**:
+- `CloseUI()` 오버라이드: FadeOut 재생 후 `Super::CloseUI()` 반환 → UMS가 바로 `RemoveFromParent` 호출해 효과 없음
+- `mutable bIsClosing` + EnemySpawner 게이트: EnemySpawner가 `IsClosing()` 확인 후 `CloseUIByID` 스킵 → FadeOut 완료 후 위젯이 UMS에 직접 `CloseUIByID` 요청, UMS가 정상 정리 수행
+
+**결정**: `bIsClosing` 플래그를 위젯 내부에 두고, EnemySpawner가 `TWeakObjectPtr<UBossHPBarWidget>` 캐시로 상태를 조회. FadeOut 완료 시 위젯이 `GetWorld()->GetGameInstance()`를 통해 UMS `CloseUIByID`를 직접 호출해 PersistentUIMap 정리까지 보장.
+
+**결과**: FadeOut 중 `OnBossKilled` 도달 시 EnemySpawner 게이트에서 `CloseUIByID` 스킵. FadeOut 없는 경우(Anim_FadeOut 미설정)는 EnemySpawner 폴백 경로로 즉시 정리. 두 경로 모두 UMS 정리 완결.
+
+**포트폴리오 포인트**: 위젯-UMS 간 비동기 생명주기 충돌을 플래그+캐시 조합으로 조율. UMS `CloseUIInternal`의 `CloseUI → RemoveFromParent` 즉시 호출 구조를 분석하고, 위젯 자율 종료 패턴과 UMS 중앙 관리 원칙을 모두 만족하는 설계를 도출한 사례.
+
+**관련 파일**: `Source/RoastStaffGAS/Public/UI/Enemy/BossHPBarWidget.h`, `Source/RoastStaffGAS/Private/System/EnemySpawner.cpp`
+
+---
+
 <!-- 새 항목은 가장 최근 날짜가 위로 오도록 추가 -->

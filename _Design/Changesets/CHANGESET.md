@@ -13,6 +13,30 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 ## PENDING_COMMIT
 
 - date: 2026-04-09
+  plan: PLAN_TransitionFinishLoading_v1.0
+  commit: ~
+  summary: "LoadingWidget 닫힘 타이밍 수정 — TransitionGameMode FinishLoading 제거, PreWarm 완료 시 CloseUI"
+  status: IN_PROGRESS
+  files.new: []
+  files.modified:
+    - Source/RoastStaffGAS/Private/Core/Transition/RSTransitionGameMode.cpp
+    - Source/RoastStaffGAS/Private/UI/Transition/RSLoadingWidget.cpp
+    - Source/RoastStaffGAS/Private/Core/RSGameMode.cpp
+
+- date: 2026-04-09
+  plan: PLAN_BossHPBar_v1.0
+  commit: ~
+  summary: "보스 HP Bar UI 파이프라인 — BossHPBarWidget 신규 + EUIID::BOSS_HP_BAR + EnemySpawner 연동"
+  status: IN_PROGRESS
+  files.new:
+    - Source/RoastStaffGAS/Public/UI/Enemy/BossHPBarWidget.h
+    - Source/RoastStaffGAS/Private/UI/Enemy/BossHPBarWidget.cpp
+  files.modified:
+    - Source/RoastStaffGAS/Public/Data/EnumUITypes.h
+    - Source/RoastStaffGAS/Public/Character/Enemy/BossEnemy.h
+    - Source/RoastStaffGAS/Private/System/EnemySpawner.cpp
+
+- date: 2026-04-09
   plan: BugFix-MaxHP-CurveTable
   commit: "a86af95"
   summary: "레벨업 시 MaxHP CurveTable 미갱신 수정 — ApplyLevelUp MaxHP/CurrentHP 갱신 + PreAttributeChange 클램핑 방어 로직"

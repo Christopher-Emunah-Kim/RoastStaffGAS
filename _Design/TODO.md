@@ -13,6 +13,65 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
+## [FEATURE] TransitionGameMode FinishLoading 타이밍 수정 | PLAN_TransitionFinishLoading_v1.0
+> 시작: 2026-04-09 | 기획서: 인트로_트랜지션 시스템 기획 v1.0.md
+
+  ### [MODULE-1] RSTransitionGameMode 정리 ✓ DONE 2026-04-09
+  수정: RSTransitionGameMode.cpp, RSTransitionGameMode.h
+    - [x] Tick() FakeProgress 블록(bIsLoadingLevel 조건) 제거                  [P0]
+    - [x] OnLevelPreloadCompleted()에서 FinishLoading() 호출 제거              [P0]
+    - [x] OnLevelPreloadCompleted()에서 1초 타이머 제거 → 즉시 OpenNextLevelLatent() [P0]
+    - [x] bIsLoadingLevel 멤버변수 + 연관 로직 제거 (FakeProgress 전용이었으면) [P0]
+
+  ### [MODULE-2] RSLoadingWidget CloseUI 분리 확인
+  수정: RSLoadingWidget.h, RSLoadingWidget.cpp
+    - [ ] FinishLoading()이 CloseUI 호출하지 않음 확인 (Progress 1.f 표시만)  [P0]
+    - [ ] IsVisible() Guard — 이미 닫힌 상태 재호출 방지                       [P0]
+
+  ### [MODULE-3] RSGameMode OnPreWarmCompleted CloseUI 추가
+  수정: RSGameMode.cpp
+    - [ ] OnPreWarmCompleted()에서 FinishLoading() 후 UMS::CloseUIByID(LOADING) 호출 [P0]
+    - [ ] PreWarmList 비어있을 때(즉시 StartStageFlow) CloseUI 경로 방어 처리  [P0]
+
+## [FEATURE] Boss HP Bar UI 파이프라인 | PLAN_BossHPBar_v1.0
+> 시작: 2026-04-09 | 기획서: AI_에너미 시스템 기획 v1.1.md, UI관리 시스템 기획 v1.1.md
+
+  ### [MODULE-1] EnumExtension — EUIID::BOSS_HP_BAR 추가 ✓ DONE 2026-04-09
+  수정: EnumUITypes.h
+    - [x] EUIID enum에 BOSS_HP_BAR 열거값 추가                                [P0]
+
+  ### [MODULE-2] BossHPBarWidget C++ 클래스 신규 ✓ DONE 2026-04-09
+  신규: BossHPBarWidget.h, BossHPBarWidget.cpp
+    - [x] URSBaseWidget 상속, UILayer=PERSISTENT 생성자 설정                  [P0]
+    - [x] BindToASC(UAbilitySystemComponent*, float InPhase2Ratio) 구현        [P0]
+    - [x] OnHealthChanged — ProgressBar 비율 갱신                              [P0]
+    - [x] UPROPERTY 바인딩: PBar_BossHP, Anim_FadeOut 선언                    [P0]
+    - [x] NativeDestruct에서 ASC 델리게이트 구독 해제                         [P0]
+    - [x] bIsClosing 플래그로 이중 CloseUI 방지                               [P0]
+
+  ### [MODULE-3] EnemySpawner + BossEnemy 연동 ✓ DONE 2026-04-09
+  수정: EnemySpawner.cpp, BossEnemy.h, EnemySpawner.h
+    - [x] ABossEnemy에 GetPhase2HPRatio() getter 추가                         [P0]
+    - [x] case BOSS: OpenUIByID + BindToASC 호출 (TODO 교체)                  [P0]
+    - [x] OnBossKilled(): bIsClosing 체크 후 CloseUIByID (TODO 교체)          [P0]
+    - [x] EnemySpawner.cpp에 BossHPBarWidget.h + UIManagerSubsystem.h include [P0]
+
+  ### [MODULE-4] WBP_BossHPBar UMG 위젯 제작 [EDITOR]
+    - [ ] [EDITOR] WBP_BossHPBar 생성, Parent = BossHPBarWidget (C++)         [P0]
+    - [ ] [EDITOR] PBar_BossHP ProgressBar 배치 (C++ 이름 일치 필수)          [P0]
+    - [ ] [EDITOR] Anim_FadeOut 애니메이션 생성                               [P0]
+    - [ ] [EDITOR] 화면 상단 중앙 앵커 배치                                   [P0]
+
+  ### [MODULE-5] UIManagerSettings 매핑 등록 [EDITOR]
+    - [ ] [EDITOR] UIClassMap: BOSS_HP_BAR → WBP_BossHPBar                    [P0]
+    - [ ] [EDITOR] UILayerMap: BOSS_HP_BAR → PERSISTENT                       [P0]
+
+  ### [MODULE-6] Phase2 시각 피드백
+  수정: BossHPBarWidget.h, BossHPBarWidget.cpp
+    - [ ] OnHealthChanged에서 Phase2 임계값 이하 최초 진입 시 색상 전환        [P1]
+    - [ ] bPhase2Triggered 플래그로 중복 색상 전환 방지                       [P1]
+    - [ ] [EDITOR] WBP_BossHPBar Phase2 경고색 Material/LinearColor 설정      [P1]
+
 
 
 ## [FEATURE] Enemy Ranged + Elite + Boss 시스템 | PLAN_EnemyExpansion_v1.0
@@ -61,7 +120,7 @@
     - [x] HandleDeath() 오버라이드 — 전환 타이머 취소 + Broadcast            [P0]
     - [x] EnemyAIController: PauseAI/ResumeAI + BBKey_bIsPhase2 추가        [P0]
     - [x] BP_BossEnemy 생성 + GE/ProjectileClass 할당 (에디터)               [P0]
-    - [~] Boss HUD 등록 (EnemySpawner.OnBossKilled) — WBP_BossHPBar 미구현  [P1] DEFERRED
+    - [>] Boss HUD 등록 → PLAN_BossHPBar_v1.0으로 이관                        [P0]
     - [~] DT_Enemy_StaticData Boss 행 AIType=BOSS + BT_BossEnemy — BT 생성 후 갱신 필요 [P0]
 
   ### [MODULE-6] GDS GetEnemyExtData 확장 ✓ DONE 2026-04-06
@@ -93,7 +152,7 @@
 - [x] L1: Enemy 투사체 발사 로직 공통 추출 (8a578b1)                               [P1]
 - [x] L2: Enemy 파라미터 + GEClass/ProjectileClass Base 이동 (8a578b1)             [P1]
 - [x] PoolingSubsystem FActorPoolBucket 래퍼 적용 (be6e42e)                        [P1]
-- [ ] 풀링 미적용 대상 초기화: BaseProjectile + BaseSummonObject                   [P1]
+- [x] 풀링 미적용 대상 초기화: BaseProjectile + BaseSummonObject                   [P1]
 
 ---
 
