@@ -36,6 +36,7 @@ enum class EUIID : uint8
 	SETTING          UMETA(DisplayName = "Setting"),
 	PAUSE            UMETA(DisplayName = "Pause"),
 	HUD              UMETA(DisplayName = "HUD"),
+	BOSS_HP_BAR      UMETA(DisplayName = "BossHPBar"),
 	LEVEL_UP         UMETA(DisplayName = "LevelUp"),
 	WEAPON_REPLACE   UMETA(DisplayName = "WeaponReplace"),
 	STAGE_RESULT     UMETA(DisplayName = "StageResult"),
