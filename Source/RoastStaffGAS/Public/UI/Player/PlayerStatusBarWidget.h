@@ -65,6 +65,14 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> Txt_PlayerName; // 캐릭터 이름 표시. BP에서 지정 (C++ 업데이트 DEFERRED)
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> Txt_CurHP;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> Txt_MaxHP;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> Txt_CurExp;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> Txt_MaxExp;
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UProgressBar> PBar_Health;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UProgressBar> PBar_Ghost;

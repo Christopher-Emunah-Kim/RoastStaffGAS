@@ -2,6 +2,7 @@
 
 #include "UI/Player/PlayerStatusBarWidget.h"
 #include "Components/ProgressBar.h"
+#include "Components/TextBlock.h"
 #include "Components/Image.h"
 #include "AbilitySystemComponent.h"
 #include "RoastStaffGAS.h"
@@ -95,6 +96,15 @@ void UPlayerStatusBarWidget::BindToASC(UAbilitySystemComponent* InASC)
 	CurrentMaxHealth = CachedASC->GetNumericAttribute(UBaseAttributeSet::GetMaxHPAttribute());
 	GhostHealth      = TargetHealth;
 
+	if (Txt_CurHP)
+	{
+		Txt_CurHP->SetText(FText::AsNumber(FMath::FloorToInt(TargetHealth)));
+	}
+	if (Txt_MaxHP)
+	{
+		Txt_MaxHP->SetText(FText::AsNumber(FMath::FloorToInt(CurrentMaxHealth)));
+	}
+
 	if (PBar_Health)
 	{
 		PBar_Health->SetPercent(CalcPercent(TargetHealth));
@@ -142,7 +152,7 @@ void UPlayerStatusBarWidget::InitializeEXPBar()
 	const float InitEXP   = CachedASC->GetNumericAttribute(UPlayerAttributeSet::GetEXPAttribute());
 	const int32 InitLevel = static_cast<int32>(CachedASC->GetNumericAttribute(UPlayerAttributeSet::GetLevelAttribute()));
 
-	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());
+	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance())
 	float MaxEXP = 0.f;
 	// RequiredEXP 커브는 "레벨 N에 도달하는 데 필요한 EXP" — CheckLevelUp과 동일하게 +1
 	if (GDS->GetLevelCurveValue(FName("RequiredEXP"), InitLevel + 1, MaxEXP) && MaxEXP > 0.f)
@@ -158,6 +168,15 @@ void UPlayerStatusBarWidget::InitializeEXPBar()
 	if (PBar_Exp)
 	{
 		PBar_Exp->SetPercent(CurrentEXPPercent);
+	}
+
+	if (Txt_CurExp)
+	{
+		Txt_CurExp->SetText(FText::AsNumber(FMath::FloorToInt(InitEXP)));
+	}
+	if (Txt_MaxExp && MaxEXP > 0.f)
+	{
+		Txt_MaxExp->SetText(FText::AsNumber(FMath::FloorToInt(MaxEXP)));
 	}
 }
 
@@ -187,6 +206,11 @@ void UPlayerStatusBarWidget::OnCurrentHPChanged(const FOnAttributeChangeData& Da
 		PBar_Health->SetPercent(CalcPercent(TargetHealth));
 	}
 
+	if (Txt_CurHP)
+	{
+		Txt_CurHP->SetText(FText::AsNumber(FMath::FloorToInt(TargetHealth)));
+	}
+
 	// GhostBar 보간 대기 리셋
 	GhostDelayTimer = GhostDelayTime;
 
@@ -196,6 +220,10 @@ void UPlayerStatusBarWidget::OnCurrentHPChanged(const FOnAttributeChangeData& Da
 void UPlayerStatusBarWidget::OnMaxHPChanged(const FOnAttributeChangeData& Data)
 {
 	CurrentMaxHealth = Data.NewValue;
+	if (Txt_MaxHP)
+	{
+		Txt_MaxHP->SetText(FText::AsNumber(FMath::FloorToInt(CurrentMaxHealth)));
+	}
 }
 
 void UPlayerStatusBarWidget::UpdateGhostBar(float InDeltaTime)
@@ -298,13 +326,24 @@ void UPlayerStatusBarWidget::TriggerHitShake()
 
 void UPlayerStatusBarWidget::OnLevelAttrChanged(const FOnAttributeChangeData& Data)
 {
-	// [CHG] 2026-03-28: 레벨업 감지 — 현재 EXP 바 퍼센트를 Lerp 시작점으로 캐시
+	// 레벨업 감지 — 현재 EXP 바 퍼센트를 Lerp 시작점으로 캐시
 	LerpStartPercent = CurrentEXPPercent;
+
+	if (Txt_MaxExp)
+	{
+		const int32 NewLevel = FMath::FloorToInt(Data.NewValue);
+		GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance())
+		float MaxEXP = 0.f;
+		if (GDS->GetLevelCurveValue(FName("RequiredEXP"), NewLevel + 1, MaxEXP) && MaxEXP > 0.f)
+		{
+			Txt_MaxExp->SetText(FText::AsNumber(FMath::FloorToInt(MaxEXP)));
+		}
+	}
 }
 
 void UPlayerStatusBarWidget::OnEXPAttrChanged(const FOnAttributeChangeData& Data)
 {
-	// [CHG] 2026-03-28: EXP 변화 → 현재 Level 기준 MaxEXP 조회 후 Lerp 목표 설정
+	// EXP 변화 → 현재 Level 기준 MaxEXP 조회 후 Lerp 목표 설정
 	if (!CachedASC)
 	{
 		return;
@@ -312,7 +351,7 @@ void UPlayerStatusBarWidget::OnEXPAttrChanged(const FOnAttributeChangeData& Data
 
 	const int32 CurrentLevel = static_cast<int32>(CachedASC->GetNumericAttribute(UPlayerAttributeSet::GetLevelAttribute()));
 
-	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());
+	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance())
 
 	float MaxEXP = 0.f;
 	// RequiredEXP 커브는 "레벨 N에 도달하는 데 필요한 EXP" — CheckLevelUp과 동일하게 +1
@@ -325,6 +364,8 @@ void UPlayerStatusBarWidget::OnEXPAttrChanged(const FOnAttributeChangeData& Data
 
 	TargetEXPPercent = FMath::Clamp(Data.NewValue / MaxEXP, 0.f, 1.f);
 	bIsLerpingEXP    = true;
+
+	if (Txt_CurExp) { Txt_CurExp->SetText(FText::AsNumber(FMath::FloorToInt(Data.NewValue))); }
 }
 
 float UPlayerStatusBarWidget::CalcPercent(float InHealth) const
