@@ -120,6 +120,7 @@ void ARSGameMode::InitializePreWarm(AEnemySpawner* Spawner)
 	if (PreWarmList.IsEmpty())
 	{
 		KHS_WARN(TEXT("PreWarmList가 비어있음. 즉시 스테이지 시작."));
+		CloseLoadingUI();
 		StartStageFlow();
 		return;
 	}
@@ -202,14 +203,21 @@ void ARSGameMode::OnPreWarmCompleted()
 		PC->EnableInput(PC);
 	}
 
+	CloseLoadingUI();
+	StartStageFlow();
+
+	KHS_INFO(TEXT("프리웜 완료 — 스테이지 시작"));
+}
+
+void ARSGameMode::CloseLoadingUI()
+{
 	if (URSLoadingWidget* LoadingWidget = GetLoadingWidget())
 	{
 		LoadingWidget->FinishLoading();
 	}
 
-	StartStageFlow();
-
-	KHS_INFO(TEXT("프리웜 완료 — 스테이지 시작"));
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance())
+	UMS->CloseUIByID(EUIID::LOADING);
 }
 
 URSLoadingWidget* ARSGameMode::GetLoadingWidget() const

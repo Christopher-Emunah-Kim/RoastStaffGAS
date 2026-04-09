@@ -70,5 +70,9 @@ void URSLoadingWidget::SetLoadingProgress(float InProgress)
 
 void URSLoadingWidget::FinishLoading()
 {
+	if (!IsVisible())
+	{
+		return;
+	}
 	SetLoadingProgress(1.f);
 }

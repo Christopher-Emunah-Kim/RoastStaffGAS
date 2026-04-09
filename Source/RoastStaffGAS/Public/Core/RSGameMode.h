@@ -52,6 +52,8 @@ private:
 
 	/** EUIID::LOADING 위젯 조회 헬퍼 — nullptr 가능 */
 	URSLoadingWidget* GetLoadingWidget() const;
+	/** LoadingWidget FinishLoading 후 UMS를 통해 닫기 */
+	void CloseLoadingUI();
 	/** GDS 기반 현재 스테이지 웨이브에서 고유 에너미 클래스 수집 */
 	TSet<TSubclassOf<AActor>> CollectUniqueEnemyClasses() const;
 	/** FPoolPreWarmRequest 생성 헬퍼 */

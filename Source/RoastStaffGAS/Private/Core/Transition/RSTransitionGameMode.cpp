@@ -15,7 +15,7 @@
 
 ARSTransitionGameMode::ARSTransitionGameMode()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 }
 
 void ARSTransitionGameMode::BeginPlay()
@@ -34,20 +34,6 @@ void ARSTransitionGameMode::BeginPlay()
 	}
 
 	PreloadAssetsAsync();
-}
-
-void ARSTransitionGameMode::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	if (!bIsLoadingLevel || !LoadingWidget)
-	{
-		return;
-	}
-
-	// FakeProgress: 0 → 0.9 보간 (실제 완료 전 최대 90%까지만)
-	CurrentFakeProgress = FMath::FInterpTo(CurrentFakeProgress, 0.9f, DeltaTime, 1.5f);
-	LoadingWidget->SetLoadingProgress(CurrentFakeProgress);
 }
 
 void ARSTransitionGameMode::PreloadAssetsAsync()
@@ -117,8 +103,6 @@ void ARSTransitionGameMode::StartLevelStreaming()
 		return;
 	}
 
-	bIsLoadingLevel = true;
-
 	FLatentActionInfo LatentInfo;
 	LatentInfo.CallbackTarget    = this;
 	LatentInfo.ExecutionFunction = FName("OnLevelPreloadCompleted");
@@ -131,21 +115,8 @@ void ARSTransitionGameMode::StartLevelStreaming()
 
 void ARSTransitionGameMode::OnLevelPreloadCompleted()
 {
-	bIsLoadingLevel = false;
-
-	if (LoadingWidget)
-	{
-		LoadingWidget->FinishLoading();
-	}
-
-	// 완료 연출 후 1초 대기 → 최종 레벨 이동
-	FTimerHandle TempTimer;
-	GetWorld()->GetTimerManager().SetTimer(
-		TempTimer,this,	&ARSTransitionGameMode::OpenNextLevel,1.0f,false);
-}
-
-void ARSTransitionGameMode::OpenNextLevel()
-{
+	// 스트리밍 완료 즉시 Stage 레벨로 전환
+	// LoadingWidget 닫힘은 Stage 레벨 PreWarm 완료 시(RSGameMode::OnPreWarmCompleted) 처리
 	GET_GI(_GI);
 	URSGameInstance* GI = Cast<URSGameInstance>(_GI);
 	check(GI);
