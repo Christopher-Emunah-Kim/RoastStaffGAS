@@ -153,6 +153,27 @@ void USaveGameSubsystem::SetLastSelectedCharacter(FName CharID)
 	CachedSaveGame->LastSelectedCharacterID = CharID;
 }
 
+FName USaveGameSubsystem::GetLastPlayedStageID() const
+{
+	if (!CachedSaveGame)
+	{
+		return NAME_None;
+	}
+
+	return CachedSaveGame->LastPlayedStageID;
+}
+
+void USaveGameSubsystem::SetLastPlayedStageID(FName StageID)
+{
+	if (!CachedSaveGame)
+	{
+		KHS_WARN(TEXT("CachedSaveGame nullptr. StageID: %s"), *StageID.ToString());
+		return;
+	}
+
+	CachedSaveGame->LastPlayedStageID = StageID;
+}
+
 void USaveGameSubsystem::UpdateSettingsData(const FRSSettingsData& NewSettings)
 {
 	if (!CachedSaveGame)

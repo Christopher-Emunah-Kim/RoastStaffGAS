@@ -65,6 +65,13 @@ public:
 	/** 선택 캐릭터 변경 시 호출. */
 	void SetLastSelectedCharacter(FName CharID);
 
+	/** 마지막으로 진입 확정한 스테이지 ID 조회. 미기록 시 NAME_None 반환. */
+	UFUNCTION(BlueprintCallable, Category = "RS|Save")
+	FName GetLastPlayedStageID() const;
+
+	/** 스테이지 진입 확정 시 호출. 디스크 저장은 호출자(OnStageSelected)가 일괄 처리. */
+	void SetLastPlayedStageID(FName StageID);
+
 	/** 설정 데이터 캐시 갱신. 디스크 저장 안 함 — SetSettingsData(RDS)가 별도 SaveGame() 처리. */
 	void UpdateSettingsData(const FRSSettingsData& NewSettings);
 

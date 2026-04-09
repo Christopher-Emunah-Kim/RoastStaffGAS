@@ -52,6 +52,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Save|Character")
 	FName LastSelectedCharacterID = NAME_None;
 
+	/** 마지막으로 진입 확정한 스테이지 ID — StageSelectWidget 복원용 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Save|Stage")
+	FName LastPlayedStageID = NAME_None;
+
 	/** 플레이어 설정 데이터 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Save|Settings")
 	FRSSettingsData SettingsData;
