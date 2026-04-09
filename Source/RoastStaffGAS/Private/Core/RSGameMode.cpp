@@ -85,12 +85,12 @@ void ARSGameMode::Tick(float DeltaTime)
 void ARSGameMode::InitializePlayer(FName CharID)
 {
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();
-	check(PC);
+	check(PC)
 
 	ARSPlayerState* PS = PC->GetPlayerState<ARSPlayerState>();
 	if (!ensureMsgf(PS, TEXT("PlayerState 조회 실패. 캐릭터 스탯 미적용.")))
 	{
-		check(false);
+		check(false)
 	}
 
 	PS->ApplyCharacterStats(CharID);
@@ -338,7 +338,7 @@ void ARSGameMode::EndStage(bool bCleared)
 
 void ARSGameMode::StopStageActivities()
 {
-	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys);
+	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys)
 	EquipSys->StopAllFire();
 
 	UGameplayStatics::SetGamePaused(GetWorld(), true);
@@ -363,13 +363,13 @@ FStageResultData ARSGameMode::BuildResultData(bool bCleared)
 
 void ARSGameMode::SaveResult(const FStageResultData& ResultData)
 {
-	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS);
+	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS)
 	SGS->UpdateStageRecord(CurrentStageID, ResultData);
 }
 
 void ARSGameMode::ShowResultUI(const FStageResultData& ResultData, bool bCleared)
 {
-	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance());
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance())
 	URSStageResultWidget* ResultWidget = Cast<URSStageResultWidget>(UMS->OpenUIByID(EUIID::STAGE_RESULT));
 	if (!ensureMsgf(ResultWidget, TEXT("StageResultWidget 오픈 실패 — UIManagerSettings STAGE_RESULT 매핑 확인 필요")))
 	{
@@ -377,7 +377,7 @@ void ARSGameMode::ShowResultUI(const FStageResultData& ResultData, bool bCleared
 		return;
 	}
 
-	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS);
+	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS)
 	const FStageRecord Record = SGS->GetStageRecord(CurrentStageID);
 	ResultWidget->SetResultData(
 		bCleared,
@@ -394,13 +394,13 @@ void ARSGameMode::ShowResultUI(const FStageResultData& ResultData, bool bCleared
 void ARSGameMode::OnResultConfirmed()
 {
 	// 레벨 전환 전 타이머 전량 정리 — SetGamePaused(false) 이전에 실행해야 함
-	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys);
+	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys)
 	EquipSys->DeinitializeSubsystem();
 
 	UGameplayStatics::SetGamePaused(GetWorld(), false);
 
 	URSGameInstance* GI = Cast<URSGameInstance>(GetGameInstance());
-	check(GI);
+	check(GI)
 
 	KHS_INFO(TEXT("OUTGAME 레벨로 복귀 시작..."));
 	GI->OpenNextLevelByName(ELevelName::OUTGAME);

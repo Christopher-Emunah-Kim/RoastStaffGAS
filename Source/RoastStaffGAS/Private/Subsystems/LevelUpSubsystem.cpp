@@ -44,7 +44,7 @@ void ULevelUpSubsystem::OnEnemyKilled(FName InEnemyID)
 		return;
 	}
 
-	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS)
 	FEnemyStaticData EnemyData;
 	if (!GDS->GetEnemyData(InEnemyID, EnemyData))
 	{
@@ -112,7 +112,7 @@ void ULevelUpSubsystem::CheckLevelUp(float NewEXP, int32 CurrentLevel)
 		return;
 	}
 
-	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS)
 
 	float RequiredExp = 0.f;
 	if (!GDS->GetLevelCurveValue(FName("RequiredEXP"), CurrentLevel + 1, RequiredExp))
@@ -138,15 +138,15 @@ void ULevelUpSubsystem::CheckLevelUp(float NewEXP, int32 CurrentLevel)
 
 void ULevelUpSubsystem::SelectWeaponCandidates()
 {
-	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
-	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys);
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS)
+	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys)
 
 	TArray<FName> WeaponPool = GDS->GetWeaponIDsByLevel(1);
 
 	if (WeaponPool.IsEmpty())
 	{
 		KHS_WARN(TEXT("무기 풀이 비어있음 — 레벨업 무기 선정 실패"));
-		check(false);
+		check(false)
 		return;
 	}
 
@@ -229,7 +229,7 @@ void ULevelUpSubsystem::ApplyLevelUp(int32 CurrentLevel, float OverflowEXP)
 	ASC->SetNumericAttributeBase(AttributeSet->GetLevelAttribute(), static_cast<float>(NewLevel));
 	ASC->SetNumericAttributeBase(AttributeSet->GetEXPAttribute(), OverflowEXP);
 
-	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS)
 	float NewMaxHP = 0.f;
 	if (GDS->GetLevelCurveValue(FName("MaxHP"), NewLevel, NewMaxHP) && NewMaxHP > 0.f)
 	{
