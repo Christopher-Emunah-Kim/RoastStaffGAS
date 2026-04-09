@@ -176,8 +176,13 @@ void UBossHPBarWidget::UpdateGhostBar(float InDeltaTime)
 void UBossHPBarWidget::OnPhase2Entered()
 {
 	bPhase2Triggered = true;
-	// Phase2 색상 전환 — WBP에서 머티리얼/틴트 설정 (MODULE-6 에디터 작업)
-	KHS_INFO("BossHPBarWidget — Phase2 진입. 색상 전환 트리거.");
+
+	if (PBar_BossHP)
+	{
+		PBar_BossHP->SetFillColorAndOpacity(Phase2BarColor);
+	}
+
+	KHS_INFO("BossHPBarWidget — Phase2 진입. 색상 전환.");
 }
 
 void UBossHPBarWidget::TriggerFadeOut()

@@ -68,6 +68,10 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "MY|BossHPBar", meta = (ClampMin = "0.1"))
 	float InterpSpeed_Ghost = 3.0f;
 
+	/** Phase2 진입 시 PBar_BossHP에 적용할 색상 (WBP에서 설정) */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|BossHPBar")
+	FLinearColor Phase2BarColor = FLinearColor(1.f, 0.3f, 0.f, 1.f);
+
 	// ── 런타임 상태 ─────────────────────────────────────────────────────────
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> CachedASC;

@@ -28,10 +28,10 @@
     - [x] FinishLoading()이 CloseUI 호출하지 않음 확인 (Progress 1.f 표시만)  [P0]
     - [x] IsVisible() Guard — 이미 닫힌 상태 재호출 방지                       [P0]
 
-  ### [MODULE-3] RSGameMode OnPreWarmCompleted CloseUI 추가
-  수정: RSGameMode.cpp
-    - [ ] OnPreWarmCompleted()에서 FinishLoading() 후 UMS::CloseUIByID(LOADING) 호출 [P0]
-    - [ ] PreWarmList 비어있을 때(즉시 StartStageFlow) CloseUI 경로 방어 처리  [P0]
+  ### [MODULE-3] RSGameMode OnPreWarmCompleted CloseUI 추가 ✓ DONE 2026-04-09
+  수정: RSGameMode.h, RSGameMode.cpp
+    - [x] OnPreWarmCompleted()에서 FinishLoading() 후 UMS::CloseUIByID(LOADING) 호출 [P0]
+    - [x] PreWarmList 비어있을 때(즉시 StartStageFlow) CloseUI 경로 방어 처리  [P0]
 
 
 
@@ -159,7 +159,7 @@
 
 ## DEFERRED
 <!-- "나중에" 항목. 이유+우선순위 필수 -->
-[~] MODULE-6: BossHPBar Phase2 시각 피드백 — WBP에서 경고색 Material/LinearColor 설정 필요, 아트 확정 후 착수 | [P1] | REF: PLAN_BossHPBar_v1.0
+[~] BossHPBar PERSISTENT 레이어 — HUD 위젯보다 ZOrder 높아 HUD 버튼 입력 차단 가능성 있음. 현재 플레이에 영향 없으나 HUD 인터렉션 추가 시 ZOrder 조정 또는 HitTestInvisible 처리 필요 | [P2] | REF: PLAN_BossHPBar_v1.0
 [~] Txt_PlayerName 업데이트 로직 — 캐릭터 이름 시스템 미구현, BP에서만 텍스트 지정 | [P2] | REF: PLAN_PlayerHPBarWidget_v1.0
 [~] MODULE-7: RSTransitionGameMode FinishLoading 타이밍 변경 — 기획서 충돌 해소 완료(2026-04-08), 착수 가능 | [P1] | REF: PLAN_PoolingCentralize_v1.0
 [~] 진화 시스템 (Evolution/Combination) — DT_Combination + 조합 체크 로직. 강화 시스템 완성 후 착수. | [P2] | REF: PLAN_WeaponUpgrade_Replace_v1.0
