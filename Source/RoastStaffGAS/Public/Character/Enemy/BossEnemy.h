@@ -44,6 +44,7 @@ public:
 	void MarkShockwaveUsed();
 	
 	FORCEINLINE bool  IsPhase2()             const { return bPhaseTransitioned; }
+	FORCEINLINE float GetPhase2HPRatio()     const { return Phase2HPRatio; }
 	FORCEINLINE float GetShockwaveRadius()   const { return ShockwaveRadius; }
 	FORCEINLINE float GetShockwaveCooldown() const { return ShockwaveCooldown; }
 	FORCEINLINE float GetShockwavePrepareTime() const { return ShockwavePrepareTime; }

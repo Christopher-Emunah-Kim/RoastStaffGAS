@@ -8,10 +8,13 @@
 #include "Character/Enemy/RangedEnemy.h"
 #include "Character/Enemy/EliteEnemy.h"
 #include "Character/Enemy/BossEnemy.h"
-#include "Objects/Projectile/EnemyProjectile.h"
 #include "Subsystems/PoolingSubsystem.h"
 #include "Subsystems/StageManagerSubsystem.h"
 #include "Subsystems/GameDataSubsystem.h"
+#include "Subsystems/UIManagerSubsystem.h"
+#include "UI/Enemy/BossHPBarWidget.h"
+#include "Data/EnumUITypes.h"
+#include "AbilitySystemInterface.h"
 
 AEnemySpawner::AEnemySpawner()
 {
@@ -20,7 +23,7 @@ AEnemySpawner::AEnemySpawner()
 
 void AEnemySpawner::InitPools(const TArray<FName>& EnemyIDs)
 {
-	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());
+	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance())
 
 	ClassCache.Empty();
 
@@ -67,7 +70,7 @@ void AEnemySpawner::SpawnEnemy(FName EnemyID, const FVector& PlayerLocation)
 	const FTransform SpawnTransform(FRotator::ZeroRotator, SpawnLocation);
 
 	// 풀에서 꺼냄 (내부에서 OnPoolActivate 호출)
-	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys);
+	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys)
 	AEnemyBaseCharacter* Enemy = PoolSys->SpawnPooledActor<AEnemyBaseCharacter>(*ClassPtr, SpawnTransform);
 	if (!Enemy)
 	{
@@ -88,7 +91,7 @@ void AEnemySpawner::SpawnEnemy(FName EnemyID, const FVector& PlayerLocation)
 	}
 
 	// StageManager 생존 목록 등록 및 처치 델리게이트 구독
-	GET_WORLD_SUBSYSTEM(UStageManagerSubsystem, StageMgr);
+	GET_WORLD_SUBSYSTEM(UStageManagerSubsystem, StageMgr)
 	StageMgr->RegisterAliveEnemy(Enemy);
 
 	// AddUniqueDynamic: 풀 재사용 시 중복 바인딩 방지
@@ -97,9 +100,9 @@ void AEnemySpawner::SpawnEnemy(FName EnemyID, const FVector& PlayerLocation)
 	KHS_INFO(TEXT("SpawnEnemy — EnemyID: %s / 스폰 위치: %s"),*EnemyID.ToString(), *SpawnLocation.ToString());
 }
 
-void AEnemySpawner::InitializeEnemyByType(AEnemyBaseCharacter* Enemy, FName EnemyID) const
+void AEnemySpawner::InitializeEnemyByType(AEnemyBaseCharacter* Enemy, FName EnemyID)
 {
-	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance());
+	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance())
 
 	FEnemyStaticData StaticData;
 	if (!GDS->GetEnemyData(EnemyID, StaticData))
@@ -142,7 +145,20 @@ void AEnemySpawner::InitializeEnemyByType(AEnemyBaseCharacter* Enemy, FName Enem
 		if (ABossEnemy* Boss = Cast<ABossEnemy>(Enemy))
 		{
 			Boss->InitializeBossParams(StaticData.AttackDamage, ExtData);
-			// TODO: Boss HUD 등록 — WBP_BossHPBar 구현 후 UIManager 연동
+
+			// Boss HP Bar 열기 — UIManagerSettings에 BOSS_HP_BAR 매핑 필요 (에디터)
+			GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetWorld()->GetGameInstance())
+			URSBaseWidget* BaseWidget = UMS->OpenUIByID(EUIID::BOSS_HP_BAR);
+			UBossHPBarWidget* BossHPBar = Cast<UBossHPBarWidget>(BaseWidget);
+
+			if (ensureMsgf(BossHPBar, TEXT("EnemySpawner: BOSS_HP_BAR Cast 실패. UIManagerSettings 매핑 확인 필요.")))
+			{
+				IAbilitySystemInterface* ASCInterface = Cast<IAbilitySystemInterface>(Boss);
+				UAbilitySystemComponent* BossASC = ASCInterface ? ASCInterface->GetAbilitySystemComponent() : nullptr;
+				BossHPBar->BindToASC(BossASC, Boss->GetPhase2HPRatio());
+				CachedBossHPBar = BossHPBar;
+			}
+
 			Boss->OnBossKilledDel.AddUniqueDynamic(this, &AEnemySpawner::OnBossKilled);
 		}
 		break;
@@ -154,8 +170,17 @@ void AEnemySpawner::InitializeEnemyByType(AEnemyBaseCharacter* Enemy, FName Enem
 
 void AEnemySpawner::OnBossKilled()
 {
-	// TODO: UIManager를 통해 WBP_BossHPBar 숨기기
-	KHS_INFO(TEXT("EnemySpawner — 보스 처치. HUD 해제 대기 중 (WBP_BossHPBar 미구현)."));
+	if (CachedBossHPBar.IsValid() && CachedBossHPBar->IsClosing())
+	{
+		// FadeOut 애니메이션 진행 중 — 완료 시 위젯이 UMS에 자체 정리 요청
+		CachedBossHPBar = nullptr;
+		return;
+	}
+
+	// FadeOut 없는 경우(Anim_FadeOut 미설정) — 즉시 정리
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetWorld()->GetGameInstance())
+	UMS->CloseUIByID(EUIID::BOSS_HP_BAR);
+	CachedBossHPBar = nullptr;
 }
 
 FVector AEnemySpawner::CalculateOffScreenSpawnLocation(const FVector& PlayerLocation) const

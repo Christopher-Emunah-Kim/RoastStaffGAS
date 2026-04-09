@@ -8,6 +8,7 @@
 
 class AEnemyBaseCharacter;
 class AEnemyProjectile;
+class UBossHPBarWidget;
 
 /**
  * AEnemySpawner
@@ -36,9 +37,9 @@ private:
 	/** 플레이어 위치 기준 랜덤 방향 외곽 스폰 위치 계산 */
 	FVector CalculateOffScreenSpawnLocation(const FVector& PlayerLocation) const;
 	/** AIType에 따라 타입별 확장 초기화 (ExtData 주입) */
-	void InitializeEnemyByType(AEnemyBaseCharacter* Enemy, FName EnemyID) const;
+	void InitializeEnemyByType(AEnemyBaseCharacter* Enemy, FName EnemyID);
 
-	/** 보스 사망 시 호출 — HUD 해제 담당 (TODO: WBP_BossHPBar 구현 후 구체화) */
+	/** 보스 사망 시 호출 — HUD 해제 담당 */
 	UFUNCTION()
 	void OnBossKilled();
 
@@ -60,4 +61,7 @@ private:
 	/** 투사체 풀에 등록할 AEnemyProjectile 파생 클래스 — BP에서 할당 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Spawn")
 	TSubclassOf<AEnemyProjectile> EnemyProjectileClass;
+
+	/** 현재 스폰된 보스의 HP Bar 위젯 — OnBossKilled 폴백 정리용 (UMS가 수명 보장) */
+	TWeakObjectPtr<UBossHPBarWidget> CachedBossHPBar;
 };
