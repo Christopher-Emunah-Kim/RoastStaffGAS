@@ -14,9 +14,9 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 - date: 2026-04-09
   plan: PLAN_LastPlayedStageRestore_v1.0
-  commit: ""
+  commit: "7d586e6,34e2df6,7279505"
   summary: "LastPlayedStage UX 연속성 복원 — SGS API 추가 + StageSelectWidget 자동 복원"
-  status: PENDING_COMMIT
+  status: COMMITTED
   files.modified:
     - Source/RoastStaffGAS/Public/Core/RSGameSave.h
     - Source/RoastStaffGAS/Public/Subsystems/SaveGameSubsystem.h

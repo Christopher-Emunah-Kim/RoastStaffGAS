@@ -13,27 +13,6 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
-## [FEATURE] LastPlayedStage UX 연속성 복원 | PLAN_LastPlayedStageRestore_v1.0 ✓ DONE 2026-04-09
-> 시작: 2026-04-09 | 기획서: 세이브 데이터 시스템 기획 v1.2.md, 아웃게임 시스템 기획 v1.0.md
-
-  ### [MODULE-1] SaveData 필드 확장 ✓ DONE 2026-04-09
-  수정: RSGameSave.h
-    - [x] URSSaveGame에 UPROPERTY FName LastPlayedStageID = NAME_None 추가    [P0]
-
-  ### [MODULE-2] SGS API 추가 ✓ DONE 2026-04-09
-  수정: SaveGameSubsystem.h / SaveGameSubsystem.cpp
-    - [x] FName GetLastPlayedStageID() const 선언 + 구현 (null 방어 포함)     [P0]
-    - [x] void SetLastPlayedStageID(FName StageID) 선언 + 구현               [P0]
-
-  ### [MODULE-3] 저장 시점 연결 ✓ DONE 2026-04-09
-  수정: RSOutGamePlayerController.cpp
-    - [x] OnStageSelected에서 SerializeToPersistentData 이전 SetLastPlayedStageID 호출  [P0]
-
-  ### [MODULE-4] 위젯 복원 로직 ✓ DONE 2026-04-09
-  수정: RSStageSelectWidget.h / RSStageSelectWidget.cpp
-    - [x] RestoreLastPlayedStage() 선언                                       [P0]
-    - [x] NativeConstruct에서 PopulateNodeMap() 직후 RestoreLastPlayedStage() 호출  [P0]
-    - [x] RestoreLastPlayedStage() 구현 (NAME_None / nullptr 조기 반환 + OnNodeClicked 재사용)  [P0]
 
 
 ## [FEATURE] Enemy Ranged + Elite + Boss 시스템 | PLAN_EnemyExpansion_v1.0
@@ -170,6 +149,7 @@
 
 ## COMPLETED_LOG
 <!-- compact 형식: [x] FEATURE명 | 커밋 | 날짜 | 플랜파일 -->
+[x] LastPlayedStage UX 연속성 복원 | 7d586e6,34e2df6,7279505 | 2026-04-09 | PLAN_LastPlayedStageRestore_v1.0
 [x] PlayerStatusBarWidget HP/EXP TextBlock 실시간 갱신 | d22fcd1 | 2026-04-09 | ad-hoc
 [x] 풀링 시스템 중앙화 + AsyncPreWarm + GC리팩토링 | af3c5cd,8011f7f | 2026-04-08 | PLAN_PoolingCentralize_v1.0
 [x] 스테이지 클리어 로직 + 결과 UI (WBP 포함) | 78378ee,6c7f997,067b08a,4bb9bcb | 2026-04-05~06 | PLAN_StageResult_v1.0
