@@ -17,7 +17,9 @@
       "Skill(update-design)",
       "Skill(gc)",
       "Skill(coding)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(mv \"_Design/Plans/active/PLAN_StageResult_v1.0.md\" \"_Design/Plans/completed/\")",
+      "Bash(mv \"_Design/Plans/active/PLAN_EnemyExpansion_v1.0.md\" \"_Design/Plans/completed/\")"
     ],
     "deny": [],
     "ask": []

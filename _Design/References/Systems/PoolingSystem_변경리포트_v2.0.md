@@ -98,6 +98,7 @@ RSGameMode::OnPreWarmCompleted()       // 델리게이트 수신
 | `MakeWidgetRequest(Class, Count)` | FPoolPreWarmRequest Widget용 생성 헬퍼 |
 | `OnPreWarmCompleted()` | 완료 콜백 — 입력 복구 + 로딩 종료 + 스테이지 시작 |
 | `UpdatePreWarmProgress()` | Tick에서 LoadingWidget 진행률 반영 |
+| `CloseLoadingUI()` | FinishLoading() 후 UMS::CloseUIByID(LOADING) — PreWarm 완료/스킵 양쪽에서 공용 |
 
 ### RSPlayerController — 변경
 
@@ -149,7 +150,9 @@ PoolingSubsystem::Tick()
 RSGameMode::OnPreWarmCompleted()
   → bIsPreWarmActive = false
   → PC->EnableInput()
-  → GetLoadingWidget()->FinishLoading()
+  → CloseLoadingUI()
+      → GetLoadingWidget()->FinishLoading()  // Progress 100% 표시
+      → UMS->CloseUIByID(EUIID::LOADING)    // 위젯 닫기
   → StartStageFlow()
       → StageManagerSubsystem->StartStage(CurrentStageID)
 ```
@@ -162,7 +165,8 @@ RSGameMode::OnPreWarmCompleted()
 InitializePreWarm(Spawner)
   → BuildPreWarmList() → []  (빈 배열)
   → KHS_WARN("PreWarmList 비어있음")
-  → StartStageFlow() 즉시 호출  // 프리웜 없이 바로 스테이지 시작
+  → CloseLoadingUI()          // LoadingWidget 닫기 (흐름 A와 동일 경로)
+  → StartStageFlow() 즉시 호출
 ```
 
 ---

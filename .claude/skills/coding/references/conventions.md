@@ -21,6 +21,12 @@ ensureMsgf(SkillData, TEXT("SkillData must not be null"));
 ## 금지사항
 
 ```cpp
+// ❌ 절대 금지: GET_GI_SUBSYSTEM 매크로 뒤 세미콜론
+GET_GI_SUBSYSTEM(URSGameDataSubsystem, GDS);
+
+// ✅ 올바른 사용 (세미콜론 없음)
+GET_GI_SUBSYSTEM(URSGameDataSubsystem, GDS)
+
 // ❌ 절대 금지: 중괄호 없는 인라인 스타일
 if (!SkillData) return;
 
