@@ -40,6 +40,9 @@ void URSStageSelectWidget::NativeConstruct()
 	}
 	ClearDetailPanel();
 	PopulateNodeMap();
+
+	// 마지막 플레이 스테이지 선택 상태 복원 — NodeDataCache 구축 이후에 실행
+	RestoreLastPlayedStage();
 }
 
 void URSStageSelectWidget::NativeDestruct()
@@ -197,6 +200,29 @@ void URSStageSelectWidget::UpdateDetailPanel(const FStageStaticData& Data, EStag
 			Img_SelectedThumb->SetBrushFromTexture(Tex, true);
 		}
 	}
+}
+
+void URSStageSelectWidget::RestoreLastPlayedStage()
+{
+	GET_GI_SUBSYSTEM_FROM(USaveGameSubsystem, SGS, GetWorld()->GetGameInstance());
+
+	const FName LastID = SGS->GetLastPlayedStageID();
+	if (LastID.IsNone())
+	{
+		// 첫 플레이 또는 미기록 — 빈 상태 유지
+		return;
+	}
+
+	const TPair<FStageStaticData, EStageNodeState>* Found = NodeDataCache.Find(LastID);
+	if (!Found)
+	{
+		// 스테이지 삭제 등 비정상 상태 — 복원 건너뜀
+		KHS_WARN(TEXT(" LastPlayedStageID '%s'가 캐시에 없습니다."), *LastID.ToString());
+		return;
+	}
+
+	// OnNodeClicked 재사용 — UpdateDetailPanel + SelectedStageID + Btn_Confirm 활성화 일괄 처리
+	OnNodeClicked(LastID);
 }
 
 void URSStageSelectWidget::ClearDetailPanel()

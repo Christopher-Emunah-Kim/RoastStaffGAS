@@ -118,10 +118,12 @@ void ARSOutGamePlayerController::OnStageSelected(FName StageID)
 		return;
 	}
 
-	// RDS 메모리 → SGS 동기화 후 디스크 저장
-	RDS->SerializeToPersistentData();
-
+	// 마지막 플레이 스테이지 기록 — StageSelectWidget 복원용
 	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS);
+	SGS->SetLastPlayedStageID(StageID);
+
+	// RDS 메모리 → SGS 동기화 후 디스크 저장 (LastPlayedStageID 포함 일괄)
+	RDS->SerializeToPersistentData();
 	SGS->SaveGame();
 
 	GET_GI(_GI);

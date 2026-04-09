@@ -47,6 +47,8 @@ protected:
 	void UpdateDetailPanel(const FStageStaticData& Data, EStageNodeState State);
 	/** 상세 패널 텍스트 초기화 */
 	void ClearDetailPanel();
+	/** SGS의 LastPlayedStageID로 선택 상태 복원 — PopulateNodeMap() 완료 후 호출 */
+	void RestoreLastPlayedStage();
 
 public:
 	/** 스테이지 진입 확정 — OGPC::OnStageSelected() 바인딩 대상 */
