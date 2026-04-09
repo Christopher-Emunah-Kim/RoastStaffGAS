@@ -808,3 +808,44 @@
 | 2026-04-08 23:33:16 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\references\protocols.md` |
 | 2026-04-08 23:36:59 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Handoff\HANDOFF_LATEST.md` |
 | 2026-04-08 23:37:10 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Handoff\HANDOFF_LATEST.md` |
+| 2026-04-09 10:38:09 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Portfolio\DEVLOG.md` |
+| 2026-04-09 10:38:54 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Portfolio\DEVLOG.md` |
+| 2026-04-09 11:04:22 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Plans\active\PLAN_LastPlayedStageRestore_v1.0.md` |
+| 2026-04-09 11:04:39 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-04-09 11:10:18 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Public\UI\Player\PlayerStatusBarWidget.h` |
+| 2026-04-09 11:10:27 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Public\Core\RSGameSave.h` |
+| 2026-04-09 11:10:27 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\UI\Player\PlayerStatusBarWidget.cpp` |
+| 2026-04-09 11:10:40 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\UI\Player\PlayerStatusBarWidget.cpp` |
+| 2026-04-09 11:10:46 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Public\Subsystems\SaveGameSubsystem.h` |
+| 2026-04-09 11:10:50 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\UI\Player\PlayerStatusBarWidget.cpp` |
+| 2026-04-09 11:10:58 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Subsystems\SaveGameSubsystem.cpp` |
+| 2026-04-09 11:11:00 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\UI\Player\PlayerStatusBarWidget.cpp` |
+| 2026-04-09 11:11:10 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\UI\Player\PlayerStatusBarWidget.cpp` |
+| 2026-04-09 11:11:17 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Core\OutGame\RSOutGamePlayerController.cpp` |
+| 2026-04-09 11:11:20 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\UI\Player\PlayerStatusBarWidget.cpp` |
+| 2026-04-09 11:11:30 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\UI\Player\PlayerStatusBarWidget.cpp` |
+| 2026-04-09 11:11:36 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Public\UI\OutGame\RSStageSelectWidget.h` |
+| 2026-04-09 11:11:47 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\UI\OutGame\RSStageSelectWidget.cpp` |
+| 2026-04-09 11:12:02 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\UI\OutGame\RSStageSelectWidget.cpp` |
+| 2026-04-09 11:23:31 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\UI\Player\PlayerStatusBarWidget.cpp` |
+| 2026-04-09 11:23:43 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\UI\Player\PlayerStatusBarWidget.cpp` |
+| 2026-04-09 11:23:54 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\UI\Player\PlayerStatusBarWidget.cpp` |
+| 2026-04-09 11:42:40 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-04-09 11:43:20 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\Subsystems\LevelUpSubsystem.cpp` |
+| 2026-04-09 11:50:57 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Learning\KnowledgeCheck_2026-04-09_LastPlayedStageRestore.md` |
+| 2026-04-09 11:51:20 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-04-09 11:51:36 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Changesets\CHANGESET.md` |
+| 2026-04-09 11:53:35 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\Source\RoastStaffGAS\Private\GAS\Attributes\BaseAttributeSet.cpp` |
+| 2026-04-09 11:53:54 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\세이브 데이터 시스템 기획 v1.2.md` |
+| 2026-04-09 11:54:03 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\세이브 데이터 시스템 기획 v1.2.md` |
+| 2026-04-09 11:54:12 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\세이브 데이터 시스템 기획 v1.2.md` |
+| 2026-04-09 11:54:27 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\아웃게임 시스템 기획 v1.0.md` |
+| 2026-04-09 11:54:37 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\아웃게임 시스템 기획 v1.0.md` |
+| 2026-04-09 11:54:51 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\아웃게임 시스템 기획 v1.0.md` |
+| 2026-04-09 11:55:01 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\아웃게임 시스템 기획 v1.0.md` |
+| 2026-04-09 11:55:11 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\아웃게임 시스템 기획 v1.0.md` |
+| 2026-04-09 11:55:21 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\세이브 데이터 시스템 기획 v1.2.md` |
+| 2026-04-09 11:57:36 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Portfolio\DEVLOG.md` |
+| 2026-04-09 12:03:39 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Changesets\CHANGESET.md` |
+| 2026-04-09 12:03:57 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-04-09 12:04:09 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |

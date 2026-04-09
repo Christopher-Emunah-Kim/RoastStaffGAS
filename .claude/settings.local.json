@@ -15,7 +15,9 @@
       "Bash(git:*)",
       "Skill(planning)",
       "Skill(update-design)",
-      "Skill(gc)"
+      "Skill(gc)",
+      "Skill(coding)",
+      "Bash(cd:*)"
     ],
     "deny": [],
     "ask": []
