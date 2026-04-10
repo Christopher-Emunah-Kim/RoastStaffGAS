@@ -1,0 +1,62 @@
+# auto-fix-patterns
+> coding [C2] 자동 검증+수정 패턴 상세 예시
+> ON_DEMAND: [C2] 단계에서 패턴 판단이 모호할 때 참조
+
+## P0 — UE_LOG → KHS_* 변환 규칙
+```
+UE_LOG(LogTemp, VeryVerbose, TEXT("..."))  → KHS_TRACE("...")
+UE_LOG(LogTemp, Verbose, TEXT("..."))     → KHS_DEBUG("...")
+UE_LOG(LogTemp, Log, TEXT("..."))         → KHS_INFO("...")
+UE_LOG(LogTemp, Warning, TEXT("..."))     → KHS_WARN("...")
+UE_LOG(LogTemp, Error, TEXT("..."))       → KHS_ERROR("...")
+UE_LOG(LogTemp, Fatal, TEXT("..."))       → KHS_FATAL("...")
+
+주의: TEXT() 매크로 제거 (KHS_* 내부에서 처리)
+주의: 포맷 인자(%s, %d 등)는 그대로 유지
+```
+
+## P0 — 데드코드 판별 기준
+```
+제거 대상:
+  - 미사용 지역변수 (선언 후 읽기 없음)
+  - 호출되지 않는 private 함수 (Grep으로 호출부 확인 후)
+  - #if 0 블록 전체
+  - 주석 처리된 코드 블록 3줄 이상
+  - 빈 함수 본문 (순수 가상 아닌 경우)
+
+제거 금지:
+  - UFUNCTION(BlueprintCallable) — BP에서 호출 가능
+  - UPROPERTY 접근자
+  - 의도적 TODO 주석
+```
+
+## P1 — 함수 복잡도 기준
+```
+추출 대상:
+  - 함수 50줄 이상 (복잡도 무관)
+  - 중첩 깊이 4 이상
+
+헬퍼 함수명 규칙:
+  - [동작]만 명시 (예: CalculateDamage, InitializePool)
+  - 부수효과 있으면 이름에 반영 (예: ApplyDamageAndNotify)
+```
+
+## P1 — 헤더 배치 순서
+```
+public:
+  생성자 / 소멸자
+  가상 함수 (UE 오버라이드)
+  공개 API
+
+protected:
+  상속용 가상 함수
+  상속용 비가상 함수
+
+private:
+  헬퍼 함수
+
+변수:
+  public UPROPERTY
+  protected UPROPERTY
+  private UPROPERTY / 일반 멤버
+```

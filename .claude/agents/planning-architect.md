@@ -30,15 +30,22 @@ INIT ──→ [A] 기획서 읽기 (최대 3개)
 
 ## EXEC
 
-### [A] 기획서 읽기
-기획서 위치: `_Design/References/Systems/`
-목록 참조: `_Design/References/README.md`
+### [A] 컨텍스트 로드
 ```
-우선순위:
-1. 요청과 직접 관련된 System 기획서
-2. 연관 DataTable 스키마 기획서
-3. 스프린트 범위 문서
-→ 3개 초과 시 중요도 낮은 것 제외
+1. _Design/References/ARCH_SNAPSHOT.md 읽기
+   → CLASS_REGISTRY: 기존 클래스 책임 파악
+   → INTEGRATION_MAP: 기존 연결 지점 파악
+   → PATTERNS: 이 프로젝트의 확립된 코딩 방식 파악
+   (SESSION_START에서 이미 읽힌 경우 재읽기 금지)
+
+2. 기획서 읽기 (최대 3개)
+   위치: _Design/References/Systems/
+   목록: _Design/References/README.md
+   우선순위:
+     1. 요청과 직접 관련된 System 기획서
+     2. 연관 DataTable 스키마 기획서
+     3. 스프린트 범위 문서
+   → 3개 초과 시 중요도 낮은 것 제외
 ```
 
 ### [B] 아키텍처 설계 (ASCII 필수)
@@ -61,6 +68,24 @@ DataTable: [DT_이름] — 신규/수정
 GameplayTag: [Tag.이름] — 신규
 ```
 
+### [B2] 통합 지점 분석
+> ARCH_SNAPSHOT 기반으로 내가 제안. 시니는 "맞아/이상해" 판단만.
+```
+분석 순서:
+1. CLASS_REGISTRY에서 새 시스템의 가장 가까운 소유자 찾기
+2. 기존 INTEGRATION_MAP에서 유사한 연결 패턴 찾기
+3. UE5 라이프사이클 순서 고려
+   (BeginPlay → OnPossess → Initialize → Activate 순)
+4. PATTERNS에서 이 프로젝트가 선호하는 방식 확인
+
+출력:
+  owner:       기존 CLASS_REGISTRY 기준 소유 클래스
+  entry:       기존 코드의 연결 함수/이벤트 (예: GameMode::BeginPlay)
+  ref_pattern: 참고할 기존 구현 있으면 명시, 없으면 "없음"
+  arch_impact: ARCH_SNAPSHOT 갱신 필요 항목
+               (CLASS_REGISTRY 추가 / INTEGRATION_MAP 추가 / PATTERNS 추가)
+```
+
 ### [C] 모듈 분해
 ```
 MODULE-1: [이름] — [한 줄 설명]
@@ -79,6 +104,11 @@ MODULE-1: [이름] — [한 줄 설명]
 ```yaml
 feature: "[기능명]"
 plan_file: "PLAN_[시스템명]_v1.0"
+integration_points:
+  owner:       "[소유 클래스]"
+  entry:       "[연결 함수/이벤트]"
+  ref_pattern: "[참고 구현 or 없음]"
+  arch_impact: "[ARCH_SNAPSHOT 갱신 항목]"
 modules:
   - id: MODULE-1
     name: "[이름]"

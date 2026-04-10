@@ -169,10 +169,17 @@ Grep → 패턴 발견 → Edit 즉시 수정 → 재검증 (최대 3회)
 해당 없으면: 기록 생략 (모든 MODULE에 쓰지 않는다)
 ```
 
-### [E] TODO + CHANGESET 갱신
+### [E] TODO + CHANGESET + ARCH 갱신
 ```
 TODO.md: [ ]→[x] / MODULE 완료: ✓ DONE YYYY-MM-DD / 나중에: [~]+DEFERRED
 CHANGESET.md: files.modified / files.created 갱신
+
+ARCH_SNAPSHOT 갱신 체크 (_Design/References/ARCH_SNAPSHOT.md):
+  □ 새 클래스/컴포넌트 추가 → CLASS_REGISTRY 갱신
+  □ 새 시스템 연결 지점 생김 → INTEGRATION_MAP 항목 추가
+  □ 새 설계 결정 확정 → DESIGN_DECISIONS 추가
+  □ 새 코딩 패턴 확립 → PATTERNS 추가
+  해당 없으면 생략. INTEGRATION_MAP 15개 / DESIGN_DECISIONS 10개 초과 시 compact 검토.
 ```
 
 ### 승인 요청
@@ -195,9 +202,9 @@ A) 승인  B) 수정 요청
 
 ## ON_DEMAND_REFS
 ```yaml
-auto-fix:    .claude/skills/coding/references/auto-fix-patterns.md  # [C2] 패턴 상세
-conventions: .claude/skills/coding/references/conventions.md        # 컨벤션 불명확 시
-oop:         .claude/skills/coding/references/oop-principles.md     # OOP 위반 판단 시
+auto-fix:    .claude/skills/coding/refs/auto-fix-patterns.md  # [C2] 패턴 상세
+conventions: .claude/skills/coding/refs/conventions.md        # 컨벤션 불명확 시
+oop:         .claude/skills/coding/refs/oop-principles.md     # OOP 위반 판단 시
 ```
 
 ## RULES
@@ -207,6 +214,8 @@ oop:         .claude/skills/coding/references/oop-principles.md     # OOP 위반
 - 테스트 실행 금지 (/test 담당)
 - MODULE 완료 시 TODO.md 갱신 필수
 - 커밋 제안 금지
+
+# [HARNESS] = harness/SKILL.md가 설계·강제하는 구조적 제약 레이블
 - [HARNESS] [C2] 자동 검증 + 리팩토링 필수 / 3회 실패 → BLOCKED
 - [HARNESS] 승인 요청 시 자동 수정/리팩토링 내역 명시 필수
 - [HARNESS] 빌드 검증 없이 승인 요청 금지

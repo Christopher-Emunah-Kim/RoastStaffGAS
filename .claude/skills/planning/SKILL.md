@@ -39,12 +39,18 @@ DEFERRED 있음: "미뤄둔 작업: [목록] — 이번에 처리할까요?"
 - 무엇을 만드는가 (한 문장)
 - 연관 기획서 이름 (_Design/References/Systems/ 내)
 - 이번 세션 범위 vs 전체 설계
+
+@game-designer 자동 권장 판단:
+  신규 게임 시스템/메커니즘 → "⚡ @game-designer 권장: 코딩 전 UX/차별성 검토"
+  플레이어 직접 상호작용 기능 → 동일
+  기술적 확장 / 리팩토링 / DataTable 수정 → 생략
 ```
 
 ### [C] @planning-architect 호출
 전달: 사용자 요청 한 문장 + 연관 기획서 파일명
 수신 후 처리:
 - feature/plan_file → 제목
+- integration_points → [D] 승인 요청에 반드시 포함
 - modules[].name + tasks → 모듈 목록 + 체크리스트
 - modules[].files_new/modified → 영향 범위
 - design_notes → 기획서 정합 이슈
@@ -57,6 +63,12 @@ DEFERRED 있음: "미뤄둔 작업: [목록] — 이번에 처리할까요?"
 상황: [기능명] 구현 계획서가 준비됐습니다.
       [아키텍처 다이어그램]
       [모듈 목록]
+
+🔗 통합 지점 (내가 제안 — 맞아/이상해 판단만 해주세요):
+  소유:     [owner] — 이 시스템을 관리할 클래스
+  진입점:   [entry] — 기존 코드에서 어디서 호출되는가
+  참고:     [ref_pattern]
+
 결정: 이 계획대로 진행할까요?
 권장: A) — 설계가 기획서와 정합하고 모듈 분해가 적절합니다.
 A) 승인 — TODO 갱신 후 코딩 시작
@@ -118,7 +130,7 @@ TODO: _Design/TODO.md 갱신
 
 ## ON_DEMAND_REFS
 ```yaml
-plan_template: .claude/skills/planning/references/plan-template.md  # [E] 저장 시
+plan_template: .claude/skills/planning/refs/plan-template.md  # [E] 저장 시
 ```
 
 ## COMPLETION
