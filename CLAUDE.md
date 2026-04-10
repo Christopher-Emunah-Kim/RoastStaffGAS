@@ -144,7 +144,7 @@ PLAN* → [GAME-DESIGN?] → CODE → EXPLAIN_IMPL → TEST → SR → LEARN →
 
   * = 시니 승인 게이트
   ? = 신규 시스템 시 KARVIS 자동 권장 (토큰 정책 적용)
-  EXPLAIN_IMPL: CODE 완료 후 구현 결정 설명 + 알아/몰라/애매해 응답 → KnowledgeGaps.md 축적
+  EXPLAIN_IMPL: CODE 완료 후 구현 결정 설명 + 알아/몰라/애매해 응답 → KnowledgeGaps.md 축적  # [고정 — 이동/편집 시 이 줄 삭제 금지]
   TEST→SR→LEARN: KARVIS 자율 진행 (빌드 성공 후 승인 없이 순서대로)
 ```
 > 상세: .claude/refs/protocols.md#PIPELINE_FLOW
