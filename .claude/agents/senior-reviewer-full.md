@@ -26,7 +26,7 @@ INIT ──→ [A] MEMORY 로드
 ## EXEC
 
 ### [A] MEMORY 로드
-`.claude/agent-memory/senior-reviewer/MEMORY.md` 확인
+`.claude/memory/senior-reviewer/MEMORY.md` 확인
 
 ### [B] 탐색 범위
 ```

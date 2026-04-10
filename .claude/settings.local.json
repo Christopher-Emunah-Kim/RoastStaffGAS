@@ -19,7 +19,18 @@
       "Skill(coding)",
       "Bash(cd:*)",
       "Bash(mv \"_Design/Plans/active/PLAN_StageResult_v1.0.md\" \"_Design/Plans/completed/\")",
-      "Bash(mv \"_Design/Plans/active/PLAN_EnemyExpansion_v1.0.md\" \"_Design/Plans/completed/\")"
+      "Bash(mv \"_Design/Plans/active/PLAN_EnemyExpansion_v1.0.md\" \"_Design/Plans/completed/\")",
+      "Read(//tmp/**)",
+      "Bash(split -l 250 /tmp/all_content.txt /tmp/content_batch_)",
+      "Bash(ls /tmp/content_batch_*)",
+      "Bash(sort -t'|' -k2 -rn)",
+      "WebFetch(domain:agents.md)",
+      "Bash(BASE=\"/c/Users/KGA/Projects/RoastStaffGAS/.claude\")",
+      "Bash(mv \"$BASE/references\" \"$BASE/refs\")",
+      "Bash(__NEW_LINE_2e467fc91adfbe0e__ mv:*)",
+      "Bash(__NEW_LINE_2e467fc91adfbe0e__ rm:*)",
+      "Bash(BASE=\"/c/Users/KGA/Projects/RoastStaffGAS/.claude\" echo \"=== 폴더 구조 ===\")",
+      "Read(//c/Users/KGA/Projects/RoastStaffGAS/**)"
     ],
     "deny": [],
     "ask": []

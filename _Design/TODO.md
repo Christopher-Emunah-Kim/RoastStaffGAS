@@ -13,104 +13,16 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
-## [FEATURE] TransitionGameMode FinishLoading 타이밍 수정 | PLAN_TransitionFinishLoading_v1.0
-> 시작: 2026-04-09 | 기획서: 인트로_트랜지션 시스템 기획 v1.0.md
-
-  ### [MODULE-1] RSTransitionGameMode 정리 ✓ DONE 2026-04-09
-  수정: RSTransitionGameMode.cpp, RSTransitionGameMode.h
-    - [x] Tick() FakeProgress 블록(bIsLoadingLevel 조건) 제거                  [P0]
-    - [x] OnLevelPreloadCompleted()에서 FinishLoading() 호출 제거              [P0]
-    - [x] OnLevelPreloadCompleted()에서 1초 타이머 제거 → 즉시 OpenNextLevelLatent() [P0]
-    - [x] bIsLoadingLevel 멤버변수 + 연관 로직 제거 (FakeProgress 전용이었으면) [P0]
-
-  ### [MODULE-2] RSLoadingWidget CloseUI 분리 확인 ✓ DONE 2026-04-09
-  수정: RSLoadingWidget.cpp
-    - [x] FinishLoading()이 CloseUI 호출하지 않음 확인 (Progress 1.f 표시만)  [P0]
-    - [x] IsVisible() Guard — 이미 닫힌 상태 재호출 방지                       [P0]
-
-  ### [MODULE-3] RSGameMode OnPreWarmCompleted CloseUI 추가 ✓ DONE 2026-04-09
-  수정: RSGameMode.h, RSGameMode.cpp
-    - [x] OnPreWarmCompleted()에서 FinishLoading() 후 UMS::CloseUIByID(LOADING) 호출 [P0]
-    - [x] PreWarmList 비어있을 때(즉시 StartStageFlow) CloseUI 경로 방어 처리  [P0]
 
 
 
-
-## [FEATURE] Enemy Ranged + Elite + Boss 시스템 | PLAN_EnemyExpansion_v1.0
-> 시작: 2026-04-06 | 기획서: AI_에너미 시스템 기획 v1.1.md, 스킬 시스템 기획 v1.4.md
-
-  ### [MODULE-1] DataTable 구조체 확장 ✓ DONE 2026-04-06
-  수정: DataTableStructs.h, EnumTypes.h
-    - [x] FEnemyStaticData에 bIsBoss bool 추가                              [P0]
-    - [x] FEnemyExtData USTRUCT 신규 정의 (12컬럼)                          [P0]
-    - [x] EAIType에 BOSS 추가                                               [P0]
-    - [x] DT_EnemyExtData 에셋 생성 + DT_Enemy bIsBoss 컬럼 추가 (에디터)   [P0]
-
-  ### [MODULE-2] AEnemyProjectile — 에너미 전용 투사체 (풀링) ✓ DONE 2026-04-06
-  신규: EnemyProjectile.h/.cpp
-  수정: EnemySpawner.h/.cpp
-    - [x] AEnemyProjectile: AActor + IPoolableInterface 독립 구현            [P0]
-    - [x] InitEnemyProjectile(Dir, Speed, Lifetime, Damage, GEClass, SourceASC) 구현 [P0]
-    - [x] OnHit → 플레이어 ASC GE 직접 적용 → ReturnToPool                  [P0]
-    - [x] OnPoolActivate/Deactivate 구현                                     [P0]
-    - [x] EnemySpawner::InitPools에 투사체 풀 사전 등록                      [P0]
-    - [x] BP_EnemySpawner에 EnemyProjectileClass 할당 (에디터)               [P0]
-
-  ### [MODULE-3] ARangedEnemy ✓ DONE 2026-04-06
-  신규: RangedEnemy.h/.cpp
-    - [x] AEnemyBaseCharacter 상속 + InitializeRangedParams(float, FEnemyExtData) [P0]
-    - [x] FireProjectile() 구현 (풀 고갈 시 경고 + 스킵)                    [P0]
-    - [x] BP_RangedEnemy 생성 + AttackGEClass(GE_RangedAttack)/ProjectileClass 할당 (에디터) [P0]
-
-  ### [MODULE-4] AEliteEnemy ✓ DONE 2026-04-06
-  신규: EliteEnemy.h/.cpp
-    - [x] AEnemyBaseCharacter 상속 + InitializeEliteParams(float, FEnemyExtData) [P0]
-    - [x] FireProjectile() 구현 (ARangedEnemy 패턴 공유)                     [P0]
-    - [x] MeleeCharge() / EndCharge() / HandleDeath() 구현                  [P0]
-    - [x] BP_EliteEnemy 생성 + GE/ProjectileClass 할당 (에디터)              [P0]
-    - [x] DT_Enemy_StaticData + DT_EnemyExtData Elite 행 추가 (에디터)       [P0]
-
-  ### [MODULE-5] ABossEnemy ✓ DONE 2026-04-06
-  신규: BossEnemy.h/.cpp
-  수정: EnemySpawner.h/.cpp, EnemyAIController.h/.cpp
-    - [x] AEnemyBaseCharacter 상속 + InitializeBossParams(float, FEnemyExtData) [P0]
-    - [x] CheckPhaseTransition() — HP비율 감시, 1회 트리거                   [P0]
-    - [x] Phase2 전환: PauseAI → Montage + FX → ActivatePhase2 → ResumeAI   [P0]
-    - [x] ExecuteShockwave() — 범위 내 플레이어 ASC에 GE 적용                [P0]
-    - [x] FireSpreadProjectile() — 45도 간격 8방향 투사체 (Phase2DamageMult) [P0]
-    - [x] OnBossKilledDel 델리게이트 선언 + EnemySpawner 구독                [P0]
-    - [x] HandleDeath() 오버라이드 — 전환 타이머 취소 + Broadcast            [P0]
-    - [x] EnemyAIController: PauseAI/ResumeAI + BBKey_bIsPhase2 추가        [P0]
-    - [x] BP_BossEnemy 생성 + GE/ProjectileClass 할당 (에디터)               [P0]
-    - [>] Boss HUD 등록 → PLAN_BossHPBar_v1.0으로 이관                        [P0]
-    - [~] DT_Enemy_StaticData Boss 행 AIType=BOSS + BT_BossEnemy — BT 생성 후 갱신 필요 [P0]
-
-  ### [MODULE-6] GDS GetEnemyExtData 확장 ✓ DONE 2026-04-06
-  수정: GameDataSubsystem.h/.cpp, GameDataConfig.h
-    - [x] GetEnemyExtData(FName EnemyID, FEnemyExtData& Out) 구현            [P0]
-    - [x] DT_EnemyExtData 테이블 포인터 UPROPERTY 추가                       [P0]
-
-  ### [MODULE-7] BT 노드 + 행동트리 에셋 ✓ DONE 2026-04-07
-  신규: BTTask_RangedReposition, BTTask_FireProjectile, BTTask_MeleeCharge,
-        BTTask_ExecuteShockwave, BTDecorator_ShockwaveReady,
-        BTDecorator_IsPhase2, BTDecorator_RandomChance (.h/.cpp 각 7쌍)
-    - [x] BTTask_RangedReposition — 거리 기반 전진/후퇴                      [P1]
-    - [x] BTTask_FireProjectile — FireProjectile() 호출                      [P1]
-    - [x] BTTask_MeleeCharge — MeleeCharge() 호출                           [P1]
-    - [x] BTTask_ExecuteShockwave — PrepareTime 선딜 + ExecuteShockwave()    [P1]
-    - [x] BTDecorator_ShockwaveReady — 쿨타임 체크                           [P1]
-    - [x] BTDecorator_IsPhase2 — ABossEnemy::IsPhase2() 체크                [P1]
-    - [x] BTDecorator_RandomChance — 확률 판정 (EliteEnemy 돌진용)           [P1]
-    - [ ] BT_RangedEnemy 에셋 구성                                           [P1]
-    - [ ] BT_EliteEnemy 에셋 구성                                            [P1]
-    - [ ] BT_BossEnemy 에셋 구성 (Phase1/2 분기)                            [P1]
 
 ---
 
 ## NEXT_SESSION
 - [x] SR-FULL 아키텍처 리뷰 + 학습 리포트 (837e8db)                                 [P0]
 - [x] SR-FULL H1~H4 핫픽스 적용 (4bbf1d6)                                          [P0]
-- [ ] 로비 전환 시 크래시 재현 확인 (WeakThis 패치 적용됨)                          [P0]
+- [x] 로비 전환 시 크래시 재현 확인 (WeakThis 패치 적용됨)                          [P0]
 - [x] L1: Enemy 투사체 발사 로직 공통 추출 (8a578b1)                               [P1]
 - [x] L2: Enemy 파라미터 + GEClass/ProjectileClass Base 이동 (8a578b1)             [P1]
 - [x] PoolingSubsystem FActorPoolBucket 래퍼 적용 (be6e42e)                        [P1]
@@ -161,7 +73,7 @@
 <!-- "나중에" 항목. 이유+우선순위 필수 -->
 [~] BossHPBar PERSISTENT 레이어 — HUD 위젯보다 ZOrder 높아 HUD 버튼 입력 차단 가능성 있음. 현재 플레이에 영향 없으나 HUD 인터렉션 추가 시 ZOrder 조정 또는 HitTestInvisible 처리 필요 | [P2] | REF: PLAN_BossHPBar_v1.0
 [~] Txt_PlayerName 업데이트 로직 — 캐릭터 이름 시스템 미구현, BP에서만 텍스트 지정 | [P2] | REF: PLAN_PlayerHPBarWidget_v1.0
-[~] MODULE-7: RSTransitionGameMode FinishLoading 타이밍 변경 — 기획서 충돌 해소 완료(2026-04-08), 착수 가능 | [P1] | REF: PLAN_PoolingCentralize_v1.0
+[x] MODULE-7: RSTransitionGameMode FinishLoading 타이밍 변경 | c5588b2 | PLAN_TransitionFinishLoading_v1.0
 [~] 진화 시스템 (Evolution/Combination) — DT_Combination + 조합 체크 로직. 강화 시스템 완성 후 착수. | [P2] | REF: PLAN_WeaponUpgrade_Replace_v1.0
 [~] 연속 레벨업 시 교체 UI 중첩 처리 — 기획서 미정의, 교체 UI 완성 후 별도 설계 필요 | [P2] | REF: PLAN_WeaponUpgrade_Replace_v1.0
 [x] WeaponSlotWidget 강화 후 SkillIcon visibility 버그 수정 | 07153a4 | 2026-03-30
@@ -171,6 +83,8 @@
 
 ## COMPLETED_LOG
 <!-- compact 형식: [x] FEATURE명 | 커밋 | 날짜 | 플랜파일 -->
+[x] TransitionGameMode FinishLoading 타이밍 수정 (MODULE 1~3) | c5588b2 | 2026-04-09 | PLAN_TransitionFinishLoading_v1.0
+[x] Enemy Ranged + Elite + Boss 시스템 (MODULE 1~7) | 에디터 에셋 포함 | 2026-04-06~09 | PLAN_EnemyExpansion_v1.0
 [x] Boss HP Bar UI 파이프라인 (C++ MODULE 1~4) | d43254d,b7e3b05,02d92c1,c45823d | 2026-04-09 | PLAN_BossHPBar_v1.0
 [x] LastPlayedStage UX 연속성 복원 | 7d586e6,34e2df6,7279505 | 2026-04-09 | PLAN_LastPlayedStageRestore_v1.0
 [x] PlayerStatusBarWidget HP/EXP TextBlock 실시간 갱신 | d22fcd1 | 2026-04-09 | ad-hoc

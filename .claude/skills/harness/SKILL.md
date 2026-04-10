@@ -1,6 +1,6 @@
 ---
 name: harness
-version: 1.1.0
+version: 2.0.0
 depends-on: []
 suggests-next: ["@senior-reviewer", "COMMIT"]
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
@@ -107,10 +107,46 @@ A) 적용  B) 수정
 □ Git hooks chmod +x 설정?
 ```
 
+## AUTONOMY
+> 자가 개선 시 승인 수준 정의. PIPELINE_REVIEW [PR] 단계 및 세션 중 언제든 적용.
+
+### AUTO — 승인 없이 즉시 실행
+```
+- ON_DEMAND_REFS가 가리키는 파일이 없음 → stub 생성 또는 경로 수정
+- SKILL/AGENT version +0.1 갱신
+- 오탈자 / 깨진 경로 링크 수정
+- 폴더 이동 후 MEMORY.md 경로 참조 갱신
+```
+
+### NOTIFY — 고지 후 실행 (블록 없음, 한 줄 안내만)
+```
+- SKILL.md RULES에 제약 추가 (기존 규칙과 충돌 없는 것)
+- DISPATCH TRIGGER에 동의어 문자열 추가
+- stub 참조 파일 내용 보강
+- PIPELINE_REVIEW [PR] 관찰 기반 마이너 규칙 추가
+```
+
+### APPROVAL — 사용자 승인 후 실행
+```
+- 새 SKILL / AGENT 파일 신설
+- CLAUDE.md CONSTRAINTS 수정
+- hooks 파일 생성 / 수정
+- DISPATCH 항목 추가 / 삭제 / 재정의
+- 폴더 구조 변경
+- settings.json 변경
+```
+
+### BLOCKED — 사용자 명시 요청만
+```
+- CONSTRAINTS 규칙 삭제 또는 완화
+- 기존 훅 비활성화
+- 파이프라인 단계 제거
+```
+
 ## ON_DEMAND_REFS
 ```yaml
-action-catalog: .claude/skills/harness/references/action-catalog.md  # 액션별 상세 예시
-protocols:      .claude/references/protocols.md
+action-catalog: .claude/skills/harness/refs/action-catalog.md  # 액션별 상세 예시
+protocols:      .claude/refs/protocols.md
 ```
 
 ## COMPLETION

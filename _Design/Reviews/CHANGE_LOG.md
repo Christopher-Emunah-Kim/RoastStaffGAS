@@ -901,3 +901,11 @@
 | 2026-04-09 14:33:05 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\PoolingSystem_변경리포트_v2.0.md` |
 | 2026-04-09 14:33:18 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\PoolingSystem_변경리포트_v2.0.md` |
 | 2026-04-09 14:33:46 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Changesets\CHANGESET.md` |
+| 2026-04-09 14:44:10 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-04-09 15:04:12 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-04-09 15:04:21 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-04-09 15:04:43 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-04-09 15:05:21 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-04-09 15:05:35 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
+| 2026-04-09 16:28:59 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\README.md` |
+| 2026-04-09 17:06:27 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\.git\hooks\pre-commit` |

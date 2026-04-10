@@ -62,7 +62,7 @@ STATUS: DONE | DONE_WITH_CONCERNS | BLOCKED
 
 ## ON_DEMAND_REFS
 ```yaml
-patterns: .claude/skills/test/references/test-patterns.md
+patterns: .claude/skills/test/refs/test-patterns.md
 ```
 
 ## RULES

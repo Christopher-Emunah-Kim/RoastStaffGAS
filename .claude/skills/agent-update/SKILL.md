@@ -39,7 +39,7 @@ Glob 도구로 탐색 (Bash find 금지):
 CLAUDE.md 위치:      Glob("**/CLAUDE.md", maxdepth=2)
 Skills 목록:         Glob(".claude/skills/*/SKILL.md")
 Agents 목록:         Glob(".claude/agents/*.md")
-References 목록:     Glob(".claude/references/*.md")
+References 목록:     Glob(".claude/refs/*.md")
 ```
 
 ### [C] 영향 범위 파악
@@ -49,7 +49,7 @@ References 목록:     Glob(".claude/references/*.md")
 - 다른 Skill/Agent 동작에 영향 주는가?
 - ROUTING_TABLE 변경 필요한가?
 - PIPELINE_FLOW 다이어그램 갱신 필요한가?
-- references/ 파일 변경 필요한가?
+- refs/ 파일 변경 필요한가?
 ```
 
 ### [D] 변경 계획 제시 (ASK_USER_FORMAT)

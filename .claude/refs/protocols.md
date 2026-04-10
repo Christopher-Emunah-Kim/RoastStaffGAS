@@ -159,6 +159,145 @@ COMMIT
     개선: [적용된 항목] or 없음
 ```
 
+## ORCHESTRATOR_FLOW
+> KARVIS 자율 진행 상세. CLAUDE.md ORCHESTRATOR 섹션의 실행 규칙.
+```
+[CODE 완료 후 자율 진행 순서]
+
+1. EXPLAIN_IMPL 자동 실행
+   → 핵심 결정 3~5개 설명 제시
+   → 시니 응답(알아/몰라/애매해) 수신 후 KnowledgeGaps 갱신
+
+2. 빌드 요청 (물리적 게이트)
+   → "📌 빌드 검증 요청" 메시지
+   → 시니가 결과 전달 대기
+
+3. 빌드 성공 시 → TEST 자동 시작 (승인 요청 없음)
+   빌드 실패 시 → 원인 분석 후 수정 → 재빌드 요청
+
+4. TEST 완료 → SR 실행 여부 판단 (KARVIS 제안)
+   판단 형식:
+     "📊 [SR 판단] 이번 세션 규모:
+      변경: [파일 수]개 / 신규: [파일 수]개 / GAS 변경: Y/N
+      → SR [권장 / 생략 권장] — 이유: [한 줄]
+      A) SR 실행  B) 생략 후 COMMIT 준비"
+
+   A 선택 시: @senior-reviewer 호출
+     HIGH 이슈 → 시니에게 처리 방향 요청
+     MED/LOW → 기록만, 자동 진행
+
+5. SR 완료 → LEARN 실행 여부 판단 (KARVIS 제안)
+   판단 형식:
+     "📊 [LEARN 판단]
+      SR 이슈: HIGH [N]개 / MED [N]개 / EXPLAIN_IMPL 몰라/애매해: [N]개
+      → LEARN [권장 / 생략 권장] — 이유: [한 줄]
+      A) LEARN 실행  B) 생략 후 COMMIT 준비"
+
+   A 선택 시: @learning-coach 호출
+
+6. (SR/LEARN 완료 or 생략) → COMMIT 제안
+   → 스테이지 + 메시지 제안 → 시니 승인 대기
+
+[단계 전환 안내 형식]
+  자동 실행: "✅ [이전] 완료 → [다음] 자동 시작."
+  제안:      "📊 [SR/LEARN 판단] ..." → A/B 대기
+```
+
+## ARCH_COMPACT
+```yaml
+트리거:
+  - DESIGN_DECISIONS 10개 초과
+  - INTEGRATION_MAP 15개 초과
+  - "ARCH 정리해줘" 발언
+  - 세션 종료 시 초과 감지
+
+방법:
+  DESIGN_DECISIONS:
+    - 변경 조건이 충족되어 이미 반영된 결정 → 한 줄 요약 후 ## ARCHIVED 블록으로 이동
+    - 유사한 결정 묶음 → 대표 결정 1개로 병합
+    - 목표: 8개 이하 유지
+
+  INTEGRATION_MAP:
+    - 폐기된 연결(리팩토링으로 제거된 것) → 삭제
+    - 시스템별로 그룹핑 헤더 추가 (예: ### [PlayerLayer])
+    - 목표: 12개 이하 유지
+
+결과:
+  - 항목 수 감소 확인
+  - 아카이브된 항목은 ## ARCHIVED 블록에 날짜와 함께 보존
+  - compact 후 INIT 로드 토큰 비용 재확인
+```
+
+## LOAD_STRATEGY
+```yaml
+always:     [CLAUDE.md]
+session:    [_Design/TODO.md]
+on_route:   해당 SKILL.md 또는 agent.md 만
+on_demand:  각 SKILL의 ON_DEMAND_REFS 명시 시만
+never_auto: _Design/References/Systems/ 전체 순회 금지
+
+# 중복 읽기 방지 (ReadOnce)
+no_reread: |
+  같은 세션 내 이미 Read한 파일은 재읽기 금지 (INIT 파일 포함 전체).
+  필요한 정보가 있다면 이미 읽은 내용 참조 또는 Grep으로 보완.
+
+# Grep-first 원칙
+grep_first: |
+  파일 전체 Read 전에 Grep으로 필요한 섹션 먼저 탐색.
+  적용 대상: TODO.md, CHANGESET.md, PLAN_*.md, 대형 참조파일
+  예외: 신규 파일 또는 전체 구조 파악이 필요한 경우
+
+# 에이전트 사용 제한 (토큰/처리시간 보호)
+agent_policy:
+  Explore:          사용자 명시 요청 시만 — 자동 호출 절대 금지
+  general-purpose:  사용자 명시 요청 시만 — 자동 호출 절대 금지
+  허용 자동 호출:   planning-architect (PLAN 단계), senior-reviewer (SR 단계), learning-coach (LEARN 단계)
+  기타 에이전트:    사용자 명시 요청 시만
+```
+
+## TOOL_EFFICIENCY
+```yaml
+# 불필요한 도구 호출 금지
+no_redundant_calls: |
+  이미 알고 있는 정보를 재확인하기 위한 도구 호출 금지.
+  추론으로 답할 수 있는 경우 도구를 사용하지 않는다.
+
+# 병렬 실행 원칙
+parallel_calls: |
+  서로 의존성이 없는 도구 호출은 단일 메시지에서 동시에 실행.
+  순차 실행은 이전 결과가 다음 호출의 파라미터에 필요한 경우에만 허용.
+
+# 대용량 출력 위임
+large_output_delegation: |
+  20줄 이상의 결과가 예상되는 탐색/분석 작업은 서브에이전트에게 위임.
+  단, COST_POLICY의 사용자 확인 절차 선행.
+
+# 반복 설명 금지
+no_repeat_summary: |
+  이미 사용자에게 설명하거나 확인된 내용은 같은 세션 내 재반복 금지.
+  참조가 필요하면 "앞서 확인한 내용"으로 한 줄 언급만 허용.
+```
+
+## COST_POLICY
+```yaml
+대상:
+  - Agent 호출 (종류 무관)
+  - 파일 9개 이상 연속 Read
+  - 디렉터리 전체 탐색 (Glob + 다수 Read 조합)
+
+실행 전 필수 안내 형식:
+  ⚠️ [무거운 작업 예고]
+  작업: [무엇을 하려는지 한 줄]
+  예상 비용: [에이전트 호출 / 파일 N개 읽기 등]
+  A) 진행
+  B) 방식 변경 (경량 대안 제시)
+  C) 취소
+
+예외 (안내 없이 진행 가능):
+  - INIT 필수 파일 (TODO.md, 최신 PLAN 1개)
+  - 사용자가 직접 명령한 에이전트 호출
+```
+
 ## GEMINI_POLICY
 ```yaml
 PLAN단계:  사용자 선택 시만 (@cross-reviewer) — 설계 외부 검증 가치 있음

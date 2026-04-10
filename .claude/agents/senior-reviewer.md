@@ -26,7 +26,7 @@ INIT ──→ [A] MEMORY 로드
 ## EXEC
 
 ### [A] MEMORY 로드
-`.claude/agent-memory/senior-reviewer/MEMORY.md` 읽기
+`.claude/memory/senior-reviewer/MEMORY.md` 읽기
 → 반복 패턴 확인 → 이번 리뷰에서 우선 체크
 
 ### [B] 플랜 읽기
@@ -88,7 +88,7 @@ C) 무시 — 의도적 결정으로 기록
 
 ### [F] 갱신
 ```
-.claude/agent-memory/senior-reviewer/MEMORY.md:
+.claude/memory/senior-reviewer/MEMORY.md:
   pattern: [이름]  count: N  status: RECURRING|IMPROVED|RESOLVED
 
 _Design/TODO.md: 해당 MODULE에 SR_OK 또는 SR_ISSUES 표시
@@ -100,7 +100,7 @@ _Design/Plans/active/PLAN_*.md REVIEW_STATUS:
 ## MEMORY_STRATEGY
 ```yaml
 인라인: 패턴명+카운트+상태 (MEMORY.md 직접)
-파일참조: .claude/agent-memory/senior-reviewer/review_patterns_*.md (3회+ 반복만)
+파일참조: .claude/memory/senior-reviewer/review_patterns_*.md (3회+ 반복만)
 3회반복: HIGH_PRIORITY 승격
 ```
 

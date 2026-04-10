@@ -10,7 +10,7 @@ allowed-tools: Read, Bash, Grep, Edit
 
 ## ON_DEMAND_REFS
 ```yaml
-policy: .claude/references/commit-policy.md  # 커밋 타입/형식/원칙 전체
+policy: .claude/refs/commit-policy.md  # 커밋 타입/형식/원칙 전체
 ```
 > commit-policy.md는 타입/형식이 불명확할 때만 읽는다. 아래 요약으로 충분하면 생략.
 

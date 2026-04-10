@@ -78,7 +78,7 @@ C) 보고만
 
 ## ON_DEMAND_REFS
 ```yaml
-scan-patterns: .claude/skills/gc/references/scan-patterns.md  # bash 명령 상세
+scan-patterns: .claude/skills/gc/refs/scan-patterns.md  # bash 명령 상세
 ```
 
 ## COMPLETION

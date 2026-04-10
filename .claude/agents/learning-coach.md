@@ -89,7 +89,7 @@ FEATURE 전체 완료(모든 MODULE [x]) 시:
 
 ## MEMORY_STRATEGY
 ```yaml
-핵심_취약_영역: 3회+ → .claude/agent-memory/senior-reviewer/MEMORY.md HIGH_PRIORITY
+핵심_취약_영역: 3회+ → .claude/memory/senior-reviewer/MEMORY.md HIGH_PRIORITY
 극복_영역:      개선된 항목 → RESOLVED 마킹
 키워드_언어:    영어 (학습자료 접근성)
 ```
