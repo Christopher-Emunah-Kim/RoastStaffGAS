@@ -1,83 +1,59 @@
-# 세션 핸드오프 — 2026-04-08 23:36:34
+# 세션 핸드오프 — 2026-04-10 (설계 회의 세션)
 
 ## Worktree 정보
-없음 — main 브랜치에서 직접 작업
+main 브랜치 직접 작업. Worktree 없음.
 
 ## 파이프라인 진행 상태
-**완료** — GC + 리팩토링 + 커밋 + 세션 종료까지 전 파이프라인 완료
-
-| FEATURE | 상태 | 커밋 |
-|---------|------|------|
-| PoolingCentralize (MODULE 1~6, 8) | ✅ COMMITTED | af3c5cd |
-| GC + 가독성 리팩토링 | ✅ COMMITTED | 8011f7f |
-| docs (CHANGESET/TODO/CLAUDE.md) | ✅ COMMITTED | a83cf54 |
+완료 — 게임 정체성 설계 회의 + 개선안 기획서 작성. 코드 작업 없음.
 
 ## 마지막 작업 내용
-**SPRINT-5: 풀링 시스템 중앙화 + AsyncPreWarm + GC 리팩토링**
 
-1. **GC 청소**
-   - UE_LOG → KHS_INFO (RSCharacterSelectWidget)
-   - BTTask_RangedReposition out-param 초기값 0.f 명확화
-   - UIManagerSubsystem ZOrder constexpr 상수 5개 추가
+### 게임 정체성 전환 설계 (KARVIS + 시니 설계 회의)
 
-2. **PoolingSubsystem + RSGameMode 가독성 리팩토링**
-   - `PopFirstValid<T>` 템플릿 — SpawnPooledActor/Widget Pop 루프 추출
-   - `AddActorToPool` — InitializePool/TickPreWarm 중복 제거
-   - `SpawnOnePreWarmUnit` — TickPreWarm Actor/Widget 분기 추출
-   - `GetLoadingWidget()` / `CollectUniqueEnemyClasses()` / `MakeActorRequest/Widget` — RSGameMode 헬퍼 추출
-   - 모든 private 헬퍼 헤더 선언 확보 (anonymous namespace → private member 논의 완료)
+**핵심 결정: 캐릭터 빌드 서바이버**
 
-3. **파이프라인 개선**
-   - conventions.md: Private 헬퍼 배치 원칙 추가
-   - CLAUDE.md END 트리거 구어체 확장
-   - commit [F]: FEATURE 완료 시 COMPLETED_LOG 이동 통합
-   - protocols.md SESSION_END: commit 처리 항목 중복 스킵 명시
+기존의 방향 없는 로그라이크에서 명확한 정체성으로 전환:
+- 무기 수동발사 → **자동발사** (최근접 타겟팅)
+- 캐릭터 고유 **스킬 2개(Q/E)** — 쿨타임 관리형 능동 개입
+- 레벨업 카드 **정적+동적 혼합 풀** (스탯/패시브/무기)
+- 로비 **공통 스탯 트리** — BIG 노드 마일스톤으로 스킬 레벨 상승
+- **단일 재화(골드)** — 스테이지 결과에서만 획득
+
+### 생성/수정 파일
+- **신규**: `_Design/References/Systems/게임 시스템 개선안 v1.0.md` — 전체 설계 확정 기준 문서
+- **수정**: ARCH_SNAPSHOT.md — D5~D9 설계 결정 + ★ 개선안 참조 포인터
+- **수정**: TODO.md — PHASE 1~3 구현 항목 전체 등록
+- **경고 헤더 추가**: 스킬/아웃게임/레벨업/무기/세이브 기획서 5개
 
 ## 미완료 사항
+- **코드 작업 없음** — 다음 세션부터 PHASE 1 구현 시작
+- PHASE 1 착수: `/planning` → 개선안 v1.0 §6 PHASE 1 항목 기준
+
+## 다음 세션 시작 방법
 ```
-[ ] 로비 전환 시 크래시 재현 확인 (WeakThis 패치 적용됨)     [P0] ← 최우선
-[ ] BT_RangedEnemy / BT_EliteEnemy / BT_BossEnemy 에셋 구성  [P1]
-[ ] 풀링 미적용 대상 초기화: BaseProjectile + BaseSummonObject [P1]
-[~] MODULE-7: RSTransitionGameMode FinishLoading 타이밍       [P1] DEFERRED
+1. INIT (자동)
+2. ARCH_SNAPSHOT D5~★ 확인으로 개선안 v1.0 존재 인지
+3. "커밋하자" → 이전 세션 미커밋 파일 처리 (Content/ .uasset 등)
+4. /planning PHASE 1
 ```
 
-## ⭐ Main으로 전달할 내용 (Worktree 작업 시 필수)
-> 다음 내용을 main의 HANDOFF_LATEST.md에 통합하세요:
-> 
-> ### [작업 이름]
-> - 완료 사항: 
-> - 변경 파일: 
-> - 다음 단계:
+## 구현 PHASE 요약 (개선안 v1.0 §6 기준)
+```
+PHASE 1 (P1 — 다음 세션):
+  ① 무기 자동발사 전환
+  ② 캐릭터 스킬 시스템 (GA, Q/E, ESkillActivationType)
+  ③ 데미지 공식 ExecCalc
+  ④ 레벨업 카드 풀 확장
+  ⑤ 패시브 슬롯 시스템
 
-## 최근 변경 파일
-| 2026-04-08 23:22:21 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\planning\SKILL.md` |
-| 2026-04-08 23:22:37 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\agents\senior-reviewer.md` |
-| 2026-04-08 23:22:52 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Changesets\CHANGESET.md` |
-| 2026-04-08 23:23:05 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\Changesets\CHANGESET.md` |
-| 2026-04-08 23:23:12 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
-| 2026-04-08 23:24:18 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\commit\SKILL.md` |
-| 2026-04-08 23:24:23 | Write | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\References\Systems\PoolingSystem_변경리포트_v2.0.md` |
-| 2026-04-08 23:24:36 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\commit\SKILL.md` |
-| 2026-04-08 23:26:37 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\commit\SKILL.md` |
-| 2026-04-08 23:28:14 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\coding\SKILL.md` |
-| 2026-04-08 23:28:24 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\planning\SKILL.md` |
-| 2026-04-08 23:28:34 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\agents\senior-reviewer.md` |
-| 2026-04-08 23:28:44 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\commit\SKILL.md` |
-| 2026-04-08 23:29:46 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
-| 2026-04-08 23:29:52 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
-| 2026-04-08 23:30:01 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\_Design\TODO.md` |
-| 2026-04-08 23:32:30 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\coding\references\conventions.md` |
-| 2026-04-08 23:32:48 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\CLAUDE.md` |
-| 2026-04-08 23:33:03 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\skills\commit\SKILL.md` |
-| 2026-04-08 23:33:16 | Edit | `C:\Users\KGA\Projects\RoastStaffGAS\.claude\references\protocols.md` |
+PHASE 2 (P2): 아웃게임 플로우 재조립
+PHASE 3 (P2): 메타 연결 (재화 + 스탯트리)
+PHASE 4 (향후): 진화 시스템
+```
 
 ## 토큰 사용 체감
-GC 스캔 + 리팩토링 단계에서 파일 다수 읽기로 컨텍스트 소모 큼.
-anonymous namespace vs private 멤버 논의 3회 왕복으로 약간의 낭비 발생.
+설계 회의 세션 특성상 파일 읽기 위주. 컨텍스트 여유 있는 상태로 종료.
 
 ## 참고사항
-- **다음 세션 최우선**: 로비 전환 크래시 재현 확인 (WeakThis 패치 이후 미검증)
-- PoolingSystem 변경 리포트: `_Design/References/Systems/PoolingSystem_변경리포트_v2.0.md`
-- Private 헬퍼 배치 원칙 새로 확정: "클래스 동작 설명 → 헤더 private / 순수 유틸리티 → anonymous namespace"
-- EnemyExpansion FEATURE는 BT 에셋 구성([P1]) 남아있어 ACTIVE_WORK에 잔류 중
-- commit [F] 개선: FEATURE 완료 시 COMPLETED_LOG 이동 + Plan 이동이 커밋 시점에 처리되도록 변경됨
+- 개선안 v1.0은 INIT 자동 로드 안 됨 → ARCH_SNAPSHOT ★ 포인터로 인지 → PLAN 시 ON_DEMAND 로드
+- Content/ .uasset 변경 파일들은 이전 세션 작업 — 별도 커밋 필요
