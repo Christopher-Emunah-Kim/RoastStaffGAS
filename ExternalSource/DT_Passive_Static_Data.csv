@@ -1,0 +1,6 @@
+﻿---,PassiveID,DisplayName,Description,GEClass,Icon,EvolutionTag,Weight
+PSV_FIRE_AURA,"PSV_FIRE_AURA","화염 오라","공격력이 15% 증가한다","","","Fireball","1.0" 
+PSV_ICE_ARMOR,"PSV_ICE_ARMOR","빙결 방어구","방어력이 20% 가한다","","","Iceball","1.0" 
+PSV_VAMPIRE_FANG,"PSV_VAMPIRE_FANG","흡혈 송곳니","적 처치 시 최대 HP의 2%를 회복한다","","","Vampire","0.8" 
+PSV_THUNDER_FEET,"PSV_THUNDER_FEET","번개 발걸음","이동 속도가 10% 증가한다","","","Thunder","1.2"                 
+PSV_SHADOW_VEIL,"PSV_SHADOW_VEIL","그림자 장막","치명타 확률이 5% 증가한다","","","Shadow","0.8"  

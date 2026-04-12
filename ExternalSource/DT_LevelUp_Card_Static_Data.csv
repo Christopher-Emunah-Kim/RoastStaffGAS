@@ -1,0 +1,6 @@
+﻿---,CardID,CardType,StatType,StatModifier,PassiveID,Weight,DisplayName,Description
+CARD_ATK_UP,CARD_ATK_UP,StatUpgrade,ATK,10,,1.2,공격력 강화,공격력이 10 증가한다      
+CARD_DEF_UP,CARD_DEF_UP,StatUpgrade,DEF,8,,1,방어력 강화,방어력이 8 증가한다       
+CARD_HP_UP,CARD_HP_UP,StatUpgrade,MaxHP,20,,1,최대 체력 강화,최대 체력이 20 증가한다  
+CARD_CRITRATE_UP,CARD_CRITRATE_UP,StatUpgrade,CriticalRate,0.05,,0.8,치명타 확률 강화,치명타 확률이 5% 증가한다              
+CARD_PASSIVE_FIRE,CARD_PASSIVE_FIRE,PassiveAdd,,0,PSV_FIRE_AURA,0.8,화염 오라 획득,화염 오라 패시브를 획득한다     
