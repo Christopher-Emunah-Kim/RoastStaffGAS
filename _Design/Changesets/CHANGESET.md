@@ -12,10 +12,10 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ## PENDING_COMMIT
 
-- date: 2026-04-10
+- date: 2026-04-13
   plan: PLAN_Phase1_InGame_v1.0
-  commit: ~
-  summary: "PHASE-1 인게임 루프 완성 — 자동발사/캐릭터스킬/ExecCalc/카드풀/패시브슬롯"
+  commit: "cd024b49(M-1), 5b69c436(M-2), e0c96d2e(data)"
+  summary: "PHASE-1 M-1/M-2 완료 — DataTable 스키마 확장 + GDS 신규 DT 통합"
   status: IN_PROGRESS
   files.new:
     - Source/RoastStaffGAS/Public/GAS/Calculations/RS_DamageExecCalc.h

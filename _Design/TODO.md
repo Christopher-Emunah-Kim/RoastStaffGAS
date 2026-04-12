@@ -17,21 +17,21 @@
 > 시작: 2026-04-10 | 기획서: 게임 시스템 개선안 v1.0.md
 > 실행 순서: M-1 → M-2 → (M-3 ∥ M-4) → (M-5 ∥ M-7) → M-6
 
-### [MODULE-1] DataTable 스키마 확장
+### [MODULE-1] DataTable 스키마 확장 ✓ DONE 2026-04-13 (cd024b49)
 수정: Data/EnumTypes.h, DataTableStructs.h, RuntimeDataStructs.h
-  - [ ] ESkillActivationType / ELevelUpCardType ENUM 추가 (EnumTypes.h)                                         [P0]
-  - [ ] FWeaponStaticData: EvolutionTag(FString) + IsUnlocked + UnlockCost 추가 (DataTableStructs.h)            [P0]
-  - [ ] FCharacterSkillLevelData USTRUCT 신규 (DataTableStructs.h)                                              [P0]
-  - [ ] FCharacterSkillStaticData : FTableRowBase 신규 (DataTableStructs.h)                                     [P0]
-  - [ ] FPassiveStaticData : FTableRowBase 신규 (DataTableStructs.h)                                            [P0]
-  - [ ] FLevelUpCardStaticData : FTableRowBase 신규 (DataTableStructs.h)                                        [P0]
-  - [ ] FCharacterSkillExecData + FLevelUpCardDisplayData USTRUCT 신규 (RuntimeDataStructs.h)                   [P0]
+  - [x] ESkillActivationType / ELevelUpCardType ENUM 추가 (EnumTypes.h)
+  - [x] FWeaponStaticData: EvolutionTag(FString) + IsUnlocked + UnlockCost 추가 (DataTableStructs.h)
+  - [x] FCharacterSkillLevelData USTRUCT 신규 (DataTableStructs.h)
+  - [x] FCharacterSkillStaticData : FTableRowBase 신규 (DataTableStructs.h)
+  - [x] FPassiveStaticData : FTableRowBase 신규 (DataTableStructs.h)
+  - [x] FLevelUpCardStaticData : FTableRowBase 신규 (DataTableStructs.h)
+  - [x] FCharacterSkillExecData + FLevelUpCardDisplayData USTRUCT 신규 (RuntimeDataStructs.h)
 
-### [MODULE-2] GDS 신규 DT 통합
+### [MODULE-2] GDS 신규 DT 통합 ✓ DONE 2026-04-13 (5b69c436)
 수정: GameDataConfig.h, GameDataSubsystem.h/.cpp
-  - [ ] GameDataConfig.h: DT_CharacterSkill / DT_LevelUpCard / DT_Passive 경로 추가                             [P0]
-  - [ ] GameDataSubsystem: 테이블 포인터 + 캐시 TMap 3종 추가                                                    [P0]
-  - [ ] GameDataSubsystem: 조회 함수 7개 구현 (GetCharacterSkillExecData 포함)                                   [P0]
+  - [x] GameDataConfig.h: DT_CharacterSkill / DT_LevelUpCard / DT_Passive 경로 추가
+  - [x] GameDataSubsystem: 테이블 포인터 + 캐시 TMap 3종 추가
+  - [x] GameDataSubsystem: 조회 함수 6개 구현 (GetCharacterSkillExecData 포함)
 
 ### [MODULE-3] 무기 자동발사 전환
 수정: EquipmentSubsystem.h/.cpp, RSPlayerController.h/.cpp
