@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "EnumTypes.h"
+#include "DataTableStructs.h"
 #include "Abilities/GameplayAbility.h"
 #include "RuntimeDataStructs.generated.h"
 
@@ -248,6 +249,59 @@ struct FWeaponCardDisplayData
 	/** 무기 카드 아이콘 — GDS.GetWeaponSlotEquipData().SkillIcon 경유 */
 	UPROPERTY(BlueprintReadOnly)
 	TSoftObjectPtr<UTexture2D> WeaponIcon;
+};
+
+// ----------------------------------------------------------------------------
+// FCharacterSkillExecData — GDS 복합 조회 반환 (캐릭터 스킬 실행 번들)
+// GDS.GetCharacterSkillExecData(CharacterID, SkillSlot, SkillLevel) 반환
+// SkillManagerSubsystem이 GA 발동 시 사용
+// ----------------------------------------------------------------------------
+USTRUCT(BlueprintType)
+struct FCharacterSkillExecData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	FName SkillID;
+	UPROPERTY(BlueprintReadOnly)
+	ESkillActivationType ActivationType = ESkillActivationType::InstantAoE;
+	UPROPERTY(BlueprintReadOnly)
+	float Cooldown = 10.f;
+	/** GA 클래스 (InitializeSkills 시 LoadSynchronous) */
+	UPROPERTY(BlueprintReadOnly)
+	TSoftClassPtr<UGameplayAbility> GAClass;
+	/** SpawnPreview 타입 전용 프리뷰 FX. 다른 타입에서는 null */
+	UPROPERTY(BlueprintReadOnly)
+	TSoftClassPtr<UNiagaraSystem> PreviewFXClass;
+	/** 해당 레벨 수치+FX 데이터 (FCharacterSkillStaticData.LevelData[Level-1]) */
+	UPROPERTY(BlueprintReadOnly)
+	FCharacterSkillLevelData LevelData;
+};
+
+// ----------------------------------------------------------------------------
+// FLevelUpCardDisplayData — 레벨업 UI 카드 표시 데이터
+// LevelUpSubsystem → LevelUpWeaponSelectWidget 전달용
+// 정적 카드(DT_LevelUpCard) + 동적 카드(무기 업그레이드/신규) 통합
+// ----------------------------------------------------------------------------
+USTRUCT(BlueprintType)
+struct FLevelUpCardDisplayData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	FName CardID;
+	UPROPERTY(BlueprintReadOnly)
+	ELevelUpCardType CardType = ELevelUpCardType::StatUpgrade;
+	UPROPERTY(BlueprintReadOnly)
+	FText DisplayName = FText::GetEmpty();
+	UPROPERTY(BlueprintReadOnly)
+	FText Description = FText::GetEmpty();
+	/** 카드 아이콘 — 무기 카드: SkillIcon, 패시브 카드: Passive.Icon, 스탯 카드: 별도 UI 에셋 */
+	UPROPERTY(BlueprintReadOnly)
+	TSoftObjectPtr<UTexture2D> Icon;
+	/** 가중 랜덤 샘플링용 가중치 */
+	UPROPERTY(BlueprintReadOnly)
+	float Weight = 1.f;
 };
 
 // ----------------------------------------------------------------------------

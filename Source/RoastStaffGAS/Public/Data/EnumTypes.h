@@ -123,3 +123,22 @@ enum class EStageNodeState : uint8
 	CLEARED    UMETA(DisplayName = "Cleared"),     // 클리어 완료
 	LOCKED     UMETA(DisplayName = "Locked"),      // 해금 조건 미충족
 };
+
+/** 캐릭터 고유 스킬 발동 방식 */
+UENUM(BlueprintType)
+enum class ESkillActivationType : uint8
+{
+	InstantAoE    UMETA(DisplayName = "InstantAoE"),    // 즉발 범위기 — Q/E 누르면 캐릭터 주변 즉시 발동
+	SpawnPreview  UMETA(DisplayName = "SpawnPreview"),  // 위치 지정형 — 프리뷰 FX → 좌클릭 확정, 우클릭 취소
+	SelfBuff      UMETA(DisplayName = "SelfBuff"),      // 자가 버프 — Q/E 누르면 자신에게 즉시 적용
+};
+
+/** 레벨업 카드 타입 */
+UENUM(BlueprintType)
+enum class ELevelUpCardType : uint8
+{
+	StatUpgrade   UMETA(DisplayName = "StatUpgrade"),   // 스탯 업그레이드 (정적 카드)
+	PassiveAdd    UMETA(DisplayName = "PassiveAdd"),    // 패시브 스킬 추가 (정적 카드, 슬롯 < 4 조건)
+	WeaponUpgrade UMETA(DisplayName = "WeaponUpgrade"), // 장착 무기 강화 (동적 카드)
+	WeaponNew     UMETA(DisplayName = "WeaponNew"),     // 새 무기 획득 (동적 카드)
+};

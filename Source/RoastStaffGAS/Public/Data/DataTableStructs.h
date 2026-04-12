@@ -101,9 +101,12 @@ struct FWeaponStaticData : public FTableRowBase
 	/* PK */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 	FName WeaponID;
-	/** 무기 베이스 타입(강화/진화용도) */
+	/** 무기 베이스 타입 — 병행 유지 (SD4: EvolutionTag 전환 전까지 존치) */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 	EWeaponBaseType BaseType;
+	/** 진화 시스템 조합 태그 — BaseType과 병행 유지. 이후 진화 조합 로직에서 사용 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Evolution")
+	FString EvolutionTag;
 	/** 무기 강화 레벨 (1~3). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 	int32 WeaponLevel;
@@ -119,6 +122,12 @@ struct FWeaponStaticData : public FTableRowBase
 	/** DT_String FK — 무기 설명 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 	FName Description;
+	/** 시작 무기 해금 여부 (로비 커스터마이즈 시작 무기 선택풀 진입 조건) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Unlock")
+	bool IsUnlocked = false;
+	/** 해금에 필요한 골드 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Unlock")
+	int32 UnlockCost = 0;
 };
 
 
@@ -628,6 +637,138 @@ struct FWaveStaticData : public FTableRowBase
 	TArray<float> SpawnWeights;
 };
 
+
+// ----------------------------------------------------------------------------
+// FCharacterSkillLevelData — 캐릭터 스킬 레벨별 수치 데이터 (중첩 구조체)
+// FCharacterSkillStaticData.LevelData 배열 원소 (Lv1/Lv2/Lv3)
+// ----------------------------------------------------------------------------
+USTRUCT(BlueprintType)
+struct FCharacterSkillLevelData
+{
+	GENERATED_BODY()
+
+	/** 스킬 레벨 (1/2/3) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Level")
+	int32 Level = 1;
+	/** 데미지 배율 (기준: 1.0) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Level")
+	float DamageMultiplier = 1.f;
+	/** 효과 반경 (cm). 해당 없으면 0 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Level")
+	float EffectRadius = 0.f;
+	/** 지속 시간 (초). SelfBuff 해당 시 사용. 해당 없으면 0 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Level")
+	float Duration = 0.f;
+	/** 해당 레벨 발동 FX 클래스 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Level")
+	TSoftClassPtr<UNiagaraSystem> FXClass;
+};
+
+// ----------------------------------------------------------------------------
+// DT_CharacterSkill — 캐릭터 고유 스킬 정적 데이터
+// 에셋 경로: Content/Data/Skill/DT_CharacterSkill
+// Row Key = SkillID
+// ----------------------------------------------------------------------------
+USTRUCT(BlueprintType)
+struct FCharacterSkillStaticData : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	/** PK */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill")
+	FName SkillID;
+	/** 이 스킬을 보유한 캐릭터 ID (DT_CharacterStatic FK) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill")
+	FName OwnerCharacterID;
+	/** 스킬 슬롯 번호 — 1: Q키, 2: E키 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill")
+	int32 SkillSlot = 1;
+	/** 발동 방식 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill")
+	ESkillActivationType ActivationType = ESkillActivationType::InstantAoE;
+	/** 쿨타임 (초). 스킬1: 8~12, 스킬2: 20~30 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill")
+	float Cooldown = 10.f;
+	/** 발동할 GameplayAbility 클래스 경로 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill")
+	TSoftClassPtr<UGameplayAbility> GAClass;
+	/** SpawnPreview 타입 전용 프리뷰 FX. 다른 타입에서는 미사용 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|SpawnPreview")
+	TSoftClassPtr<UNiagaraSystem> PreviewFXClass;
+	/** 레벨별 수치+FX 데이터. 3개 원소 (Lv1/Lv2/Lv3) 필수 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Level")
+	TArray<FCharacterSkillLevelData> LevelData;
+};
+
+// ----------------------------------------------------------------------------
+// DT_Passive — 패시브 스킬 풀 데이터
+// 에셋 경로: Content/Data/Skill/DT_Passive
+// Row Key = PassiveID
+// ----------------------------------------------------------------------------
+USTRUCT(BlueprintType)
+struct FPassiveStaticData : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	/** PK */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Passive")
+	FName PassiveID;
+	/** 표시 이름 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Passive")
+	FText DisplayName = FText::GetEmpty();
+	/** 효과 설명 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Passive")
+	FText Description = FText::GetEmpty();
+	/** 적용할 GameplayEffect 클래스 경로 (영구 Duration) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Passive")
+	TSoftClassPtr<UGameplayEffect> GEClass;
+	/** 패시브 아이콘 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Passive")
+	TSoftObjectPtr<UTexture2D> Icon;
+	/** 진화 조합 태그 — 현재 미사용, 필드만 보유 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Passive|Evolution")
+	FString EvolutionTag;
+	/** 레벨업 카드 풀에서 등장 가중치 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Passive")
+	float Weight = 1.f;
+};
+
+// ----------------------------------------------------------------------------
+// DT_LevelUpCard — 레벨업 정적 카드 풀 데이터
+// 에셋 경로: Content/Data/LevelUp/DT_LevelUpCard
+// Row Key = CardID
+// 동적 카드(WeaponUpgrade/WeaponNew)는 LevelUpSubsystem이 런타임 생성
+// ----------------------------------------------------------------------------
+USTRUCT(BlueprintType)
+struct FLevelUpCardStaticData : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	/** PK */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LevelUpCard")
+	FName CardID;
+	/** 카드 타입 — StatUpgrade / PassiveAdd 만 정적 카드로 등록 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LevelUpCard")
+	ELevelUpCardType CardType = ELevelUpCardType::StatUpgrade;
+	/** StatUpgrade 전용 — 어떤 스탯을 올릴지 (ATK / DEF / MaxHP 등) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LevelUpCard|Stat")
+	FName StatType;
+	/** StatUpgrade 전용 — 스탯 증가값 또는 배율 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LevelUpCard|Stat")
+	float StatModifier = 0.f;
+	/** PassiveAdd 전용 — DT_Passive FK */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LevelUpCard|Passive")
+	FName PassiveID;
+	/** 카드 추출 가중치 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LevelUpCard")
+	float Weight = 1.f;
+	/** 카드 표시 이름 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LevelUpCard")
+	FText DisplayName = FText::GetEmpty();
+	/** 카드 설명 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LevelUpCard")
+	FText Description = FText::GetEmpty();
+};
 
 // ----------------------------------------------------------------------------
 // FStageRecord — 스테이지 플레이 기록 (런타임/세이브 데이터)
