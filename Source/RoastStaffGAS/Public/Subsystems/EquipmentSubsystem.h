@@ -33,9 +33,7 @@ public:
 	void InitializeSubsystem(UAbilitySystemComponent* InASC);
 	/** 레벨 전환 직전 호출 — 타이머 전량 정리 + ASC 참조 해제 */
 	void DeinitializeSubsystem();
-	void RequestManualFire(const FVector& AimLocation);
-	void RequestSlotActivate(int32 SlotIndex);
-	
+
 	// LevelUpSubsystem에서 호출
 	void EquipWeapon(const FName& WeaponID);
 	// 동일 슬롯에 다음 레벨 무기 장착 (강화 / 교체 UI 확인 공용)
@@ -52,14 +50,13 @@ public:
 	FORCEINLINE int32 GetSlotCount() const {return SLOT_COUNT;}
 	
 private:
+	/** 최근접 적 탐색 — 자동발사 타겟팅에 사용 */
+	AActor* FindNearestEnemy(float SearchRadius) const;
 	void FireSlot(int32 SlotIndex, const FVector& AimLocation);
 	void SetGameplayEventData(const FVector& AimLocation, FGameplayEventData& Payload);
 	void StartAutoFire(int32 SlotIndex);
 	void StopAutoFire(int32 SlotIndex);
-	void SetSlotActive(int32 SlotIndex);
-	void ClearActiveSlot();
-	
-	
+
 	void ClearSlot(int32 SlotIndex);
 
 	bool IsValidSlotIndex(int32 SlotIndex) const;
@@ -93,7 +90,8 @@ public:
 	FName PendingWeaponID = NAME_None;
 	
 private:
-	static constexpr int32 SLOT_COUNT = 3;
+	static constexpr int32 SLOT_COUNT = 2;
+	static constexpr float AutoFireSearchRadius = 1500.f;
 	static constexpr int32 WeaponProjectilePoolCount = 10;
 	static constexpr int32 WeaponSummonPoolCount     = 5;
 	

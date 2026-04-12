@@ -33,14 +33,14 @@
   - [x] GameDataSubsystem: 테이블 포인터 + 캐시 TMap 3종 추가
   - [x] GameDataSubsystem: 조회 함수 6개 구현 (GetCharacterSkillExecData 포함)
 
-### [MODULE-3] 무기 자동발사 전환
+### [MODULE-3] 무기 자동발사 전환 [>] ACTIVE
 수정: EquipmentSubsystem.h/.cpp, RSPlayerController.h/.cpp
   - [ ] SLOT_COUNT = 2 변경 (EquipmentSubsystem)                                                                [P0]
   - [ ] RequestManualFire() 제거 + FindNearestEnemy() 추가                                                      [P0]
   - [ ] StartAutoFire() / FireSlot() — 최근접 적 타겟팅으로 교체                                                  [P0]
   - [ ] RSPlayerController: IA_Attack / Slot1-3 바인딩 제거 + IA_SkillQ/E 프로퍼티 추가                          [P0]
 
-### [MODULE-4] ExecCalc 데미지 공식
+### [MODULE-4] ExecCalc 데미지 공식 [>] ACTIVE
 신규: RS_DamageExecCalc.h/.cpp
 수정: RSGameplayTags.h, GA_ProjectileAttack.cpp
   - [ ] SetByCaller 태그 추가 (Data.WeaponBaseDamage / Data.EnemyAttackDamage)                                  [P0]

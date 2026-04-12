@@ -175,7 +175,7 @@ void AEnemyProjectile::ApplyDamageToTarget(UAbilitySystemComponent* TargetASC)
 		return;
 	}
 
-	SpecHandle.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_Damage, -CachedDamage);
+	SpecHandle.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_EnemyAttackDamage, CachedDamage);
 	TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 
 	KHS_INFO(TEXT("Enemy 투사체 피격! 데미지: %.0f"), CachedDamage);

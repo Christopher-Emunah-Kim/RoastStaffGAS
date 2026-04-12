@@ -97,6 +97,10 @@ namespace RSTags
 	
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Damage);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_EXP);
+	// SetByCaller — 플레이어 무기 기본 데미지 (ExecCalc 입력)
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_WeaponBaseDamage);
+	// SetByCaller — 에너미 공격 데미지 (ExecCalc 입력)
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_EnemyAttackDamage);
 	
 	//===============================================
 	// GC 태그(GameplayCue.*)

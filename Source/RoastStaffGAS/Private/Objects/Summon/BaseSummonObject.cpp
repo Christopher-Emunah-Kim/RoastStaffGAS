@@ -121,7 +121,7 @@ void ABaseSummonObject::ApplyGameplayEffectToArea()
             continue;                                                                                            
         }
                                                                                                                  
-        SpecHandle.Data->SetSetByCallerMagnitude(RSTags::Data_Damage, -InitData.Amount);                          
+        SpecHandle.Data->SetSetByCallerMagnitude(RSTags::Data_WeaponBaseDamage, InitData.Amount);                          
         InitData.InstigatorASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetASC);
                                                                                                                  
         // StatusGE 적용                                                                             

@@ -162,7 +162,7 @@ void AEliteEnemy::ApplyChargeDamage(AActor* Target)
 		return;
 	}
 
-	Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_Damage, -(AttackDamage * ChargeDamageMult));
+	Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_EnemyAttackDamage, AttackDamage * ChargeDamageMult);
 	TargetASC->ApplyGameplayEffectSpecToSelf(*Spec.Data);
 
 	KHS_DEBUG(TEXT("%s — 돌진 데미지 적용. 대상: %s / 데미지: %.0f"), *GetName(), *Target->GetName(), AttackDamage * ChargeDamageMult);

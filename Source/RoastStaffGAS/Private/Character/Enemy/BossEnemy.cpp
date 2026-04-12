@@ -207,7 +207,7 @@ void ABossEnemy::ApplyShockwaveDamage(AActor* Target)
 		return;
 	}
 
-	Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_Damage, -ShockwaveDamage);
+	Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_EnemyAttackDamage, ShockwaveDamage);
 	TargetASC->ApplyGameplayEffectSpecToSelf(*Spec.Data);
 
 	KHS_DEBUG(TEXT("%s — Shockwave 데미지 적용. 데미지: %.0f"), *GetName(), ShockwaveDamage);

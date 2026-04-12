@@ -259,10 +259,10 @@ void ABaseProjectile::ApplyEffectToTarget(UAbilitySystemComponent* TargetASC,  T
 		return;
 	}
 
-	//SetByCaller로 데미지 적용
+	// ExecCalc(RS_DamageExecCalc)이 읽는 플레이어 기본 데미지 키
 	if (DamageValue > 0.f)
 	{
-		Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_Damage, -DamageValue);
+		Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_WeaponBaseDamage, DamageValue);
 	}
 
 	InitData.InstigatorASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);

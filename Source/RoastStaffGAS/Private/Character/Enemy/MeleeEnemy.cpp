@@ -129,7 +129,7 @@ void AMeleeEnemy::TryAttack(AActor* Target)
 	// SetByCaller로 실제 데미지 값 전달
 	// TODO : (임시) AttackDamage 데이터가 없으므로 임시 값 사용
 	AttackDamage = 5.f;
-	SpecHandle.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_Damage, -AttackDamage);
+	SpecHandle.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_EnemyAttackDamage, AttackDamage);
 	TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 
 	KHS_INFO(TEXT("%s — 근접 공격. 대상: %s / 데미지: %.0f"), *GetName(), *Target->GetName(), AttackDamage);

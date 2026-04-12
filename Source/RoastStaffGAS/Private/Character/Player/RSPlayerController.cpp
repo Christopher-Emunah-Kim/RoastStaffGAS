@@ -74,11 +74,7 @@ void ARSPlayerController::SetupInputComponent()
 	
 	UEnhancedInputComponent* EIC = CastChecked<UEnhancedInputComponent>(InputComponent);
 
-	EIC->BindAction(IA_Move,  ETriggerEvent::Triggered, this, &ARSPlayerController::OnMove);
-	EIC->BindAction(IA_Attack, ETriggerEvent::Started,   this, &ARSPlayerController::OnShootStart);
-	EIC->BindAction(IA_Slot1, ETriggerEvent::Started, this, &ARSPlayerController::OnSlotActivate, 0);
-	EIC->BindAction(IA_Slot2, ETriggerEvent::Started, this, &ARSPlayerController::OnSlotActivate, 1);
-	EIC->BindAction(IA_Slot3, ETriggerEvent::Started, this, &ARSPlayerController::OnSlotActivate, 2);
+	EIC->BindAction(IA_Move, ETriggerEvent::Triggered, this, &ARSPlayerController::OnMove);
 }
 
 void ARSPlayerController::PlayerTick(float DeltaTime)
@@ -167,18 +163,6 @@ void ARSPlayerController::OnMove(const FInputActionValue& Value)
 	ControlledPawn->AddMovementInput(FVector::ForwardVector, Input.X);
 	ControlledPawn->AddMovementInput(FVector::RightVector,   Input.Y);
 
-}
-
-void ARSPlayerController::OnShootStart(const FInputActionValue& Value)
-{
-	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetGameInstance());
-	EquipSys->RequestManualFire(CachedAimLocation);
-}
-
-void ARSPlayerController::OnSlotActivate(const FInputActionValue& Value, int32 SlotIndex)
-{
-	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetGameInstance());
-	EquipSys->RequestSlotActivate(SlotIndex);
 }
 
 // ============================================================================

@@ -66,8 +66,6 @@ private:
 	//========================================================
 	bool HandleMouseAim();
 	void OnMove(const FInputActionValue& Value);
-	void OnShootStart(const FInputActionValue& Value);
-	void OnSlotActivate(const FInputActionValue& Value, int32 SlotIndex);
 
 protected:
 	// UI — FloatingDamageWidget
@@ -79,14 +77,12 @@ protected:
 	TObjectPtr<UInputMappingContext> IMC;
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
 	TObjectPtr<UInputAction> IA_Move;
+	/** M-5 진입점 — 캐릭터 스킬 슬롯 1 (Q키) */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
-	TObjectPtr<UInputAction> IA_Attack;
+	TObjectPtr<UInputAction> IA_SkillQ;
+	/** M-5 진입점 — 캐릭터 스킬 슬롯 2 (E키) */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
-	TObjectPtr<UInputAction> IA_Slot1;
-	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
-	TObjectPtr<UInputAction> IA_Slot2;
-	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
-	TObjectPtr<UInputAction> IA_Slot3;
+	TObjectPtr<UInputAction> IA_SkillE;
 
 	// 런타임 상태
 	FVector   CachedAimLocation  = FVector::ZeroVector;
