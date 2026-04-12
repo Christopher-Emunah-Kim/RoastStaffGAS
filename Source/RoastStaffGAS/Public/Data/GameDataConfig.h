@@ -82,5 +82,14 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage")
 	TSoftObjectPtr<UDataTable> WaveTable;
-	
+
+	// CharacterSkill / Passive / LevelUpCard
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill")
+	TSoftObjectPtr<UDataTable> CharacterSkillTable;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Passive")
+	TSoftObjectPtr<UDataTable> PassiveTable;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LevelUp")
+	TSoftObjectPtr<UDataTable> LevelUpCardTable;
 };

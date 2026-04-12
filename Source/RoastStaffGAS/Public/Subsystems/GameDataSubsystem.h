@@ -98,6 +98,34 @@ public:
     /** StageID에 속한 웨이브 목록 반환(WaveIndex 오름차순)  */
     UFUNCTION(BlueprintCallable, Category = "MY|GDS|Stage")
     TArray<FWaveStaticData> GetWaveDataByStage(FName StageID) const;
+
+    // -------------------------------------------------------------------------
+    // 캐릭터 고유 스킬 조회
+    // -------------------------------------------------------------------------
+    /**
+     * CharacterID + SkillSlot(1 or 2) + SkillLevel(1~3) → FCharacterSkillExecData 반환.
+     * SkillManagerSubsystem::InitializeSkills / ActivateSkillSlot에서 사용.
+     * SkillLevel은 1~3으로 클램프. LevelData 배열 범위 초과 시 false 반환.
+     */
+    bool GetCharacterSkillExecData(FName CharacterID, int32 SkillSlot, int32 SkillLevel, FCharacterSkillExecData& OutData) const;
+    /** CharacterID에 속한 스킬 목록 반환 (SkillSlot 오름차순). SkillManagerSubsystem 초기화용. */
+    TArray<FCharacterSkillStaticData> GetSkillsByCharacter(FName CharacterID) const;
+
+    // -------------------------------------------------------------------------
+    // 패시브 조회
+    // -------------------------------------------------------------------------
+    /** PassiveID → FPassiveStaticData 반환. PassiveSlotSubsystem::TryAddPassive에서 사용. */
+    bool GetPassiveData(FName PassiveID, FPassiveStaticData& OutData) const;
+    /** 전체 패시브 목록 반환. LevelUpSubsystem 카드풀 구성에 사용. */
+    TArray<FPassiveStaticData> GetAllPassives() const;
+
+    // -------------------------------------------------------------------------
+    // 레벨업 카드 조회
+    // -------------------------------------------------------------------------
+    /** CardID → FLevelUpCardStaticData 반환. */
+    bool GetLevelUpCardData(FName CardID, FLevelUpCardStaticData& OutData) const;
+    /** 전체 정적 카드 목록 반환. LevelUpSubsystem::BuildStaticCardPool에서 사용. */
+    TArray<FLevelUpCardStaticData> GetAllLevelUpCards() const;
     
 private:
     // -------------------------------------------------------------------------
@@ -164,8 +192,11 @@ private:
     UPROPERTY() UDataTable* LoadedSkillAttackMoveTypeParamsSummonTable = nullptr; 
     UPROPERTY() UDataTable* LoadedSkillAttackHitTypeParamsPierceTable = nullptr;
     UPROPERTY() UDataTable* LoadedSkillAttackHitTypeParamsAreaTable = nullptr;
-    UPROPERTY() UDataTable* LoadedSkillDefenseCommonParamsTable = nullptr;        
-    
+    UPROPERTY() UDataTable* LoadedSkillDefenseCommonParamsTable = nullptr;
+    UPROPERTY() UDataTable* LoadedCharacterSkillTable = nullptr;
+    UPROPERTY() UDataTable* LoadedPassiveTable = nullptr;
+    UPROPERTY() UDataTable* LoadedLevelUpCardTable = nullptr;
+
     // -------------------------------------------------------------------------
     // 캐시 (ID → 구조체)
     // -------------------------------------------------------------------------
@@ -186,8 +217,11 @@ private:
     UPROPERTY() TMap<FName, FSkillAttackMoveTypeParamsSummon>   SkillMoveTypeSummonCache;  
     UPROPERTY() TMap<FName, FSkillAttackHitTypeParamsPierce>    SkillHitTypePierceCache;
     UPROPERTY() TMap<FName, FSkillAttackHitTypeParamsArea>      SkillHitTypeAreaCache;
-    UPROPERTY() TMap<FName, FSkillDefenseCommonParamsData>      SkillDefenseCommonParamsCache; 
-    
+    UPROPERTY() TMap<FName, FSkillDefenseCommonParamsData>      SkillDefenseCommonParamsCache;
+    UPROPERTY() TMap<FName, FCharacterSkillStaticData>          CharacterSkillCache;
+    UPROPERTY() TMap<FName, FPassiveStaticData>                 PassiveCache;
+    UPROPERTY() TMap<FName, FLevelUpCardStaticData>             LevelUpCardCache;
+
     // -------------------------------------------------------------------------
     // 보조 인덱스
     // -------------------------------------------------------------------------

@@ -39,6 +39,10 @@ void UGameDataSubsystem::Deinitialize()
     WaveCache.Empty();
     WaveByStageIndex.Empty();
 
+    CharacterSkillCache.Empty();
+    PassiveCache.Empty();
+    LevelUpCardCache.Empty();
+
     bIsDataReady = false;
     Super::Deinitialize();
 }
@@ -94,6 +98,12 @@ void UGameDataSubsystem::LoadDataTables()
         Config->StageTable,  LoadedStageTable,  TEXT("DT_Stage"));                                                             //스테이지 스폰 데이터
     LoadDataTable<FWaveStaticData>  (
         Config->WaveTable,   LoadedWaveTable,   TEXT("DT_WaveData"));                                                          //스폰 웨이브 데이터
+    LoadDataTable<FCharacterSkillStaticData>(
+        Config->CharacterSkillTable, LoadedCharacterSkillTable, TEXT("DT_CharacterSkill"));                                    //캐릭터 고유 스킬
+    LoadDataTable<FPassiveStaticData>(
+        Config->PassiveTable, LoadedPassiveTable, TEXT("DT_Passive"));                                                         //패시브 스킬 풀
+    LoadDataTable<FLevelUpCardStaticData>(
+        Config->LevelUpCardTable, LoadedLevelUpCardTable, TEXT("DT_LevelUpCard"));                                             //레벨업 정적 카드 풀
     
     if (!Config->BaseStatCurveTable.IsNull()) //레벨별 스탯 커브 데이터
     {
@@ -129,6 +139,9 @@ void UGameDataSubsystem::CacheAllData()
     CacheDataTable<FEnemyStaticData>(LoadedEnemyTable, EnemyCache, &FEnemyStaticData::EnemyID, TEXT("DT_Enemy"));
     CacheDataTable<FStageStaticData>(LoadedStageTable, StageCache, &FStageStaticData::StageID, TEXT("DT_Stage"));
     CacheDataTable<FWaveStaticData> (LoadedWaveTable,  WaveCache,  &FWaveStaticData::StageID,  TEXT("DT_WaveData"));
+    CacheDataTable<FCharacterSkillStaticData>(LoadedCharacterSkillTable, CharacterSkillCache, &FCharacterSkillStaticData::SkillID, TEXT("DT_CharacterSkill"));
+    CacheDataTable<FPassiveStaticData>       (LoadedPassiveTable,        PassiveCache,        &FPassiveStaticData::PassiveID,      TEXT("DT_Passive"));
+    CacheDataTable<FLevelUpCardStaticData>   (LoadedLevelUpCardTable,    LevelUpCardCache,    &FLevelUpCardStaticData::CardID,     TEXT("DT_LevelUpCard"));
 }
 
 // -----------------------------------------------------------------------------
@@ -557,4 +570,120 @@ bool UGameDataSubsystem::GetEnemyPreloadBundle(FName EnemyID, FEnemyPreloadBundl
     OutBundle.EnemyClass   = Data.EnemyClass;
     OutBundle.BehaviorTree = Data.BehaviorTree;
     return true;
+}
+
+// -----------------------------------------------------------------------------
+// 캐릭터 고유 스킬 조회
+// -----------------------------------------------------------------------------
+bool UGameDataSubsystem::GetCharacterSkillExecData(FName CharacterID, int32 SkillSlot, int32 SkillLevel, FCharacterSkillExecData& OutData) const
+{
+    if (!bIsDataReady)
+    {
+        KHS_WARN(TEXT("GDS 초기화 미완료 — CharacterID: %s"), *CharacterID.ToString());
+        return false;
+    }
+
+    const FCharacterSkillStaticData* Found = nullptr;
+    for (const auto& Pair : CharacterSkillCache)
+    {
+        if (Pair.Value.OwnerCharacterID == CharacterID && Pair.Value.SkillSlot == SkillSlot)
+        {
+            Found = &Pair.Value;
+            break;
+        }
+    }
+
+    if (!Found)
+    {
+        KHS_WARN(TEXT("CharacterSkill 조회 실패 — CharacterID: %s, Slot: %d"), *CharacterID.ToString(), SkillSlot);
+        return false;
+    }
+
+    const int32 ClampedLevel = FMath::Clamp(SkillLevel, 1, 3);
+    const int32 LevelIndex   = ClampedLevel - 1;
+
+    if (!Found->LevelData.IsValidIndex(LevelIndex))
+    {
+        KHS_WARN(TEXT("LevelData 범위 초과 — SkillID: %s, Level: %d (LevelData 수: %d)"),
+            *Found->SkillID.ToString(), ClampedLevel, Found->LevelData.Num());
+        return false;
+    }
+
+    OutData.SkillID        = Found->SkillID;
+    OutData.ActivationType = Found->ActivationType;
+    OutData.Cooldown       = Found->Cooldown;
+    OutData.GAClass        = Found->GAClass;
+    OutData.PreviewFXClass = Found->PreviewFXClass;
+    OutData.LevelData      = Found->LevelData[LevelIndex];
+    return true;
+}
+
+TArray<FCharacterSkillStaticData> UGameDataSubsystem::GetSkillsByCharacter(FName CharacterID) const
+{
+    TArray<FCharacterSkillStaticData> Result;
+
+    if (!bIsDataReady)
+    {
+        KHS_WARN(TEXT("GDS 초기화 미완료 — GetSkillsByCharacter CharacterID: %s"), *CharacterID.ToString());
+        return Result;
+    }
+
+    for (const auto& Pair : CharacterSkillCache)
+    {
+        if (Pair.Value.OwnerCharacterID == CharacterID)
+        {
+            Result.Add(Pair.Value);
+        }
+    }
+
+    Result.Sort([](const FCharacterSkillStaticData& A, const FCharacterSkillStaticData& B)
+    {
+        return A.SkillSlot < B.SkillSlot;
+    });
+
+    return Result;
+}
+
+// -----------------------------------------------------------------------------
+// 패시브 조회
+// -----------------------------------------------------------------------------
+bool UGameDataSubsystem::GetPassiveData(FName PassiveID, FPassiveStaticData& OutData) const
+{
+    return GetCachedData(PassiveCache, PassiveID, OutData, TEXT("FPassiveStaticData"));
+}
+
+TArray<FPassiveStaticData> UGameDataSubsystem::GetAllPassives() const
+{
+    TArray<FPassiveStaticData> Result;
+
+    if (!bIsDataReady || PassiveCache.IsEmpty())
+    {
+        KHS_WARN(TEXT("패시브 캐시 미로드 또는 비어있음."));
+        return Result;
+    }
+
+    PassiveCache.GenerateValueArray(Result);
+    return Result;
+}
+
+// -----------------------------------------------------------------------------
+// 레벨업 카드 조회
+// -----------------------------------------------------------------------------
+bool UGameDataSubsystem::GetLevelUpCardData(FName CardID, FLevelUpCardStaticData& OutData) const
+{
+    return GetCachedData(LevelUpCardCache, CardID, OutData, TEXT("FLevelUpCardStaticData"));
+}
+
+TArray<FLevelUpCardStaticData> UGameDataSubsystem::GetAllLevelUpCards() const
+{
+    TArray<FLevelUpCardStaticData> Result;
+
+    if (!bIsDataReady || LevelUpCardCache.IsEmpty())
+    {
+        KHS_WARN(TEXT("레벨업 카드 캐시 미로드 또는 비어있음."));
+        return Result;
+    }
+
+    LevelUpCardCache.GenerateValueArray(Result);
+    return Result;
 }
