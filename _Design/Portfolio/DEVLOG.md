@@ -313,6 +313,29 @@ UENUM()이 있는 헤더에는 반드시 `#include "파일명.generated.h"` 가 
 
 ---
 
+## [2026-04-13] ARCH — DT_CharacterSkill 스키마: 중첩 배열 vs 분리 테이블
+
+**상황**: 캐릭터 고유 스킬의 레벨별 수치(Lv1/2/3 — DamageMultiplier, EffectRadius, Duration, FXClass)를 DataTable에 담는 방식 결정. 스킬당 3레벨, 캐릭터당 2슬롯의 소규모 데이터.
+
+**문제·과제**: 두 가지 설계 선택지 존재.
+- A안: `FCharacterSkillStaticData` 내 `TArray<FCharacterSkillLevelData>` 중첩 — 1테이블, 에디터 인라인 편집 가능. 단, CSV 임포트 불가(UE CSV는 중첩 배열 미지원).
+- B안: `DT_CharacterSkillLevel` 별도 분리 — CSV 완전 지원. 단, 테이블 2개 + GDS 조회 시 JOIN 필요, 캐릭터 스킬 추가마다 두 테이블 모두 관리해야 하는 운영 부담 증가.
+
+**검토한 선택지**: A안 vs B안. 핵심 기준은 데이터 규모, 편집 빈도, 조회 복잡도.
+- 스킬 수: 캐릭터 수 × 2 = 최대 30개 내외 → 대규모 CSV 배치 임포트 불필요
+- Lv1~3 데이터는 스킬 설계 시 한 번에 확정되고 이후 거의 수정 없음 → 빈번한 CSV 업데이트 불필요
+- B안의 JOIN 조회는 `GetCharacterSkillExecData` 로직을 복잡하게 만들고 DT 행 수 3배 증가
+
+**결정**: **A안 채택** — `TArray<FCharacterSkillLevelData>` 중첩 유지. DT_CharacterSkill은 에디터 직접 편집으로 관리, CSV 임포트 대상에서 제외.
+
+**결과**: GDS 조회 `GetCharacterSkillExecData(CharID, Slot, Level)` 단일 함수로 Level 클램프+LevelData 인덱싱까지 처리. 테이블 1개, 조회 경로 단순.
+
+**포트폴리오 포인트**: DataTable 아키텍처 설계 — "데이터 규모·편집 패턴·조회 복잡도" 세 기준으로 CSV 파이프라인 vs 에디터 직접 편집을 선택하는 판단 근거. UE DataTable의 CSV 제약(중첩 배열 미지원)을 인지하고 시스템별 적합한 편집 워크플로를 구분한 사례.
+
+**관련 파일**: `DataTableStructs.h` (FCharacterSkillStaticData), `GameDataSubsystem.cpp` (GetCharacterSkillExecData), `ExternalSource/DT_Character_Skill_Static_Data.csv`
+
+---
+
 ## [2026-04-09] ARCH — 보스 HP Bar 위젯 이중 Close 타이밍 충돌 처리
 
 **상황**: 보스 HP Bar(WBP_BossHPBar)는 HP=0 감지 시 FadeOut 애니메이션을 재생하고, 완료 후 UIManagerSubsystem에 정리를 요청하는 구조. 그러나 보스 사망 이벤트(OnBossKilled)가 FadeOut 도중 EnemySpawner에 먼저 도달해 `CloseUIByID`를 즉시 호출하면 FadeOut이 강제 중단되고, UMS의 `CloseUIInternal` 이 `RemoveFromParent`까지 즉시 실행해 애니메이션이 끊기는 문제가 존재.

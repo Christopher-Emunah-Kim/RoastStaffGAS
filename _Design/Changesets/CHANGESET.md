@@ -12,6 +12,39 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ## PENDING_COMMIT
 
+- date: 2026-04-10
+  plan: PLAN_Phase1_InGame_v1.0
+  commit: ~
+  summary: "PHASE-1 인게임 루프 완성 — 자동발사/캐릭터스킬/ExecCalc/카드풀/패시브슬롯"
+  status: IN_PROGRESS
+  files.new:
+    - Source/RoastStaffGAS/Public/GAS/Calculations/RS_DamageExecCalc.h
+    - Source/RoastStaffGAS/Private/GAS/Calculations/RS_DamageExecCalc.cpp
+    - Source/RoastStaffGAS/Public/Subsystems/SkillManagerSubsystem.h
+    - Source/RoastStaffGAS/Private/Subsystems/SkillManagerSubsystem.cpp
+    - Source/RoastStaffGAS/Public/GAS/Abilities/GA_CharacterSkill.h
+    - Source/RoastStaffGAS/Private/GAS/Abilities/GA_CharacterSkill.cpp
+    - Source/RoastStaffGAS/Public/Subsystems/PassiveSlotSubsystem.h
+    - Source/RoastStaffGAS/Private/Subsystems/PassiveSlotSubsystem.cpp
+  files.modified:
+    - Source/RoastStaffGAS/Public/Data/EnumTypes.h
+    - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
+    - Source/RoastStaffGAS/Public/Data/RuntimeDataStructs.h
+    - Source/RoastStaffGAS/Public/Data/GameDataConfig.h
+    - Source/RoastStaffGAS/Public/Subsystems/GameDataSubsystem.h
+    - Source/RoastStaffGAS/Private/Subsystems/GameDataSubsystem.cpp
+    - Source/RoastStaffGAS/Public/Subsystems/EquipmentSubsystem.h
+    - Source/RoastStaffGAS/Private/Subsystems/EquipmentSubsystem.cpp
+    - Source/RoastStaffGAS/Public/Subsystems/LevelUpSubsystem.h
+    - Source/RoastStaffGAS/Private/Subsystems/LevelUpSubsystem.cpp
+    - Source/RoastStaffGAS/Public/Character/Player/RSPlayerController.h
+    - Source/RoastStaffGAS/Private/Character/Player/RSPlayerController.cpp
+    - Source/RoastStaffGAS/Public/Character/Player/RSPlayerCharacter.h
+    - Source/RoastStaffGAS/Private/Character/Player/RSPlayerCharacter.cpp
+    - Source/RoastStaffGAS/Public/GAS/Tags/RSGameplayTags.h
+    - Source/RoastStaffGAS/Private/GAS/Abilities/GA_ProjectileAttack.cpp
+    - Source/RoastStaffGAS/Public/UI/LevelUpWeaponSelectWidget.h
+
 - date: 2026-04-09
   plan: PLAN_TransitionFinishLoading_v1.0
   commit: "c5588b2"

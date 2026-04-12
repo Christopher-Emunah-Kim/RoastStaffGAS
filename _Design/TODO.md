@@ -13,6 +13,65 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
+## [FEATURE] PHASE-1 인게임 루프 완성 | PLAN_Phase1_InGame_v1.0
+> 시작: 2026-04-10 | 기획서: 게임 시스템 개선안 v1.0.md
+> 실행 순서: M-1 → M-2 → (M-3 ∥ M-4) → (M-5 ∥ M-7) → M-6
+
+### [MODULE-1] DataTable 스키마 확장
+수정: Data/EnumTypes.h, DataTableStructs.h, RuntimeDataStructs.h
+  - [ ] ESkillActivationType / ELevelUpCardType ENUM 추가 (EnumTypes.h)                                         [P0]
+  - [ ] FWeaponStaticData: EvolutionTag(FString) + IsUnlocked + UnlockCost 추가 (DataTableStructs.h)            [P0]
+  - [ ] FCharacterSkillLevelData USTRUCT 신규 (DataTableStructs.h)                                              [P0]
+  - [ ] FCharacterSkillStaticData : FTableRowBase 신규 (DataTableStructs.h)                                     [P0]
+  - [ ] FPassiveStaticData : FTableRowBase 신규 (DataTableStructs.h)                                            [P0]
+  - [ ] FLevelUpCardStaticData : FTableRowBase 신규 (DataTableStructs.h)                                        [P0]
+  - [ ] FCharacterSkillExecData + FLevelUpCardDisplayData USTRUCT 신규 (RuntimeDataStructs.h)                   [P0]
+
+### [MODULE-2] GDS 신규 DT 통합
+수정: GameDataConfig.h, GameDataSubsystem.h/.cpp
+  - [ ] GameDataConfig.h: DT_CharacterSkill / DT_LevelUpCard / DT_Passive 경로 추가                             [P0]
+  - [ ] GameDataSubsystem: 테이블 포인터 + 캐시 TMap 3종 추가                                                    [P0]
+  - [ ] GameDataSubsystem: 조회 함수 7개 구현 (GetCharacterSkillExecData 포함)                                   [P0]
+
+### [MODULE-3] 무기 자동발사 전환
+수정: EquipmentSubsystem.h/.cpp, RSPlayerController.h/.cpp
+  - [ ] SLOT_COUNT = 2 변경 (EquipmentSubsystem)                                                                [P0]
+  - [ ] RequestManualFire() 제거 + FindNearestEnemy() 추가                                                      [P0]
+  - [ ] StartAutoFire() / FireSlot() — 최근접 적 타겟팅으로 교체                                                  [P0]
+  - [ ] RSPlayerController: IA_Attack / Slot1-3 바인딩 제거 + IA_SkillQ/E 프로퍼티 추가                          [P0]
+
+### [MODULE-4] ExecCalc 데미지 공식
+신규: RS_DamageExecCalc.h/.cpp
+수정: RSGameplayTags.h, GA_ProjectileAttack.cpp
+  - [ ] SetByCaller 태그 추가 (Data.WeaponBaseDamage / Data.EnemyAttackDamage)                                  [P0]
+  - [ ] RS_DamageExecCalc 플레이어→에너미 공식 구현                                                              [P0]
+  - [ ] RS_DamageExecCalc 에너미→플레이어 공식 구현                                                              [P0]
+  - [ ] GA_ProjectileAttack: SetByCallerMagnitude 주입                                                          [P0]
+  - [ ] GE_WeaponDamage / GE_EnemyDamage BP Executions 교체 (에디터 작업)                                       [P0]
+
+### [MODULE-5] 캐릭터 스킬 시스템
+신규: SkillManagerSubsystem.h/.cpp, GA_CharacterSkill.h/.cpp
+수정: RSPlayerController.h/.cpp, RSPlayerCharacter.h/.cpp, RSGameplayTags.h
+  - [ ] Skill.Character.Slot1/Slot2 / Preview.Active 태그 추가                                                  [P1]
+  - [ ] SkillManagerSubsystem: InitializeSkills / ActivateSkillSlot / SpawnPreview 흐름                         [P1]
+  - [ ] GA_CharacterSkill: InstantAoE / SelfBuff 구현                                                           [P1]
+  - [ ] RSPlayerController: Q/E 바인딩 + IsPreviewActive() 분기 (LMB Confirm / RMB Cancel)                      [P1]
+  - [ ] RSPlayerCharacter::InitializeAbilitySystem(): SkillManager 초기화 호출                                   [P1]
+
+### [MODULE-7] 패시브 슬롯 시스템
+신규: PassiveSlotSubsystem.h/.cpp
+수정: RSPlayerCharacter.h/.cpp, RSGameplayTags.h
+  - [ ] Passive.SlotFull 태그 추가                                                                               [P1]
+  - [ ] PassiveSlotSubsystem: TryAddPassive / IsSlotFull / MAX_SLOTS=4                                          [P1]
+  - [ ] RSPlayerCharacter: PassiveSlotSubsystem 초기화 호출                                                      [P1]
+
+### [MODULE-6] 레벨업 카드풀 확장
+수정: LevelUpSubsystem.h/.cpp, RSPlayerController.h/.cpp, LevelUpWeaponSelectWidget.h
+  - [ ] FOnCardPoolReady 델리게이트로 교체                                                                        [P1]
+  - [ ] BuildStaticCardPool / BuildDynamicWeaponCards / EnsureWeaponCardGuarantee / PickFinalCards 구현           [P1]
+  - [ ] OnCardSelected() 타입별 분기 구현                                                                         [P1]
+  - [ ] LevelUpWeaponSelectWidget: FLevelUpCardDisplayData 수신 + CardType별 UI 분기                             [P1]
+
 
 
 
