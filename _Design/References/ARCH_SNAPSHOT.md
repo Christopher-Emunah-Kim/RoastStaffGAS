@@ -68,6 +68,10 @@
 | D8 | 스탯트리 공통 / 스킬레벨은 BIG노드 마일스톤으로 해금 | 별도 재화 소비 없이 트리 진행이 스킬 성장으로 연결 | - |
 | D9 | 재화 단일(골드) / 스테이지 결과에서만 획득 | 인게임 골드 UI 불필요, 반복플레이 유도 | - |
 | ★ | **상세 설계 기준문서**: `_Design/References/Systems/게임 시스템 개선안 v1.0.md` | 2026-04-10 확정. PLAN/CODE 전 필독 | - |
+| SD1 | 무기 슬롯 수 SLOT_COUNT=2 | 3→2 축소. 캐릭터 스킬 슬롯 2개와 역할 분리 | 기획 변경 시만 |
+| SD2 | SpawnPreview → SummonPreviewObject 재활용 | 신규 클래스 불필요. GA_CharacterSkill이 ASummonPreviewObject 직접 스폰 | 다형성 필요 시 재검토 |
+| SD3 | EWeaponBaseType + FString EvolutionTag 병행 | BaseType 제거 시 기존 BP 참조 전부 교체 비용 큼 | 진화 시스템 본격 착수 시 |
+| SD4 | DT_CharacterSkill = 에디터 직접 편집 전용 | TArray<FCharacterSkillLevelData> 중첩 → CSV 임포트 불가 구조 | - |
 
 ---
 
@@ -110,7 +114,14 @@
 > 시스템 연결 지점 (호출자 → 수신자). CODE 완료 시 갱신. 15개 초과 시 compact 검토.
 > 형식: `[호출자]::[함수] → [수신자]::[함수]` | 트리거/조건
 
-*(미기록 — 시스템 구현 완료 시 순서대로 채워질 예정)*
+| 호출자 → 수신자 | 트리거/조건 |
+|----------------|------------|
+| `UGameDataSubsystem::LoadDataTables()` → `UDataTable* (3종)` | Initialize() 시 GameDataConfig 경로로 로드 |
+| `UGameDataSubsystem::CacheAllData()` → `CharacterSkillCache / PassiveCache / LevelUpCardCache` | LoadDataTables() 완료 직후 |
+| `외부 시스템::X` → `UGameDataSubsystem::GetCharacterSkillExecData(CharacterID, Slot, Level)` | SkillManagerSubsystem 초기화 시 (M-5) |
+| `외부 시스템::X` → `UGameDataSubsystem::GetSkillsByCharacter(CharacterID)` | 캐릭터 선택 후 스킬 목록 조회 시 (M-5) |
+| `외부 시스템::X` → `UGameDataSubsystem::GetAllLevelUpCards()` → `LevelUpSubsystem 카드풀 구성` | 레벨업 이벤트 (M-6) |
+| `외부 시스템::X` → `UGameDataSubsystem::GetPassiveData(PassiveID)` → `PassiveSlotSubsystem::TryAddPassive` | 패시브 카드 선택 시 (M-7) |
 
 ---
 
