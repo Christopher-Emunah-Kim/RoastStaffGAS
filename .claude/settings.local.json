@@ -30,7 +30,13 @@
       "Bash(__NEW_LINE_2e467fc91adfbe0e__ mv:*)",
       "Bash(__NEW_LINE_2e467fc91adfbe0e__ rm:*)",
       "Bash(BASE=\"/c/Users/KGA/Projects/RoastStaffGAS/.claude\" echo \"=== 폴더 구조 ===\")",
-      "Read(//c/Users/KGA/Projects/RoastStaffGAS/**)"
+      "Read(//c/Users/KGA/Projects/RoastStaffGAS/**)",
+      "Bash(\"_Design/Reviews/PIPELINE_LOG.md\":*)",
+      "Bash(bash /tmp/push_commits.sh)",
+      "Bash(find C:/Users/KGA/Projects/RoastStaffGAS/Content -name GE_*)",
+      "Bash(find C:/Users/KGA/Projects/RoastStaffGAS/Content -name DT_SkillCommonResource* -o -name DT_Weapon*)",
+      "Bash(find C:/Users/KGA/Projects/RoastStaffGAS/Content/Data -name *.csv)",
+      "Bash(find C:/Users/KGA/Projects/RoastStaffGAS -name *.csv)"
     ],
     "deny": [],
     "ask": []
