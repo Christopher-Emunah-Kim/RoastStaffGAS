@@ -14,9 +14,9 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 - date: 2026-04-13
   plan: PLAN_Phase1_InGame_v1.0
-  commit: "cd024b49(M-1), 5b69c436(M-2), e0c96d2e(data)"
-  summary: "PHASE-1 M-1/M-2 완료 — DataTable 스키마 확장 + GDS 신규 DT 통합"
-  status: IN_PROGRESS
+  commit: "cd024b49(M-1), 5b69c436(M-2), e0c96d2e(data), 3cff0ba(M-3+M-4), c70213e(BUG-Slots), f4ed873(M-3M-4에셋), 0105ba7(M-5+M-7), ea56362(BUG-해금+프리뷰), 734aaa4(data), d86b8b3(docs), feeffa7(chore)"
+  summary: "PHASE-1 M-1~M-7 완료 — DataTable/GDS/ExecCalc/캐릭터스킬/패시브슬롯 + BUG 3건"
+  status: COMMITTED
   files.new:
     - Source/RoastStaffGAS/Public/GAS/Calculations/RS_DamageExecCalc.h
     - Source/RoastStaffGAS/Private/GAS/Calculations/RS_DamageExecCalc.cpp

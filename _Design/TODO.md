@@ -49,18 +49,18 @@
   - [x] GameDataSubsystem: 테이블 포인터 + 캐시 TMap 3종 추가
   - [x] GameDataSubsystem: 조회 함수 6개 구현 (GetCharacterSkillExecData 포함)
 
-### [BUG] 시작 무기 슬롯 미등록 ✓ FIXED 2026-04-13 (미커밋)
+### [BUG] 시작 무기 슬롯 미등록 ✓ FIXED 2026-04-13 (c70213e)
   - 원인: DeinitializeSubsystem()이 Slots[] 미초기화 → 재진입 시 이전 WeaponID 잔존 → IsEmpty()=false → GetEmptySlotIndex()=INDEX_NONE
   - 수정: InitializeSubsystem()에서 Slots[i] = FWeaponSlotInstanceData() 완전 초기화 추가 (EquipmentSubsystem.cpp:31)
 
-### [MODULE-3] 무기 자동발사 전환 ✓ DONE 2026-04-13 (미커밋)
+### [MODULE-3] 무기 자동발사 전환 ✓ DONE 2026-04-13 (3cff0ba)
 수정: EquipmentSubsystem.h/.cpp, RSPlayerController.h/.cpp
   - [x] SLOT_COUNT = 3 확정 (SD1 기획 변경 — 캐릭터 스킬 2 + 무기 슬롯 3)
   - [x] RequestManualFire() 제거 + FindNearestEnemy() 추가
   - [x] StartAutoFire() / FireSlot() — 최근접 적 타겟팅으로 교체 (타겟 없으면 스킵)
   - [x] RSPlayerController: IA_Slot1-3 바인딩 제거 / IA_Attack → OnConfirm 재활용 / IA_SkillQ/E 추가
 
-### [MODULE-4] ExecCalc 데미지 공식 ✓ DONE 2026-04-13 (미커밋)
+### [MODULE-4] ExecCalc 데미지 공식 ✓ DONE 2026-04-13 (3cff0ba, f4ed873)
 신규: RS_DamageExecCalc.h/.cpp
 수정: RSGameplayTags.h, BaseProjectile.cpp, BaseSummonObject.cpp, 에너미 4종
 에디터: GE_Damage(ExecCalc 추가), GE_EnemyDamage(신규), 에너미 BP AttackGEClass 교체
@@ -70,7 +70,7 @@
   - [x] 데미지 주입 변경 (BaseProjectile/Summon→WeaponBaseDamage, 에너미4종→EnemyAttackDamage)
   - [x] GE_Damage ExecCalc 교체 + GE_EnemyDamage 신규 생성 (에디터 완료)
 
-### [MODULE-5] 캐릭터 스킬 시스템 ✓ DONE 2026-04-13 (미커밋)
+### [MODULE-5] 캐릭터 스킬 시스템 ✓ DONE 2026-04-13 (0105ba7)
 신규: RSCharacterSkillData.h, SkillManagerSubsystem.h/.cpp, GA_CharacterSkill.h/.cpp
 수정: RSPlayerController.h/.cpp, RSPlayerCharacter.cpp, RSGameplayTags.h/.cpp
   - [x] Skill.Character.Slot1/Slot2 / Preview.Active 태그 추가
@@ -81,7 +81,7 @@
   - [ ] BP_RSPlayerController: IA_SkillQ/IA_SkillE/IA_SkillCancel 에셋 할당 + IMC_Player Q/E/RMB 매핑  [에디터]
   - [ ] BP_GA_CharacterSkill (캐릭터별): SkillGEClass 할당                                                [에디터]
 
-### [MODULE-7] 패시브 슬롯 시스템 ✓ DONE 2026-04-13 (미커밋)
+### [MODULE-7] 패시브 슬롯 시스템 ✓ DONE 2026-04-13 (0105ba7)
 신규: PassiveSlotSubsystem.h/.cpp
 수정: RSPlayerCharacter.cpp, RSPlayerController.h/.cpp, RSGameplayTags.h/.cpp
   - [x] Passive.SlotFull 태그 추가
