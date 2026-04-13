@@ -35,7 +35,6 @@ public:
 	// 플로팅 데미지 풀 관리
 	/** 피격 위치(WorldPos)를 스크린 좌표로 변환해 FloatingDamageWidget을 표시 */
 	void SpawnFloatingDamage(FVector WorldPos, float Damage);
-
 	/** 애니메이션 완료 후 위젯을 풀에 반납 */
 	void ReturnFloatingDamageToPool(UFloatingDamageWidget* Widget);
 
@@ -60,12 +59,23 @@ private:
 	/** WeaponReplaceWidget.OnReplaceCompletedDel 핸들러 — 레벨업 완료 통보 */
 	UFUNCTION()
 	void OnWeaponReplaceCompleted();
+	/** PassiveSlotSubsystem.OnPassiveSlotChangedDel 핸들러 — HUD 패시브 UI 갱신 트리거 */
+	UFUNCTION()
+	void OnPassiveSlotChanged();
 
 	//========================================================
 	// 입력 처리
 	//========================================================
 	bool HandleMouseAim();
 	void OnMove(const FInputActionValue& Value);
+	/** LMB — 스킬 프리뷰 활성 시 SkillManagerSubsystem::ConfirmSkillPreview, 비활성 시 무입력 */
+	void OnConfirm(const FInputActionValue& Value);
+	/** Q키 — SkillManagerSubsystem::ActivateSkillSlot(0) */
+	void OnSkillQ(const FInputActionValue& Value);
+	/** E키 — SkillManagerSubsystem::ActivateSkillSlot(1) */
+	void OnSkillE(const FInputActionValue& Value);
+	/** RMB — 스킬 프리뷰 취소 */
+	void OnSkillCancel(const FInputActionValue& Value);
 
 protected:
 	// UI — FloatingDamageWidget
@@ -77,12 +87,18 @@ protected:
 	TObjectPtr<UInputMappingContext> IMC;
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
 	TObjectPtr<UInputAction> IA_Move;
-	/** M-5 진입점 — 캐릭터 스킬 슬롯 1 (Q키) */
+	/** LMB — 스킬 프리뷰 확정 (M-5: IsPreviewActive() 분기) */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
+	TObjectPtr<UInputAction> IA_Attack;
+	/** Q키 — 캐릭터 스킬 슬롯 1 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
 	TObjectPtr<UInputAction> IA_SkillQ;
-	/** M-5 진입점 — 캐릭터 스킬 슬롯 2 (E키) */
+	/** E키 — 캐릭터 스킬 슬롯 2 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
 	TObjectPtr<UInputAction> IA_SkillE;
+	/** RMB — 스킬 프리뷰 취소 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
+	TObjectPtr<UInputAction> IA_SkillCancel;
 
 	// 런타임 상태
 	FVector   CachedAimLocation  = FVector::ZeroVector;

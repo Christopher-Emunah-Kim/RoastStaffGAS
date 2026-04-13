@@ -117,6 +117,22 @@ namespace RSTags
 	
 	
 	//===============================================
+	// 캐릭터 스킬 태그 (Skill.*)
+	//===============================================
+	// Q키 (슬롯1) 스킬 식별
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Skill_Character_Slot1);
+	// E키 (슬롯2) 스킬 식별
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Skill_Character_Slot2);
+	// 스킬 프리뷰 활성 상태 — ASC에 부여/제거로 IsPreviewActive() 대체 가능
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Skill_Character_Preview_Active);
+
+	//===============================================
+	// 패시브 태그 (Passive.*)
+	//===============================================
+	// 패시브 슬롯 포화 상태 — LevelUpSubsystem 카드 필터에 사용
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Passive_SlotFull);
+
+	//===============================================
 	// 이벤트 태그
 	//===============================================
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Combat_Death);

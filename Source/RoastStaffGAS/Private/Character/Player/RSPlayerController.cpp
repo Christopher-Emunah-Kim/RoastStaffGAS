@@ -8,7 +8,9 @@
 #include "RoastStaffGAS.h"
 #include "Subsystems/EquipmentSubsystem.h"
 #include "Subsystems/LevelUpSubsystem.h"
+#include "Subsystems/PassiveSlotSubsystem.h"
 #include "Subsystems/PoolingSubsystem.h"
+#include "Subsystems/SkillManagerSubsystem.h"
 #include "Subsystems/UIManagerSubsystem.h"
 #include "UI/RSHUDWidget.h"
 #include "UI/WeaponSlotContainerWidget.h"
@@ -45,7 +47,12 @@ void ARSPlayerController::BeginPlay()
 	EquipSys->OnSlotUpdatedDel.AddUniqueDynamic(this, &ARSPlayerController::OnSlotUpdated);
 	EquipSys->OnSlotFull.AddUniqueDynamic(this, &ARSPlayerController::OnWeaponSlotFull);
 	LevelUpSys->OnWeaponCandidatesReadyDel.AddUniqueDynamic(this, &ARSPlayerController::OnWeaponCandidatesReady);
-	KHS_INFO(TEXT("델리게이트 구독 완료 (SlotUpdated / SlotFull / WeaponCandidatesReady)"));
+
+	// MODULE-7: 패시브 슬롯 변경 구독
+	GET_WORLD_SUBSYSTEM(UPassiveSlotSubsystem, PassiveSys)
+	PassiveSys->OnPassiveSlotChangedDel.AddUniqueDynamic(this, &ARSPlayerController::OnPassiveSlotChanged);
+
+	KHS_INFO(TEXT("델리게이트 구독 완료 (SlotUpdated / SlotFull / WeaponCandidatesReady / PassiveSlotChanged)"));
 
 	// UIManagerSettings 매핑 기반으로 HUD 오픈 — TSubclassOf 직접 참조 제거
 	URSHUDWidget* HUDWidget = Cast<URSHUDWidget>(UMS->OpenUIByID(EUIID::HUD));
@@ -60,10 +67,13 @@ void ARSPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetGameInstance());
 	EquipSys->OnSlotUpdatedDel.RemoveDynamic(this, &ARSPlayerController::OnSlotUpdated);
+	EquipSys->OnSlotFull.RemoveDynamic(this, &ARSPlayerController::OnWeaponSlotFull);
 
 	GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
-	EquipSys->OnSlotFull.RemoveDynamic(this, &ARSPlayerController::OnWeaponSlotFull);
 	LevelUpSys->OnWeaponCandidatesReadyDel.RemoveDynamic(this, &ARSPlayerController::OnWeaponCandidatesReady);
+
+	GET_WORLD_SUBSYSTEM(UPassiveSlotSubsystem, PassiveSys)
+	PassiveSys->OnPassiveSlotChangedDel.RemoveDynamic(this, &ARSPlayerController::OnPassiveSlotChanged);
 
 	Super::EndPlay(EndPlayReason);
 }
@@ -74,7 +84,11 @@ void ARSPlayerController::SetupInputComponent()
 	
 	UEnhancedInputComponent* EIC = CastChecked<UEnhancedInputComponent>(InputComponent);
 
-	EIC->BindAction(IA_Move, ETriggerEvent::Triggered, this, &ARSPlayerController::OnMove);
+	EIC->BindAction(IA_Move,   ETriggerEvent::Triggered, this, &ARSPlayerController::OnMove);
+	EIC->BindAction(IA_Attack, ETriggerEvent::Started,   this, &ARSPlayerController::OnConfirm);
+	EIC->BindAction(IA_SkillQ,     ETriggerEvent::Started, this, &ARSPlayerController::OnSkillQ);
+	EIC->BindAction(IA_SkillE,      ETriggerEvent::Started, this, &ARSPlayerController::OnSkillE);
+	EIC->BindAction(IA_SkillCancel, ETriggerEvent::Started, this, &ARSPlayerController::OnSkillCancel);
 }
 
 void ARSPlayerController::PlayerTick(float DeltaTime)
@@ -165,6 +179,31 @@ void ARSPlayerController::OnMove(const FInputActionValue& Value)
 
 }
 
+void ARSPlayerController::OnConfirm(const FInputActionValue& Value)
+{
+	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
+	SkillMgr->ConfirmSkillPreview(CachedAimLocation);
+	// 프리뷰 비활성 시 → 무입력 (무기 자동발사 전환으로 수동 공격 없음)
+}
+
+void ARSPlayerController::OnSkillQ(const FInputActionValue& Value)
+{
+	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
+	SkillMgr->ActivateSkillSlot(0);
+}
+
+void ARSPlayerController::OnSkillE(const FInputActionValue& Value)
+{
+	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
+	SkillMgr->ActivateSkillSlot(1);
+}
+
+void ARSPlayerController::OnSkillCancel(const FInputActionValue& Value)
+{
+	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
+	SkillMgr->CancelSkillPreview();
+}
+
 // ============================================================================
 // 레벨업 UI 관리
 // ============================================================================
@@ -238,6 +277,12 @@ void ARSPlayerController::OnWeaponSlotFull(FName PendingWeaponID)
 	Widget->InitWidget(PendingWeaponID);
 
 	KHS_INFO(TEXT("교체 UI 오픈 — PendingWeaponID: %s"), *PendingWeaponID.ToString());
+}
+
+void ARSPlayerController::OnPassiveSlotChanged()
+{
+	// U4: 패시브 슬롯 HUD 위치 미확정 — 현재는 로그만 기록, HUD 확정 후 UI 갱신 구현
+	KHS_INFO(TEXT("패시브 슬롯 변경 — HUD 갱신 예정 (U4 미해결)"));
 }
 
 void ARSPlayerController::OnWeaponReplaceCompleted()

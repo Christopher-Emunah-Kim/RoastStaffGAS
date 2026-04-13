@@ -48,7 +48,15 @@ namespace RSTags
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Combat_Fireball_Launch, "GameplayCue.Combat.Fireball.Launch");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Combat_Fireball_Impact, "GameplayCue.Combat.Fireball.Impact");
 	
-	//GE 태그
+	//캐릭터 스킬 태그
+	UE_DEFINE_GAMEPLAY_TAG(Skill_Character_Slot1, "Skill.Character.Slot1");
+	UE_DEFINE_GAMEPLAY_TAG(Skill_Character_Slot2, "Skill.Character.Slot2");
+	UE_DEFINE_GAMEPLAY_TAG(Skill_Character_Preview_Active, "Skill.Character.Preview.Active");
+
+	//패시브 태그
+	UE_DEFINE_GAMEPLAY_TAG(Passive_SlotFull, "Passive.SlotFull");
+
+	//이벤트 태그
 	UE_DEFINE_GAMEPLAY_TAG(Event_Combat_Death, "Event.Combat.Death");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Combat_TakeDamage, "Event.Combat.TakeDamage");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Weapon_Equipped, "Event.Weapon.Equipped");

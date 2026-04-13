@@ -6,6 +6,9 @@
 #include "System/LoggingSystem.h"
 #include "Subsystems/EquipmentSubsystem.h"
 #include "Subsystems/LevelUpSubsystem.h"
+#include "Subsystems/SkillManagerSubsystem.h"
+#include "Subsystems/PassiveSlotSubsystem.h"
+#include "Subsystems/SaveGameSubsystem.h"
 #include "Character/Player/RSPlayerState.h"
 #include "Component/EquipmentComponent.h"
 #include "GAS/Attributes/PlayerAttributeSet.h"
@@ -103,11 +106,20 @@ void ARSPlayerCharacter::InitializeAbilitySystem()
 		return;
 	}
 	
-	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys);
+	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys)
 	EquipSys->InitializeSubsystem(ASC);
 
-	GET_GI_SUBSYSTEM(ULevelUpSubsystem, LevelUpSys);
+	GET_GI_SUBSYSTEM(ULevelUpSubsystem, LevelUpSys)
 	LevelUpSys->InitializeSubsystem(ASC, PS->GetPlayerAttributeSet(), AddEXPEffectClass);
+
+	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS)
+	const FName CharID = SGS->GetLastSelectedCharacter();
+
+	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
+	SkillMgr->InitializeSkills(CharID, ASC);
+	
+	GET_WORLD_SUBSYSTEM(UPassiveSlotSubsystem, PassiveSys)
+	PassiveSys->InitializeSubsystem(ASC);
 
 	// FloatingDamageWidget 구독 (BaseCharacter 공통)
 	SetupDamageDelegate();
