@@ -29,6 +29,7 @@ void UEquipmentSubsystem::InitializeSubsystem(UAbilitySystemComponent* InASC)
 
 	for (int32 i = 0; i < SLOT_COUNT; ++i)
 	{
+		Slots[i] = FWeaponSlotInstanceData();
 		Slots[i].SlotIndex = i;
 	}
 
