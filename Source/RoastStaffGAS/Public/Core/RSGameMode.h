@@ -10,7 +10,6 @@
 
 class AEnemySpawner;
 class URSLoadingWidget;
-class ASummonPreviewObject;
 
 /**
  * ARSGameMode
@@ -35,8 +34,6 @@ protected:
 public:
 	/** 플레이어 사망 시 외부(RSPlayerCharacter)에서 호출 */
 	void OnStageFailed();
-	
-	FORCEINLINE TSubclassOf<ASummonPreviewObject> GetPreviewActorClass() const { return PreviewActorClass; }
 	
 private:
 	// ── 초기화 흐름 ──────────────────────────────────────────────────────────
@@ -83,10 +80,6 @@ private:
 	/** 프리웜 진행 중 플래그 — Tick에서 LoadingWidget 폴링 제어 */
 	bool bIsPreWarmActive = false;
 	
-	/** SpawnPreview 스킬 프리뷰 액터 클래스 — BP에서 할당 (BP_SummonPreviewObject) */
-	UPROPERTY(EditDefaultsOnly, Category = "MY|Skill")
-	TSubclassOf<ASummonPreviewObject> PreviewActorClass;
-
 	/** 데미지 플로팅 위젯 프리웜 클래스 — BP에서 할당 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|PreWarm")
 	TSubclassOf<UUserWidget> DamageFloatingWidgetClass;

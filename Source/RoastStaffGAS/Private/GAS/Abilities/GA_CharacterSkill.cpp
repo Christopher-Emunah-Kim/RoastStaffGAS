@@ -10,6 +10,8 @@
 #include "Data/EnumTypes.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 #include "System/LoggingSystem.h"
 
 void UGA_CharacterSkill::OnAbilityActivated(const FGameplayAbilitySpecHandle Handle,const FGameplayAbilityActorInfo* ActorInfo,const FGameplayAbilityActivationInfo ActivationInfo)
@@ -103,6 +105,13 @@ void UGA_CharacterSkill::ExecuteInstantAoE(	const FCharacterSkillExecData& ExecD
 		OwnerASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
 	}
 
+	if (UNiagaraSystem* FX = ExecData.LevelData.FXClass.LoadSynchronous())
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), FX, Center);
+	}
+
+	SpawnSkillFX(ExecData.LevelData.FXClass, Center, Radius);
+
 	KHS_INFO(TEXT("InstantAoE 발동 — SkillID: %s | 반경: %.0f"), *ExecData.SkillID.ToString(), Radius);
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
@@ -124,6 +133,11 @@ void UGA_CharacterSkill::ExecuteSelfBuff(const FCharacterSkillExecData& ExecData
 
 	// Duration은 GE BP에서 설정 — 여기서는 SetByCaller로 Duration 오버라이드 불필요
 	OwnerASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
+
+	if (CachedInstigator)
+	{
+		SpawnSkillFX(ExecData.LevelData.FXClass, CachedInstigator->GetActorLocation(), ExecData.LevelData.EffectRadius);
+	}
 
 	KHS_INFO(TEXT("SelfBuff 발동 — SkillID: %s | Duration: %.1fs"), *ExecData.SkillID.ToString(), ExecData.LevelData.Duration);
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
@@ -176,6 +190,25 @@ void UGA_CharacterSkill::ExecuteSpawnPreview(const FCharacterSkillExecData& Exec
 		OwnerASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
 	}
 
+	SpawnSkillFX(ExecData.LevelData.FXClass, TargetLoc, Radius);
+
 	KHS_INFO(TEXT("SpawnPreview AoE 발동 — SkillID: %s | 위치: %s"), *ExecData.SkillID.ToString(), *TargetLoc.ToString());
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+}
+
+void UGA_CharacterSkill::SpawnSkillFX(TSoftObjectPtr<UNiagaraSystem> FXClass, FVector Location, float Radius)
+{
+	UNiagaraSystem* FX = FXClass.LoadSynchronous();
+	if (!FX)
+	{
+		return;
+	}
+
+	UNiagaraComponent* NiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+		GetWorld(), FX, Location, FRotator::ZeroRotator, FVector(1.f), true, true);
+
+	if (NiagaraComp)
+	{
+		NiagaraComp->SetVariableFloat(FName(TEXT("Radius")), Radius);
+	}
 }

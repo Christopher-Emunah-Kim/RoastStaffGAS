@@ -38,6 +38,31 @@
 
 ## 2026-04
 
+### [2026-04-13] [ARCH] SpawnPreview 액터 — GameMode 전역 단일 클래스 → DT 스킬별 분리
+
+**상황**: SpawnPreview 타입 캐릭터 스킬이 구현됐지만, 모든 캐릭터의 프리뷰가 동일한 액터(GameMode.PreviewActorClass)를 사용. 캐릭터마다 다른 형태의 프리뷰(범위 표시, 투사체 방향 표시 등)가 필요함
+**문제**: GameMode에 단일 `TSubclassOf<ASummonPreviewObject> PreviewActorClass` UPROPERTY를 두고 SkillManagerSubsystem이 이를 참조하는 구조. 스킬이 늘어날수록 분기 처리가 GameMode에 누적되는 구조적 결함
+**검토한 선택지**:
+  - A) `DT_CharacterSkill`에 `PreviewActorClass (TSoftClassPtr<ASummonPreviewObject>)` 추가 — 완전 데이터 드리븐, GameMode 의존성 0
+  - B) `GA_CharacterSkill` 서브클래스화 — 캐릭터마다 BP_GA 별도 제작. 에디터 파일 증가, 스킬 추가 시 비용 큼
+**결정**: A 선택. `CSV→DataTable→Subsystem→GA` 원칙에 완벽히 부합. GameMode의 `PreviewActorClass` UPROPERTY·getter 제거. `PreviewFXClass(TSoftClassPtr<UNiagaraSystem>)` 도 제거 — PreviewActor BP가 자체 FX 컴포넌트를 보유하므로 중복
+**결과**: SkillManagerSubsystem이 `ExecData.PreviewActorClass.LoadSynchronous()`로 스킬별 액터 스폰. 미설정 시 `ASummonPreviewObject::StaticClass()` 폴백
+**포트폴리오 포인트**: 데이터 드리븐 아키텍처 원칙을 지키기 위해 GameMode 전역 상태를 DT 행 단위로 분해한 설계 판단
+**관련 파일**: `DataTableStructs.h:695`, `SkillManagerSubsystem.cpp:192-220`, `RSGameMode.h`
+
+---
+
+### [2026-04-13] [ARCH] GA_CharacterSkill FX 스폰 — Niagara Radius 파라미터 주입
+
+**상황**: InstantAoE·SelfBuff·SpawnPreview 모두 GE 적용(데미지/버프)만 하고 시각 피드백이 없었음. `FCharacterSkillLevelData.FXClass`는 정의돼 있었으나 GA에서 미사용
+**문제**: `FXClass`가 `TSoftClassPtr<UNiagaraSystem>`으로 선언돼 있어 에디터 피커에서 에셋이 표시되지 않는 타입 오류
+**결정**: `TSoftObjectPtr<UNiagaraSystem>`으로 수정(에셋 참조). `SpawnSkillFX(FXClass, Location, Radius)` 헬퍼로 공통화. Niagara 컴포넌트에 `SetVariableFloat("Radius", Radius)` 주입으로 이펙트 크기를 데이터로 제어
+**결과**: AoE·SelfBuff → 캐릭터 위치, SpawnPreview → 확정 위치에 FX 스폰. Niagara 시스템 내부에서 Radius User Parameter를 읽어 이펙트 범위 설정
+**포트폴리오 포인트**: TSoftClassPtr/TSoftObjectPtr 구분(클래스 vs 에셋), Niagara User Parameter 런타임 주입 패턴
+**관련 파일**: `GA_CharacterSkill.cpp:195-215`, `DataTableStructs.h:664`
+
+---
+
 ### [2026-04-13] [BUG_FIX] EquipmentSubsystem 재진입 시 무기 슬롯 미등록
 
 **상황**: GameInstanceSubsystem은 레벨 전환에도 유지됨. InGame → Lobby → InGame 재진입 시 시작 무기가 Slot에 등록되지 않음

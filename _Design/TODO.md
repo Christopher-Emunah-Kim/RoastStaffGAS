@@ -78,8 +78,8 @@
   - [x] GA_CharacterSkill: InstantAoE / SelfBuff / SpawnPreview 구현
   - [x] RSPlayerController: Q/E/Cancel 바인딩 + IsPreviewActive() 분기 (LMB Confirm / RMB Cancel)
   - [x] RSPlayerCharacter::InitializeAbilitySystem(): SkillManager 초기화 호출
-  - [ ] BP_RSPlayerController: IA_SkillQ/IA_SkillE/IA_SkillCancel 에셋 할당 + IMC_Player Q/E/RMB 매핑  [에디터]
-  - [ ] BP_GA_CharacterSkill (캐릭터별): SkillGEClass 할당                                                [에디터]
+  - [x] BP_RSPlayerController: IA_SkillQ/IA_SkillE/IA_SkillCancel 에셋 할당 + IMC_Player Q/E/RMB 매핑  [에디터]
+  - [x] BP_GA_CharacterSkill (캐릭터별): SkillGEClass 할당                                                [에디터]
 
 ### [MODULE-7] 패시브 슬롯 시스템 ✓ DONE 2026-04-13 (0105ba7)
 신규: PassiveSlotSubsystem.h/.cpp
@@ -88,6 +88,17 @@
   - [x] PassiveSlotSubsystem: TryAddPassive / IsSlotFull / MAX_SLOTS=4
   - [x] RSPlayerCharacter: PassiveSlotSubsystem 초기화 호출
   - [x] RSPlayerController: OnPassiveSlotChanged 구독 (U4 미해결 — HUD 위치 미확정)
+
+### [SpawnPreview 다형성 + GA FX 스폰] ✓ DONE 2026-04-13
+수정: DataTableStructs.h, RuntimeDataStructs.h, GameDataSubsystem.cpp, SkillManagerSubsystem.cpp, RSGameMode.h, GA_CharacterSkill.h/.cpp
+  - [x] FCharacterSkillStaticData: PreviewFXClass 제거 → PreviewActorClass (TSoftClassPtr<ASummonPreviewObject>) 추가
+  - [x] FCharacterSkillLevelData: FXClass TSoftClassPtr → TSoftObjectPtr 수정
+  - [x] FCharacterSkillExecData: PreviewFXClass → PreviewActorClass 교체
+  - [x] SkillManagerSubsystem: GameMode 의존성 제거 → ExecData.PreviewActorClass.LoadSynchronous() 사용
+  - [x] RSGameMode: PreviewActorClass UPROPERTY·getter 제거
+  - [x] GA_CharacterSkill: SpawnSkillFX 헬퍼 추가 — InstantAoE/SelfBuff/SpawnPreview 모두 FX 스폰
+  - [ ] 에디터: DT_CharacterSkill 각 SpawnPreview 행에 PreviewActorClass 할당              [에디터]
+  - [ ] 에디터: DT_CharacterSkill 각 행 FXClass(Niagara 에셋) 할당 + Radius 파라미터 설정  [에디터]
 
 ### [MODULE-6] 레벨업 카드풀 확장
 수정: LevelUpSubsystem.h/.cpp, RSPlayerController.h/.cpp, LevelUpWeaponSelectWidget.h

@@ -613,7 +613,7 @@ bool UGameDataSubsystem::GetCharacterSkillExecData(FName CharacterID, int32 Skil
     OutData.ActivationType = Found->ActivationType;
     OutData.Cooldown       = Found->Cooldown;
     OutData.GAClass        = Found->GAClass;
-    OutData.PreviewFXClass = Found->PreviewFXClass;
+    OutData.PreviewActorClass = Found->PreviewActorClass;
     OutData.LevelData      = Found->LevelData[LevelIndex];
     return true;
 }

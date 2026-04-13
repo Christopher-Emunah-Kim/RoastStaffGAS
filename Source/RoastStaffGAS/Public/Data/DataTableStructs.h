@@ -23,6 +23,7 @@
 // ----------------------------------------------------------------------------
 class USkeletalMesh;
 class UAnimInstance;
+class ASummonPreviewObject;
 
 USTRUCT(BlueprintType)
 struct FCharacterStaticData : public FTableRowBase
@@ -659,9 +660,9 @@ struct FCharacterSkillLevelData
 	/** 지속 시간 (초). SelfBuff 해당 시 사용. 해당 없으면 0 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Level")
 	float Duration = 0.f;
-	/** 해당 레벨 발동 FX 클래스 */
+	/** 해당 레벨 발동 FX 에셋 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Level")
-	TSoftClassPtr<UNiagaraSystem> FXClass;
+	TSoftObjectPtr<UNiagaraSystem> FXClass;
 };
 
 // ----------------------------------------------------------------------------
@@ -692,9 +693,9 @@ struct FCharacterSkillStaticData : public FTableRowBase
 	/** 발동할 GameplayAbility 클래스 경로 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill")
 	TSoftClassPtr<UGameplayAbility> GAClass;
-	/** SpawnPreview 타입 전용 프리뷰 FX. 다른 타입에서는 미사용 */
+	/** SpawnPreview 타입 전용 프리뷰 액터 클래스 — 스킬마다 다른 BP_Preview 할당. 다른 타입에서는 미사용 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|SpawnPreview")
-	TSoftClassPtr<UNiagaraSystem> PreviewFXClass;
+	TSoftClassPtr<ASummonPreviewObject> PreviewActorClass;
 	/** 레벨별 수치+FX 데이터. 3개 원소 (Lv1/Lv2/Lv3) 필수 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Level")
 	TArray<FCharacterSkillLevelData> LevelData;

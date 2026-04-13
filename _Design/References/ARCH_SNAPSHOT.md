@@ -69,7 +69,7 @@
 | D9 | 재화 단일(골드) / 스테이지 결과에서만 획득 | 인게임 골드 UI 불필요, 반복플레이 유도 | - |
 | ★ | **상세 설계 기준문서**: `_Design/References/Systems/게임 시스템 개선안 v1.0.md` | 2026-04-10 확정. PLAN/CODE 전 필독 | - |
 | SD1 | 무기 슬롯 수 SLOT_COUNT=2 | 3→2 축소. 캐릭터 스킬 슬롯 2개와 역할 분리 | 기획 변경 시만 |
-| SD2 | SpawnPreview → SummonPreviewObject 재활용 | 신규 클래스 불필요. GA_CharacterSkill이 ASummonPreviewObject 직접 스폰 | 다형성 필요 시 재검토 |
+| SD2 | SpawnPreview 액터 클래스 — DT_CharacterSkill 스킬별 지정 | GameMode 단일 클래스 폐기. `FCharacterSkillStaticData.PreviewActorClass`로 스킬마다 다른 BP_Preview 할당 | - |
 | SD3 | EWeaponBaseType + FString EvolutionTag 병행 | BaseType 제거 시 기존 BP 참조 전부 교체 비용 큼 | 진화 시스템 본격 착수 시 |
 | SD4 | DT_CharacterSkill = 에디터 직접 편집 전용 | TArray<FCharacterSkillLevelData> 중첩 → CSV 임포트 불가 구조 | - |
 

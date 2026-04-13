@@ -7,7 +7,6 @@
 #include "Subsystems/GameDataSubsystem.h"
 #include "Objects/Data/RSCharacterSkillData.h"
 #include "Objects/Summon/SummonPreviewObject.h"
-#include "Core/RSGameMode.h"
 #include "System/LoggingSystem.h"
 #include "AbilitySystemComponent.h"
 
@@ -206,15 +205,11 @@ void USkillManagerSubsystem::SpawnPreviewActor(int32 SlotIndex)
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	ARSGameMode* GM = Cast<ARSGameMode>(World->GetAuthGameMode());
-	TSubclassOf<ASummonPreviewObject> SpawnClass = nullptr;
-	
-	if (GM && GM->GetPreviewActorClass())
+	const FCharacterSkillExecData& ExecData = SkillSlots[SlotIndex].ExecData;
+	TSubclassOf<ASummonPreviewObject> SpawnClass = ExecData.PreviewActorClass.LoadSynchronous();
+	if (!SpawnClass)
 	{
-		SpawnClass = GM->GetPreviewActorClass();
-	}
-	else
-	{
+		KHS_WARN(TEXT("Slot %d PreviewActorClass 미설정 — 기본 클래스로 폴백"), SlotIndex);
 		SpawnClass = ASummonPreviewObject::StaticClass();
 	}
 	

@@ -7,6 +7,8 @@
 #include "Data/RuntimeDataStructs.h"
 #include "GA_CharacterSkill.generated.h"
 
+class UNiagaraSystem;
+
 /**
  * UGA_CharacterSkill
  * 캐릭터 고유 스킬 GA. InstantAoE / SelfBuff / SpawnPreview(확정 후 발동) 처리.
@@ -43,6 +45,9 @@ private:
 		const FGameplayAbilitySpecHandle Handle,
 		const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo);
+
+	/** FXClass를 Location에 스폰 후 Radius 파라미터 주입 */
+	void SpawnSkillFX(TSoftObjectPtr<UNiagaraSystem> FXClass, FVector Location, float Radius);
 
 protected:
 	/**

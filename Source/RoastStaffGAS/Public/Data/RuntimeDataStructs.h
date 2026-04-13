@@ -23,6 +23,7 @@
 
 class ABaseProjectile;
 class UNiagaraSystem;
+class ASummonPreviewObject;
 class USoundBase;
 class UTexture2D;
 
@@ -270,9 +271,9 @@ struct FCharacterSkillExecData
 	/** GA 클래스 (InitializeSkills 시 LoadSynchronous) */
 	UPROPERTY(BlueprintReadOnly)
 	TSoftClassPtr<UGameplayAbility> GAClass;
-	/** SpawnPreview 타입 전용 프리뷰 FX. 다른 타입에서는 null */
+	/** SpawnPreview 타입 전용 프리뷰 액터 클래스. 다른 타입에서는 null */
 	UPROPERTY(BlueprintReadOnly)
-	TSoftClassPtr<UNiagaraSystem> PreviewFXClass;
+	TSoftClassPtr<ASummonPreviewObject> PreviewActorClass;
 	/** 해당 레벨 수치+FX 데이터 (FCharacterSkillStaticData.LevelData[Level-1]) */
 	UPROPERTY(BlueprintReadOnly)
 	FCharacterSkillLevelData LevelData;
