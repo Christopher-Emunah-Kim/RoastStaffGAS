@@ -37,7 +37,19 @@
       "Bash(find C:/Users/KGA/Projects/RoastStaffGAS/Content -name DT_SkillCommonResource* -o -name DT_Weapon*)",
       "Bash(find C:/Users/KGA/Projects/RoastStaffGAS/Content/Data -name *.csv)",
       "Bash(find C:/Users/KGA/Projects/RoastStaffGAS -name *.csv)",
-      "Bash(powershell -NoProfile -Command \"$e = [char]27; Write-Host \"\"$e[32mTest Color$e[0m\"\"\")"
+      "Bash(powershell -NoProfile -Command \"$e = [char]27; Write-Host \"\"$e[32mTest Color$e[0m\"\"\")",
+      "Bash(curl:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(powershell -NoProfile -Command \"[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $wc = New-Object System.Net.WebClient; $wc.DownloadFile(''https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-windows-amd64.exe'', ''C:\\Users\\TST\\.claude\\jq.exe'')\")",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File \"C:\\Users\\TST\\.claude\\download-jq.ps1\")",
+      "Bash(jq:*)",
+      "Bash(bash:*)",
+      "Bash(claude:*)",
+      "Bash(echo:*)",
+      "Bash(cat:*)",
+      "Bash(ps:*)",
+      "Bash(export FORCE_COLOR=3)",
+      "Bash(export COLORTERM=truecolor)"
     ],
     "deny": [],
     "ask": []
