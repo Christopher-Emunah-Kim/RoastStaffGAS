@@ -13,6 +13,22 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
+### [BUG] FloatingDamageWidgetClass 중복 관리 [P2]
+- RSGameMode.DamageFloatingWidgetClass (PreWarm용) + RSPlayerController.FloatingDamageWidgetClass (실제 스폰용) 두 곳에 동일 클래스 UPROPERTY 존재
+- 한 쪽만 교체 시 PreWarm 대상과 실제 사용 클래스 불일치 잠재 버그
+- 개선 방향: GameMode::BuildPreWarmList에서 PlayerController의 FloatingDamageWidgetClass를 읽어 사용, GameMode UPROPERTY 제거
+
+### [BUG] LoadingWidget CloseUI 타이밍 오류 [P1]
+- 증상: 인게임 진입 후 첫 무기 슬롯 등록이 한참 뒤에 일어남 → LoadingWidget이 PreWarm 완료 전에 닫히는 것으로 추정
+- 기대 흐름:
+  1. LoadingWidget → Instance 레벨에서 OpenUI
+  2. TransitionGameMode → StreamingLevel 비동기 로드 → ProgressBar.SetPercent(0.9)
+  3. InGame 레벨 진입 → RSGameMode::BeginPlay → PoolingSubsystem::RequestAsyncPreWarm
+  4. PreWarm 완료 델리게이트 → OnPreWarmCompleted → CloseLoadingUI
+- 의심 원인: CloseLoadingUI가 PreWarm 완료 전에 별도 경로에서 이미 호출되고 있거나, OnPreWarmCompleted 바인딩이 누락/타이밍 불일치
+- 조사 시작점: RSGameMode::OnPreWarmCompleted 호출 시점 로그 + TransitionGameMode CloseUI 호출 경로 추적
+
+
 ## [FEATURE] PHASE-1 인게임 루프 완성 | PLAN_Phase1_InGame_v1.0
 > 시작: 2026-04-10 | 기획서: 게임 시스템 개선안 v1.0.md
 > 실행 순서: M-1 → M-2 → (M-3 ∥ M-4) → (M-5 ∥ M-7) → M-6
@@ -33,37 +49,45 @@
   - [x] GameDataSubsystem: 테이블 포인터 + 캐시 TMap 3종 추가
   - [x] GameDataSubsystem: 조회 함수 6개 구현 (GetCharacterSkillExecData 포함)
 
-### [MODULE-3] 무기 자동발사 전환 [>] ACTIVE
+### [BUG] 시작 무기 슬롯 미등록 ✓ FIXED 2026-04-13 (미커밋)
+  - 원인: DeinitializeSubsystem()이 Slots[] 미초기화 → 재진입 시 이전 WeaponID 잔존 → IsEmpty()=false → GetEmptySlotIndex()=INDEX_NONE
+  - 수정: InitializeSubsystem()에서 Slots[i] = FWeaponSlotInstanceData() 완전 초기화 추가 (EquipmentSubsystem.cpp:31)
+
+### [MODULE-3] 무기 자동발사 전환 ✓ DONE 2026-04-13 (미커밋)
 수정: EquipmentSubsystem.h/.cpp, RSPlayerController.h/.cpp
-  - [ ] SLOT_COUNT = 2 변경 (EquipmentSubsystem)                                                                [P0]
-  - [ ] RequestManualFire() 제거 + FindNearestEnemy() 추가                                                      [P0]
-  - [ ] StartAutoFire() / FireSlot() — 최근접 적 타겟팅으로 교체                                                  [P0]
-  - [ ] RSPlayerController: IA_Attack / Slot1-3 바인딩 제거 + IA_SkillQ/E 프로퍼티 추가                          [P0]
+  - [x] SLOT_COUNT = 3 확정 (SD1 기획 변경 — 캐릭터 스킬 2 + 무기 슬롯 3)
+  - [x] RequestManualFire() 제거 + FindNearestEnemy() 추가
+  - [x] StartAutoFire() / FireSlot() — 최근접 적 타겟팅으로 교체 (타겟 없으면 스킵)
+  - [x] RSPlayerController: IA_Slot1-3 바인딩 제거 / IA_Attack → OnConfirm 재활용 / IA_SkillQ/E 추가
 
-### [MODULE-4] ExecCalc 데미지 공식 [>] ACTIVE
+### [MODULE-4] ExecCalc 데미지 공식 ✓ DONE 2026-04-13 (미커밋)
 신규: RS_DamageExecCalc.h/.cpp
-수정: RSGameplayTags.h, GA_ProjectileAttack.cpp
-  - [ ] SetByCaller 태그 추가 (Data.WeaponBaseDamage / Data.EnemyAttackDamage)                                  [P0]
-  - [ ] RS_DamageExecCalc 플레이어→에너미 공식 구현                                                              [P0]
-  - [ ] RS_DamageExecCalc 에너미→플레이어 공식 구현                                                              [P0]
-  - [ ] GA_ProjectileAttack: SetByCallerMagnitude 주입                                                          [P0]
-  - [ ] GE_WeaponDamage / GE_EnemyDamage BP Executions 교체 (에디터 작업)                                       [P0]
+수정: RSGameplayTags.h, BaseProjectile.cpp, BaseSummonObject.cpp, 에너미 4종
+에디터: GE_Damage(ExecCalc 추가), GE_EnemyDamage(신규), 에너미 BP AttackGEClass 교체
+  - [x] SetByCaller 태그 추가 (Data.WeaponBaseDamage / Data.EnemyAttackDamage)
+  - [x] RS_DamageExecCalc — 플레이어→에너미: BaseDmg×(1+ATK/100)×CritMult
+  - [x] RS_DamageExecCalc — 에너미→플레이어: max(1, EnemyDmg-DEF)
+  - [x] 데미지 주입 변경 (BaseProjectile/Summon→WeaponBaseDamage, 에너미4종→EnemyAttackDamage)
+  - [x] GE_Damage ExecCalc 교체 + GE_EnemyDamage 신규 생성 (에디터 완료)
 
-### [MODULE-5] 캐릭터 스킬 시스템
-신규: SkillManagerSubsystem.h/.cpp, GA_CharacterSkill.h/.cpp
-수정: RSPlayerController.h/.cpp, RSPlayerCharacter.h/.cpp, RSGameplayTags.h
-  - [ ] Skill.Character.Slot1/Slot2 / Preview.Active 태그 추가                                                  [P1]
-  - [ ] SkillManagerSubsystem: InitializeSkills / ActivateSkillSlot / SpawnPreview 흐름                         [P1]
-  - [ ] GA_CharacterSkill: InstantAoE / SelfBuff 구현                                                           [P1]
-  - [ ] RSPlayerController: Q/E 바인딩 + IsPreviewActive() 분기 (LMB Confirm / RMB Cancel)                      [P1]
-  - [ ] RSPlayerCharacter::InitializeAbilitySystem(): SkillManager 초기화 호출                                   [P1]
+### [MODULE-5] 캐릭터 스킬 시스템 ✓ DONE 2026-04-13 (미커밋)
+신규: RSCharacterSkillData.h, SkillManagerSubsystem.h/.cpp, GA_CharacterSkill.h/.cpp
+수정: RSPlayerController.h/.cpp, RSPlayerCharacter.cpp, RSGameplayTags.h/.cpp
+  - [x] Skill.Character.Slot1/Slot2 / Preview.Active 태그 추가
+  - [x] SkillManagerSubsystem: InitializeSkills / ActivateSkillSlot / SpawnPreview 흐름
+  - [x] GA_CharacterSkill: InstantAoE / SelfBuff / SpawnPreview 구현
+  - [x] RSPlayerController: Q/E/Cancel 바인딩 + IsPreviewActive() 분기 (LMB Confirm / RMB Cancel)
+  - [x] RSPlayerCharacter::InitializeAbilitySystem(): SkillManager 초기화 호출
+  - [ ] BP_RSPlayerController: IA_SkillQ/IA_SkillE/IA_SkillCancel 에셋 할당 + IMC_Player Q/E/RMB 매핑  [에디터]
+  - [ ] BP_GA_CharacterSkill (캐릭터별): SkillGEClass 할당                                                [에디터]
 
-### [MODULE-7] 패시브 슬롯 시스템
+### [MODULE-7] 패시브 슬롯 시스템 ✓ DONE 2026-04-13 (미커밋)
 신규: PassiveSlotSubsystem.h/.cpp
-수정: RSPlayerCharacter.h/.cpp, RSGameplayTags.h
-  - [ ] Passive.SlotFull 태그 추가                                                                               [P1]
-  - [ ] PassiveSlotSubsystem: TryAddPassive / IsSlotFull / MAX_SLOTS=4                                          [P1]
-  - [ ] RSPlayerCharacter: PassiveSlotSubsystem 초기화 호출                                                      [P1]
+수정: RSPlayerCharacter.cpp, RSPlayerController.h/.cpp, RSGameplayTags.h/.cpp
+  - [x] Passive.SlotFull 태그 추가
+  - [x] PassiveSlotSubsystem: TryAddPassive / IsSlotFull / MAX_SLOTS=4
+  - [x] RSPlayerCharacter: PassiveSlotSubsystem 초기화 호출
+  - [x] RSPlayerController: OnPassiveSlotChanged 구독 (U4 미해결 — HUD 위치 미확정)
 
 ### [MODULE-6] 레벨업 카드풀 확장
 수정: LevelUpSubsystem.h/.cpp, RSPlayerController.h/.cpp, LevelUpWeaponSelectWidget.h

@@ -20,6 +20,7 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
   files.new:
     - Source/RoastStaffGAS/Public/GAS/Calculations/RS_DamageExecCalc.h
     - Source/RoastStaffGAS/Private/GAS/Calculations/RS_DamageExecCalc.cpp
+    - Source/RoastStaffGAS/Public/Objects/Data/RSCharacterSkillData.h
     - Source/RoastStaffGAS/Public/Subsystems/SkillManagerSubsystem.h
     - Source/RoastStaffGAS/Private/Subsystems/SkillManagerSubsystem.cpp
     - Source/RoastStaffGAS/Public/GAS/Abilities/GA_CharacterSkill.h

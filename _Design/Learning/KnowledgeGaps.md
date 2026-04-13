@@ -26,6 +26,9 @@
 | Instigator pattern — SetInstigator(Owner) + IgnoreActorWhenMoving으로 자기 충돌 방지 | UE 투사체 패턴 | 1 | 2026-04-07 | 🟡 학습중 | MODULE-7-debug |
 | FTransform constructor Scale trap — FTransform(Rot, Loc) 기본 Scale=(1,1,1) BP Scale 덮어씀 | UE5 스폰 패턴 | 1 | 2026-04-07 | 🟡 학습중 | MODULE-7-debug |
 | TWeakObjectPtr lambda capture — 레벨 전환 시 dangling this 방지 | C++ 메모리 안전 | 1 | 2026-04-07 | 🟡 학습중 | MODULE-7-debug |
+| DECLARE/DEFINE_ATTRIBUTE_CAPTUREDEF — ExecCalc static 캡처 구조체 패턴 | GAS ExecCalc | 1 | 2026-04-13 | 🟡 학습중 | MODULE-4 |
+| GetSetByCallerMagnitude — ExecCalc 내에서 SetByCaller 값 읽기 | GAS ExecCalc | 1 | 2026-04-13 | 🟡 학습중 | MODULE-4 |
+| CapturedSourceTags.GetAggregatedTags() — ExecCalc 내 Source ASC 태그 조회 | GAS ExecCalc | 1 | 2026-04-13 | 🟡 학습중 | MODULE-4 |
 
 ---
 

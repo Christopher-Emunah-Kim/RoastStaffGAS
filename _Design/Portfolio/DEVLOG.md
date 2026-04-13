@@ -38,6 +38,43 @@
 
 ## 2026-04
 
+### [2026-04-13] [BUG_FIX] EquipmentSubsystem 재진입 시 무기 슬롯 미등록
+
+**상황**: GameInstanceSubsystem은 레벨 전환에도 유지됨. InGame → Lobby → InGame 재진입 시 시작 무기가 Slot에 등록되지 않음
+**문제**: `DeinitializeSubsystem()`이 `ASC`, `bIsInitialized`만 리셋하고 `Slots[]` 배열은 초기화 안 함 → 재진입 시 이전 세션의 WeaponID 잔존 → `IsEmpty()=false` → `GetEmptySlotIndex()=INDEX_NONE` → `OnSlotFull` 오발동
+**검토한 선택지**:
+  - A) `DeinitializeSubsystem`에서 Slots[] 초기화 — 해제 시점에 처리
+  - B) `InitializeSubsystem`에서 Slots[] 완전 초기화 후 SlotIndex 재설정 — 진입 시점에 방어
+**결정**: B 선택. 초기화 시점 방어가 더 명확한 진입점 보장. `Slots[i] = FWeaponSlotInstanceData()` 후 `Slots[i].SlotIndex = i`
+**결과**: 재진입 시 슬롯 정상 등록 확인
+**포트폴리오 포인트**: GameInstanceSubsystem 생명주기와 레벨 전환 간 상태 잔존 문제 식별 및 방어적 초기화 적용
+**관련 파일**: `Source/.../EquipmentSubsystem.cpp:30-34`
+
+---
+
+### [2026-04-13] [BUG_FIX] SpawnPreview EffectRadius=0 → 반경 1cm 오버랩으로 데미지 미적용
+
+**상황**: CHAR_ROGUE/MAGE의 SpawnPreview 스킬이 첫 확정 시는 데미지가 들어가나 이후 전혀 안 됨
+**문제**: DT_CharacterSkill의 SpawnPreview 행에 `EffectRadius=0` 입력. `ExecuteSpawnPreview`에서 `FMath::Max(1.f, 0.f)` → 반경 1cm 구체로 오버랩 → 적 미탐지. 첫 번째 동작한 이유는 플레이어가 적에 매우 근접한 경우였음
+**진단 과정**: TryActivateAbility 결과 로그 + OnAbilityActivated 진입 로그 추가 → GA는 정상 진입 → OverlapMultiByChannel 반환값 0 확인 → Radius 추적 → EffectRadius=0 발견
+**결정**: DT에서 SpawnPreview 행에 EffectRadius 값 직접 입력하여 해결 (C++ 변경 없음)
+**교훈**: `FMath::Max(1.f, x)` 패턴은 0 입력 시 사실상 "무반응"으로 침묵하는 버그. DT 필드가 실제 코드에서 어떻게 쓰이는지 설명 전 코드 확인 필수
+**포트폴리오 포인트**: GAS 능력 활성화 단계별 로그를 직접 삽입해 레이어별로 좁혀가는 디버깅 방법론 적용
+**관련 파일**: `Source/.../GA_CharacterSkill.cpp:136`, `ExternalSource/DT_Character_Skill_Static_Data.csv`
+
+---
+
+### [2026-04-13] [BUG_FIX] 스테이지 클리어 후 캐릭터 해금 미처리
+
+**상황**: STG_003 클리어 후 CHAR_MAGE가 캐릭터 선택 화면에서 잠금 해제되지 않음
+**문제**: `RSGameMode::SaveResult` → `SGS->UpdateStageRecord()` 내부에서 `ClearedStageIDs` 갱신은 되나, `SGS->UnlockCharacter()` 호출 경로가 코드 어디에도 없음. DT에 `UnlockType=STAGE_CLEAR`, `UnlockStageID=STG_003` 데이터가 올바르게 있었음에도 미연결
+**결정**: `SaveResult`에서 `bCleared=true` 시 `GDS->GetAllCharacterStaticData()`로 전체 캐릭터 조회 → `UnlockType==STAGE_CLEAR && UnlockStageID==CurrentStageID` 조건 캐릭터에 `SGS->UnlockCharacter()` 호출. `UpdateStageRecord` 전에 처리해 해금 데이터가 동일 `SaveGame()` 호출에 포함되도록
+**결과**: 클리어 시 해당 캐릭터 즉시 해금 및 디스크 저장 확인
+**포트폴리오 포인트**: 데이터 저장과 파생 상태 갱신의 원자성 — 해금 처리를 UpdateStageRecord(SaveGame 포함) 이전에 배치해 단일 저장 호출로 묶음
+**관련 파일**: `Source/.../RSGameMode.cpp:364-390`, `Source/.../SaveGameSubsystem.cpp:134`
+
+---
+
 ### [2026-04-09] [ARCH] StageSelectWidget 복원 — 저장 시점 선택과 기존 함수 재사용
 
 **상황**: 로비 복귀 시 스테이지 선택 화면이 항상 초기화 상태로 시작 — 재도전 UX 단절.
@@ -310,6 +347,69 @@ UENUM()이 있는 헤더에는 반드시 `#include "파일명.generated.h"` 가 
 **포트폴리오 포인트**: UE5 Slate 입력 캡처 메커니즘 이해 / 잘못된 레이어 진단 → 롤백 → 올바른 순서 복구 과정 (사고 과정 투명성)
 
 **관련 파일**: `Source/RoastStaffGAS/Private/Character/Player/RSPlayerController.cpp`
+
+---
+
+## [2026-04-13] PATTERN — UGameplayEffectExecutionCalculation (ExecCalc) 구조와 Static Capture 패턴
+
+**상황**: M-4에서 플레이어→에너미, 에너미→플레이어 데미지를 단일 GE에서 분기 처리해야 했다. 기존 방식은 Modifier 방향을 SetByCaller 음수값(−DamageValue)으로 직접 조작하는 간이 구조였다.
+
+**문제·과제**: Modifier-only GE는 ATK/DEF 같은 Attribute를 공식 내에서 읽을 수 없다. 크리티컬, DEF 감산 등 복잡한 공식을 GE 내부에서 계산하려면 GAS가 공식 지원하는 `UGameplayEffectExecutionCalculation`이 필요.
+
+**검토한 선택지**:
+- A) Modifier Stack — SetByCaller 음수 직접 주입. GE 설정 단순, 공식 확장 불가
+- B) MMC (Magnitude Modifier Calculation) — 단일 Attribute 계산. 다중 Attribute 조합 불가
+- C) ExecCalc (`UGameplayEffectExecutionCalculation`) — 다중 Attribute 캡처 + 임의 공식 + 다중 Attribute 출력 가능. 구조 복잡하나 GAS 공식 패턴
+
+**결정**: C 선택. 핵심 패턴 3가지:
+1. `FDamageExecCaptures` 정적 구조체 — `DECLARE/DEFINE_ATTRIBUTE_CAPTUREDEF` 매크로로 캡처 정의. `bSnapshot=false`로 실행 시점 라이브 값 캡처.
+2. `Execute_Implementation` 내 Source 팀 태그 분기 — `CapturedSourceTags.GetAggregatedTags()->HasTagExact(Team_Player)`로 플레이어/에너미 방향 판별.
+3. `OutExecutionOutput.AddOutputModifier` — `EGameplayModOp::Additive`로 CurrentHP에 `-FinalDamage` 출력.
+
+**결과**: 플레이어→에너미 `BaseDmg×(1+ATK/100)×CritMult`, 에너미→플레이어 `max(1, EnemyDmg-DEF)` 두 공식을 단일 ExecCalc 클래스에서 처리.
+
+**포트폴리오 포인트**: GAS 데미지 공식 설계의 세 단계(Modifier→MMC→ExecCalc) 이해와 적합한 계층 선택 / `DECLARE_ATTRIBUTE_CAPTUREDEF` + static struct 패턴 실전 적용.
+
+**관련 파일**: `Source/RoastStaffGAS/Public/GAS/Calculations/RS_DamageExecCalc.h`, `Private/GAS/Calculations/RS_DamageExecCalc.cpp`
+
+---
+
+## [2026-04-13] ARCH — SetByCaller 태그 분리: Data_Damage 단일 → WeaponBaseDamage/EnemyAttackDamage
+
+**상황**: 기존 모든 데미지(플레이어 무기, 에너미)가 `Data.Damage` 단일 태그에 음수값으로 주입됐다. ExecCalc 도입 시 Source 방향을 구분해야 하는데, 단일 태그로는 ExecCalc 내부에서 "누가 보낸 데미지인가"를 태그 없이 판단해야 함.
+
+**문제·과제**: ExecCalc에서 Source ASC 팀 태그로 분기는 가능하나, SetByCaller 값 의미(양수 BaseDmg vs 음수 Modifier)가 혼재해 공식에 혼란이 생김. ExecCalc 내부에서 `-음수`를 다시 양수로 뒤집는 이중 부정이 발생.
+
+**결정**: 태그 분리 + 양수 전달 원칙 확립.
+- 무기(플레이어): `Data.WeaponBaseDamage` — 양수 BaseDmg 주입
+- 에너미: `Data.EnemyAttackDamage` — 양수 AttackDmg 주입
+- ExecCalc 출력 시 `-FinalDamage`로 HP 감산
+
+**결과**: `GetSetByCallerMagnitude` 호출 태그가 Source 유형을 의미상으로 명시. ExecCalc 내 이중 부정 제거. 6개 파일 일괄 교체(BaseProjectile, BaseSummonObject, 에너미 4종).
+
+**포트폴리오 포인트**: GAS 데이터 흐름 설계 — "입력은 양수, 출력에서 방향 결정" 원칙 / SetByCaller 태그 네이밍이 의미 전달하도록 분리하는 인터페이스 설계 사고.
+
+**관련 파일**: `RSGameplayTags.h/.cpp`, `BaseProjectile.cpp`, `BaseSummonObject.cpp`, `MeleeEnemy.cpp`, `EliteEnemy.cpp`, `BossEnemy.cpp`, `EnemyProjectile.cpp`
+
+---
+
+## [2026-04-13] PATTERN — SUMMON 타입 자동발사에서 LocalInputConfirm 자동 호출
+
+**상황**: M-3 자동발사 전환 시 SUMMON 타입 무기(召喚物을 일정 위치에 배치하는 GA)가 `WaitForPlayerConfirm` Task에서 무한 대기하는 문제. 수동 발사 모드에서는 플레이어 클릭이 `LocalInputConfirm`을 트리거했으나, 자동발사 모드에서는 클릭 입력이 없다.
+
+**문제·과제**: `FireSlot` 호출 후 GA가 `WaitForPlayerConfirm` 상태에 멈춰 있으면 타이머 다음 틱에 동일 슬롯의 새 GA를 활성화하지 못하고 자동발사 루프가 정지.
+
+**검토한 선택지**:
+- A) SUMMON GA 내부에 타임아웃 추가 — GA 변경 필요, 다른 활성화 경로(수동 미래 지원)에 영향
+- B) `StartAutoFire` 타이머 내에서 `FireSlot` 직후 `ASC->LocalInputConfirm()` 자동 호출 — 호출 측에서 처리, GA 무수정
+
+**결정**: B 선택. `TriggerAbilityFromGameplayEvent`가 동기 처리되므로, `FireSlot` 반환 시점에 GA는 이미 `WaitForPlayerConfirm` 상태. 그 직후 `LocalInputConfirm()` 호출이 정확히 해당 대기를 해제.
+
+**결과**: SUMMON 타입도 자동발사 루프 정상 동작. GA 코드 무수정.
+
+**포트폴리오 포인트**: GAS `LocalInputConfirm`의 동작 시점 이해 / 자동화 컨텍스트에서 GA 내부를 변경하지 않고 호출 측에서 흐름을 제어하는 설계 판단.
+
+**관련 파일**: `Source/RoastStaffGAS/Private/Subsystems/EquipmentSubsystem.cpp` (StartAutoFire 타이머 람다)
 
 ---
 
