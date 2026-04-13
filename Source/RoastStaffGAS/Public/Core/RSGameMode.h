@@ -72,13 +72,14 @@ private:
 	UFUNCTION()
 	void OnResultConfirmed();
 
+public:
+	/** 프리웜 진행 중 플래그 — EquipmentSubsystem에서 AutoFire 스킵 판정에 사용 */
+	bool bIsPreWarmActive = false;
+
 private:
 	/** 레벨에 배치된 EnemySpawner 캐시 */
 	UPROPERTY()
 	AEnemySpawner* CachedSpawner = nullptr;
-	
-	/** 프리웜 진행 중 플래그 — Tick에서 LoadingWidget 폴링 제어 */
-	bool bIsPreWarmActive = false;
 	
 	/** 데미지 플로팅 위젯 프리웜 클래스 — BP에서 할당 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|PreWarm")

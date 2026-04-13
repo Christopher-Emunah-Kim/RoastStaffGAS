@@ -154,7 +154,8 @@ void UPoolingSubsystem::RequestAsyncPreWarm(TArray<FPoolPreWarmRequest> Requests
         PreWarmTotalCount += FMath::Max(0, Req.Count);
     }
 
-    KHS_INFO(TEXT("요청 %d건, 총 인스턴스 %d개"), PreWarmQueue.Num(), PreWarmTotalCount);
+    KHS_INFO(TEXT("RequestAsyncPreWarm — 요청 %d건, 총 인스턴스 %d개"),
+        PreWarmQueue.Num(), PreWarmTotalCount);
 }
 
 bool UPoolingSubsystem::IsTickable() const
@@ -182,8 +183,12 @@ void UPoolingSubsystem::Tick(float DeltaTime)
 
     if (PreWarmQueue.IsEmpty() && PreWarmTotalCount > 0 && PreWarmDoneCount >= PreWarmTotalCount)
     {
+        KHS_INFO(TEXT("프리웜 완료 — Done: %d / Total: %d"),
+            PreWarmDoneCount, PreWarmTotalCount);
+
         PreWarmTotalCount = 0;
         PreWarmDoneCount = 0;
+
         OnPreWarmComplete.Broadcast();
     }
 }
@@ -226,6 +231,8 @@ bool UPoolingSubsystem::SpawnOnePreWarmUnit(FPoolPreWarmRequest& Req)
 void UPoolingSubsystem::TickPreWarm()
 {
     int32 Budget = PreWarmBatchSize;
+    int32 SpawnedThisFrame = 0;
+
     while (Budget > 0 && !PreWarmQueue.IsEmpty())
     {
         FPoolPreWarmRequest& Back = PreWarmQueue.Last();
@@ -244,6 +251,13 @@ void UPoolingSubsystem::TickPreWarm()
         --Back.Count;
         --Budget;
         ++PreWarmDoneCount;
+        ++SpawnedThisFrame;
+    }
+
+    if (SpawnedThisFrame > 0)
+    {
+        KHS_INFO(TEXT("TickPreWarm — 이번 프레임 %d개 스폰 | 진행: %d/%d"),
+            SpawnedThisFrame, PreWarmDoneCount, PreWarmTotalCount);
     }
 }
 

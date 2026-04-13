@@ -48,7 +48,7 @@ public:
 	const FWeaponSlotInstanceData* GetSlotData(int32 SlotIndex) const;
 
 	FORCEINLINE int32 GetSlotCount() const {return SLOT_COUNT;}
-	
+
 private:
 	/** 최근접 적 탐색 — 자동발사 타겟팅에 사용 */
 	AActor* FindNearestEnemy(float SearchRadius) const;
@@ -92,6 +92,7 @@ public:
 private:
 	static constexpr int32 SLOT_COUNT = 3;
 	static constexpr float AutoFireSearchRadius = 1500.f;
+	static constexpr float AUTO_FIRE_START_DELAY = 5.f; 
 	static constexpr int32 WeaponProjectilePoolCount = 10;
 	static constexpr int32 WeaponSummonPoolCount     = 5;
 	

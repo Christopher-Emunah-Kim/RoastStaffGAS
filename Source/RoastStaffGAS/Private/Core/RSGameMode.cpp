@@ -46,6 +46,23 @@ void ARSGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// LoadingWidget 재생성 — 레벨 전환 시 이전 World의 Widget이 파괴되므로 새 World에서 재생성 필요
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance())
+
+	// 이전 World의 dangling Widget 상태 초기화 (bIsOpen=true 남아있을 수 있음)
+	if (URSLoadingWidget* OldWidget = Cast<URSLoadingWidget>(UMS->GetWidgetByID(EUIID::LOADING)))
+	{
+		if (OldWidget->IsOpen() && !OldWidget->IsInViewport())
+		{
+			UMS->CloseUIByID(EUIID::LOADING);
+		}
+	}
+
+	if (URSLoadingWidget* LoadingWidget = Cast<URSLoadingWidget>(UMS->OpenUIByID(EUIID::LOADING)))
+	{
+		LoadingWidget->SetLoadingProgress(0.9f);  // TransitionGameMode 스트리밍 완료 (0.9) 표시
+	}
+
 	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS)
 	const FName CharID = SGS->GetLastSelectedCharacter();
 

@@ -13,6 +13,12 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
+### [UX] WeaponSlot UI 비어있을 때 숨김 처리 [P1]
+- 현재: 게임 시작 시 슬롯 3개 모두 "EMPTY" 표시 → UX 혼란
+- 개선: 무기가 할당되지 않은 슬롯은 Visibility=Collapsed
+- 구현: WBP_WeaponSlot → OnSlotUpdated 델리게이트에서 IsEmpty() 체크 → SetVisibility
+- 이유: AUTO_FIRE_START_DELAY(5초) 동안 빈 슬롯이 보이면 버그처럼 보임
+
 ### [BUG] FloatingDamageWidgetClass 중복 관리 [P2]
 - RSGameMode.DamageFloatingWidgetClass (PreWarm용) + RSPlayerController.FloatingDamageWidgetClass (실제 스폰용) 두 곳에 동일 클래스 UPROPERTY 존재
 - 한 쪽만 교체 시 PreWarm 대상과 실제 사용 클래스 불일치 잠재 버그

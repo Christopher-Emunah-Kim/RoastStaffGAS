@@ -11,6 +11,9 @@
 #include "System/LoggingSystem.h"
 #include "Objects/Projectile/BaseProjectile.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "Core/RSGameMode.h"
+#include "Character/Enemy/EnemyBaseCharacter.h"
+#include "Kismet/GameplayStatics.h"
 
 void UEquipmentSubsystem::InitializeSubsystem(UAbilitySystemComponent* InASC)
 {
@@ -206,6 +209,18 @@ void UEquipmentSubsystem::SetGameplayEventData(const FVector& AimLocation, FGame
 
 void UEquipmentSubsystem::StartAutoFire(int32 SlotIndex)
 {
+	// PreWarm 중에는 자동발사 타이머 등록 스킵
+	UWorld* World = GetGameInstance()->GetWorld();
+	ARSGameMode* GameMode = World ? World->GetAuthGameMode<ARSGameMode>() : nullptr;
+	if (GameMode)
+	{
+		if (GameMode->bIsPreWarmActive)
+		{
+			KHS_INFO(TEXT("Slot %d: PreWarm 중 — 자동공격 타이머 등록 스킵"), SlotIndex);
+			return;
+		}
+	}
+
 	FWeaponSlotInstanceData& Slot = Slots[SlotIndex];
 
 	GetGameInstance()->GetWorld()->GetTimerManager().SetTimer(
@@ -227,9 +242,10 @@ void UEquipmentSubsystem::StartAutoFire(int32 SlotIndex)
 				ASC->LocalInputConfirm();
 			}
 		},
-		Slot.SlotEquipData.Cooldown, true, 0.f);
+		Slot.SlotEquipData.Cooldown, true, AUTO_FIRE_START_DELAY);  //프리웜&에너미 스폰 시간 고려 지연시간.
 
-	KHS_INFO(TEXT("Slot %d: 자동공격 타이머 시작. CD: %.2fs"), SlotIndex, Slot.SlotEquipData.Cooldown);
+	KHS_INFO(TEXT("Slot %d: 자동공격 타이머 시작. 첫 발사: %f초 후, CD: %.2fs"),
+		SlotIndex, AUTO_FIRE_START_DELAY, Slot.SlotEquipData.Cooldown);
 }
 
 void UEquipmentSubsystem::StopAutoFire(int32 SlotIndex)

@@ -38,6 +38,52 @@
 
 ## 2026-04
 
+### [2026-04-14] [BUG_FIX] LoadingWidget Dangling Pointer — 레벨 전환 시 UIManagerSubsystem 캐시 불일치
+
+**상황**: InGame 진입 후 LoadingWidget이 PreWarm 완료 전에 닫히고, 첫 무기 슬롯 등록이 지연되는 버그. `FinishLoading()` 호출 시점에 `IsVisible: 0` 로그 발견.
+
+**문제/과제**: 레벨 전환(TransitionGameMode → RSGameMode) 시 Widget의 World가 파괴되면서 Widget 자체도 파괴됨. 그러나 GameInstanceSubsystem인 UIManagerSubsystem은 레벨 간 유지되어 `bIsOpen=true` + dangling pointer 상태 잔존. 새 World에서 `OpenUIByID` 호출 시 `bIsOpen=true` 조기 반환으로 `AddToViewport` 스킵 → Widget은 메모리에만 있고 Viewport에는 없는 상태.
+
+**검토한 선택지**:
+  - A) LOADING UI를 PAGE → SYSTEM 레이어로 변경 — 레이어 변경으로는 World 파괴 문제 미해결
+  - B) RSGameMode::BeginPlay에서 LoadingWidget 강제 재생성 — 레벨마다 새 Widget 생성, 깜빡임 우려
+  - C) dangling 상태 감지 후 CloseUI → OpenUI — `IsOpen() && !IsInViewport()` 조건으로 정확히 식별
+
+**결정**: C 선택. `BeginPlay`에서 `GetWidgetByID` 조회 후 dangling 상태 확인, `CloseUIByID`로 `bIsOpen` 플래그 리셋 후 `OpenUIByID` 재호출로 `AddToViewport` 보장.
+
+**결과**: LoadingWidget이 RSGameMode BeginPlay 시점에 정상적으로 Viewport에 추가되고, PreWarm 진행률 갱신 및 FinishLoading 정상 동작 확인. 레벨 전환 간 UI 상태 불일치 해소.
+
+**포트폴리오 포인트**: UMG Widget의 World 소유권과 GameInstanceSubsystem의 생명주기 차이 이해 / Widget이 파괴된 후 캐시만 남은 dangling 상태를 `IsInViewport()` 조건으로 식별하는 방어적 초기화 패턴 적용
+
+**관련 파일**: `Source/RoastStaffGAS/Private/Core/RSGameMode.cpp:54-61`, `Source/RoastStaffGAS/Private/UI/Transition/RSLoadingWidget.cpp`
+
+---
+
+### [2026-04-14] [BUG_FIX] AutoFire 즉시 발사 — PreWarm 중 타이머 등록 + SetTimer 초기 딜레이 0초 문제
+
+**상황**: PreWarm 완료 직후 보스가 스폰되자마자 무기 스킬이 즉시 발사되고 EndAbility 로그가 찍히는 버그. UI에는 슬롯이 표시되기 전에 스킬이 이미 소진됨.
+
+**문제/과제**:
+1. `EquipmentSubsystem::CommitSlot`에서 `StartAutoFire` 즉시 호출 → PreWarm 중에도 타이머 등록됨 → 적이 없어 타겟 없이 발사 스킵
+2. `SetTimer`의 초기 딜레이 파라미터가 `0.f`로 설정되어 타이머 등록 즉시 첫 발사 실행
+
+**검토한 선택지**:
+  - A) StartAutoFire를 private→public으로 이동, StartStageFlow에서 재호출 — API 노출 증가, 복잡도 상승
+  - B) `ARSGameMode::bIsPreWarmActive` public 플래그 추가, StartAutoFire에서 조기 리턴 — 단순 명확
+  - C) SetTimer 초기 딜레이를 Cooldown 값으로 변경 — 첫 발사가 Cooldown만큼 지연(8초 무기는 8초 대기)
+
+**결정**: B + 고정 딜레이 상수.
+  - B안 채택: `bIsPreWarmActive` 체크로 PreWarm 중 타이머 등록 스킵
+  - 초기 딜레이: `AUTO_FIRE_START_DELAY = 5.f` 상수 추가, Cooldown과 무관하게 고정 5초 후 첫 발사
+
+**결과**: PreWarm 중에는 타이머 미등록, 완료 후 첫 무기 장착 시 타이머 등록, 5초 후 첫 발사. 보스 스폰(~1초) + 고정 딜레이(5초) = 총 6초 후 자동 공격 시작으로 자연스러운 전투 시작 타이밍 확보.
+
+**포트폴리오 포인트**: SetTimer의 초기 딜레이 파라미터 활용 / GameMode 상태 플래그를 통한 Subsystem 간 동기화 / 사용자 피드백("노. 아니야 이 방식은 잘못됐어")을 받아 즉시 롤백하고 더 단순한 해법 채택한 협업 사례
+
+**관련 파일**: `Source/RoastStaffGAS/Public/Subsystems/EquipmentSubsystem.h:95`, `Private/Subsystems/EquipmentSubsystem.cpp:292-309`, `Public/Core/RSGameMode.h:77`
+
+---
+
 ### [2026-04-13] [ARCH] SpawnPreview 액터 — GameMode 전역 단일 클래스 → DT 스킬별 분리
 
 **상황**: SpawnPreview 타입 캐릭터 스킬이 구현됐지만, 모든 캐릭터의 프리뷰가 동일한 액터(GameMode.PreviewActorClass)를 사용. 캐릭터마다 다른 형태의 프리뷰(범위 표시, 투사체 방향 표시 등)가 필요함

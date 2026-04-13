@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UI/Transition/RSLoadingWidget.h"
+#include "RoastStaffGAS.h"
 #include "Components/ProgressBar.h"
 #include "Components/Image.h"
 #include "TimerManager.h"
@@ -72,6 +73,7 @@ void URSLoadingWidget::FinishLoading()
 {
 	if (!IsVisible())
 	{
+		KHS_WARN(TEXT("LoadingWidget이 이미 안 보임 — bIsOpen: %d, IsInViewport: %d"), IsOpen(), IsInViewport());
 		return;
 	}
 	SetLoadingProgress(1.f);
