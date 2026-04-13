@@ -364,6 +364,28 @@ FStageResultData ARSGameMode::BuildResultData(bool bCleared)
 void ARSGameMode::SaveResult(const FStageResultData& ResultData)
 {
 	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS)
+
+	// 클리어 시 UnlockStageID 매핑 캐릭터 해금 — UpdateStageRecord(SaveGame 포함) 전에 처리
+	if (ResultData.bCleared)
+	{
+		GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS)
+		TArray<FCharacterStaticData> AllChars;
+		if (!GDS->GetAllCharacterStaticData(AllChars))
+		{
+			KHS_WARN(TEXT("GDS 캐릭터 리스트 조회 실패"));
+			return;
+		}
+		
+		for (const FCharacterStaticData& CharData : AllChars)
+		{
+			if (CharData.UnlockType == ECharacterUnlockType::STAGE_CLEAR &&	CharData.UnlockStageID == CurrentStageID)
+			{
+				SGS->UnlockCharacter(CharData.CharacterID);
+				KHS_INFO(TEXT("캐릭터 해금 — CharID: %s (StageID: %s)"),	*CharData.CharacterID.ToString(), *CurrentStageID.ToString());
+			}
+		}
+	}
+
 	SGS->UpdateStageRecord(CurrentStageID, ResultData);
 }
 
