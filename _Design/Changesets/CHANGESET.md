@@ -12,10 +12,29 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ## PENDING_COMMIT
 
+<!-- 비어있음 -->
+
+## COMMITTED
+
+- date: 2026-04-14
+  commit: 1795bb48d
+  summary: "LoadingWidget dangling pointer + AutoFire 타이밍 버그 수정 + 디버깅 로그 정리"
+  status: COMMITTED
+  files.modified:
+    - Source/RoastStaffGAS/Public/Core/RSGameMode.h
+    - Source/RoastStaffGAS/Private/Core/RSGameMode.cpp
+    - Source/RoastStaffGAS/Public/Subsystems/EquipmentSubsystem.h
+    - Source/RoastStaffGAS/Private/Subsystems/EquipmentSubsystem.cpp
+    - Source/RoastStaffGAS/Private/UI/Transition/RSLoadingWidget.cpp
+    - Source/RoastStaffGAS/Private/Core/Transition/RSTransitionGameMode.cpp
+    - Source/RoastStaffGAS/Private/Subsystems/PoolingSubsystem.cpp
+    - _Design/Portfolio/DEVLOG.md
+    - _Design/TODO.md
+
 - date: 2026-04-13
-  plan: PLAN_Phase1_InGame_v1.0
+  commit: fc67bd931
   summary: "SpawnPreview 다형성 — 스킬별 PreviewActorClass DT 분리 + GA FX 스폰 구현"
-  status: PENDING_COMMIT
+  status: COMMITTED
   files.modified:
     - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
     - Source/RoastStaffGAS/Public/Data/RuntimeDataStructs.h

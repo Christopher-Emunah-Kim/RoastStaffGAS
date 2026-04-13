@@ -24,15 +24,6 @@
 - 한 쪽만 교체 시 PreWarm 대상과 실제 사용 클래스 불일치 잠재 버그
 - 개선 방향: GameMode::BuildPreWarmList에서 PlayerController의 FloatingDamageWidgetClass를 읽어 사용, GameMode UPROPERTY 제거
 
-### [BUG] LoadingWidget CloseUI 타이밍 오류 [P1]
-- 증상: 인게임 진입 후 첫 무기 슬롯 등록이 한참 뒤에 일어남 → LoadingWidget이 PreWarm 완료 전에 닫히는 것으로 추정
-- 기대 흐름:
-  1. LoadingWidget → Instance 레벨에서 OpenUI
-  2. TransitionGameMode → StreamingLevel 비동기 로드 → ProgressBar.SetPercent(0.9)
-  3. InGame 레벨 진입 → RSGameMode::BeginPlay → PoolingSubsystem::RequestAsyncPreWarm
-  4. PreWarm 완료 델리게이트 → OnPreWarmCompleted → CloseLoadingUI
-- 의심 원인: CloseLoadingUI가 PreWarm 완료 전에 별도 경로에서 이미 호출되고 있거나, OnPreWarmCompleted 바인딩이 누락/타이밍 불일치
-- 조사 시작점: RSGameMode::OnPreWarmCompleted 호출 시점 로그 + TransitionGameMode CloseUI 호출 경로 추적
 
 
 ## [FEATURE] PHASE-1 인게임 루프 완성 | PLAN_Phase1_InGame_v1.0
