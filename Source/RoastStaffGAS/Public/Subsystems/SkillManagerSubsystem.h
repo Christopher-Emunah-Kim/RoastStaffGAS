@@ -19,7 +19,11 @@ struct FSkillSlotState
 	FGameplayAbilitySpecHandle Handle;
 	FTimerHandle CooldownTimer;
 	bool bIsOnCooldown = false;
+	float CooldownRemaining = 0.f;
+	float TotalCooldown = 0.f;
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSkillSlotUpdated, int32, SlotIndex);
 
 /**
  * USkillManagerSubsystem
@@ -32,6 +36,10 @@ class ROASTSTAFFGAS_API USkillManagerSubsystem : public UWorldSubsystem
 	GENERATED_BODY()
 
 public:
+	/** 슬롯 변경(초기화/쿨타임 시작·종료) 시 SlotIndex 브로드캐스트 */
+	UPROPERTY(BlueprintAssignable)
+	FOnSkillSlotUpdated OnSkillSlotUpdatedDel;
+
 	/** RSPlayerCharacter::InitializeAbilitySystem()에서 호출 */
 	void InitializeSkills(FName CharacterID, UAbilitySystemComponent* InASC);
 	/** Q(Slot=0) / E(Slot=1) 입력 진입점 */
@@ -42,7 +50,9 @@ public:
 	void CancelSkillPreview();
 	/** GA_CharacterSkill이 OnAbilityActivated에서 ExecData 조회 시 사용 */
 	const FCharacterSkillExecData& GetSlotExecData(int32 SlotIndex) const;
-	
+	/** UI가 슬롯 상태(쿨타임 데이터 등) 읽을 때 사용 */
+	const FSkillSlotState* GetSkillSlotState(int32 SlotIndex) const;
+
 	/** 프리뷰 활성 여부 — RSPlayerController::OnConfirm 분기에 사용 */
 	FORCEINLINE bool IsPreviewActive() const { return ActivePreviewSlot >= 0; }
 	/** SpawnPreview 확정 위치 — GA_CharacterSkill::ExecuteSpawnPreview에서 읽음 */

@@ -609,12 +609,13 @@ bool UGameDataSubsystem::GetCharacterSkillExecData(FName CharacterID, int32 Skil
         return false;
     }
 
-    OutData.SkillID        = Found->SkillID;
-    OutData.ActivationType = Found->ActivationType;
-    OutData.Cooldown       = Found->Cooldown;
-    OutData.GAClass        = Found->GAClass;
+    OutData.SkillID           = Found->SkillID;
+    OutData.ActivationType    = Found->ActivationType;
+    OutData.Cooldown          = Found->Cooldown;
+    OutData.GAClass           = Found->GAClass;
     OutData.PreviewActorClass = Found->PreviewActorClass;
-    OutData.LevelData      = Found->LevelData[LevelIndex];
+    OutData.SkillIconSoftRef  = Found->SkillIcon;
+    OutData.LevelData         = Found->LevelData[LevelIndex];
     return true;
 }
 

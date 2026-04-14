@@ -24,6 +24,7 @@
 class USkeletalMesh;
 class UAnimInstance;
 class ASummonPreviewObject;
+class UTexture2D;
 
 USTRUCT(BlueprintType)
 struct FCharacterStaticData : public FTableRowBase
@@ -696,6 +697,9 @@ struct FCharacterSkillStaticData : public FTableRowBase
 	/** SpawnPreview 타입 전용 프리뷰 액터 클래스 — 스킬마다 다른 BP_Preview 할당. 다른 타입에서는 미사용 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|SpawnPreview")
 	TSoftClassPtr<ASummonPreviewObject> PreviewActorClass;
+	/** 스킬 슬롯 아이콘 텍스처 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|UI")
+	TSoftObjectPtr<UTexture2D> SkillIcon;
 	/** 레벨별 수치+FX 데이터. 3개 원소 (Lv1/Lv2/Lv3) 필수 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Level")
 	TArray<FCharacterSkillLevelData> LevelData;

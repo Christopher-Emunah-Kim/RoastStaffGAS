@@ -274,6 +274,9 @@ struct FCharacterSkillExecData
 	/** SpawnPreview 타입 전용 프리뷰 액터 클래스. 다른 타입에서는 null */
 	UPROPERTY(BlueprintReadOnly)
 	TSoftClassPtr<ASummonPreviewObject> PreviewActorClass;
+	/** 스킬 슬롯 아이콘 텍스처 */
+	UPROPERTY(BlueprintReadOnly)
+	TSoftObjectPtr<UTexture2D> SkillIconSoftRef;
 	/** 해당 레벨 수치+FX 데이터 (FCharacterSkillStaticData.LevelData[Level-1]) */
 	UPROPERTY(BlueprintReadOnly)
 	FCharacterSkillLevelData LevelData;

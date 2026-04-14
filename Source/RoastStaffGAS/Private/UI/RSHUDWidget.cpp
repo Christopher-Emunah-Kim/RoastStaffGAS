@@ -2,7 +2,7 @@
 
 
 #include "UI/RSHUDWidget.h"
-#include "UI/WeaponSlotContainerWidget.h"
+#include "UI/Ingame/SlotContainerWidget.h"
 
 URSHUDWidget::URSHUDWidget()
 {

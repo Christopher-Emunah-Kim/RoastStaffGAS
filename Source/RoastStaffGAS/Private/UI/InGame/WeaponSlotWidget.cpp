@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
-#include "UI/WeaponSlotWidget.h"
+#include "UI/Ingame/WeaponSlotWidget.h"
 #include "Data/RuntimeDataStructs.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
@@ -16,23 +15,20 @@ void UWeaponSlotWidget::InitSlot(int32 InSlotIndex)
 
 void UWeaponSlotWidget::UpdateSlot(const FWeaponSlotInstanceData* SlotData)
 {
-	if (!SlotData || SlotData->IsEmpty()) //무기 장착이 일어나지않은 슬롯
+	// 빈 슬롯 — 무기 미할당 시 위젯 전체 숨김
+	if (!SlotData || SlotData->IsEmpty())
 	{
-		Txt_WeaponName->SetText(FText::FromString(TEXT("EMPTY")));
-		Img_CooldownOverlay->SetVisibility(ESlateVisibility::Collapsed);
-		Txt_CooldownRemaining->SetVisibility(ESlateVisibility::Collapsed);
-		Img_SkillIcon->SetVisibility(ESlateVisibility::Collapsed);
-		Img_ActiveBorder->SetVisibility(ESlateVisibility::Collapsed);
+		SetVisibility(ESlateVisibility::Collapsed);
 		bIsCooldownActive = false;
 		return;
 	}
 
-	FName DisplayName = SlotData->SlotEquipData.WeaponName.IsNone()? SlotData->SlotEquipData.WeaponID : SlotData->SlotEquipData.WeaponName;
+	SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+
+	FName DisplayName = SlotData->SlotEquipData.WeaponName.IsNone() ? SlotData->SlotEquipData.WeaponID : SlotData->SlotEquipData.WeaponName;
 	Txt_WeaponName->SetText(FText::FromName(DisplayName));
 
-	Img_ActiveBorder->SetVisibility(SlotData->bIsActive ? ESlateVisibility::Visible : ESlateVisibility::Collapsed); // 액티브 모드 여부
-	
-	//스킬 아이콘 세팅
+	// 스킬 아이콘
 	if (!SlotData->SlotEquipData.SkillIcon.IsNull())
 	{
 		LoadedSkillIcon = SlotData->SlotEquipData.SkillIcon.LoadSynchronous();
@@ -42,7 +38,7 @@ void UWeaponSlotWidget::UpdateSlot(const FWeaponSlotInstanceData* SlotData)
 			Img_SkillIcon->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		}
 	}
-	
+
 	// 쿨타임
 	if (SlotData->bIsActive || SlotData->CooldownRemaining <= 0.f)
 	{
@@ -52,31 +48,27 @@ void UWeaponSlotWidget::UpdateSlot(const FWeaponSlotInstanceData* SlotData)
 	}
 	else
 	{
-		TotalCooldown = SlotData->SlotEquipData.Cooldown;
+		TotalCooldown          = SlotData->SlotEquipData.Cooldown;
 		LocalCooldownRemaining = SlotData->CooldownRemaining;
-		bIsCooldownActive = true;
+		bIsCooldownActive      = true;
 		Img_CooldownOverlay->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		Txt_CooldownRemaining->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	}
-
 }
 
 void UWeaponSlotWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-	
-	ensureMsgf(Txt_WeaponName, TEXT("Txt_WeaponName BindWidget 누락"));
-	ensureMsgf(Img_CooldownOverlay, TEXT("Img_CooldownOverlay BindWidget 누락"));
-	ensureMsgf(Img_SkillIcon, TEXT("Img_SkillIcon BindWidget 누락"));
-	ensureMsgf(Txt_CooldownRemaining, TEXT("Txt_CooldownRemaining BindWidget 누락"));
-	ensureMsgf(Img_ActiveBorder, TEXT("Img_ActiveBorder BindWidget 누락"));
 
-	// MID 생성 — BP에서 Img_CooldownOverlay에 머티리얼 할당 후 동작
+	ensureMsgf(Txt_WeaponName,        TEXT("Txt_WeaponName BindWidget 누락"));
+	ensureMsgf(Img_CooldownOverlay,   TEXT("Img_CooldownOverlay BindWidget 누락"));
+	ensureMsgf(Img_SkillIcon,         TEXT("Img_SkillIcon BindWidget 누락"));
+	ensureMsgf(Txt_CooldownRemaining, TEXT("Txt_CooldownRemaining BindWidget 누락"));
+
 	if (Img_CooldownOverlay)
 	{
 		CooldownMID = Img_CooldownOverlay->GetDynamicMaterial();
 	}
-
 }
 
 void UWeaponSlotWidget::UpdateCooldown(float InDeltaTime)
@@ -87,30 +79,28 @@ void UWeaponSlotWidget::UpdateCooldown(float InDeltaTime)
 	}
 
 	LocalCooldownRemaining -= InDeltaTime;
+
 	if (CooldownMID && TotalCooldown > 0.f)
 	{
-		float Percent = FMath::Clamp(LocalCooldownRemaining / TotalCooldown, 0.0f, 1.0f);
+		const float Percent = FMath::Clamp(LocalCooldownRemaining / TotalCooldown, 0.f, 1.f);
 		CooldownMID->SetScalarParameterValue(CooldownPercentParam, Percent);
 	}
-	
+
 	if (LocalCooldownRemaining <= 0.f)
 	{
 		LocalCooldownRemaining = 0.f;
-		bIsCooldownActive = false;
+		bIsCooldownActive      = false;
 		Img_CooldownOverlay->SetVisibility(ESlateVisibility::Collapsed);
 		Txt_CooldownRemaining->SetVisibility(ESlateVisibility::Collapsed);
 		return;
 	}
 
-	// 1초 미만이면 "0" 표시 
-	int32 DisplaySeconds = (LocalCooldownRemaining < 1.0f) ? 0 : FMath::CeilToInt(LocalCooldownRemaining);
+	const int32 DisplaySeconds = (LocalCooldownRemaining < 1.f) ? 0 : FMath::CeilToInt(LocalCooldownRemaining);
 	Txt_CooldownRemaining->SetText(FText::AsNumber(DisplaySeconds));
 }
 
 void UWeaponSlotWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
-	
 	UpdateCooldown(InDeltaTime);
-
 }

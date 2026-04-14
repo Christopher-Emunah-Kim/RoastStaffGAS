@@ -13,8 +13,9 @@
 #include "Subsystems/SkillManagerSubsystem.h"
 #include "Subsystems/UIManagerSubsystem.h"
 #include "UI/RSHUDWidget.h"
-#include "UI/WeaponSlotContainerWidget.h"
-#include "UI/WeaponSlotWidget.h"
+#include "UI/Ingame/SlotContainerWidget.h"
+#include "UI/Ingame/WeaponSlotWidget.h"
+#include "UI/Ingame/CharacterSkillSlotWidget.h"
 #include "UI/FloatingDamageWidget.h"
 #include "UI/LevelUpWeaponSelectWidget.h"
 #include "UI/WeaponReplaceWidget.h"
@@ -47,18 +48,27 @@ void ARSPlayerController::BeginPlay()
 	EquipSys->OnSlotUpdatedDel.AddUniqueDynamic(this, &ARSPlayerController::OnSlotUpdated);
 	EquipSys->OnSlotFull.AddUniqueDynamic(this, &ARSPlayerController::OnWeaponSlotFull);
 	LevelUpSys->OnWeaponCandidatesReadyDel.AddUniqueDynamic(this, &ARSPlayerController::OnWeaponCandidatesReady);
-
-	// MODULE-7: 패시브 슬롯 변경 구독
+	
 	GET_WORLD_SUBSYSTEM(UPassiveSlotSubsystem, PassiveSys)
 	PassiveSys->OnPassiveSlotChangedDel.AddUniqueDynamic(this, &ARSPlayerController::OnPassiveSlotChanged);
 
-	KHS_INFO(TEXT("델리게이트 구독 완료 (SlotUpdated / SlotFull / WeaponCandidatesReady / PassiveSlotChanged)"));
+	// 캐릭터 스킬 슬롯 UI 구독
+	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
+	SkillMgr->OnSkillSlotUpdatedDel.AddUniqueDynamic(this, &ARSPlayerController::OnSkillSlotUpdated);
+
+	KHS_INFO(TEXT("델리게이트 구독 완료 (SlotUpdated / SlotFull / WeaponCandidatesReady / PassiveSlotChanged / SkillSlotUpdated)"));
 
 	// UIManagerSettings 매핑 기반으로 HUD 오픈 — TSubclassOf 직접 참조 제거
 	URSHUDWidget* HUDWidget = Cast<URSHUDWidget>(UMS->OpenUIByID(EUIID::HUD));
 	if (!ensureMsgf(HUDWidget, TEXT("HUD Widget 오픈 실패 — UIManagerSettings HUD 매핑 확인 필요")))
 	{
 		return;
+	}
+
+	// Character::BeginPlay가 먼저 실행돼 InitializeSkills 브로드캐스트를 놓쳤을 경우 대비
+	for (int32 i = 0; i < 2; ++i)
+	{
+		RefreshSkillSlotUI(i);
 	}
 
 }
@@ -74,6 +84,9 @@ void ARSPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 	GET_WORLD_SUBSYSTEM(UPassiveSlotSubsystem, PassiveSys)
 	PassiveSys->OnPassiveSlotChangedDel.RemoveDynamic(this, &ARSPlayerController::OnPassiveSlotChanged);
+
+	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgrEnd)
+	SkillMgrEnd->OnSkillSlotUpdatedDel.RemoveDynamic(this, &ARSPlayerController::OnSkillSlotUpdated);
 
 	Super::EndPlay(EndPlayReason);
 }
@@ -111,32 +124,67 @@ void ARSPlayerController::RefreshSlotUI(int32 SlotIndex)
 	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetGameInstance());
 	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance());
 
-	// BeginPlay에서 이미 열렸으므로 IsOpen() 체크 후 캐시 반환 — 재생성 없음
 	URSHUDWidget* HUD = Cast<URSHUDWidget>(UMS->OpenUIByID(EUIID::HUD));
 	if (!HUD)
 	{
-		KHS_WARN(TEXT("HUD Widget 획득 실패"));
+		KHS_WARN(TEXT("HUD Widget 획득 실패")); 
 		return;
 	}
 
-	UWeaponSlotContainerWidget* SlotContainer = HUD->GetSlotContainerWidget();
+	USlotContainerWidget* SlotContainer = HUD->GetSlotContainerWidget();
 	if (!SlotContainer)
 	{
-		KHS_WARN(TEXT("WeaponSlotContainer 획득 실패"));
+		KHS_WARN(TEXT("SlotContainer 획득 실패")); 
 		return;
 	}
 
-	UWeaponSlotWidget* Slot = SlotContainer->GetSlotWidget(SlotIndex);
+	UWeaponSlotWidget* Slot = SlotContainer->GetWeaponSlotWidget(SlotIndex);
 	if (!Slot)
 	{
-		KHS_WARN(TEXT("SlotWidget 획득 실패: %d"), SlotIndex);
+		KHS_WARN(TEXT("WeaponSlotWidget 획득 실패: %d"), SlotIndex); 
 		return;
 	}
 
 	const FWeaponSlotInstanceData* SlotData = EquipSys->GetSlotData(SlotIndex);
 	Slot->UpdateSlot(SlotData);
 
-	KHS_INFO(TEXT("Slot %d UI 갱신 — WeaponID: %s"), SlotIndex, SlotData ? *SlotData->SlotEquipData.WeaponID.ToString() : TEXT("null"));
+	KHS_INFO(TEXT("무기 Slot %d UI 갱신 — WeaponID: %s"), SlotIndex, SlotData ? *SlotData->SlotEquipData.WeaponID.ToString() : TEXT("null"));
+}
+
+void ARSPlayerController::OnSkillSlotUpdated(int32 SlotIndex)
+{
+	RefreshSkillSlotUI(SlotIndex);
+}
+
+void ARSPlayerController::RefreshSkillSlotUI(int32 SlotIndex)
+{
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance())
+	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
+
+	URSHUDWidget* HUD = Cast<URSHUDWidget>(UMS->OpenUIByID(EUIID::HUD));
+	if (!HUD)
+	{
+		KHS_WARN(TEXT("HUD Widget 획득 실패")); 
+		return;
+	}
+
+	USlotContainerWidget* SlotContainer = HUD->GetSlotContainerWidget();
+	if (!SlotContainer)
+	{
+		KHS_WARN(TEXT("SlotContainer 획득 실패")); 
+		return;
+	}
+
+	UCharacterSkillSlotWidget* Slot = SlotContainer->GetSkillSlotWidget(SlotIndex);
+	if (!Slot)
+	{
+		KHS_WARN(TEXT("CharacterSkillSlotWidget 획득 실패: %d"), SlotIndex); 
+		return;
+	}
+
+	Slot->UpdateSlot(SkillMgr->GetSkillSlotState(SlotIndex));
+
+	KHS_INFO(TEXT("스킬 Slot %d UI 갱신"), SlotIndex);
 }
 
 bool ARSPlayerController::HandleMouseAim()

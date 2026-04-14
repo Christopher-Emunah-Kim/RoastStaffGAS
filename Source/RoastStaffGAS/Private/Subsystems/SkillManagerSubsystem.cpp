@@ -78,6 +78,12 @@ void USkillManagerSubsystem::InitializeSkills(FName CharacterID, UAbilitySystemC
 
 	bIsInitialized = true;
 	KHS_INFO(TEXT("SkillManagerSubsystem 초기화 완료 — CharID: %s"), *CharacterID.ToString());
+
+	// 초기 UI 갱신 — 빈 슬롯 포함 전체 브로드캐스트
+	for (int32 i = 0; i < SKILL_SLOT_COUNT; ++i)
+	{
+		OnSkillSlotUpdatedDel.Broadcast(i);
+	}
 }
 
 void USkillManagerSubsystem::ActivateSkillSlot(int32 SlotIndex)
@@ -173,7 +179,7 @@ void USkillManagerSubsystem::CancelSkillPreview()
 		ASC->RemoveLooseGameplayTag(RSTags::Skill_Character_Preview_Active);
 	}
 
-	KHS_INFO(TEXT("CancelSkillPreview: Slot %d 취소 — 쿨타임 없음"), ActivePreviewSlot);
+	KHS_INFO(TEXT("Slot %d 취소 — 쿨타임 없음"), ActivePreviewSlot);
 	ActivePreviewSlot = -1;
 }
 
@@ -181,11 +187,21 @@ const FCharacterSkillExecData& USkillManagerSubsystem::GetSlotExecData(int32 Slo
 {
 	if (SlotIndex < 0 || SlotIndex >= SKILL_SLOT_COUNT)
 	{
-		KHS_WARN(TEXT("GetSlotExecData: 범위 초과 SlotIndex %d"), SlotIndex);
+		KHS_WARN(TEXT("범위 초과 SlotIndex %d"), SlotIndex);
 		return EmptyExecData;
 	}
 
 	return SkillSlots[SlotIndex].ExecData;
+}
+
+const FSkillSlotState* USkillManagerSubsystem::GetSkillSlotState(int32 SlotIndex) const
+{
+	if (SlotIndex < 0 || SlotIndex >= SKILL_SLOT_COUNT)
+	{
+		return nullptr;
+	}
+
+	return &SkillSlots[SlotIndex];
 }
 
 void USkillManagerSubsystem::SpawnPreviewActor(int32 SlotIndex)
@@ -227,7 +243,7 @@ void USkillManagerSubsystem::SpawnPreviewActor(int32 SlotIndex)
 
 	ASC->AddLooseGameplayTag(RSTags::Skill_Character_Preview_Active);
 	
-	KHS_INFO(TEXT("SpawnPreviewActor: 프리뷰 활성 — Slot %d | SkillID: %s"),
+	KHS_INFO(TEXT("프리뷰 활성 — Slot %d | SkillID: %s"),
 		SlotIndex, *SkillSlots[SlotIndex].ExecData.SkillID.ToString());
 }
 
@@ -243,12 +259,19 @@ void USkillManagerSubsystem::DestroyPreviewActor()
 void USkillManagerSubsystem::StartCooldown(int32 SlotIndex)
 {
 	const float Cooldown = FMath::Max(0.1f, SkillSlots[SlotIndex].ExecData.Cooldown);
-	SkillSlots[SlotIndex].bIsOnCooldown = true;
 
-	GetWorld()->GetTimerManager().SetTimer(	SkillSlots[SlotIndex].CooldownTimer,
+	SkillSlots[SlotIndex].bIsOnCooldown    = true;
+	SkillSlots[SlotIndex].TotalCooldown    = Cooldown;
+	SkillSlots[SlotIndex].CooldownRemaining = Cooldown;
+
+	OnSkillSlotUpdatedDel.Broadcast(SlotIndex);
+
+	GetWorld()->GetTimerManager().SetTimer(SkillSlots[SlotIndex].CooldownTimer,
 		[this, SlotIndex]()
 		{
-			SkillSlots[SlotIndex].bIsOnCooldown = false;
+			SkillSlots[SlotIndex].bIsOnCooldown     = false;
+			SkillSlots[SlotIndex].CooldownRemaining = 0.f;
+			OnSkillSlotUpdatedDel.Broadcast(SlotIndex);
 			KHS_INFO(TEXT("Skill Slot %d 쿨타임 종료"), SlotIndex);
 		},
 		Cooldown, false);

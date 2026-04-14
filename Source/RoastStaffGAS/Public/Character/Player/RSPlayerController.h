@@ -47,6 +47,10 @@ private:
 	void OnSlotUpdated(int32 SlotIndex);
 	void RefreshSlotUI(int32 SlotIndex);
 
+	UFUNCTION()
+	void OnSkillSlotUpdated(int32 SlotIndex);
+	void RefreshSkillSlotUI(int32 SlotIndex);
+
 	/** LevelUpSubsystem.OnWeaponCandidatesReadyDel 핸들러 — 레벨업 UI 오픈 + 게임 일시정지 */
 	UFUNCTION()
 	void OnWeaponCandidatesReady(const TArray<FWeaponCardDisplayData>& WeaponCards);

@@ -7,7 +7,7 @@
 #include "RSHUDWidget.generated.h"
 
 
-class UWeaponSlotContainerWidget;
+class USlotContainerWidget;
 
 /**
  *
@@ -23,11 +23,9 @@ protected:
 	virtual void NativeConstruct() override;
 
 public:
-	FORCEINLINE UWeaponSlotContainerWidget* GetSlotContainerWidget() const  { return WBP_SlotContainer; }
+	FORCEINLINE USlotContainerWidget* GetSlotContainerWidget() const { return WBP_SlotContainer; }
 
 private:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UWeaponSlotContainerWidget> WBP_SlotContainer;
-
-
+	TObjectPtr<USlotContainerWidget> WBP_SlotContainer;
 };
