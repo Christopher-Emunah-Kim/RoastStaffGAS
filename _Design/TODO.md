@@ -13,11 +13,7 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
-### [UX] WeaponSlot UI 비어있을 때 숨김 처리 [P1]
-- 현재: 게임 시작 시 슬롯 3개 모두 "EMPTY" 표시 → UX 혼란
-- 개선: 무기가 할당되지 않은 슬롯은 Visibility=Collapsed
-- 구현: WBP_WeaponSlot → OnSlotUpdated 델리게이트에서 IsEmpty() 체크 → SetVisibility
-- 이유: AUTO_FIRE_START_DELAY(5초) 동안 빈 슬롯이 보이면 버그처럼 보임
+### [UX] WeaponSlot UI 비어있을 때 숨김 처리 ✓ DONE 2026-04-14 (PLAN_SkillSlotUI_v1.0)
 
 ### [BUG] FloatingDamageWidgetClass 중복 관리 [P2]
 - RSGameMode.DamageFloatingWidgetClass (PreWarm용) + RSPlayerController.FloatingDamageWidgetClass (실제 스폰용) 두 곳에 동일 클래스 UPROPERTY 존재
@@ -25,6 +21,14 @@
 - 개선 방향: GameMode::BuildPreWarmList에서 PlayerController의 FloatingDamageWidgetClass를 읽어 사용, GameMode UPROPERTY 제거
 
 
+
+## [FEATURE] 캐릭터 스킬 슬롯 UI 통합 ✓ DONE 2026-04-14 | PLAN_SkillSlotUI_v1.0
+- [x] FCharacterSkillStaticData / FCharacterSkillExecData SkillIconSoftRef 추가
+- [x] SkillManagerSubsystem CooldownRemaining/TotalCooldown + OnSkillSlotUpdatedDel 추가
+- [x] CharacterSkillSlotWidget 신규 (Q/E 슬롯, 쿨타임 NativeTick 패턴)
+- [x] SlotContainerWidget 일반화 (스킬2 + 무기3 통합)
+- [x] WeaponSlotWidget 경로 이동 (UI/Ingame/) + 빈 슬롯 Collapsed UX
+- [x] RSHUDWidget / RSPlayerController 연결 + 타이밍 역전 버그 수정
 
 ## [FEATURE] PHASE-1 인게임 루프 완성 | PLAN_Phase1_InGame_v1.0
 > 시작: 2026-04-10 | 기획서: 게임 시스템 개선안 v1.0.md

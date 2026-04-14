@@ -29,6 +29,7 @@
 | DECLARE/DEFINE_ATTRIBUTE_CAPTUREDEF — ExecCalc static 캡처 구조체 패턴 | GAS ExecCalc | 1 | 2026-04-13 | 🟡 학습중 | MODULE-4 |
 | GetSetByCallerMagnitude — ExecCalc 내에서 SetByCaller 값 읽기 | GAS ExecCalc | 1 | 2026-04-13 | 🟡 학습중 | MODULE-4 |
 | CapturedSourceTags.GetAggregatedTags() — ExecCalc 내 Source ASC 태그 조회 | GAS ExecCalc | 1 | 2026-04-13 | 🟡 학습중 | MODULE-4 |
+| UMG Visibility — Collapsed(공간제거) vs Hidden(공간유지) vs SelfHitTestInvisible(보임+자신히트무시) | UMG UI | 1 | 2026-04-14 | 🟡 학습중 | SkillSlotUI |
 
 ---
 

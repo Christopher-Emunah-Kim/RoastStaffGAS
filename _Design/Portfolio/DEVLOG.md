@@ -421,6 +421,32 @@ UENUM()이 있는 헤더에는 반드시 `#include "파일명.generated.h"` 가 
 
 ---
 
+## [2026-04-14] BUG_FIX — PC::BeginPlay vs Character::BeginPlay 타이밍 역전으로 인한 스킬 슬롯 UI 미갱신
+
+**상황**
+캐릭터 스킬 슬롯 UI를 새로 구현. `SkillManagerSubsystem::InitializeSkills()` 완료 시 `OnSkillSlotUpdatedDel`을 브로드캐스트하고, `PC::BeginPlay`에서 구독해 UI를 갱신하는 구조.
+
+**문제**
+게임 플레이 시 캐릭터 스킬 슬롯이 항상 빈 상태로 표시됨. 로그를 확인하면 `InitializeSkills()` 브로드캐스트는 정상 발생하지만 PC가 수신하지 못함.
+
+**원인**
+UE5의 `BeginPlay` 호출 순서는 Actor 스폰 순서에 의존하며 보장되지 않음. 레벨에 Character가 이미 배치된 경우 `Character::BeginPlay → InitializeSkills → Broadcast`가 `PC::BeginPlay → 구독` 보다 먼저 실행되어 브로드캐스트를 놓침.
+
+**해결**
+두 가지 방어 코드 추가:
+1. `SlotContainerWidget::NativeConstruct()`에서 모든 슬롯에 `UpdateSlot(nullptr)` 호출 → 초기 상태를 Collapsed로 보장
+2. `PC::BeginPlay`에서 HUD 오픈 직후 `RefreshSkillSlotUI(0~1)` 강제 호출 → 이미 초기화된 경우 즉시 UI 반영
+
+**포트폴리오 포인트**
+UE5의 BeginPlay 순서 비보장 특성. 이벤트 드리븐 초기화만 믿지 않고, "구독 후 현재 상태 풀링(pull)"을 병행하는 패턴이 안전. 이는 옵저버 패턴의 "missed notification" 문제에 대한 일반적 해법.
+
+**관련 파일**
+- `Private/Subsystems/SkillManagerSubsystem.cpp` — InitializeSkills Broadcast 추가
+- `Private/UI/Ingame/SlotContainerWidget.cpp` — NativeConstruct 초기 Collapsed
+- `Private/Character/Player/RSPlayerController.cpp` — BeginPlay force-refresh
+
+---
+
 ## [2026-04-13] PATTERN — UGameplayEffectExecutionCalculation (ExecCalc) 구조와 Static Capture 패턴
 
 **상황**: M-4에서 플레이어→에너미, 에너미→플레이어 데미지를 단일 GE에서 분기 처리해야 했다. 기존 방식은 Modifier 방향을 SetByCaller 음수값(−DamageValue)으로 직접 조작하는 간이 구조였다.

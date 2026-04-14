@@ -51,6 +51,10 @@ SESSION_START에서 읽힌 파일 재읽기 금지.
 ```
 Grep → 패턴 발견 → Edit 즉시 수정 → 재검증 (최대 3회)
 
+[P0] Allman 스타일 위반 — if 단일 라인 금지
+  grep 패턴: \)\s*\{[^}]+\}  ← 한 줄에 { 와 } 가 모두 있는 경우
+  → 중괄호 + 본문 + 닫는 중괄호 각각 별도 줄로 분리. 가드 코드 포함, 예외 없음
+
 [P0] UE_LOG → KHS_* 변환 (LoggingSystem.h 기반)
   VeryVerbose→KHS_TRACE / Verbose→KHS_DEBUG / Log→KHS_INFO
   Warning→KHS_WARN / Error→KHS_ERROR / Fatal→KHS_FATAL

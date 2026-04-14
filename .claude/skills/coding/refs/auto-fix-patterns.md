@@ -2,6 +2,26 @@
 > coding [C2] 자동 검증+수정 패턴 상세 예시
 > ON_DEMAND: [C2] 단계에서 패턴 판단이 모호할 때 참조
 
+## P0 — Allman 스타일 위반 (단일 라인 if)
+```
+감지 패턴: if(...) { ... } 가 한 줄에 { 와 } 가 모두 존재하는 경우
+grep 패턴: \)\s*\{[^}]+\}
+
+위반 예시 (금지):
+  if (!HUD) { KHS_WARN("..."); return; }
+  if (!Slot) { return; }
+
+수정 후:
+  if (!HUD)
+  {
+      KHS_WARN("...");
+      return;
+  }
+
+적용 범위: 모든 if / else if / else 블록 — 예외 없음
+중요: 가드 코드(early return) 도 동일하게 적용
+```
+
 ## P0 — UE_LOG → KHS_* 변환 규칙
 ```
 UE_LOG(LogTemp, VeryVerbose, TEXT("..."))  → KHS_TRACE("...")
