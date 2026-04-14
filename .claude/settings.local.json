@@ -50,7 +50,10 @@
       "Bash(ps:*)",
       "Bash(export FORCE_COLOR=3)",
       "Bash(export COLORTERM=truecolor)",
-      "Bash(find C:UsersKGAProjectsRoastStaffGASSourceRoastStaffGAS -name *Equipment* -type f)"
+      "Bash(find C:UsersKGAProjectsRoastStaffGASSourceRoastStaffGAS -name *Equipment* -type f)",
+      "Bash(python gen_dummy_data.py)",
+      "Bash(python3:*)",
+      "Bash(python -c \":*)"
     ],
     "deny": [],
     "ask": []
