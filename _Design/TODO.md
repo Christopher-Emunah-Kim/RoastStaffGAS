@@ -20,124 +20,7 @@
 >   2. GE 적용 후 PlayerAttributeSet::PostGameplayEffectExecute → OnPlayerStatChangedDel Broadcast 도달 여부 확인
 >   3. 델리게이트 도달은 하나, CharacterStatPopupWidget 바인딩 누락 여부 확인 (OpenUI 시점 문제?)
 
-### [BUG] FloatingDamageWidgetClass 중복 관리 [P2]
-- RSGameMode.DamageFloatingWidgetClass (PreWarm용) + RSPlayerController.FloatingDamageWidgetClass (실제 스폰용) 두 곳에 동일 클래스 UPROPERTY 존재
-- 한 쪽만 교체 시 PreWarm 대상과 실제 사용 클래스 불일치 잠재 버그
-- 개선 방향: GameMode::BuildPreWarmList에서 PlayerController의 FloatingDamageWidgetClass를 읽어 사용, GameMode UPROPERTY 제거
-
-
-
-### [FEATURE] 캐릭터 스탯 팝업 HUD 서브UI [P1]
-> 기획: 패시브 부여 후 실제 수치 변화를 인게임에서 확인할 수 있는 팝업 UI
-> PLAN: PLAN_CharacterStatPopup_v1.0
-
-#### [MODULE-1] AttributeSet 델리게이트 확장
-수정: PlayerAttributeSet.h/.cpp, BaseAttributeSet.h/.cpp
-  - [ ] PlayerAttributeSet: FOnPlayerStatChanged 델리게이트 + Broadcast (ATK/DEF/AttackSpeed/CritRate/CritDmg)
-  - [ ] BaseAttributeSet: FOnMoveSpeedChanged 델리게이트 + Broadcast (MoveSpeed)
-
-#### [MODULE-2] CharacterStatPopupWidget 신규
-신규: CharacterStatPopupWidget.h/.cpp
-  - [ ] URSBaseWidget 상속 / UILayer=NONE / bIsModal=false
-  - [ ] NativeOnInitialized: Btn_Close OnClicked 바인딩
-  - [ ] OpenUI override: ASC 델리게이트 구독 + RefreshAllStats()
-  - [ ] CloseUI override: 델리게이트 언바인딩
-  - [ ] BindWidget: Txt_ATK / Txt_DEF / Txt_HP / Txt_MoveSpeed / Txt_CritRate / Txt_CritDmg / Txt_AttackSpeed + Btn_Close
-  - [ ] RefreshAllStats(): ASC에서 현재값 직접 조회 후 TextBlock 갱신
-
-#### [MODULE-3] RSPlayerController + RSHUDWidget 통합
-수정: RSPlayerController.h/.cpp, RSHUDWidget.h/.cpp
-  - [ ] IA_StatPopup 추가 + Tab 키 매핑 (IMC_Player)                              [에디터]
-  - [ ] RSPlayerController: IA_StatPopup 바인딩 → OnStatPopupToggle()
-  - [ ] RSPlayerController: OnStatPopupToggle() — HUDWidget→CharacterStatPopupWidget IsOpen() 체크 후 OpenUI/CloseUI
-  - [ ] RSHUDWidget: Btn_StatPopup BindWidget + OnClicked → PC→OnStatPopupToggle() 호출
-  - [ ] 에디터: WBP_HUD Btn_StatPopup 추가 / WBP_CharacterStatPopup 자식 위젯 추가  [에디터]
-
-
-## [FEATURE] PHASE-1 인게임 루프 완성 | PLAN_Phase1_InGame_v1.0
-> 시작: 2026-04-10 | 기획서: 게임 시스템 개선안 v1.0.md
-> 실행 순서: M-1 → M-2 → (M-3 ∥ M-4) → (M-5 ∥ M-7) → M-6
-
-### [MODULE-1] DataTable 스키마 확장 ✓ DONE 2026-04-13 (cd024b49)
-수정: Data/EnumTypes.h, DataTableStructs.h, RuntimeDataStructs.h
-  - [x] ESkillActivationType / ELevelUpCardType ENUM 추가 (EnumTypes.h)
-  - [x] FWeaponStaticData: EvolutionTag(FString) + IsUnlocked + UnlockCost 추가 (DataTableStructs.h)
-  - [x] FCharacterSkillLevelData USTRUCT 신규 (DataTableStructs.h)
-  - [x] FCharacterSkillStaticData : FTableRowBase 신규 (DataTableStructs.h)
-  - [x] FPassiveStaticData : FTableRowBase 신규 (DataTableStructs.h)
-  - [x] FLevelUpCardStaticData : FTableRowBase 신규 (DataTableStructs.h)
-  - [x] FCharacterSkillExecData + FLevelUpCardDisplayData USTRUCT 신규 (RuntimeDataStructs.h)
-
-### [MODULE-2] GDS 신규 DT 통합 ✓ DONE 2026-04-13 (5b69c436)
-수정: GameDataConfig.h, GameDataSubsystem.h/.cpp
-  - [x] GameDataConfig.h: DT_CharacterSkill / DT_LevelUpCard / DT_Passive 경로 추가
-  - [x] GameDataSubsystem: 테이블 포인터 + 캐시 TMap 3종 추가
-  - [x] GameDataSubsystem: 조회 함수 6개 구현 (GetCharacterSkillExecData 포함)
-
-### [BUG] 시작 무기 슬롯 미등록 ✓ FIXED 2026-04-13 (c70213e)
-  - 원인: DeinitializeSubsystem()이 Slots[] 미초기화 → 재진입 시 이전 WeaponID 잔존 → IsEmpty()=false → GetEmptySlotIndex()=INDEX_NONE
-  - 수정: InitializeSubsystem()에서 Slots[i] = FWeaponSlotInstanceData() 완전 초기화 추가 (EquipmentSubsystem.cpp:31)
-
-### [MODULE-3] 무기 자동발사 전환 ✓ DONE 2026-04-13 (3cff0ba)
-수정: EquipmentSubsystem.h/.cpp, RSPlayerController.h/.cpp
-  - [x] SLOT_COUNT = 3 확정 (SD1 기획 변경 — 캐릭터 스킬 2 + 무기 슬롯 3)
-  - [x] RequestManualFire() 제거 + FindNearestEnemy() 추가
-  - [x] StartAutoFire() / FireSlot() — 최근접 적 타겟팅으로 교체 (타겟 없으면 스킵)
-  - [x] RSPlayerController: IA_Slot1-3 바인딩 제거 / IA_Attack → OnConfirm 재활용 / IA_SkillQ/E 추가
-
-### [MODULE-4] ExecCalc 데미지 공식 ✓ DONE 2026-04-13 (3cff0ba, f4ed873)
-신규: RS_DamageExecCalc.h/.cpp
-수정: RSGameplayTags.h, BaseProjectile.cpp, BaseSummonObject.cpp, 에너미 4종
-에디터: GE_Damage(ExecCalc 추가), GE_EnemyDamage(신규), 에너미 BP AttackGEClass 교체
-  - [x] SetByCaller 태그 추가 (Data.WeaponBaseDamage / Data.EnemyAttackDamage)
-  - [x] RS_DamageExecCalc — 플레이어→에너미: BaseDmg×(1+ATK/100)×CritMult
-  - [x] RS_DamageExecCalc — 에너미→플레이어: max(1, EnemyDmg-DEF)
-  - [x] 데미지 주입 변경 (BaseProjectile/Summon→WeaponBaseDamage, 에너미4종→EnemyAttackDamage)
-  - [x] GE_Damage ExecCalc 교체 + GE_EnemyDamage 신규 생성 (에디터 완료)
-
-### [MODULE-5] 캐릭터 스킬 시스템 ✓ DONE 2026-04-13 (0105ba7)
-신규: RSCharacterSkillData.h, SkillManagerSubsystem.h/.cpp, GA_CharacterSkill.h/.cpp
-수정: RSPlayerController.h/.cpp, RSPlayerCharacter.cpp, RSGameplayTags.h/.cpp
-  - [x] Skill.Character.Slot1/Slot2 / Preview.Active 태그 추가
-  - [x] SkillManagerSubsystem: InitializeSkills / ActivateSkillSlot / SpawnPreview 흐름
-  - [x] GA_CharacterSkill: InstantAoE / SelfBuff / SpawnPreview 구현
-  - [x] RSPlayerController: Q/E/Cancel 바인딩 + IsPreviewActive() 분기 (LMB Confirm / RMB Cancel)
-  - [x] RSPlayerCharacter::InitializeAbilitySystem(): SkillManager 초기화 호출
-  - [x] BP_RSPlayerController: IA_SkillQ/IA_SkillE/IA_SkillCancel 에셋 할당 + IMC_Player Q/E/RMB 매핑  [에디터]
-  - [x] BP_GA_CharacterSkill (캐릭터별): SkillGEClass 할당                                                [에디터]
-
-### [MODULE-7] 패시브 슬롯 시스템 ✓ DONE 2026-04-13 (0105ba7)
-신규: PassiveSlotSubsystem.h/.cpp
-수정: RSPlayerCharacter.cpp, RSPlayerController.h/.cpp, RSGameplayTags.h/.cpp
-  - [x] Passive.SlotFull 태그 추가
-  - [x] PassiveSlotSubsystem: TryAddPassive / IsSlotFull / MAX_SLOTS=4
-  - [x] RSPlayerCharacter: PassiveSlotSubsystem 초기화 호출
-  - [x] RSPlayerController: OnPassiveSlotChanged 구독 (U4 미해결 — HUD 위치 미확정)
-
-### [SpawnPreview 다형성 + GA FX 스폰] ✓ DONE 2026-04-13
-수정: DataTableStructs.h, RuntimeDataStructs.h, GameDataSubsystem.cpp, SkillManagerSubsystem.cpp, RSGameMode.h, GA_CharacterSkill.h/.cpp
-  - [x] FCharacterSkillStaticData: PreviewFXClass 제거 → PreviewActorClass (TSoftClassPtr<ASummonPreviewObject>) 추가
-  - [x] FCharacterSkillLevelData: FXClass TSoftClassPtr → TSoftObjectPtr 수정
-  - [x] FCharacterSkillExecData: PreviewFXClass → PreviewActorClass 교체
-  - [x] SkillManagerSubsystem: GameMode 의존성 제거 → ExecData.PreviewActorClass.LoadSynchronous() 사용
-  - [x] RSGameMode: PreviewActorClass UPROPERTY·getter 제거
-  - [x] GA_CharacterSkill: SpawnSkillFX 헬퍼 추가 — InstantAoE/SelfBuff/SpawnPreview 모두 FX 스폰
-  - [x] 에디터: DT_CharacterSkill 각 SpawnPreview 행에 PreviewActorClass 할당              [에디터]
-  - [x] 에디터: DT_CharacterSkill 각 행 FXClass(Niagara 에셋) 할당 + Radius 파라미터 설정  [에디터]
-
-### [MODULE-6] 레벨업 카드풀 확장 ✓ COMMITTED 54c0698f 2026-04-14
-수정: LevelUpSubsystem.h/.cpp, RSPlayerController.h/.cpp, LevelUpWeaponSelectWidget.h/.cpp, DataTableStructs.h, RSGameplayTags.h/.cpp, PassiveSlotSubsystem.cpp
-  - [x] FOnCardPoolReady 델리게이트로 교체
-  - [x] BuildStaticCardPool / BuildDynamicWeaponCards / EnsureWeaponCardGuarantee / PickFinalCards 구현
-  - [x] OnCardSelected() 타입별 분기 구현 (StatUpgrade/PassiveAdd/WeaponUpgrade/WeaponNew)
-  - [x] LevelUpWeaponSelectWidget: FLevelUpCardDisplayData 수신 + CardType별 UI 분기 + 4장 확장
-  - [x] FLevelUpCardStaticData.Icon 추가 (StatUpgrade 아이콘)
-  - [x] FPassiveStaticData.Magnitude + Data.PassiveMagnitude 태그 추가 (SetByCaller 수치 주입)
-  - [x] Img_WeaponIcon → Img_CardIcon 이름 변경
-  - [x] 에디터: WBP_LevelUpWeaponSelectWidget 4번째 카드 UI 요소 추가 + Img_CardIcon 이름 변경  [에디터]
-  - [x] 에디터: BP GE 에셋 생성 (GE_Passive_ATKBoost 등) + DT_Passive GEClass/Magnitude 입력  [에디터]
-  - [x] 에디터: DT_LevelUpCard StatUpgrade 행 + Icon 입력                                      [에디터]
-
+### [BUG] FloatingDamageWidgetClass 중복 관리 ✓ FIXED a6b407a34 2026-04-14
 
 
 
@@ -229,6 +112,8 @@
 
 ## COMPLETED_LOG
 <!-- compact 형식: [x] FEATURE명 | 커밋 | 날짜 | 플랜파일 -->
+[x] 캐릭터 스탯 팝업 HUD (MODULE 1~3) | 58de4f52b,d2be49f02,5d1ba8d47 | 2026-04-14 | PLAN_CharacterStatPopup_v1.0
+[x] PHASE-1 인게임 루프 완성 (MODULE 1~7 + 에디터) | cd024b49~8b1e18e42 | 2026-04-13~14 | PLAN_Phase1_InGame_v1.0
 [x] TransitionGameMode FinishLoading 타이밍 수정 (MODULE 1~3) | c5588b2 | 2026-04-09 | PLAN_TransitionFinishLoading_v1.0
 [x] Enemy Ranged + Elite + Boss 시스템 (MODULE 1~7) | 에디터 에셋 포함 | 2026-04-06~09 | PLAN_EnemyExpansion_v1.0
 [x] Boss HP Bar UI 파이프라인 (C++ MODULE 1~4) | d43254d,b7e3b05,02d92c1,c45823d | 2026-04-09 | PLAN_BossHPBar_v1.0

@@ -12,37 +12,21 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ## PENDING_COMMIT
 
+## COMMITTED
+
+- date: 2026-04-14
+  plan: PLAN_CharacterStatPopup_v1.0
+  commits: ["a6b407a34", "6a35704d7", "58de4f52b", "d2be49f02", "5d1ba8d47", "8b1e18e42"]
+  status: COMMITTED
+  summary: "fix(FloatingDamage) + data(Phase1-Editor) + feat(CharacterStat): 스탯 팝업 HUD 구현 + Phase1 에디터 완료"
+  bugs_fixed:
+    - FloatingDamageWidget PreWarm/스폰 클래스 이중 관리 제거
+
 - date: 2026-04-14
   plan: PLAN_LevelUpCardPool_v1.0
-  commit: null
-  files:
-    modified:
-      - Source/RoastStaffGAS/Public/Subsystems/LevelUpSubsystem.h
-      - Source/RoastStaffGAS/Private/Subsystems/LevelUpSubsystem.cpp
-      - Source/RoastStaffGAS/Public/UI/LevelUpWeaponSelectWidget.h
-      - Source/RoastStaffGAS/Private/UI/LevelUpWeaponSelectWidget.cpp
-      - Source/RoastStaffGAS/Public/Character/Player/RSPlayerController.h
-      - Source/RoastStaffGAS/Private/Character/Player/RSPlayerController.cpp
-      - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
-      - Source/RoastStaffGAS/Public/GAS/Tags/RSGameplayTags.h
-      - Source/RoastStaffGAS/Private/GAS/Tags/RSGameplayTags.cpp
-      - Source/RoastStaffGAS/Private/Subsystems/PassiveSlotSubsystem.cpp
-      - _Design/Portfolio/DEVLOG.md
-      - _Design/TODO.md
-    created:
-      - Content/GAS/GE/Skill/Buff/GE_Passive_Buff_ATK.uasset
-      - Content/GAS/GE/Skill/Buff/GE_Passive_Buff_CritRate.uasset
-      - Content/GAS/GE/Skill/Buff/GE_Passive_Buff_DEF.uasset
-      - Content/GAS/GE/Skill/Buff/GE_Passive_Buff_HP.uasset
-      - Content/GAS/GE/Skill/Buff/GE_Passive_Buff_MoveSpeed.uasset
-    deleted: []
-  summary: "feat(LevelUp): 카드풀 확장 — StatUpgrade/PassiveAdd/WeaponUpgrade/WeaponNew 혼합 + 4장 선택 + SetByCaller Magnitude"
-  status: COMMITTED
   commits: ["54c0698f", "4865e460", "8dc709e02"]
-  bugs_found: []
-  bugs_fixed: []
-
-## COMMITTED
+  status: COMMITTED
+  summary: "feat(LevelUp): 카드풀 확장 — StatUpgrade/PassiveAdd/WeaponUpgrade/WeaponNew 혼합 + 4장 선택"
 
 ---
 <!-- 이전 항목들은 compact됨 (2026-04-14) -->
