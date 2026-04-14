@@ -91,7 +91,7 @@
   - [ ] 에디터: DT_CharacterSkill 각 SpawnPreview 행에 PreviewActorClass 할당              [에디터]
   - [ ] 에디터: DT_CharacterSkill 각 행 FXClass(Niagara 에셋) 할당 + Radius 파라미터 설정  [에디터]
 
-### [MODULE-6] 레벨업 카드풀 확장 ✓ DONE 2026-04-14
+### [MODULE-6] 레벨업 카드풀 확장 ✓ COMMITTED 54c0698f 2026-04-14
 수정: LevelUpSubsystem.h/.cpp, RSPlayerController.h/.cpp, LevelUpWeaponSelectWidget.h/.cpp, DataTableStructs.h, RSGameplayTags.h/.cpp, PassiveSlotSubsystem.cpp
   - [x] FOnCardPoolReady 델리게이트로 교체
   - [x] BuildStaticCardPool / BuildDynamicWeaponCards / EnsureWeaponCardGuarantee / PickFinalCards 구현

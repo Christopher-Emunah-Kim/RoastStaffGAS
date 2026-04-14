@@ -37,7 +37,8 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
       - Content/GAS/GE/Skill/Buff/GE_Passive_Buff_MoveSpeed.uasset
     deleted: []
   summary: "feat(LevelUp): 카드풀 확장 — StatUpgrade/PassiveAdd/WeaponUpgrade/WeaponNew 혼합 + 4장 선택 + SetByCaller Magnitude"
-  status: PENDING_COMMIT
+  status: COMMITTED
+  commits: ["54c0698f", "4865e460", "8dc709e02"]
   bugs_found: []
   bugs_fixed: []
 
