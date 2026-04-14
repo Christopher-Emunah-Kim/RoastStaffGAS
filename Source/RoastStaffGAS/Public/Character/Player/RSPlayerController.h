@@ -30,14 +30,14 @@ protected:
 	virtual void PlayerTick(float DeltaTime) override;
 
 public:
-	FORCEINLINE FVector GetCachedAimLocation() const { return CachedAimLocation; }
-	
 	// 플로팅 데미지 풀 관리
 	/** 피격 위치(WorldPos)를 스크린 좌표로 변환해 FloatingDamageWidget을 표시 */
 	void SpawnFloatingDamage(FVector WorldPos, float Damage);
 	/** 애니메이션 완료 후 위젯을 풀에 반납 */
 	void ReturnFloatingDamageToPool(UFloatingDamageWidget* Widget);
-
+	
+	FORCEINLINE TSubclassOf<UFloatingDamageWidget> GetFloatingDamageWidgetClass() const { return FloatingDamageWidgetClass; }
+	FORCEINLINE FVector GetCachedAimLocation() const { return CachedAimLocation; }
 private:
 	void HandleInputContext();
 	void BindSubsystemDelegates();
@@ -46,6 +46,7 @@ private:
 	// UI 관리
 	//========================================================
 	void OpenHUDUI();
+	void InitSlotUIGuarantee();
 	
 	UFUNCTION()
 	void OnSlotUpdated(int32 SlotIndex);
@@ -84,12 +85,15 @@ private:
 	void OnSkillE(const FInputActionValue& Value);
 	/** RMB — 스킬 프리뷰 취소 */
 	void OnSkillCancel(const FInputActionValue& Value);
+	/** Tab — 캐릭터 스탯 팝업 토글 */
+	void OnStatPopupToggle(const FInputActionValue& Value);
 
 protected:
 	// UI — FloatingDamageWidget
 	UPROPERTY(EditDefaultsOnly, Category = "MY|UI")
 	TSubclassOf<UFloatingDamageWidget> FloatingDamageWidgetClass;
 
+private:
 	// 입력 에셋
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
 	TObjectPtr<UInputMappingContext> IMC;
@@ -103,6 +107,8 @@ protected:
 	TObjectPtr<UInputAction> IA_SkillE;
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
 	TObjectPtr<UInputAction> IA_SkillCancel;
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
+	TObjectPtr<UInputAction> IA_StatPopup;
 
 	// 런타임 상태
 	FVector   CachedAimLocation  = FVector::ZeroVector;

@@ -13,6 +13,7 @@
 #include "Subsystems/SkillManagerSubsystem.h"
 #include "Subsystems/UIManagerSubsystem.h"
 #include "UI/RSHUDWidget.h"
+#include "UI/Ingame/CharacterStatPopupWidget.h"
 #include "UI/Ingame/SlotContainerWidget.h"
 #include "UI/Ingame/WeaponSlotWidget.h"
 #include "UI/Ingame/CharacterSkillSlotWidget.h"
@@ -23,6 +24,7 @@
 #include "Data/RuntimeDataStructs.h"
 
 
+
 void ARSPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -30,12 +32,7 @@ void ARSPlayerController::BeginPlay()
 	HandleInputContext();           
 	BindSubsystemDelegates();
 	OpenHUDUI();
-
-	// Character::BeginPlay가 먼저 실행돼 InitializeSkills 브로드캐스트를 놓쳤을 경우 대비
-	for (int32 i = 0; i < 2; ++i)
-	{
-		RefreshSkillSlotUI(i);
-	}
+	InitSlotUIGuarantee();
 }
 
 void ARSPlayerController::HandleInputContext()
@@ -82,6 +79,22 @@ void ARSPlayerController::OpenHUDUI()
 	}
 }
 
+
+void ARSPlayerController::InitSlotUIGuarantee()
+{
+	// Character::BeginPlay가 먼저 실행돼 InitializeSkills 브로드캐스트를 놓쳤을 경우 대비
+	for (int32 i = 0; i < 2; ++i)
+	{
+		RefreshSkillSlotUI(i);
+	}
+
+	// CommitSlot 브로드캐스트를 놓쳤을 경우 대비 (PossessedBy → CommitSlot → PC BeginPlay 순서)
+	for (int32 i = 0; i < 3; ++i)
+	{
+		RefreshSlotUI(i);
+	}
+}
+
 void ARSPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetGameInstance())
@@ -106,9 +119,10 @@ void ARSPlayerController::SetupInputComponent()
 
 	EIC->BindAction(IA_Move,   ETriggerEvent::Triggered, this, &ARSPlayerController::OnMove);
 	EIC->BindAction(IA_Attack, ETriggerEvent::Started,   this, &ARSPlayerController::OnConfirm);
-	EIC->BindAction(IA_SkillQ,     ETriggerEvent::Started, this, &ARSPlayerController::OnSkillQ);
+	EIC->BindAction(IA_SkillQ,      ETriggerEvent::Started, this, &ARSPlayerController::OnSkillQ);
 	EIC->BindAction(IA_SkillE,      ETriggerEvent::Started, this, &ARSPlayerController::OnSkillE);
 	EIC->BindAction(IA_SkillCancel, ETriggerEvent::Started, this, &ARSPlayerController::OnSkillCancel);
+	EIC->BindAction(IA_StatPopup,   ETriggerEvent::Started, this, &ARSPlayerController::OnStatPopupToggle);
 }
 
 void ARSPlayerController::PlayerTick(float DeltaTime)
@@ -338,6 +352,19 @@ void ARSPlayerController::OnPassiveSlotChanged()
 {
 	// U4: 패시브 슬롯 HUD 위치 미확정 — 현재는 로그만 기록, HUD 확정 후 UI 갱신 구현
 	KHS_INFO(TEXT("패시브 슬롯 변경 — HUD 갱신 예정 (U4 미해결)"));
+}
+
+void ARSPlayerController::OnStatPopupToggle(const FInputActionValue& Value)
+{
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance())
+
+	URSHUDWidget* HUD = Cast<URSHUDWidget>(UMS->GetWidgetByID(EUIID::HUD));
+	if (!HUD)
+	{
+		return;
+	}
+
+	HUD->ToggleStatPopup();
 }
 
 void ARSPlayerController::OnWeaponReplaceCompleted()
