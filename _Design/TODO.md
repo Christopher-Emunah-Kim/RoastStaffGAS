@@ -13,11 +13,45 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
+### [BUG] 레벨업 카드 선택 후 스탯 창 미갱신 [P0]
+> 증상: HP 변경은 스탯 팝업에 정상 반영되나, ATK/DEF/MoveSpeed/CritRate/CritDmg/AttackSpeed는 [스탯 업그레이드] 및 [패시브] 카드 선택 후 팝업 미갱신
+> 점검 방향:
+>   1. LevelUpSubsystem::OnCardSelected() — StatUpgrade/PassiveAdd GE 실제 적용 여부 확인
+>   2. GE 적용 후 PlayerAttributeSet::PostGameplayEffectExecute → OnPlayerStatChangedDel Broadcast 도달 여부 확인
+>   3. 델리게이트 도달은 하나, CharacterStatPopupWidget 바인딩 누락 여부 확인 (OpenUI 시점 문제?)
+
 ### [BUG] FloatingDamageWidgetClass 중복 관리 [P2]
 - RSGameMode.DamageFloatingWidgetClass (PreWarm용) + RSPlayerController.FloatingDamageWidgetClass (실제 스폰용) 두 곳에 동일 클래스 UPROPERTY 존재
 - 한 쪽만 교체 시 PreWarm 대상과 실제 사용 클래스 불일치 잠재 버그
 - 개선 방향: GameMode::BuildPreWarmList에서 PlayerController의 FloatingDamageWidgetClass를 읽어 사용, GameMode UPROPERTY 제거
 
+
+
+### [FEATURE] 캐릭터 스탯 팝업 HUD 서브UI [P1]
+> 기획: 패시브 부여 후 실제 수치 변화를 인게임에서 확인할 수 있는 팝업 UI
+> PLAN: PLAN_CharacterStatPopup_v1.0
+
+#### [MODULE-1] AttributeSet 델리게이트 확장
+수정: PlayerAttributeSet.h/.cpp, BaseAttributeSet.h/.cpp
+  - [ ] PlayerAttributeSet: FOnPlayerStatChanged 델리게이트 + Broadcast (ATK/DEF/AttackSpeed/CritRate/CritDmg)
+  - [ ] BaseAttributeSet: FOnMoveSpeedChanged 델리게이트 + Broadcast (MoveSpeed)
+
+#### [MODULE-2] CharacterStatPopupWidget 신규
+신규: CharacterStatPopupWidget.h/.cpp
+  - [ ] URSBaseWidget 상속 / UILayer=NONE / bIsModal=false
+  - [ ] NativeOnInitialized: Btn_Close OnClicked 바인딩
+  - [ ] OpenUI override: ASC 델리게이트 구독 + RefreshAllStats()
+  - [ ] CloseUI override: 델리게이트 언바인딩
+  - [ ] BindWidget: Txt_ATK / Txt_DEF / Txt_HP / Txt_MoveSpeed / Txt_CritRate / Txt_CritDmg / Txt_AttackSpeed + Btn_Close
+  - [ ] RefreshAllStats(): ASC에서 현재값 직접 조회 후 TextBlock 갱신
+
+#### [MODULE-3] RSPlayerController + RSHUDWidget 통합
+수정: RSPlayerController.h/.cpp, RSHUDWidget.h/.cpp
+  - [ ] IA_StatPopup 추가 + Tab 키 매핑 (IMC_Player)                              [에디터]
+  - [ ] RSPlayerController: IA_StatPopup 바인딩 → OnStatPopupToggle()
+  - [ ] RSPlayerController: OnStatPopupToggle() — HUDWidget→CharacterStatPopupWidget IsOpen() 체크 후 OpenUI/CloseUI
+  - [ ] RSHUDWidget: Btn_StatPopup BindWidget + OnClicked → PC→OnStatPopupToggle() 호출
+  - [ ] 에디터: WBP_HUD Btn_StatPopup 추가 / WBP_CharacterStatPopup 자식 위젯 추가  [에디터]
 
 
 ## [FEATURE] PHASE-1 인게임 루프 완성 | PLAN_Phase1_InGame_v1.0
@@ -88,8 +122,8 @@
   - [x] SkillManagerSubsystem: GameMode 의존성 제거 → ExecData.PreviewActorClass.LoadSynchronous() 사용
   - [x] RSGameMode: PreviewActorClass UPROPERTY·getter 제거
   - [x] GA_CharacterSkill: SpawnSkillFX 헬퍼 추가 — InstantAoE/SelfBuff/SpawnPreview 모두 FX 스폰
-  - [ ] 에디터: DT_CharacterSkill 각 SpawnPreview 행에 PreviewActorClass 할당              [에디터]
-  - [ ] 에디터: DT_CharacterSkill 각 행 FXClass(Niagara 에셋) 할당 + Radius 파라미터 설정  [에디터]
+  - [x] 에디터: DT_CharacterSkill 각 SpawnPreview 행에 PreviewActorClass 할당              [에디터]
+  - [x] 에디터: DT_CharacterSkill 각 행 FXClass(Niagara 에셋) 할당 + Radius 파라미터 설정  [에디터]
 
 ### [MODULE-6] 레벨업 카드풀 확장 ✓ COMMITTED 54c0698f 2026-04-14
 수정: LevelUpSubsystem.h/.cpp, RSPlayerController.h/.cpp, LevelUpWeaponSelectWidget.h/.cpp, DataTableStructs.h, RSGameplayTags.h/.cpp, PassiveSlotSubsystem.cpp
@@ -100,9 +134,9 @@
   - [x] FLevelUpCardStaticData.Icon 추가 (StatUpgrade 아이콘)
   - [x] FPassiveStaticData.Magnitude + Data.PassiveMagnitude 태그 추가 (SetByCaller 수치 주입)
   - [x] Img_WeaponIcon → Img_CardIcon 이름 변경
-  - [ ] 에디터: WBP_LevelUpWeaponSelectWidget 4번째 카드 UI 요소 추가 + Img_CardIcon 이름 변경  [에디터]
-  - [ ] 에디터: BP GE 에셋 생성 (GE_Passive_ATKBoost 등) + DT_Passive GEClass/Magnitude 입력  [에디터]
-  - [ ] 에디터: DT_LevelUpCard StatUpgrade 행 + Icon 입력                                      [에디터]
+  - [x] 에디터: WBP_LevelUpWeaponSelectWidget 4번째 카드 UI 요소 추가 + Img_CardIcon 이름 변경  [에디터]
+  - [x] 에디터: BP GE 에셋 생성 (GE_Passive_ATKBoost 등) + DT_Passive GEClass/Magnitude 입력  [에디터]
+  - [x] 에디터: DT_LevelUpCard StatUpgrade 행 + Icon 입력                                      [에디터]
 
 
 

@@ -461,6 +461,26 @@ UENUM()이 있는 헤더에는 반드시 `#include "파일명.generated.h"` 가 
 
 ---
 
+## [2026-04-14] ARCH — 인게임 스탯 팝업의 UMS 등록 제외 결정
+
+**상황**: 캐릭터 어트리뷰트를 실시간으로 표시하는 팝업 UI(WBP_CharacterStatPopup)를 설계. HUD 버튼 + Tab 키로 토글되며, 게임 입력을 차단하지 않아야 함.
+
+**문제·과제**: UMS(UIManagerSubsystem)를 통해 일반 POPUP 레이어로 등록하면 `OpenUIByID` 호출 시 `NotifyInputModeChange`가 트리거되어 GameOnly → UIOnly 전환이 발생함. 이는 "팝업 열린 채 이동/공격 가능" 요구사항과 충돌.
+
+**검토한 선택지**:
+- A) EUIID에 `CHAR_STAT_POPUP` 등록 + `bIsModal=false`로 등록 → UMS 스택 진입 시 입력 모드 변경 로직을 조건부 우회해야 함. UMS 내부 수정 필요, 부작용 범위 불명확.
+- B) `UILayer=NONE`으로 HUD 자식 위젯으로 구현, UMS 미등록 → HUD 생명주기와 동기화, 입력 모드 변경 없음. `EnemyHPBarWidget` 등 기존 "UMS 제외" 위젯 패턴과 일관성 유지.
+
+**결정**: B 채택. `UILayer=NONE` + HUD BindWidget 자식으로 배치. 토글 로직은 `URSHUDWidget::ToggleStatPopup()`에 캡슐화하고, PC의 Tab 입력과 HUD 버튼 양쪽에서 동일 함수를 호출하는 단일 경로 구조로 정리.
+
+**결과**: 팝업 열림 상태에서 무기 자동발사·스킬 Q/E 전부 정상 동작 확인. UMS 내부 수정 없이 요구사항 충족.
+
+**포트폴리오 포인트**: UMS 아키텍처의 입력 모드 관리 흐름을 이해하고, 기능 추가 시 기존 시스템을 수정하지 않고 "제외 패턴"을 일관되게 적용한 설계 판단.
+
+**관련 파일**: `Public/UI/Ingame/CharacterStatPopupWidget.h`, `Public/UI/RSHUDWidget.h`
+
+---
+
 ## [2026-04-14] BUG_FIX — PC::BeginPlay vs Character::BeginPlay 타이밍 역전으로 인한 스킬 슬롯 UI 미갱신
 
 **상황**
