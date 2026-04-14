@@ -30,6 +30,9 @@
 | GetSetByCallerMagnitude — ExecCalc 내에서 SetByCaller 값 읽기 | GAS ExecCalc | 1 | 2026-04-13 | 🟡 학습중 | MODULE-4 |
 | CapturedSourceTags.GetAggregatedTags() — ExecCalc 내 Source ASC 태그 조회 | GAS ExecCalc | 1 | 2026-04-13 | 🟡 학습중 | MODULE-4 |
 | UMG Visibility — Collapsed(공간제거) vs Hidden(공간유지) vs SelfHitTestInvisible(보임+자신히트무시) | UMG UI | 1 | 2026-04-14 | 🟡 학습중 | SkillSlotUI |
+| TDA (Tell, Don't Ask) — Widget이 도메인 Subsystem 직접 호출 금지, 위임으로 전환 기준 | OOP 설계 원칙 | 1 | 2026-04-14 | 🟡 학습중 | MODULE-6 |
+| Post-generation Constraint Enforcement — BuildXxx 후 EnsureXxx 분리, 필수 항목 강제 보장 패턴 | 설계 패턴 | 1 | 2026-04-14 | 🟡 학습중 | MODULE-6 |
+| SetNumericAttributeBase vs ApplyGameplayEffect — 영구 기반값 직접 세팅과 GE 파이프라인 선택 기준 | GAS Attribute | 1 | 2026-04-14 | 🟡 학습중 | MODULE-6 |
 
 ---
 
@@ -40,3 +43,4 @@
 |------|------|------|
 | KnowledgeCheck_2026-04-07_MODULE-7.md | 2026-04-07 | MODULE-7 |
 | KnowledgeCheck_2026-04-07_MODULE-7-debug.md | 2026-04-07 | MODULE-7 디버깅 |
+| KnowledgeCheck_2026-04-14_MODULE-6.md | 2026-04-14 | MODULE-6 레벨업 카드풀 |

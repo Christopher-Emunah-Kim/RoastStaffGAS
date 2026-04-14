@@ -59,6 +59,46 @@
 
 ---
 
+### [2026-04-14] [ARCH] 레벨업 카드 선택 로직 — Widget 직접 처리 vs LevelUpSubsystem 위임
+
+**상황**: MODULE-6에서 레벨업 카드를 무기 전용에서 스탯/패시브/무기 혼합으로 확장. 기존에는 Widget이 카드 선택 시 `EquipSys->EquipWeapon()`을 직접 호출하는 구조.
+
+**문제/과제**: 카드 타입이 4종(StatUpgrade / PassiveAdd / WeaponUpgrade / WeaponNew)으로 늘어나면서 각 타입마다 다른 서브시스템을 호출해야 함. Widget이 이 분기를 직접 처리하면 Widget이 게임 로직을 알아야 하는 구조가 됨.
+
+**검토한 선택지**:
+  - A) Widget에서 CardType 분기 후 각 서브시스템 직접 호출 — 간단하지만 Widget이 EquipSys/PassiveSys/ASC를 알아야 함. 카드 타입 추가 시 Widget 수정 필요
+  - B) Widget은 CardID만 전달, LevelUpSubsystem이 타입 조회 후 처리 — Widget은 "무엇인지 모르고 ID만 던짐". 카드 타입 추가 시 Subsystem만 수정
+
+**결정**: B 선택. `LevelUpSubsystem::OnCardSelected(CardID)`가 GDS 조회로 타입 판별 후 StatUpgrade→ASC 직접 적용 / PassiveAdd→PassiveSlotSubsystem / 무기→EquipmentSubsystem으로 분기.
+
+**결과**: Widget이 게임 로직 의존성 제로. 카드 타입 추가 시 LevelUpSubsystem만 수정. TDA(Tell Don't Ask) 원칙 적용 — Widget이 상태를 물어보지 않고 서브시스템에게 위임.
+
+**포트폴리오 포인트**: UI-Logic 역할 분리 / TDA 원칙 적용으로 확장성 확보 / 단일 책임 원칙
+
+**관련 파일**: `Source/RoastStaffGAS/Private/Subsystems/LevelUpSubsystem.cpp:385`, `Source/RoastStaffGAS/Private/UI/LevelUpWeaponSelectWidget.cpp:144`
+
+---
+
+### [2026-04-14] [PATTERN] GameInstanceSubsystem에서 WorldSubsystem 접근
+
+**상황**: `ULevelUpSubsystem`(GameInstanceSubsystem)이 `UPassiveSlotSubsystem`(WorldSubsystem)에 접근해야 함.
+
+**문제/과제**: `UGameInstanceSubsystem`은 `UObject` 기반 → `GetWorld()` 직접 호출 불가한 것처럼 보임. `GetGameInstance()->GetWorld()->GetSubsystem<>()` 수동 작성.
+
+**검토한 선택지**:
+  - A) `GetGameInstance()->GetWorld()->GetSubsystem<>()` 수동 — 장황, null 체크 필요
+  - B) `GET_WORLD_SUBSYSTEM` 매크로 — 프로젝트 표준이나 GameInstanceSubsystem에서 동작 여부 불확실
+
+**결정**: B 확인 후 적용. `UGameInstanceSubsystem::GetWorld()`가 내부적으로 `GetGameInstance()->GetWorld()`를 반환하도록 오버라이드되어 있어 매크로가 정상 동작.
+
+**결과**: 프로젝트 전체 매크로 일관성 유지. linter가 수동 코드를 매크로로 자동 교체.
+
+**포트폴리오 포인트**: UE5 서브시스템 생명주기 이해 / GameInstance ↔ World 계층 구조 파악
+
+**관련 파일**: `Source/RoastStaffGAS/Private/Subsystems/LevelUpSubsystem.cpp:177`
+
+---
+
 ### [2026-04-14] [BUG_FIX] AutoFire 즉시 발사 — PreWarm 중 타이머 등록 + SetTimer 초기 딜레이 0초 문제
 
 **상황**: PreWarm 완료 직후 보스가 스폰되자마자 무기 스킬이 즉시 발사되고 EndAbility 로그가 찍히는 버그. UI에는 슬롯이 표시되기 전에 스킬이 이미 소진됨.

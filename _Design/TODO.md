@@ -91,12 +91,18 @@
   - [ ] 에디터: DT_CharacterSkill 각 SpawnPreview 행에 PreviewActorClass 할당              [에디터]
   - [ ] 에디터: DT_CharacterSkill 각 행 FXClass(Niagara 에셋) 할당 + Radius 파라미터 설정  [에디터]
 
-### [MODULE-6] 레벨업 카드풀 확장
-수정: LevelUpSubsystem.h/.cpp, RSPlayerController.h/.cpp, LevelUpWeaponSelectWidget.h
-  - [ ] FOnCardPoolReady 델리게이트로 교체                                                                        [P1]
-  - [ ] BuildStaticCardPool / BuildDynamicWeaponCards / EnsureWeaponCardGuarantee / PickFinalCards 구현           [P1]
-  - [ ] OnCardSelected() 타입별 분기 구현                                                                         [P1]
-  - [ ] LevelUpWeaponSelectWidget: FLevelUpCardDisplayData 수신 + CardType별 UI 분기                             [P1]
+### [MODULE-6] 레벨업 카드풀 확장 ✓ DONE 2026-04-14
+수정: LevelUpSubsystem.h/.cpp, RSPlayerController.h/.cpp, LevelUpWeaponSelectWidget.h/.cpp, DataTableStructs.h, RSGameplayTags.h/.cpp, PassiveSlotSubsystem.cpp
+  - [x] FOnCardPoolReady 델리게이트로 교체
+  - [x] BuildStaticCardPool / BuildDynamicWeaponCards / EnsureWeaponCardGuarantee / PickFinalCards 구현
+  - [x] OnCardSelected() 타입별 분기 구현 (StatUpgrade/PassiveAdd/WeaponUpgrade/WeaponNew)
+  - [x] LevelUpWeaponSelectWidget: FLevelUpCardDisplayData 수신 + CardType별 UI 분기 + 4장 확장
+  - [x] FLevelUpCardStaticData.Icon 추가 (StatUpgrade 아이콘)
+  - [x] FPassiveStaticData.Magnitude + Data.PassiveMagnitude 태그 추가 (SetByCaller 수치 주입)
+  - [x] Img_WeaponIcon → Img_CardIcon 이름 변경
+  - [ ] 에디터: WBP_LevelUpWeaponSelectWidget 4번째 카드 UI 요소 추가 + Img_CardIcon 이름 변경  [에디터]
+  - [ ] 에디터: BP GE 에셋 생성 (GE_Passive_ATKBoost 등) + DT_Passive GEClass/Magnitude 입력  [에디터]
+  - [ ] 에디터: DT_LevelUpCard StatUpgrade 행 + Icon 입력                                      [에디터]
 
 
 

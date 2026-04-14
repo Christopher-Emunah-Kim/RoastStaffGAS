@@ -12,6 +12,35 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ## PENDING_COMMIT
 
+- date: 2026-04-14
+  plan: PLAN_LevelUpCardPool_v1.0
+  commit: null
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Subsystems/LevelUpSubsystem.h
+      - Source/RoastStaffGAS/Private/Subsystems/LevelUpSubsystem.cpp
+      - Source/RoastStaffGAS/Public/UI/LevelUpWeaponSelectWidget.h
+      - Source/RoastStaffGAS/Private/UI/LevelUpWeaponSelectWidget.cpp
+      - Source/RoastStaffGAS/Public/Character/Player/RSPlayerController.h
+      - Source/RoastStaffGAS/Private/Character/Player/RSPlayerController.cpp
+      - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
+      - Source/RoastStaffGAS/Public/GAS/Tags/RSGameplayTags.h
+      - Source/RoastStaffGAS/Private/GAS/Tags/RSGameplayTags.cpp
+      - Source/RoastStaffGAS/Private/Subsystems/PassiveSlotSubsystem.cpp
+      - _Design/Portfolio/DEVLOG.md
+      - _Design/TODO.md
+    created:
+      - Content/GAS/GE/Skill/Buff/GE_Passive_Buff_ATK.uasset
+      - Content/GAS/GE/Skill/Buff/GE_Passive_Buff_CritRate.uasset
+      - Content/GAS/GE/Skill/Buff/GE_Passive_Buff_DEF.uasset
+      - Content/GAS/GE/Skill/Buff/GE_Passive_Buff_HP.uasset
+      - Content/GAS/GE/Skill/Buff/GE_Passive_Buff_MoveSpeed.uasset
+    deleted: []
+  summary: "feat(LevelUp): 카드풀 확장 — StatUpgrade/PassiveAdd/WeaponUpgrade/WeaponNew 혼합 + 4장 선택 + SetByCaller Magnitude"
+  status: PENDING_COMMIT
+  bugs_found: []
+  bugs_fixed: []
+
 ## COMMITTED
 
 ---
