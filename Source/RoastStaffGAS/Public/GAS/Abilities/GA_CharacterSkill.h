@@ -57,4 +57,8 @@ protected:
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|CharacterSkill")
 	TSubclassOf<UGameplayEffect> SkillGEClass;
+	
+	static constexpr float DESTROY_FX_DELAY = 2.0f;
+private:
+	
 };

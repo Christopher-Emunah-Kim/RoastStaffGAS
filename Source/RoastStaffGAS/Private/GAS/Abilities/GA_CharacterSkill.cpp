@@ -14,6 +14,7 @@
 #include "NiagaraComponent.h"
 #include "System/LoggingSystem.h"
 
+
 void UGA_CharacterSkill::OnAbilityActivated(const FGameplayAbilitySpecHandle Handle,const FGameplayAbilityActorInfo* ActorInfo,const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	const URSCharacterSkillData* SkillData = Cast<URSCharacterSkillData>(GetCurrentSourceObject());
@@ -210,5 +211,16 @@ void UGA_CharacterSkill::SpawnSkillFX(TSoftObjectPtr<UNiagaraSystem> FXClass, FV
 	if (NiagaraComp)
 	{
 		NiagaraComp->SetVariableFloat(FName(TEXT("Radius")), Radius);
+
+		// 루프 이펙트 자동 제거 — 1.3초 후 Deactivate (bAutoDestroy=true이므로 즉시 파괴)
+		TWeakObjectPtr<UNiagaraComponent> WeakComp(NiagaraComp);
+		FTimerHandle FXLifetimeHandle;
+		GetWorld()->GetTimerManager().SetTimer(FXLifetimeHandle, [WeakComp]()
+		{
+			if (WeakComp.IsValid())
+			{
+				WeakComp->Deactivate();
+			}
+		}, DESTROY_FX_DELAY, false);
 	}
 }
