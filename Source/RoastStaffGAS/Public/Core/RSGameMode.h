@@ -81,9 +81,6 @@ private:
 	UPROPERTY()
 	AEnemySpawner* CachedSpawner = nullptr;
 	
-	/** 데미지 플로팅 위젯 프리웜 클래스 — BP에서 할당 */
-	UPROPERTY(EditDefaultsOnly, Category = "MY|PreWarm")
-	TSubclassOf<UUserWidget> DamageFloatingWidgetClass;
 	/** 데미지 플로팅 위젯 프리웜 수량 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|PreWarm")
 	int32 DamageFloatingWidgetPoolCount = 20;

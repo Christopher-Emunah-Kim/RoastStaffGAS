@@ -4,6 +4,8 @@
 #include "Core/RSGameMode.h"
 #include "RoastStaffGAS.h"
 #include "System/EnemySpawner.h"
+#include "Character/Player/RSPlayerController.h"
+#include "UI/FloatingDamageWidget.h"
 #include "Subsystems/PoolingSubsystem.h"
 #include "Subsystems/StageManagerSubsystem.h"
 #include "Subsystems/SaveGameSubsystem.h"
@@ -199,14 +201,20 @@ TArray<FPoolPreWarmRequest> ARSGameMode::BuildPreWarmList(AEnemySpawner* Spawner
 		PreWarmList.Add(MakeActorRequest(ProjClass, Spawner->GetProjectilePoolCount()));
 	}
 
-	// 데미지 플로팅 위젯
-	if (DamageFloatingWidgetClass && DamageFloatingWidgetPoolCount > 0)
+	// 데미지 플로팅 위젯 — PlayerController의 클래스를 읽어 단일 출처 유지
+	if (ARSPlayerController* PC = Cast<ARSPlayerController>(GetWorld()->GetFirstPlayerController()))
 	{
-		PreWarmList.Add(MakeWidgetRequest(DamageFloatingWidgetClass, DamageFloatingWidgetPoolCount));
+		if (TSubclassOf<UFloatingDamageWidget> WidgetClass = PC->GetFloatingDamageWidgetClass())
+		{
+			if (DamageFloatingWidgetPoolCount > 0)
+			{
+				PreWarmList.Add(MakeWidgetRequest(WidgetClass, DamageFloatingWidgetPoolCount));
+			}
+		}
 	}
 
-	KHS_INFO(TEXT("BuildPreWarmList — 요청 %d건 (에너미 %d클래스 + 투사체 + 위젯)"),
-		PreWarmList.Num(), UniqueEnemyClasses.Num());
+	KHS_INFO(TEXT("BuildPreWarmList — 요청 %d건 (에너미 %d클래스 + 투사체 + 위젯)"),	PreWarmList.Num(), UniqueEnemyClasses.Num());
+	
 	return PreWarmList;
 }
 

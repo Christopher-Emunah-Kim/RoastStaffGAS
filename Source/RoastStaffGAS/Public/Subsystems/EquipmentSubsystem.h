@@ -92,7 +92,7 @@ public:
 private:
 	static constexpr int32 SLOT_COUNT = 3;
 	static constexpr float AutoFireSearchRadius = 1500.f;
-	static constexpr float AUTO_FIRE_START_DELAY = 2.f; 
+	static constexpr float AUTO_FIRE_START_DELAY = 1.2f; 
 	static constexpr int32 WeaponProjectilePoolCount = 10;
 	static constexpr int32 WeaponSummonPoolCount     = 5;
 	
