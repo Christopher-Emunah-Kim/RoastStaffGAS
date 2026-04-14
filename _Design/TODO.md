@@ -13,22 +13,12 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
-### [UX] WeaponSlot UI 비어있을 때 숨김 처리 ✓ DONE 2026-04-14 (PLAN_SkillSlotUI_v1.0)
-
 ### [BUG] FloatingDamageWidgetClass 중복 관리 [P2]
 - RSGameMode.DamageFloatingWidgetClass (PreWarm용) + RSPlayerController.FloatingDamageWidgetClass (실제 스폰용) 두 곳에 동일 클래스 UPROPERTY 존재
 - 한 쪽만 교체 시 PreWarm 대상과 실제 사용 클래스 불일치 잠재 버그
 - 개선 방향: GameMode::BuildPreWarmList에서 PlayerController의 FloatingDamageWidgetClass를 읽어 사용, GameMode UPROPERTY 제거
 
 
-
-## [FEATURE] 캐릭터 스킬 슬롯 UI 통합 ✓ DONE 2026-04-14 | PLAN_SkillSlotUI_v1.0
-- [x] FCharacterSkillStaticData / FCharacterSkillExecData SkillIconSoftRef 추가
-- [x] SkillManagerSubsystem CooldownRemaining/TotalCooldown + OnSkillSlotUpdatedDel 추가
-- [x] CharacterSkillSlotWidget 신규 (Q/E 슬롯, 쿨타임 NativeTick 패턴)
-- [x] SlotContainerWidget 일반화 (스킬2 + 무기3 통합)
-- [x] WeaponSlotWidget 경로 이동 (UI/Ingame/) + 빈 슬롯 Collapsed UX
-- [x] RSHUDWidget / RSPlayerController 연결 + 타이밍 역전 버그 수정
 
 ## [FEATURE] PHASE-1 인게임 루프 완성 | PLAN_Phase1_InGame_v1.0
 > 시작: 2026-04-10 | 기획서: 게임 시스템 개선안 v1.0.md
@@ -205,6 +195,7 @@
 [x] LastPlayedStage UX 연속성 복원 | 7d586e6,34e2df6,7279505 | 2026-04-09 | PLAN_LastPlayedStageRestore_v1.0
 [x] PlayerStatusBarWidget HP/EXP TextBlock 실시간 갱신 | d22fcd1 | 2026-04-09 | ad-hoc
 [x] 풀링 시스템 중앙화 + AsyncPreWarm + GC리팩토링 | af3c5cd,8011f7f | 2026-04-08 | PLAN_PoolingCentralize_v1.0
+[x] 캐릭터 스킬 슬롯 UI 통합 (UX 빈슬롯 숨김 + CharacterSkillSlot Q/E) | a8e0d582a,ef8d96bcd,6905263d8 | 2026-04-14 | PLAN_SkillSlotUI_v1.0
 [x] 스테이지 클리어 로직 + 결과 UI (WBP 포함) | 78378ee,6c7f997,067b08a,4bb9bcb | 2026-04-05~06 | PLAN_StageResult_v1.0
 [x] 게임플로우 데이터(RuntimeDS/캐릭터적용) | d622281,f10dab1,783b4e7 | 2026-04-02~03 | PLAN_GameFlow_Data_v1.0
 [x] OutGame 선택 UI(캐릭터·스테이지 선택) | 1a21f8c~8d68391,2944f16,71f1ac0,1ed214f,15ac6d4 | 2026-04-01~02 | PLAN_OutGame_SelectUI_v1.0

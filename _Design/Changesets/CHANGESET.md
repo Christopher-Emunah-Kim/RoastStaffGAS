@@ -12,38 +12,13 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ## PENDING_COMMIT
 
+## COMMITTED
+
 - date: 2026-04-14
   plan: PLAN_SkillSlotUI_v1.0
-  commit: null
+  commit: "a8e0d582a(feat), ef8d96bcd(data), 6905263d8(fix+docs)"
   summary: "캐릭터 스킬 슬롯 UI 통합 — SlotContainerWidget 일반화 + CharacterSkillSlotWidget 신규 + 빈 슬롯 숨김 UX"
-  status: PENDING_COMMIT
-  files.modified:
-    - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
-    - Source/RoastStaffGAS/Public/Data/RuntimeDataStructs.h
-    - Source/RoastStaffGAS/Private/Subsystems/GameDataSubsystem.cpp
-    - Source/RoastStaffGAS/Public/Subsystems/SkillManagerSubsystem.h
-    - Source/RoastStaffGAS/Private/Subsystems/SkillManagerSubsystem.cpp
-    - Source/RoastStaffGAS/Public/UI/RSHUDWidget.h
-    - Source/RoastStaffGAS/Private/UI/RSHUDWidget.cpp
-    - Source/RoastStaffGAS/Public/Character/Player/RSPlayerController.h
-    - Source/RoastStaffGAS/Private/Character/Player/RSPlayerController.cpp
-  files.created:
-    - Source/RoastStaffGAS/Public/UI/Ingame/CharacterSkillSlotWidget.h
-    - Source/RoastStaffGAS/Private/UI/Ingame/CharacterSkillSlotWidget.cpp
-    - Source/RoastStaffGAS/Public/UI/Ingame/SlotContainerWidget.h
-    - Source/RoastStaffGAS/Private/UI/Ingame/SlotContainerWidget.cpp
-    - Source/RoastStaffGAS/Public/UI/Ingame/WeaponSlotWidget.h
-    - Source/RoastStaffGAS/Private/UI/Ingame/WeaponSlotWidget.cpp
-  files.deleted:
-    - Source/RoastStaffGAS/Public/UI/WeaponSlotWidget.h
-    - Source/RoastStaffGAS/Private/UI/WeaponSlotWidget.cpp
-    - Source/RoastStaffGAS/Public/UI/WeaponSlotContainerWidget.h
-    - Source/RoastStaffGAS/Private/UI/WeaponSlotContainerWidget.cpp
-  bugs_fixed:
-    - WeaponSlot 빈 슬롯 숨김 — SlotContainerWidget NativeConstruct에서 UpdateSlot(nullptr) 초기화
-    - 캐릭터 스킬 슬롯 초기 업데이트 누락 — PC::BeginPlay HUD 오픈 후 force-refresh 추가 (타이밍 역전 대비)
-
-## COMMITTED
+  status: COMMITTED
 
 - date: 2026-04-14
   commit: 1795bb48d
