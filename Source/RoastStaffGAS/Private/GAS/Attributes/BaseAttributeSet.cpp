@@ -46,7 +46,7 @@ void UBaseAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 
 		KHS_INFO(TEXT("[HP 변경] %s → CurrentHP: %.0f / MaxHP: %.0f"),
 		*GetOwningActor()->GetName(), GetCurrentHP(), GetMaxHP());
-		
+
 		// HP 변경 이벤트 발행 — UI 갱신용
 		OnHealthChangedDel.Broadcast(GetCurrentHP(), GetMaxHP());
 
@@ -55,5 +55,10 @@ void UBaseAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 		{
 			OnDeathDel.Broadcast();
 		}
+	}
+
+	if (Data.EvaluatedData.Attribute == GetMoveSpeedAttribute())
+	{
+		OnMoveSpeedChangedDel.Broadcast(GetMoveSpeed());
 	}
 }
