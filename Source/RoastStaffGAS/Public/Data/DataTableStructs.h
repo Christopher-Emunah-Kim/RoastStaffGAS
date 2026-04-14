@@ -733,6 +733,9 @@ struct FPassiveStaticData : public FTableRowBase
 	/** 진화 조합 태그 — 현재 미사용, 필드만 보유 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Passive|Evolution")
 	FString EvolutionTag;
+	/** GE Modifier에 SetByCaller로 주입할 수치 — 곱연산이면 1.15(+15%), 덧연산이면 10.f 등 GE 타입에 맞게 입력 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Passive")
+	float Magnitude = 1.f;
 	/** 레벨업 카드 풀에서 등장 가중치 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Passive")
 	float Weight = 1.f;
@@ -773,6 +776,9 @@ struct FLevelUpCardStaticData : public FTableRowBase
 	/** 카드 설명 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LevelUpCard")
 	FText Description = FText::GetEmpty();
+	/** 카드 아이콘 — StatUpgrade 전용. PassiveAdd는 DT_Passive.Icon 우선 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LevelUpCard")
+	TSoftObjectPtr<UTexture2D> Icon;
 };
 
 // ----------------------------------------------------------------------------

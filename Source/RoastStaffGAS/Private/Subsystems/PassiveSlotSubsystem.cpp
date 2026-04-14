@@ -68,6 +68,9 @@ bool UPassiveSlotSubsystem::TryAddPassive(FName PassiveID)
 		return false;
 	}
 
+	// DT_Passive.Magnitude → GE SetByCaller 주입 (GE Modifier가 Data.PassiveMagnitude 태그 사용)
+	Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_PassiveMagnitude, PassiveData.Magnitude);
+
 	ASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
 	EquippedPassiveIDs.Add(PassiveID);
 

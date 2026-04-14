@@ -2,6 +2,7 @@
 
 #include "UI/LevelUpWeaponSelectWidget.h"
 #include "Subsystems/EquipmentSubsystem.h"
+#include "Subsystems/LevelUpSubsystem.h"
 #include "Subsystems/UIManagerSubsystem.h"
 #include "System/LoggingSystem.h"
 #include "RoastStaffGAS.h"
@@ -11,15 +12,16 @@
 
 namespace
 {
-	FText CardStateToLevelText(EWeaponCardState State)
+	FText CardTypeToLabel(ELevelUpCardType CardType)
 	{
-		switch (State)
+		switch (CardType)
 		{
-			case EWeaponCardState::New:       return FText::FromString(TEXT("NEW"));
-			case EWeaponCardState::Lv1ToLv2:  return FText::FromString(TEXT("Lv.1→2"));
-			case EWeaponCardState::Lv2ToLv3:  return FText::FromString(TEXT("Lv.2→3"));
-			case EWeaponCardState::Lv3Max:    return FText::FromString(TEXT("MAX"));
-			default:                          return FText::GetEmpty();
+			case ELevelUpCardType::StatUpgrade:   return FText::FromString(TEXT("스탯 업그레이드"));
+			case ELevelUpCardType::PassiveAdd:    return FText::FromString(TEXT("패시브"));
+			case ELevelUpCardType::WeaponUpgrade: return FText::FromString(TEXT("무기 강화"));
+			case ELevelUpCardType::WeaponNew:     return FText::FromString(TEXT("신규 무기"));
+			
+			default:                              return FText::GetEmpty();
 		}
 	}
 }
@@ -37,26 +39,28 @@ void ULevelUpWeaponSelectWidget::NativeOnInitialized()
 	Btn_Select1->OnClicked.AddDynamic(this, &ULevelUpWeaponSelectWidget::OnBtn_Select1Clicked);
 	Btn_Select2->OnClicked.AddDynamic(this, &ULevelUpWeaponSelectWidget::OnBtn_Select2Clicked);
 	Btn_Select3->OnClicked.AddDynamic(this, &ULevelUpWeaponSelectWidget::OnBtn_Select3Clicked);
+	Btn_Select4->OnClicked.AddDynamic(this, &ULevelUpWeaponSelectWidget::OnBtn_Select4Clicked);
 	Btn_Confirm1->OnClicked.AddDynamic(this, &ULevelUpWeaponSelectWidget::OnBtn_Confirm1Clicked);
 	Btn_Confirm2->OnClicked.AddDynamic(this, &ULevelUpWeaponSelectWidget::OnBtn_Confirm2Clicked);
 	Btn_Confirm3->OnClicked.AddDynamic(this, &ULevelUpWeaponSelectWidget::OnBtn_Confirm3Clicked);
+	Btn_Confirm4->OnClicked.AddDynamic(this, &ULevelUpWeaponSelectWidget::OnBtn_Confirm4Clicked);
 	Btn_Close->OnClicked.AddDynamic(this, &ULevelUpWeaponSelectWidget::OnBtn_CloseClicked);
 }
 
 void ULevelUpWeaponSelectWidget::OpenUI()
 {
 	SelectedCardIndex = -1;
-	Candidates.Empty();
+	Cards.Empty();
 	Super::OpenUI();
 }
 
-void ULevelUpWeaponSelectWidget::SetCandidates(const TArray<FWeaponCardDisplayData>& InCandidates)
+void ULevelUpWeaponSelectWidget::SetCards(const TArray<FLevelUpCardDisplayData>& InCards)
 {
-	if (!ensureMsgf(!InCandidates.IsEmpty(), TEXT("SetCandidates: 후보 배열이 비어있음")))
+	if (!ensureMsgf(!InCards.IsEmpty(), TEXT("SetCards: 카드 배열이 비어있음")))
 	{
 		return;
 	}
-	Candidates = InCandidates;
+	Cards = InCards;
 	RefreshCandidateUI();
 }
 
@@ -73,49 +77,50 @@ void ULevelUpWeaponSelectWidget::RefreshCandidateUI()
 		UImage*     Highlight;
 	};
 
-	const FCardWidgets Cards[] = {
-		{ Btn_Select1, Btn_Confirm1, Txt_WeaponName1, Txt_Desc1, Txt_WeaponLevel1, Img_WeaponIcon1, Img_Highlight1 },
-		{ Btn_Select2, Btn_Confirm2, Txt_WeaponName2, Txt_Desc2, Txt_WeaponLevel2, Img_WeaponIcon2, Img_Highlight2 },
-		{ Btn_Select3, Btn_Confirm3, Txt_WeaponName3, Txt_Desc3, Txt_WeaponLevel3, Img_WeaponIcon3, Img_Highlight3 },
+	const FCardWidgets Widgets[] = {
+		{ Btn_Select1, Btn_Confirm1, Txt_WeaponName1, Txt_Desc1, Txt_WeaponLevel1, Img_CardIcon1, Img_Highlight1 },
+		{ Btn_Select2, Btn_Confirm2, Txt_WeaponName2, Txt_Desc2, Txt_WeaponLevel2, Img_CardIcon2, Img_Highlight2 },
+		{ Btn_Select3, Btn_Confirm3, Txt_WeaponName3, Txt_Desc3, Txt_WeaponLevel3, Img_CardIcon3, Img_Highlight3 },
+		{ Btn_Select4, Btn_Confirm4, Txt_WeaponName4, Txt_Desc4, Txt_WeaponLevel4, Img_CardIcon4, Img_Highlight4 },
 	};
 
 	// Txt_Explain: 카드 미선택 상태에서 표시
 	Txt_Explain->SetVisibility(ESlateVisibility::HitTestInvisible);
 
-	for (int32 i = 0; i < 3; ++i)
+	for (int32 i = 0; i < 4; ++i)
 	{
-		const bool bValid = Candidates.IsValidIndex(i);
+		const bool bValid = Cards.IsValidIndex(i);
 
-		// Select 버튼: 유효 후보가 있을 때만 활성
-		Cards[i].Select->SetIsEnabled(bValid);
+		// Select 버튼: 유효 카드가 있을 때만 활성
+		Widgets[i].Select->SetIsEnabled(bValid);
 		// Confirm 버튼: 초기에는 항상 비활성 (카드 선택 후 활성화)
-		Cards[i].Confirm->SetIsEnabled(false);
+		Widgets[i].Confirm->SetIsEnabled(false);
 		// 하이라이트: 초기에는 항상 Hidden
-		Cards[i].Highlight->SetVisibility(ESlateVisibility::Hidden);
+		Widgets[i].Highlight->SetVisibility(ESlateVisibility::Hidden);
 
 		if (bValid)
 		{
-			Cards[i].Name->SetText(FText::FromName(Candidates[i].WeaponName));
-			Cards[i].Desc->SetText(FText::FromName(Candidates[i].Description));
-			Cards[i].Level->SetText(CardStateToLevelText(Candidates[i].CardState));
+			Widgets[i].Name->SetText(Cards[i].DisplayName);
+			Widgets[i].Desc->SetText(Cards[i].Description);
+			Widgets[i].Level->SetText(CardTypeToLabel(Cards[i].CardType));
 
-			if (UTexture2D* Icon = Candidates[i].WeaponIcon.LoadSynchronous())
+			if (UTexture2D* Icon = Cards[i].Icon.LoadSynchronous())
 			{
-				Cards[i].Icon->SetBrushFromTexture(Icon);
+				Widgets[i].Icon->SetBrushFromTexture(Icon);
 			}
 		}
 		else
 		{
-			Cards[i].Name->SetText(FText::GetEmpty());
-			Cards[i].Desc->SetText(FText::GetEmpty());
-			Cards[i].Level->SetText(FText::GetEmpty());
+			Widgets[i].Name->SetText(FText::GetEmpty());
+			Widgets[i].Desc->SetText(FText::GetEmpty());
+			Widgets[i].Level->SetText(FText::GetEmpty());
 		}
 	}
 }
 
 void ULevelUpWeaponSelectWidget::OnCardSelected(int32 CardIndex)
 {
-	if (!Candidates.IsValidIndex(CardIndex))
+	if (!Cards.IsValidIndex(CardIndex))
 	{
 		KHS_WARN(TEXT("OnCardSelected: 유효하지 않은 CardIndex %d"), CardIndex);
 		return;
@@ -127,50 +132,51 @@ void ULevelUpWeaponSelectWidget::OnCardSelected(int32 CardIndex)
 	Txt_Explain->SetVisibility(ESlateVisibility::Collapsed);
 
 	// 카드별 하이라이트 & Confirm 버튼 활성/비활성 갱신
-	UImage*  Highlights[] = { Img_Highlight1, Img_Highlight2, Img_Highlight3 };
-	UButton* Confirms[]   = { Btn_Confirm1,   Btn_Confirm2,   Btn_Confirm3   };
+	UImage*  Highlights[] = { Img_Highlight1, Img_Highlight2, Img_Highlight3, Img_Highlight4 };
+	UButton* Confirms[]   = { Btn_Confirm1,   Btn_Confirm2,   Btn_Confirm3,   Btn_Confirm4   };
 
-	for (int32 i = 0; i < 3; ++i)
+	for (int32 i = 0; i < 4; ++i)
 	{
 		const bool bSelected = (i == CardIndex);
 		Highlights[i]->SetVisibility(bSelected ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
 		Confirms[i]->SetIsEnabled(bSelected);
 	}
 
-	KHS_INFO(TEXT("카드 선택 — Index: %d, WeaponID: %s"), CardIndex, *Candidates[CardIndex].WeaponID.ToString());
+	KHS_INFO(TEXT("카드 선택 — Index: %d, CardID: %s"), CardIndex, *Cards[CardIndex].CardID.ToString());
 }
 
 void ULevelUpWeaponSelectWidget::EquipAndClose(int32 CardIndex)
 {
-	if (!Candidates.IsValidIndex(CardIndex))
+	if (!Cards.IsValidIndex(CardIndex))
 	{
 		KHS_WARN(TEXT("EquipAndClose: 유효하지 않은 CardIndex %d"), CardIndex);
 		return;
 	}
 
-	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetWorld()->GetGameInstance());
+	GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetWorld()->GetGameInstance())
+	LevelUpSys->OnCardSelected(Cards[CardIndex].CardID);
 
-	const FName SelectedWeaponID = Candidates[CardIndex].WeaponID;
-	const FName PendingBefore = EquipSys->PendingWeaponID;
-
-	EquipSys->EquipWeapon(SelectedWeaponID);
-	KHS_INFO(TEXT("무기 장착 요청 — WeaponID: %s"), *SelectedWeaponID.ToString());
-
-	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetWorld()->GetGameInstance());
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetWorld()->GetGameInstance())
 	UMS->CloseUI(this);
 
-	// 슬롯 가득 → OnSlotFull 발행된 경우 교체 UI가 게임 재개를 담당
-	// 그 외(강화/일반 장착)는 이 위젯이 직접 완료 통보
-	if (EquipSys->PendingWeaponID == NAME_None)
+	// 무기 카드 + 슬롯 가득 → OnSlotFull 발행된 경우 교체 UI가 게임 재개를 담당
+	const ELevelUpCardType CardType = Cards[CardIndex].CardType;
+	if (CardType == ELevelUpCardType::WeaponNew || CardType == ELevelUpCardType::WeaponUpgrade)
 	{
-		OnWeaponSelectCompletedDel.Broadcast();
+		GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetWorld()->GetGameInstance())
+		if (EquipSys->PendingWeaponID != NAME_None)
+		{
+			return;
+		}
 	}
+
+	OnWeaponSelectCompletedDel.Broadcast();
 }
 
 void ULevelUpWeaponSelectWidget::CloseWithoutEquip()
 {
-	KHS_INFO(TEXT("레벨업 UI 스킵 — 무기 미선택"));
-	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetWorld()->GetGameInstance());
+	KHS_INFO(TEXT("레벨업 UI 스킵 — 카드 미선택"));
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetWorld()->GetGameInstance())
 	UMS->CloseUI(this);
 	OnWeaponSelectCompletedDel.Broadcast();
 }
@@ -179,7 +185,9 @@ void ULevelUpWeaponSelectWidget::CloseWithoutEquip()
 void ULevelUpWeaponSelectWidget::OnBtn_Select1Clicked()  { OnCardSelected(0); }
 void ULevelUpWeaponSelectWidget::OnBtn_Select2Clicked()  { OnCardSelected(1); }
 void ULevelUpWeaponSelectWidget::OnBtn_Select3Clicked()  { OnCardSelected(2); }
+void ULevelUpWeaponSelectWidget::OnBtn_Select4Clicked()  { OnCardSelected(3); }
 void ULevelUpWeaponSelectWidget::OnBtn_Confirm1Clicked() { EquipAndClose(0); }
 void ULevelUpWeaponSelectWidget::OnBtn_Confirm2Clicked() { EquipAndClose(1); }
 void ULevelUpWeaponSelectWidget::OnBtn_Confirm3Clicked() { EquipAndClose(2); }
+void ULevelUpWeaponSelectWidget::OnBtn_Confirm4Clicked() { EquipAndClose(3); }
 void ULevelUpWeaponSelectWidget::OnBtn_CloseClicked()    { CloseWithoutEquip(); }

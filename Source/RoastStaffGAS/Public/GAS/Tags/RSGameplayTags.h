@@ -101,6 +101,8 @@ namespace RSTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_WeaponBaseDamage);
 	// SetByCaller — 에너미 공격 데미지 (ExecCalc 입력)
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_EnemyAttackDamage);
+	// SetByCaller — 패시브 GE 수치 주입 (TryAddPassive → GE Modifier)
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_PassiveMagnitude);
 	
 	//===============================================
 	// GC 태그(GameplayCue.*)

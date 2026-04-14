@@ -28,13 +28,8 @@ class ROASTSTAFFGAS_API ULevelUpWeaponSelectWidget : public URSBaseWidget
 
 public:
 	ULevelUpWeaponSelectWidget();
-
 	/** PlayerController에서 카드 표시 데이터를 주입 — 주입 즉시 UI 갱신 */
-	void SetCandidates(const TArray<FWeaponCardDisplayData>& InCandidates);
-
-	/** 선택 완료(확인/스킵) 시 발행 — PlayerController가 구독하여 게임 재개 */
-	UPROPERTY(BlueprintAssignable, Category = "MY|LevelUp")
-	FOnWeaponSelectCompleted OnWeaponSelectCompletedDel;
+	void SetCards(const TArray<FLevelUpCardDisplayData>& InCards);
 
 protected:
 	/** 위젯 최초 생성 시 딱 한 번 — 버튼 바인딩 */
@@ -54,48 +49,66 @@ private:
 	void RefreshCandidateUI();
 
 	// ── 버튼 OnClicked 핸들러 (AddDynamic — 파라미터 없는 UFUNCTION 필요) ──
-	UFUNCTION() 
+	UFUNCTION()
 	void OnBtn_Select1Clicked();
-	UFUNCTION() 
+	UFUNCTION()
 	void OnBtn_Select2Clicked();
-	UFUNCTION() 
+	UFUNCTION()
 	void OnBtn_Select3Clicked();
-	UFUNCTION() 
+	UFUNCTION()
+	void OnBtn_Select4Clicked();
+	UFUNCTION()
 	void OnBtn_Confirm1Clicked();
-	UFUNCTION() 
+	UFUNCTION()
 	void OnBtn_Confirm2Clicked();
-	UFUNCTION() 
+	UFUNCTION()
 	void OnBtn_Confirm3Clicked();
-	UFUNCTION() 
+	UFUNCTION()
+	void OnBtn_Confirm4Clicked();
+	UFUNCTION()
 	void OnBtn_CloseClicked();
 
+public:
+	/** 선택 완료(확인/스킵) 시 발행 — PlayerController가 구독하여 게임 재개 */
+	UPROPERTY(BlueprintAssignable, Category = "MY|LevelUp")
+	FOnWeaponSelectCompleted OnWeaponSelectCompletedDel;
+	
+private:
+	
 	// ── BindWidget ─────────────
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UButton> Btn_Select1;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UButton> Btn_Select2;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UButton> Btn_Select3;
+	UPROPERTY(meta = (BindWidget)) TObjectPtr<UButton> Btn_Select4;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UButton> Btn_Confirm1;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UButton> Btn_Confirm2;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UButton> Btn_Confirm3;
+	UPROPERTY(meta = (BindWidget)) TObjectPtr<UButton> Btn_Confirm4;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UButton> Btn_Close;
 
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> Txt_WeaponName1;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> Txt_WeaponName2;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> Txt_WeaponName3;
+	UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> Txt_WeaponName4;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> Txt_Desc1;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> Txt_Desc2;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> Txt_Desc3;
+	UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> Txt_Desc4;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> Txt_WeaponLevel1;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> Txt_WeaponLevel2;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> Txt_WeaponLevel3;
+	UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> Txt_WeaponLevel4;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> Txt_Explain;
 
-	UPROPERTY(meta = (BindWidget)) TObjectPtr<UImage>     Img_WeaponIcon1;
-	UPROPERTY(meta = (BindWidget)) TObjectPtr<UImage>     Img_WeaponIcon2;
-	UPROPERTY(meta = (BindWidget)) TObjectPtr<UImage>     Img_WeaponIcon3;
-	UPROPERTY(meta = (BindWidget)) TObjectPtr<UImage>     Img_Highlight1;
-	UPROPERTY(meta = (BindWidget)) TObjectPtr<UImage>     Img_Highlight2;
-	UPROPERTY(meta = (BindWidget)) TObjectPtr<UImage>     Img_Highlight3;
+	UPROPERTY(meta = (BindWidget)) TObjectPtr<UImage> Img_CardIcon1;
+	UPROPERTY(meta = (BindWidget)) TObjectPtr<UImage> Img_CardIcon2;
+	UPROPERTY(meta = (BindWidget)) TObjectPtr<UImage> Img_CardIcon3;
+	UPROPERTY(meta = (BindWidget)) TObjectPtr<UImage> Img_CardIcon4;
+	UPROPERTY(meta = (BindWidget)) TObjectPtr<UImage> Img_Highlight1;
+	UPROPERTY(meta = (BindWidget)) TObjectPtr<UImage> Img_Highlight2;
+	UPROPERTY(meta = (BindWidget)) TObjectPtr<UImage> Img_Highlight3;
+	UPROPERTY(meta = (BindWidget)) TObjectPtr<UImage> Img_Highlight4;
 
-	TArray<FWeaponCardDisplayData> Candidates;
+	TArray<FLevelUpCardDisplayData> Cards;
 	int32 SelectedCardIndex = -1;
 };

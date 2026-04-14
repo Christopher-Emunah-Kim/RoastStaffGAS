@@ -22,70 +22,77 @@
 #include "Data/EnumUITypes.h"
 #include "Data/RuntimeDataStructs.h"
 
+
 void ARSPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	//IMC 등록
-	UEnhancedInputLocalPlayerSubsystem* Subsys =  ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
-	if (!Subsys || !IMC)
-	{
-		KHS_WARN(TEXT("EnhancedInput 시스템 로딩 실패 / IMC 에섯 미할당"));
-		return;
-	}
-	Subsys->AddMappingContext(IMC, 0);
-	SetShowMouseCursor(true);
-
-	FInputModeGameOnly GameOnlyMode;                                                                 
-	GameOnlyMode.SetConsumeCaptureMouseDown(false);                                                
-	SetInputMode(GameOnlyMode);           
-	
-	//슬롯 델리게이트 구독
-	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance());
-	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetGameInstance());
-	GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
-
-	EquipSys->OnSlotUpdatedDel.AddUniqueDynamic(this, &ARSPlayerController::OnSlotUpdated);
-	EquipSys->OnSlotFull.AddUniqueDynamic(this, &ARSPlayerController::OnWeaponSlotFull);
-	LevelUpSys->OnWeaponCandidatesReadyDel.AddUniqueDynamic(this, &ARSPlayerController::OnWeaponCandidatesReady);
-	
-	GET_WORLD_SUBSYSTEM(UPassiveSlotSubsystem, PassiveSys)
-	PassiveSys->OnPassiveSlotChangedDel.AddUniqueDynamic(this, &ARSPlayerController::OnPassiveSlotChanged);
-
-	// 캐릭터 스킬 슬롯 UI 구독
-	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
-	SkillMgr->OnSkillSlotUpdatedDel.AddUniqueDynamic(this, &ARSPlayerController::OnSkillSlotUpdated);
-
-	KHS_INFO(TEXT("델리게이트 구독 완료 (SlotUpdated / SlotFull / WeaponCandidatesReady / PassiveSlotChanged / SkillSlotUpdated)"));
-
-	// UIManagerSettings 매핑 기반으로 HUD 오픈 — TSubclassOf 직접 참조 제거
-	URSHUDWidget* HUDWidget = Cast<URSHUDWidget>(UMS->OpenUIByID(EUIID::HUD));
-	if (!ensureMsgf(HUDWidget, TEXT("HUD Widget 오픈 실패 — UIManagerSettings HUD 매핑 확인 필요")))
-	{
-		return;
-	}
+	HandleInputContext();           
+	BindSubsystemDelegates();
+	OpenHUDUI();
 
 	// Character::BeginPlay가 먼저 실행돼 InitializeSkills 브로드캐스트를 놓쳤을 경우 대비
 	for (int32 i = 0; i < 2; ++i)
 	{
 		RefreshSkillSlotUI(i);
 	}
+}
 
+void ARSPlayerController::HandleInputContext()
+{
+	//IMC 등록
+	UEnhancedInputLocalPlayerSubsystem* Subsys =  ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
+	if (!Subsys || !IMC)
+	{
+		KHS_WARN(TEXT("EnhancedInput 시스템 로딩 실패 / IMC 에섯 미할당"));
+	}
+	Subsys->AddMappingContext(IMC, 0);
+	SetShowMouseCursor(true);
+
+	FInputModeGameOnly GameOnlyMode;                                                                 
+	GameOnlyMode.SetConsumeCaptureMouseDown(false);                                                
+	SetInputMode(GameOnlyMode);
+}
+
+void ARSPlayerController::BindSubsystemDelegates()
+{
+	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetGameInstance())
+	GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance())
+	GET_WORLD_SUBSYSTEM(UPassiveSlotSubsystem, PassiveSys)
+	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
+
+	EquipSys->OnSlotUpdatedDel.AddUniqueDynamic(this, &ARSPlayerController::OnSlotUpdated);
+	EquipSys->OnSlotFull.AddUniqueDynamic(this, &ARSPlayerController::OnWeaponSlotFull);
+	PassiveSys->OnPassiveSlotChangedDel.AddUniqueDynamic(this, &ARSPlayerController::OnPassiveSlotChanged);
+	SkillMgr->OnSkillSlotUpdatedDel.AddUniqueDynamic(this, &ARSPlayerController::OnSkillSlotUpdated);
+	LevelUpSys->OnCardPoolReadyDel.AddUniqueDynamic(this, &ARSPlayerController::OnCardPoolReady);
+
+	KHS_INFO(TEXT("델리게이트 구독 완료 (SlotUpdated / SlotFull / WeaponCandidatesReady / PassiveSlotChanged / SkillSlotUpdated)"));
+}
+
+void ARSPlayerController::OpenHUDUI()
+{
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance())
+	
+	// UIManagerSettings 매핑 기반으로 HUD 오픈 — TSubclassOf 직접 참조 제거
+	URSHUDWidget* HUDWidget = Cast<URSHUDWidget>(UMS->OpenUIByID(EUIID::HUD));
+	if (!HUDWidget)
+	{
+		KHS_WARN(TEXT("HUD Widget 오픈 실패 — UIManagerSettings HUD 매핑 확인 필요"));
+	}
 }
 
 void ARSPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetGameInstance());
+	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetGameInstance())
+	GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance())
+	GET_WORLD_SUBSYSTEM(UPassiveSlotSubsystem, PassiveSys)
+	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgrEnd)
+	
 	EquipSys->OnSlotUpdatedDel.RemoveDynamic(this, &ARSPlayerController::OnSlotUpdated);
 	EquipSys->OnSlotFull.RemoveDynamic(this, &ARSPlayerController::OnWeaponSlotFull);
-
-	GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
-	LevelUpSys->OnWeaponCandidatesReadyDel.RemoveDynamic(this, &ARSPlayerController::OnWeaponCandidatesReady);
-
-	GET_WORLD_SUBSYSTEM(UPassiveSlotSubsystem, PassiveSys)
+	LevelUpSys->OnCardPoolReadyDel.RemoveDynamic(this, &ARSPlayerController::OnCardPoolReady);
 	PassiveSys->OnPassiveSlotChangedDel.RemoveDynamic(this, &ARSPlayerController::OnPassiveSlotChanged);
-
-	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgrEnd)
 	SkillMgrEnd->OnSkillSlotUpdatedDel.RemoveDynamic(this, &ARSPlayerController::OnSkillSlotUpdated);
 
 	Super::EndPlay(EndPlayReason);
@@ -121,8 +128,8 @@ void ARSPlayerController::OnSlotUpdated(int32 SlotIndex)
 
 void ARSPlayerController::RefreshSlotUI(int32 SlotIndex)
 {
-	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetGameInstance());
-	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance());
+	GET_GI_SUBSYSTEM_FROM(UEquipmentSubsystem, EquipSys, GetGameInstance())
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance())
 
 	URSHUDWidget* HUD = Cast<URSHUDWidget>(UMS->OpenUIByID(EUIID::HUD));
 	if (!HUD)
@@ -256,21 +263,21 @@ void ARSPlayerController::OnSkillCancel(const FInputActionValue& Value)
 // 레벨업 UI 관리
 // ============================================================================
 
-void ARSPlayerController::OnWeaponCandidatesReady(const TArray<FWeaponCardDisplayData>& WeaponCards)
+void ARSPlayerController::OnCardPoolReady(const TArray<FLevelUpCardDisplayData>& Cards)
 {
-	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance());
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance())
 
 	// UIManagerSettings LEVEL_UP 매핑으로 위젯 오픈 — 클래스 프로퍼티 직접 참조 제거
 	ULevelUpWeaponSelectWidget* Widget = Cast<ULevelUpWeaponSelectWidget>(UMS->OpenUIByID(EUIID::LEVEL_UP));
 	if (!ensureMsgf(Widget, TEXT("LevelUpWeaponSelectWidget 오픈 실패 — UIManagerSettings LEVEL_UP 매핑 확인 필요")))
 	{
-		GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
+		GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance())
 		LevelUpSys->NotifyWeaponSelectCompleted();
 		return;
 	}
 
 	Widget->OnWeaponSelectCompletedDel.AddDynamic(this, &ARSPlayerController::OnWeaponSelectCompleted);
-	Widget->SetCandidates(WeaponCards);
+	Widget->SetCards(Cards);
 
 	// 게임 일시정지 (추후 StageSystem 위임으로 교체 예정)
 	if (UWorld* World = GetWorld())
@@ -278,12 +285,12 @@ void ARSPlayerController::OnWeaponCandidatesReady(const TArray<FWeaponCardDispla
 		World->GetWorldSettings()->TimeDilation = 0.f;
 	}
 
-	KHS_INFO(TEXT("레벨업 UI 오픈 — 후보 %d종"), WeaponCards.Num());
+	KHS_INFO(TEXT("레벨업 UI 오픈 — 카드 %d장"), Cards.Num());
 }
 
 void ARSPlayerController::OnWeaponSelectCompleted()
 {
-	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance());
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance())
 
 	// 위젯이 열려있는 상태에서 호출되므로 IsOpen() 통과 — 캐시에서 반환
 	if (ULevelUpWeaponSelectWidget* Widget = Cast<ULevelUpWeaponSelectWidget>(UMS->OpenUIByID(EUIID::LEVEL_UP)))
@@ -298,7 +305,7 @@ void ARSPlayerController::OnWeaponSelectCompleted()
 		World->GetWorldSettings()->TimeDilation = 1.f;
 	}
 
-	GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
+	GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance())
 	LevelUpSys->NotifyWeaponSelectCompleted();
 
 	KHS_INFO(TEXT("레벨업 UI 종료 — 게임 재개"));
@@ -310,13 +317,13 @@ void ARSPlayerController::OnWeaponSelectCompleted()
 
 void ARSPlayerController::OnWeaponSlotFull(FName PendingWeaponID)
 {
-	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance());
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance())
 
 	// UIManagerSettings WEAPON_REPLACE 매핑으로 위젯 오픈 — 클래스 프로퍼티 직접 참조 제거
 	UWeaponReplaceWidget* Widget = Cast<UWeaponReplaceWidget>(UMS->OpenUIByID(EUIID::WEAPON_REPLACE));
 	if (!ensureMsgf(Widget, TEXT("WeaponReplaceWidget 오픈 실패 — UIManagerSettings WEAPON_REPLACE 매핑 확인 필요")))
 	{
-		GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
+		GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance())
 		LevelUpSys->NotifyWeaponSelectCompleted();
 		return;
 	}
@@ -335,7 +342,7 @@ void ARSPlayerController::OnPassiveSlotChanged()
 
 void ARSPlayerController::OnWeaponReplaceCompleted()
 {
-	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance());
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance())
 
 	// 위젯이 열려있는 상태에서 호출되므로 IsOpen() 통과 — 캐시에서 반환
 	if (UWeaponReplaceWidget* Widget = Cast<UWeaponReplaceWidget>(UMS->OpenUIByID(EUIID::WEAPON_REPLACE)))
@@ -350,7 +357,7 @@ void ARSPlayerController::OnWeaponReplaceCompleted()
 		World->GetWorldSettings()->TimeDilation = 1.f;
 	}
 
-	GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance());
+	GET_GI_SUBSYSTEM_FROM(ULevelUpSubsystem, LevelUpSys, GetGameInstance())
 	LevelUpSys->NotifyWeaponSelectCompleted();
 
 	KHS_INFO(TEXT("교체 UI 종료 — 게임 재개"));
@@ -372,7 +379,7 @@ void ARSPlayerController::SpawnFloatingDamage(FVector WorldPos, float Damage)
 	FVector2D ScreenPos;
 	if (!ProjectWorldLocationToScreen(WorldPos, ScreenPos, true)) { return; }
 
-	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys);
+	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys)
 	UFloatingDamageWidget* Widget = Cast<UFloatingDamageWidget>(
 		PoolSys->SpawnPooledWidget(FloatingDamageWidgetClass, this));
 
@@ -399,6 +406,6 @@ void ARSPlayerController::ReturnFloatingDamageToPool(UFloatingDamageWidget* Widg
 
 	Widget->RemoveFromParent();
 
-	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys);
+	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys)
 	PoolSys->ReturnWidgetToPool(Widget);
 }

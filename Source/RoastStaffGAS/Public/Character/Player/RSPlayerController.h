@@ -15,7 +15,7 @@ class UFloatingDamageWidget;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
-struct FWeaponCardDisplayData;
+struct FLevelUpCardDisplayData;
 
 
 UCLASS()
@@ -39,10 +39,14 @@ public:
 	void ReturnFloatingDamageToPool(UFloatingDamageWidget* Widget);
 
 private:
-
+	void HandleInputContext();
+	void BindSubsystemDelegates();
+	
 	//========================================================
 	// UI 관리
 	//========================================================
+	void OpenHUDUI();
+	
 	UFUNCTION()
 	void OnSlotUpdated(int32 SlotIndex);
 	void RefreshSlotUI(int32 SlotIndex);
@@ -51,9 +55,9 @@ private:
 	void OnSkillSlotUpdated(int32 SlotIndex);
 	void RefreshSkillSlotUI(int32 SlotIndex);
 
-	/** LevelUpSubsystem.OnWeaponCandidatesReadyDel 핸들러 — 레벨업 UI 오픈 + 게임 일시정지 */
+	/** LevelUpSubsystem.OnCardPoolReadyDel 핸들러 — 레벨업 UI 오픈 + 게임 일시정지 */
 	UFUNCTION()
-	void OnWeaponCandidatesReady(const TArray<FWeaponCardDisplayData>& WeaponCards);
+	void OnCardPoolReady(const TArray<FLevelUpCardDisplayData>& Cards);
 	/** LevelUpWeaponSelectWidget.OnWeaponSelectCompletedDel 핸들러 — 게임 재개 */
 	UFUNCTION()
 	void OnWeaponSelectCompleted();
@@ -91,16 +95,12 @@ protected:
 	TObjectPtr<UInputMappingContext> IMC;
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
 	TObjectPtr<UInputAction> IA_Move;
-	/** LMB — 스킬 프리뷰 확정 (M-5: IsPreviewActive() 분기) */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
 	TObjectPtr<UInputAction> IA_Attack;
-	/** Q키 — 캐릭터 스킬 슬롯 1 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
 	TObjectPtr<UInputAction> IA_SkillQ;
-	/** E키 — 캐릭터 스킬 슬롯 2 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
 	TObjectPtr<UInputAction> IA_SkillE;
-	/** RMB — 스킬 프리뷰 취소 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
 	TObjectPtr<UInputAction> IA_SkillCancel;
 
@@ -110,4 +110,5 @@ protected:
 	float     AimAngle           = 0.f;
 
 private:
+	
 };

@@ -3,16 +3,29 @@
 #include "Subsystems/LevelUpSubsystem.h"
 #include "RoastStaffGAS.h"
 #include "GAS/Attributes/PlayerAttributeSet.h"
+#include "GAS/Attributes/BaseAttributeSet.h"
 #include "Subsystems/GameDataSubsystem.h"
 #include "Subsystems/EquipmentSubsystem.h"
+#include "Subsystems/PassiveSlotSubsystem.h"
 #include "GAS/Tags/RSGameplayTags.h"
 #include "Data/DataTableStructs.h"
 #include "Algo/RandomShuffle.h"
 
-void ULevelUpSubsystem::InitializeSubsystem(
-	UAbilitySystemComponent* InASC,
-	UPlayerAttributeSet* InAttributeSet,
-	TSubclassOf<UGameplayEffect> InAddEXPEffectClass)
+namespace
+{
+	FGameplayAttribute ResolveStatAttribute(FName StatType)
+	{
+		if (StatType == "ATK")            return UPlayerAttributeSet::GetATKAttribute();
+		if (StatType == "DEF")            return UPlayerAttributeSet::GetDEFAttribute();
+		if (StatType == "MaxHP")          return UBaseAttributeSet::GetMaxHPAttribute();
+		if (StatType == "CriticalRate")   return UPlayerAttributeSet::GetCriticalRateAttribute();
+		if (StatType == "CriticalDamage") return UPlayerAttributeSet::GetCriticalDamageAttribute();
+		if (StatType == "AttackSpeed")    return UPlayerAttributeSet::GetAttackSpeedAttribute();
+		return FGameplayAttribute{};
+	}
+}
+
+void ULevelUpSubsystem::InitializeSubsystem(UAbilitySystemComponent* InASC,	UPlayerAttributeSet* InAttributeSet,TSubclassOf<UGameplayEffect> InAddEXPEffectClass)
 {
 	if (bIsInitialized)
 	{
@@ -131,97 +144,298 @@ void ULevelUpSubsystem::CheckLevelUp(float NewEXP, int32 CurrentLevel)
 	KHS_INFO(TEXT("레벨업! %d → %d (남은EXP: %.0f)"), CurrentLevel, CurrentLevel + 1, OverflowEXP);
 
 	ApplyLevelUp(CurrentLevel, OverflowEXP);
-	SelectWeaponCandidates();
+	BuildCardPool();
 	// bIsLevelingUp는 PlayerController가 UI 종료 후 NotifyWeaponSelectCompleted()로 해제
-	// 잉여 EXP 연속 레벨업은 Task B에서 처리
 }
 
-void ULevelUpSubsystem::SelectWeaponCandidates()
+// ============================================================================
+// 카드풀 구성
+// ============================================================================
+
+void ULevelUpSubsystem::BuildCardPool()
 {
-	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS)
-	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys)
+	TArray<FLevelUpCardDisplayData> AllCards = BuildStaticCardPool();
+	AllCards.Append(BuildDynamicWeaponCards());
+	EnsureWeaponCardGuarantee(AllCards);
 
-	TArray<FName> WeaponPool = GDS->GetWeaponIDsByLevel(1);
+	TArray<FLevelUpCardDisplayData> FinalCards = PickFinalCards(AllCards);
 
-	if (WeaponPool.IsEmpty())
+	if (FinalCards.IsEmpty())
 	{
-		KHS_WARN(TEXT("무기 풀이 비어있음 — 레벨업 무기 선정 실패"));
-		check(false)
-		return;
-	}
-
-	Algo::RandomShuffle(WeaponPool);
-
-	const int32 PickCount = FMath::Min(WeaponPool.Num(), WEAPON_CANDIDATE_COUNT);
-	TArray<FWeaponCardDisplayData> Candidates;
-
-	for (int32 i = 0; i < PickCount; i++)
-	{
-		const FName& CandidateID = WeaponPool[i];
-
-		FWeaponStaticData CandidateData;
-		if (!GDS->GetWeaponData(CandidateID, CandidateData))
-		{
-			KHS_WARN(TEXT("후보 무기 데이터 조회 실패 — ID: %s, 건너뜀"), *CandidateID.ToString());
-			continue;
-		}
-
-		// 현재 장착 슬롯과 BaseType 비교로 카드 상태 결정
-		EWeaponCardState CardState = EWeaponCardState::New;
-		for (int32 SlotIdx = 0; SlotIdx < EquipSys->GetSlotCount(); SlotIdx++)
-		{
-			const FWeaponSlotInstanceData* SlotData = EquipSys->GetSlotData(SlotIdx);
-			if (!SlotData || SlotData->IsEmpty())
-			{
-				continue;
-			}
-
-			FWeaponStaticData EquippedData;
-			if (!GDS->GetWeaponData(SlotData->SlotEquipData.WeaponID, EquippedData))
-			{
-				continue;
-			}
-
-			if (EquippedData.BaseType != CandidateData.BaseType)
-			{
-				continue;
-			}
-
-			switch (EquippedData.WeaponLevel)
-			{
-				case 1:  CardState = EWeaponCardState::Lv1ToLv2; break;
-				case 2:  CardState = EWeaponCardState::Lv2ToLv3; break;
-				case 3:  break; // Lv3Max: 강화 불가 → New로 취급, 빈 슬롯에 Lv1 장착
-				default: break;
-			}
-			break; // 첫 번째 일치 슬롯 기준
-		}
-
-		FWeaponSlotEquipData EquipData;
-		FWeaponCardDisplayData CardData;
-		CardData.WeaponID    = CandidateID;
-		CardData.WeaponName  = CandidateData.WeaponName;
-		CardData.Description = CandidateData.Description;
-		CardData.CardState   = CardState;
-		CardData.bCanEvolve  = false; // DT_Combination 미구현 스텁
-		if (GDS->GetWeaponSlotEquipData(CandidateID, EquipData))
-		{
-			CardData.WeaponIcon = EquipData.SkillIcon;
-		}
-
-		Candidates.Add(CardData);
-	}
-
-	if (Candidates.IsEmpty())
-	{
-		KHS_WARN(TEXT("유효 후보 0종 — 델리게이트 발행 취소"));
+		KHS_WARN(TEXT("카드풀이 비어있음 — 레벨업 UI 취소"));
 		bIsLevelingUp = false;
 		return;
 	}
 
-	KHS_INFO(TEXT("무기 후보 선정 완료 — %d종 발행"), Candidates.Num());
-	OnWeaponCandidatesReadyDel.Broadcast(Candidates);
+	KHS_INFO(TEXT("카드풀 선정 완료 — %d장 발행"), FinalCards.Num());
+	OnCardPoolReadyDel.Broadcast(FinalCards);
 }
+
+TArray<FLevelUpCardDisplayData> ULevelUpSubsystem::BuildStaticCardPool()
+{
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS)
+	GET_WORLD_SUBSYSTEM(UPassiveSlotSubsystem, PassiveSys)
+	
+	const bool bPassiveFull = PassiveSys && PassiveSys->IsSlotFull();
+
+	TArray<FLevelUpCardDisplayData> Pool;
+
+	for (const FLevelUpCardStaticData& CardData : GDS->GetAllLevelUpCards())
+	{
+		//패시브 슬롯이 full이면 패시브 카드는 출현하지 않음.
+		if (CardData.CardType == ELevelUpCardType::PassiveAdd && bPassiveFull)
+		{
+			continue;
+		}
+
+		FLevelUpCardDisplayData Card;
+		Card.CardID      = CardData.CardID;
+		Card.CardType    = CardData.CardType;
+		Card.DisplayName = CardData.DisplayName;
+		Card.Description = CardData.Description;
+		Card.Weight      = CardData.Weight;
+		Card.Icon        = CardData.Icon; // StatUpgrade: DT_LevelUpCard.Icon 직접 사용
+
+		if (CardData.CardType == ELevelUpCardType::PassiveAdd && !CardData.PassiveID.IsNone())
+		{
+			FPassiveStaticData PassiveData;
+			if (GDS->GetPassiveData(CardData.PassiveID, PassiveData))
+			{
+				Card.Icon = PassiveData.Icon;
+				if (!PassiveData.Description.IsEmpty())
+				{
+					Card.Description = PassiveData.Description;
+				}
+			}
+		}
+
+		Pool.Add(Card);
+	}
+
+	return Pool;
+}
+
+TArray<FLevelUpCardDisplayData> ULevelUpSubsystem::BuildDynamicWeaponCards()
+{
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS)
+	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys)
+
+	TSet<EWeaponBaseType> EquippedBaseTypes;
+	TArray<FLevelUpCardDisplayData> DynamicCards;
+
+	// 1. 장착 무기 업그레이드 카드 생성 (같은 BaseType + 다음 레벨)
+	for (int32 i = 0; i < EquipSys->GetSlotCount(); i++)
+	{
+		const FWeaponSlotInstanceData* SlotData = EquipSys->GetSlotData(i);
+		if (!SlotData || SlotData->IsEmpty())
+		{
+			continue;
+		}
+
+		FWeaponStaticData EquippedData;
+		if (!GDS->GetWeaponData(SlotData->SlotEquipData.WeaponID, EquippedData))
+		{
+			continue;
+		}
+
+		EquippedBaseTypes.Add(EquippedData.BaseType);
+
+		if (EquippedData.WeaponLevel >= 3)
+		{
+			continue; // MAX 레벨 — 업그레이드 불가
+		}
+
+		TArray<FName> NextLevelWeapons = GDS->GetWeaponIDsByLevel(EquippedData.WeaponLevel + 1);
+		for (const FName& NextWeaponID : NextLevelWeapons)
+		{
+			FWeaponStaticData NextData;
+			if (!GDS->GetWeaponData(NextWeaponID, NextData))
+			{
+				continue;
+			}
+
+			if (NextData.BaseType != EquippedData.BaseType)
+			{
+				continue;
+			}
+
+			FLevelUpCardDisplayData Card;
+			Card.CardID      = NextWeaponID;
+			Card.CardType    = ELevelUpCardType::WeaponUpgrade;
+			Card.DisplayName = FText::FromName(NextData.WeaponName);
+			Card.Description = FText::FromName(NextData.Description);
+			Card.Weight      = 1.5f;
+
+			FWeaponSlotEquipData EquipData;
+			if (GDS->GetWeaponSlotEquipData(NextWeaponID, EquipData))
+			{
+				Card.Icon = EquipData.SkillIcon;
+			}
+
+			DynamicCards.Add(Card);
+			break; // 슬롯당 업그레이드 카드 1장
+		}
+	}
+
+	// 2. 미장착 BaseType의 신규 무기 카드 생성 (Lv1 기준)
+	for (const FName& WeaponID : GDS->GetWeaponIDsByLevel(1))
+	{
+		FWeaponStaticData WData;
+		if (!GDS->GetWeaponData(WeaponID, WData))
+		{
+			continue;
+		}
+
+		if (EquippedBaseTypes.Contains(WData.BaseType))
+		{
+			continue; // 이미 장착한 계열 — WeaponUpgrade로 처리됨
+		}
+
+		FLevelUpCardDisplayData Card;
+		Card.CardID      = WeaponID;
+		Card.CardType    = ELevelUpCardType::WeaponNew;
+		Card.DisplayName = FText::FromName(WData.WeaponName);
+		Card.Description = FText::FromName(WData.Description);
+		Card.Weight      = 1.0f;
+
+		FWeaponSlotEquipData EquipData;
+		if (GDS->GetWeaponSlotEquipData(WeaponID, EquipData))
+		{
+			Card.Icon = EquipData.SkillIcon;
+		}
+
+		DynamicCards.Add(Card);
+	}
+
+	return DynamicCards;
+}
+
+void ULevelUpSubsystem::EnsureWeaponCardGuarantee(TArray<FLevelUpCardDisplayData>& CardPool)
+{
+	const bool bHasWeaponCard = CardPool.ContainsByPredicate([](const FLevelUpCardDisplayData& Card)
+	{
+		return Card.CardType == ELevelUpCardType::WeaponUpgrade
+			|| Card.CardType == ELevelUpCardType::WeaponNew;
+	});
+
+	if (bHasWeaponCard)
+	{
+		return;
+	}
+
+	TArray<FLevelUpCardDisplayData> WeaponCards = BuildDynamicWeaponCards();
+	if (!WeaponCards.IsEmpty())
+	{
+		CardPool.Add(WeaponCards[0]);
+		KHS_INFO(TEXT("무기 카드 강제 추가 — CardID: %s"), *WeaponCards[0].CardID.ToString());
+	}
+	else
+	{
+		KHS_WARN(TEXT("무기 카드 보장 불가 — 무기 풀 비어있음"));
+	}
+}
+
+TArray<FLevelUpCardDisplayData> ULevelUpSubsystem::PickFinalCards(const TArray<FLevelUpCardDisplayData>& Pool)
+{
+	if (Pool.IsEmpty())
+	{
+		return {};
+	}
+
+	TArray<FLevelUpCardDisplayData> Remaining = Pool;
+	TArray<FLevelUpCardDisplayData> Result;
+
+	while (Result.Num() < CARD_PICK_COUNT && !Remaining.IsEmpty())
+	{
+		float TotalWeight = 0.f;
+		for (const FLevelUpCardDisplayData& Card : Remaining)
+		{
+			TotalWeight += Card.Weight;
+		}
+
+		const float Roll = FMath::FRandRange(0.f, TotalWeight);
+		float Accumulated = 0.f;
+		int32 PickedIndex = 0;
+
+		for (int32 i = 0; i < Remaining.Num(); i++)
+		{
+			Accumulated += Remaining[i].Weight;
+			if (Roll <= Accumulated)
+			{
+				PickedIndex = i;
+				break;
+			}
+		}
+
+		Result.Add(Remaining[PickedIndex]);
+		Remaining.RemoveAtSwap(PickedIndex);
+	}
+
+	return Result;
+}
+
+// ============================================================================
+// 카드 선택 처리
+// ============================================================================
+
+void ULevelUpSubsystem::OnCardSelected(FName CardID)
+{
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS)
+
+	FLevelUpCardStaticData CardData;
+	if (GDS->GetLevelUpCardData(CardID, CardData))
+	{
+		switch (CardData.CardType)
+		{
+			case ELevelUpCardType::StatUpgrade:
+			{
+					ApplyStatUpgrade(CardData);
+					return;
+			}
+			case ELevelUpCardType::PassiveAdd:
+			{
+				GET_WORLD_SUBSYSTEM(UPassiveSlotSubsystem, PassiveSys)
+				PassiveSys->TryAddPassive(CardData.PassiveID);
+				return;
+			}
+			
+			default:
+			{
+				return;
+			}
+		}
+	}
+
+	// 정적 카드 미발견 → 동적 무기 카드 (WeaponUpgrade / WeaponNew)
+	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys)
+	EquipSys->EquipWeapon(CardID);
+	KHS_INFO(TEXT("무기 장착 요청 — CardID: %s"), *CardID.ToString());
+}
+
+void ULevelUpSubsystem::ApplyStatUpgrade(const FLevelUpCardStaticData& CardData)
+{
+	const FGameplayAttribute Attr = ResolveStatAttribute(CardData.StatType);
+	if (!Attr.IsValid())
+	{
+		KHS_WARN(TEXT("알 수 없는 StatType — %s"), *CardData.StatType.ToString());
+		return;
+	}
+
+	const float CurrentBase = ASC->GetNumericAttributeBase(Attr);
+	const float NewBase     = CurrentBase + CardData.StatModifier;
+	ASC->SetNumericAttributeBase(Attr, NewBase);
+
+	if (CardData.StatType == "MaxHP")
+	{
+		ASC->SetNumericAttributeBase(UBaseAttributeSet::GetCurrentHPAttribute(), NewBase);
+	}
+
+	KHS_INFO(TEXT("스탯 업그레이드 — %s: %.1f → %.1f"), *CardData.StatType.ToString(), CurrentBase, NewBase);
+}
+
+// ============================================================================
+// 완료 처리
+// ============================================================================
 
 void ULevelUpSubsystem::ApplyLevelUp(int32 CurrentLevel, float OverflowEXP)
 {
@@ -248,5 +462,5 @@ void ULevelUpSubsystem::ApplyLevelUp(int32 CurrentLevel, float OverflowEXP)
 void ULevelUpSubsystem::NotifyWeaponSelectCompleted()
 {
 	bIsLevelingUp = false;
-	KHS_INFO(TEXT("무기 선택 완료 알림 수신 — bIsLevelingUp 해제"));
+	KHS_INFO(TEXT("카드 선택 완료 알림 수신 — bIsLevelingUp 해제"));
 }

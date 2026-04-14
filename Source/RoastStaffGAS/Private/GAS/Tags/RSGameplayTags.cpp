@@ -42,6 +42,7 @@ namespace RSTags
 	UE_DEFINE_GAMEPLAY_TAG(Data_EXP, "Data.EXP");
 	UE_DEFINE_GAMEPLAY_TAG(Data_WeaponBaseDamage, "Data.WeaponBaseDamage");
 	UE_DEFINE_GAMEPLAY_TAG(Data_EnemyAttackDamage, "Data.EnemyAttackDamage");
+	UE_DEFINE_GAMEPLAY_TAG(Data_PassiveMagnitude, "Data.PassiveMagnitude");
 	
 	//GC 태그
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Combat_Burn, "GameplayCue.Combat.Burn");
