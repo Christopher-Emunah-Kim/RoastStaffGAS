@@ -6,6 +6,7 @@
 #include "UI/RSBaseWidget.h"
 #include "CharacterStatPopupWidget.generated.h"
 
+struct FOnAttributeChangeData;
 class UTextBlock;
 class UButton;
 class UAbilitySystemComponent;
@@ -32,17 +33,14 @@ private:
 	// 버튼 핸들러
 	UFUNCTION()
 	void OnCloseClicked();
-
-	// 델리게이트 핸들러
-	UFUNCTION()
-	void OnPlayerStatChanged(float NewATK, float NewDEF, float NewAttackSpeed, float NewCritRate, float NewCritDmg);
-	UFUNCTION()
-	void OnMoveSpeedChanged(float NewValue);
-	UFUNCTION()
-	void OnHealthChanged(float NewHP, float NewMaxHP);
-
+	// ASC 어트리뷰트 델리게이트 핸들러 — 변경 경로 무관하게 자동 호출
+	void OnStatChanged(const FOnAttributeChangeData& Data);
 	// 현재 값으로 TextBlock 전체 갱신
 	void RefreshAllStats();
+	/** 정수 스탯 표시: 패시브 보너스 없으면 "30", 있으면 "30 (+1)" */
+	FText MakeStatText(float Base, float Aggregated) const;
+	/** % 스탯 표시: "8%" or "8% (+2%)" */
+	FText MakePercentText(float Base, float Aggregated) const;
 
 private:
 	// BindWidget — Btn
@@ -65,9 +63,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> Txt_AttackSpeed;
 
-	// ASC / AttributeSet 캐시 (GC 추적)
+	// 캐시 (GC 추적)
 	UPROPERTY()
-	TWeakObjectPtr<UBaseAttributeSet> CachedBaseAS;
+	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	UPROPERTY()
 	TWeakObjectPtr<UPlayerAttributeSet> CachedPlayerAS;
 };

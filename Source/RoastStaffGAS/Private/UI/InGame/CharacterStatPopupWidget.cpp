@@ -5,6 +5,7 @@
 #include "RoastStaffGAS.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
+#include "AbilitySystemComponent.h"
 #include "GAS/Attributes/BaseAttributeSet.h"
 #include "GAS/Attributes/PlayerAttributeSet.h"
 #include "Character/Player/RSPlayerState.h"
@@ -30,19 +31,26 @@ void UCharacterStatPopupWidget::OpenUI()
 		return;
 	}
 
+	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
 	UPlayerAttributeSet* PlayerAS = PS->GetPlayerAttributeSet();
-	if (!PlayerAS)
+	if (!ASC || !PlayerAS)
 	{
-		KHS_WARN(TEXT("OpenUI — PlayerAttributeSet 없음"));
+		KHS_WARN(TEXT("OpenUI — ASC 또는 PlayerAttributeSet 없음"));
 		return;
 	}
 
+	CachedASC      = ASC;
 	CachedPlayerAS = PlayerAS;
-	CachedBaseAS   = PlayerAS; // UPlayerAttributeSet은 UBaseAttributeSet 상속
 
-	PlayerAS->OnPlayerStatChangedDel.AddUniqueDynamic(this, &UCharacterStatPopupWidget::OnPlayerStatChanged);
-	PlayerAS->OnMoveSpeedChangedDel.AddUniqueDynamic(this, &UCharacterStatPopupWidget::OnMoveSpeedChanged);
-	PlayerAS->OnHealthChangedDel.AddUniqueDynamic(this, &UCharacterStatPopupWidget::OnHealthChanged);
+	// ASC 어트리뷰트 델리게이트 구독 — GE 타입·변경 경로 무관하게 자동 호출됨
+	ASC->GetGameplayAttributeValueChangeDelegate(UPlayerAttributeSet::GetATKAttribute())           .AddUObject(this, &UCharacterStatPopupWidget::OnStatChanged);
+	ASC->GetGameplayAttributeValueChangeDelegate(UPlayerAttributeSet::GetDEFAttribute())           .AddUObject(this, &UCharacterStatPopupWidget::OnStatChanged);
+	ASC->GetGameplayAttributeValueChangeDelegate(UPlayerAttributeSet::GetAttackSpeedAttribute())   .AddUObject(this, &UCharacterStatPopupWidget::OnStatChanged);
+	ASC->GetGameplayAttributeValueChangeDelegate(UPlayerAttributeSet::GetCriticalRateAttribute())  .AddUObject(this, &UCharacterStatPopupWidget::OnStatChanged);
+	ASC->GetGameplayAttributeValueChangeDelegate(UPlayerAttributeSet::GetCriticalDamageAttribute()).AddUObject(this, &UCharacterStatPopupWidget::OnStatChanged);
+	ASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetMoveSpeedAttribute())       .AddUObject(this, &UCharacterStatPopupWidget::OnStatChanged);
+	ASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetCurrentHPAttribute())       .AddUObject(this, &UCharacterStatPopupWidget::OnStatChanged);
+	ASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetMaxHPAttribute())           .AddUObject(this, &UCharacterStatPopupWidget::OnStatChanged);
 
 	RefreshAllStats();
 	SetVisibility(ESlateVisibility::SelfHitTestInvisible);
@@ -50,15 +58,21 @@ void UCharacterStatPopupWidget::OpenUI()
 
 void UCharacterStatPopupWidget::CloseUI()
 {
-	if (CachedPlayerAS.IsValid())
+	if (CachedASC.IsValid())
 	{
-		CachedPlayerAS->OnPlayerStatChangedDel.RemoveDynamic(this, &UCharacterStatPopupWidget::OnPlayerStatChanged);
-		CachedPlayerAS->OnMoveSpeedChangedDel.RemoveDynamic(this, &UCharacterStatPopupWidget::OnMoveSpeedChanged);
-		CachedPlayerAS->OnHealthChangedDel.RemoveDynamic(this, &UCharacterStatPopupWidget::OnHealthChanged);
+		UAbilitySystemComponent* ASC = CachedASC.Get();
+		ASC->GetGameplayAttributeValueChangeDelegate(UPlayerAttributeSet::GetATKAttribute())           .RemoveAll(this);
+		ASC->GetGameplayAttributeValueChangeDelegate(UPlayerAttributeSet::GetDEFAttribute())           .RemoveAll(this);
+		ASC->GetGameplayAttributeValueChangeDelegate(UPlayerAttributeSet::GetAttackSpeedAttribute())   .RemoveAll(this);
+		ASC->GetGameplayAttributeValueChangeDelegate(UPlayerAttributeSet::GetCriticalRateAttribute())  .RemoveAll(this);
+		ASC->GetGameplayAttributeValueChangeDelegate(UPlayerAttributeSet::GetCriticalDamageAttribute()).RemoveAll(this);
+		ASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetMoveSpeedAttribute())       .RemoveAll(this);
+		ASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetCurrentHPAttribute())       .RemoveAll(this);
+		ASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetMaxHPAttribute())           .RemoveAll(this);
 	}
 
+	CachedASC.Reset();
 	CachedPlayerAS.Reset();
-	CachedBaseAS.Reset();
 
 	SetVisibility(ESlateVisibility::Collapsed);
 	Super::CloseUI();
@@ -69,36 +83,100 @@ void UCharacterStatPopupWidget::OnCloseClicked()
 	CloseUI();
 }
 
-void UCharacterStatPopupWidget::OnPlayerStatChanged(float NewATK, float NewDEF, float NewAttackSpeed, float NewCritRate, float NewCritDmg)
+void UCharacterStatPopupWidget::OnStatChanged(const FOnAttributeChangeData& Data)
 {
-	if (Txt_ATK)        Txt_ATK->SetText(FText::AsNumber(FMath::RoundToInt(NewATK)));
-	if (Txt_DEF)        Txt_DEF->SetText(FText::AsNumber(FMath::RoundToInt(NewDEF)));
-	if (Txt_AttackSpeed) Txt_AttackSpeed->SetText(FText::AsNumber(FMath::RoundToInt(NewAttackSpeed)));
-	if (Txt_CritRate)   Txt_CritRate->SetText(FText::AsPercent(NewCritRate));
-	if (Txt_CritDmg)    Txt_CritDmg->SetText(FText::AsNumber(NewCritDmg));
-}
-
-void UCharacterStatPopupWidget::OnMoveSpeedChanged(float NewValue)
-{
-	if (Txt_MoveSpeed) Txt_MoveSpeed->SetText(FText::AsNumber(FMath::RoundToInt(NewValue)));
-}
-
-void UCharacterStatPopupWidget::OnHealthChanged(float NewHP, float NewMaxHP)
-{
-	if (Txt_HP) Txt_HP->SetText(FText::Format(INVTEXT("{0} / {1}"),	FMath::RoundToInt(NewHP), FMath::RoundToInt(NewMaxHP)));
+	RefreshAllStats();
 }
 
 void UCharacterStatPopupWidget::RefreshAllStats()
 {
-	if (!CachedPlayerAS.IsValid()) return;
+	if (!CachedPlayerAS.IsValid() || !CachedASC.IsValid())
+	{
+		return;
+	}
 
-	UPlayerAttributeSet* PA = CachedPlayerAS.Get();
+	UPlayerAttributeSet* PA  = CachedPlayerAS.Get();
+	UAbilitySystemComponent* ASC = CachedASC.Get();
 
-	if (Txt_ATK)        Txt_ATK->SetText(FText::AsNumber(FMath::RoundToInt(PA->GetATK())));
-	if (Txt_DEF)        Txt_DEF->SetText(FText::AsNumber(FMath::RoundToInt(PA->GetDEF())));
-	if (Txt_AttackSpeed) Txt_AttackSpeed->SetText(FText::AsNumber(FMath::RoundToInt(PA->GetAttackSpeed())));
-	if (Txt_CritRate)   Txt_CritRate->SetText(FText::AsPercent(PA->GetCriticalRate()));
-	if (Txt_CritDmg)    Txt_CritDmg->SetText(FText::AsNumber(PA->GetCriticalDamage()));
-	if (Txt_MoveSpeed)  Txt_MoveSpeed->SetText(FText::AsNumber(FMath::RoundToInt(PA->GetMoveSpeed())));
-	if (Txt_HP)         Txt_HP->SetText(FText::Format(INVTEXT("{0} / {1}"),	FMath::RoundToInt(PA->GetCurrentHP()), FMath::RoundToInt(PA->GetMaxHP())));
+	if (Txt_ATK)
+	{
+		Txt_ATK->SetText(MakeStatText(
+			ASC->GetNumericAttributeBase(UPlayerAttributeSet::GetATKAttribute()), PA->GetATK()));
+	}
+	if (Txt_DEF)
+	{
+		Txt_DEF->SetText(MakeStatText(
+			ASC->GetNumericAttributeBase(UPlayerAttributeSet::GetDEFAttribute()), PA->GetDEF()));
+	}
+	if (Txt_AttackSpeed)
+	{
+		Txt_AttackSpeed->SetText(MakeStatText(
+			ASC->GetNumericAttributeBase(UPlayerAttributeSet::GetAttackSpeedAttribute()), PA->GetAttackSpeed()));
+	}
+	if (Txt_MoveSpeed)
+	{
+		Txt_MoveSpeed->SetText(MakeStatText(
+			ASC->GetNumericAttributeBase(UBaseAttributeSet::GetMoveSpeedAttribute()), PA->GetMoveSpeed()));
+	}
+	if (Txt_CritRate)
+	{
+		Txt_CritRate->SetText(MakePercentText(
+			ASC->GetNumericAttributeBase(UPlayerAttributeSet::GetCriticalRateAttribute()), PA->GetCriticalRate()));
+	}
+	if (Txt_CritDmg)
+	{
+		// CritDmg는 패시브 미적용 — 단순 표시
+		Txt_CritDmg->SetText(FText::AsNumber(PA->GetCriticalDamage()));
+	}
+	if (Txt_HP)
+	{
+		// HP: "현재HP / 최대HP (base MaxHP)" — MaxHP 보너스 표시
+		const float MaxBase = ASC->GetNumericAttributeBase(UBaseAttributeSet::GetMaxHPAttribute());
+		const float MaxAggr = PA->GetMaxHP();
+		const float MaxBonus = MaxAggr - MaxBase;
+		if (FMath::IsNearlyZero(MaxBonus, 0.5f))
+		{
+			Txt_HP->SetText(FText::Format(INVTEXT("{0} / {1}"),
+				FMath::RoundToInt(PA->GetCurrentHP()), FMath::RoundToInt(MaxAggr)));
+		}
+		else
+		{
+			Txt_HP->SetText(FText::Format(INVTEXT("{0} / {1} (+{2})"),
+				FMath::RoundToInt(PA->GetCurrentHP()), FMath::RoundToInt(MaxAggr),
+				FMath::RoundToInt(MaxBonus)));
+		}
+	}
+}
+
+FText UCharacterStatPopupWidget::MakeStatText(float Base, float Aggregated) const
+{
+	const int32 BaseInt  = FMath::RoundToInt(Base);
+	const float Bonus    = Aggregated - Base;
+	const int32 BonusInt = FMath::RoundToInt(Bonus);
+
+	if (BonusInt == 0)
+	{
+		return FText::AsNumber(BaseInt);
+	}
+	if (BonusInt > 0)
+	{
+		return FText::Format(INVTEXT("{0} (+{1})"), BaseInt, BonusInt);
+	}
+	return FText::Format(INVTEXT("{0} ({1})"), BaseInt, BonusInt); // 디버프: "-X" 그대로 출력
+}
+
+FText UCharacterStatPopupWidget::MakePercentText(float Base, float Aggregated) const
+{
+	const float Bonus    = Aggregated - Base;
+	const int32 BonusPct = FMath::RoundToInt(Bonus * 100.f);
+
+	if (BonusPct == 0)
+	{
+		return FText::AsPercent(Base);
+	}
+	if (BonusPct > 0)
+	{
+		return FText::Format(INVTEXT("{0} (+{1}%)"), FText::AsPercent(Base), BonusPct);
+	}
+	return FText::Format(INVTEXT("{0} ({1}%)"), FText::AsPercent(Base), BonusPct);
 }
