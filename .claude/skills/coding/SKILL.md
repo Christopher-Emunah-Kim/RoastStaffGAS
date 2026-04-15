@@ -31,6 +31,11 @@ SESSION_START에서 읽힌 파일 재읽기 금지.
   PLAN_*.md: GOAL / FLOW / EDGE_CASES / SCHEMA 파악.
 작업 시작 시 MODULE → [>] ACTIVE 마킹.
 ```
+MODULE 확정 후 `_Design/SessionState/active.md` Current Task 갱신:
+```
+## Current Task 섹션의 내용 줄을 아래 형식으로 교체:
+[CODE] [MODULE명] — [기능명]
+```
 
 ### [B] Q&A
 새 개념 등장 시만. 3~4단계 이내 → 코드 작성.

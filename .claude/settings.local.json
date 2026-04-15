@@ -60,7 +60,8 @@
       "WebFetch(domain:www.anthropic.com)",
       "Bash(mv \"C:\\\\Users\\\\KGA\\\\Projects\\\\RoastStaffGAS\\\\.claude\\\\skills\\\\harness\" \"C:\\\\Users\\\\KGA\\\\Projects\\\\RoastStaffGAS\\\\.claude\\\\skills\\\\guardrails\")",
       "Bash(mv \"C:\\\\Users\\\\KGA\\\\Projects\\\\RoastStaffGAS\\\\.claude\\\\refs\\\\harness-manifest.md\" \"C:\\\\Users\\\\KGA\\\\Projects\\\\RoastStaffGAS\\\\.claude\\\\refs\\\\guardrails-manifest.md\")",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(export CLAUDE_PROJECT_DIR=\"C:/Users/KGA/Projects/RoastStaffGAS\")"
     ],
     "deny": [],
     "ask": []

@@ -19,10 +19,22 @@ DATE_SLUG=$(date '+%Y%m%d_%H%M')
 
 
 FLAG_FILE="$CLAUDE_PROJECT_DIR/.claude/.session_end_flag"
-                                                                                      
-# 플래그 없으면 조용히 통과                                                         
+
+# active.md Current Task 항상 초기화
+STATE_FILE="$CLAUDE_PROJECT_DIR/_Design/SessionState/active.md"
+if [ -f "$STATE_FILE" ]; then
+  awk '
+    /^## Current Task/ { print; found=1; next }
+    found && /^<!--/ { print; next }
+    found && /^[[:space:]]*$/ { next }
+    found { print "(없음 — 세션 시작 시 업데이트)"; found=0; next }
+    { print }
+  ' "$STATE_FILE" > "${STATE_FILE}.tmp" && mv "${STATE_FILE}.tmp" "$STATE_FILE"
+fi
+
+# 플래그 없으면 조용히 통과
 if [ ! -f "$FLAG_FILE" ]; then
-  exit 0                                                                            
+  exit 0
 fi                                                                                
 
 # 플래그 소비 (한 번만 실행)                                                        

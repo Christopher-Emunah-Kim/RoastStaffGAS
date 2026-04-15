@@ -102,6 +102,12 @@ D) 일부 모듈 나중에
 ⚠️ missing_specs 있으면 위 게이트 전에 별도 질문
 
 ### [E] TODO 갱신 + 저장
+`_Design/SessionState/active.md` Current Task 갱신:
+```
+## Current Task 섹션의 내용 줄을 아래 형식으로 교체:
+[PLAN] [기능명]
+```
+
 `_Design/TODO.md` ACTIVE_WORK에 추가:
 ```markdown
 ## [FEATURE] [기능명] | PLAN_[시스템명]_v1.0
