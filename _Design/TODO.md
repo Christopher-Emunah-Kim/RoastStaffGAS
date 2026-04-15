@@ -13,14 +13,10 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
-### [BUG] 레벨업 카드 선택 후 스탯 창 미갱신 [P0]
-> 증상: HP 변경은 스탯 팝업에 정상 반영되나, ATK/DEF/MoveSpeed/CritRate/CritDmg/AttackSpeed는 [스탯 업그레이드] 및 [패시브] 카드 선택 후 팝업 미갱신
-> 점검 방향:
->   1. LevelUpSubsystem::OnCardSelected() — StatUpgrade/PassiveAdd GE 실제 적용 여부 확인
->   2. GE 적용 후 PlayerAttributeSet::PostGameplayEffectExecute → OnPlayerStatChangedDel Broadcast 도달 여부 확인
->   3. 델리게이트 도달은 하나, CharacterStatPopupWidget 바인딩 누락 여부 확인 (OpenUI 시점 문제?)
+### [BUG] 레벨업 카드 선택 후 스탯 창 미갱신 ✓ FIXED cc4ab96c4 2026-04-15
 
 ### [BUG] FloatingDamageWidgetClass 중복 관리 ✓ FIXED a6b407a34 2026-04-14
+### [BUG] GAS Multiplicative magnitude 오기 → DEF=1 버그 ✓ FIXED 9d449833e 2026-04-15
 
 
 
@@ -54,11 +50,12 @@
 <!-- 상세 설계: _Design/References/Systems/게임 시스템 개선안 v1.0.md -->
 
 #### PHASE 1 — 인게임 루프 완성
-- [ ] 무기 자동발사 전환 (수동 액티브 모드 제거, 최근접 타겟팅)             [P1]
-- [ ] 캐릭터 고유 스킬 시스템 (GA 2개, Q/E, ESkillActivationType ENUM)      [P1]
-- [ ] 데미지 공식 ExecCalc 적용 (ATK/DEF 실제 계산 반영)                    [P1]
-- [ ] 레벨업 선택지 확장 (정적+동적 카드 풀, 무기 최소 1장 보장)            [P1]
-- [ ] 패시브 슬롯 시스템 (최대 4, 꽉 차면 풀 잠금, 배치 후 변경 불가)      [P1]
+- [x] 무기 자동발사 전환 (수동 액티브 모드 제거, 최근접 타겟팅)             [P1]
+- [x] 캐릭터 고유 스킬 시스템 (GA 2개, Q/E, ESkillActivationType ENUM)      [P1]
+- [x] 데미지 공식 ExecCalc 적용 (ATK/DEF 실제 계산 반영)                    [P1]
+- [x] 레벨업 선택지 확장 (정적+동적 카드 풀, 무기 최소 1장 보장)            [P1]
+- [>] 패시브 슬롯 시스템 — 로직·스탯표시 완료, **슬롯 UI/UX 미구현** (기획 필요)  [P1]
+  <!-- PassiveSlotSubsystem + GE(Multiplicative) 동작 확인. CharacterStatPopup "Base (+Bonus)" 표시 구현. 슬롯 위젯 UI + 진입 UX 설계 필요 -->
 
 #### PHASE 2 — 아웃게임 플로우 재조립
 - [ ] 로비 캐릭터 선택 UI 통합                                               [P2]

@@ -23,6 +23,12 @@
 ```
 ## [YYYY-MM-DD] [TYPE] 제목
 
+**UE_Ver**: 5.x
+**Knowledge_Risk**: LOW | MEDIUM | HIGH
+  LOW    — 학습 데이터 내 안정 API
+  MEDIUM — cutoff 근처, 다음 버전 업 시 재검증 권장
+  HIGH   — cutoff 이후 API, 반드시 재검증
+
 **상황**: 어떤 맥락에서 이 결정이 필요했나
 **문제/과제**: 정확히 무엇을 해결해야 했나
 **검토한 선택지**:
@@ -32,6 +38,8 @@
 **결과/효과**: 실제로 어떻게 됐나
 **포트폴리오 포인트**: 이 항목이 보여주는 역량
 **관련 파일**: Source/... (줄번호 선택)
+**검증 기준**:
+  - [ ] (해당 항목이 실제로 해결됐음을 확인하는 구체적 조건)
 ```
 
 ---
@@ -458,6 +466,52 @@ UENUM()이 있는 헤더에는 반드시 `#include "파일명.generated.h"` 가 
 **포트폴리오 포인트**: UE5 Slate 입력 캡처 메커니즘 이해 / 잘못된 레이어 진단 → 롤백 → 올바른 순서 복구 과정 (사고 과정 투명성)
 
 **관련 파일**: `Source/RoastStaffGAS/Private/Character/Player/RSPlayerController.cpp`
+
+---
+
+## [2026-04-15] BUG_FIX — GAS Multiplicative modifier 공식 오진 → 진단 로그로 재확인
+
+**UE_Ver**: 5.4
+**Knowledge_Risk**: MEDIUM
+
+**상황**: 패시브 GE Magnitude가 1.05~1.20이었는데 유저가 "스탯 증가폭이 의도보다 크다"고 보고. 공식을 `Base × (1 + Sum(mags))`로 분석해 magnitude를 0.05~0.20으로 변경했으나, 이후 DEF 15 → 3 (ICE_ARMOR_4, 0.20 적용)으로 오히려 대폭 감소하는 버그가 발생함.
+
+**문제·과제**: C++ ApplyStatUpgrade 로직은 이상 없고, GE BP 설정도 시각적으로 확인 어려운 상황. 실제 GAS aggregator가 magnitude를 어떻게 처리하는지 런타임에서 직접 검증 필요.
+
+**검토한 선택지**:
+1. GE BP의 modifier 타입 확인 (Override vs Multiplicative)
+2. 진단 로그 삽입으로 `GetNumericAttributeBase` vs `GetNumericAttribute` 동시 출력
+
+**결정**: PassiveSlotSubsystem의 GE 적용 전/후에 `DEF_base`, `DEF_cur`, `ATK_cur`를 동시 로깅. 결과: `DEF_base=15.00, DEF_cur=3.00` → `15 × 0.20 = 3.00` 확인. GAS Multiplicative는 `Base × Magnitude` (Product 방식)이며, 분모에 1이 없음. magnitude 1.0x 원복.
+
+**결과**: 패시브 ATK +20% = `Base × 1.20`, DEF +5% = `Base × 1.05`. StatUpgrade +20은 `SetNumericAttributeBase(base + 20)` 이후 aggregator 재계산 → `NewBase × 1.20`. 의도한 동작 확인.
+
+**포트폴리오 포인트**: GAS Infinite GE의 Multiplicative modifier는 `Product(mags)` 방식 (`Base × mod1 × mod2 × ...`). 빈 상태는 1.0이 아닌 0으로 시작하지 않고, modifier 없으면 최종값 = Base 그대로. 공식 가정 전 `GetNumericAttributeBase` / `GetNumericAttribute` 쌍으로 aggregator 동작을 가시화하는 것이 가장 빠른 디버깅 패턴.
+
+**관련 파일**: `ExternalSource/DT_Passive_Static_Data.csv`, `PassiveSlotSubsystem.cpp`, `LevelUpSubsystem.cpp`
+
+---
+
+## [2026-04-15] REFACTOR — 커스텀 AS 델리게이트 제거 → ASC GetGameplayAttributeValueChangeDelegate 일원화
+
+**UE_Ver**: 5.4
+**Knowledge_Risk**: LOW
+
+**상황**: CharacterStatPopupWidget이 `PostGameplayEffectExecute` 기반의 `OnPlayerStatChangedDel`, `OnHealthChangedDel`, `OnMoveSpeedChangedDel` 커스텀 델리게이트를 구독. StatUpgrade 카드 선택 후 위젯이 갱신되지 않는 버그 발생.
+
+**문제·과제**: `PostGameplayEffectExecute`는 Instant GE 실행 시에만 호출됨. `SetNumericAttributeBase` 경유 변경(StatUpgrade, LevelUp 시 MaxHP 갱신 등)은 감지 불가. 커스텀 델리게이트 3개가 모두 동일한 한계를 가짐.
+
+**검토한 선택지**:
+1. 수동 브로드캐스트 추가 (ApplyStatUpgrade에서 델리게이트 직접 호출)
+2. ASC `GetGameplayAttributeValueChangeDelegate(Attr)` 구독 (GAS-idiomatic)
+
+**결정**: 선택지 2 채택. 변경 경로(GE/SetNumericAttributeBase 등) 무관하게 자동 감지. 8개 어트리뷰트 모두 단일 핸들러 `OnStatChanged` → `RefreshAllStats()`로 일원화. BossEnemy HP 페이즈 전환도 동일 패턴으로 전환, `OnHealthChangedDel` 완전 제거.
+
+**결과**: 커스텀 델리게이트 3종 제거, AttributeSet 코드 간소화. StatUpgrade/PassiveAdd/LevelUp 모든 경로에서 위젯 즉시 갱신.
+
+**포트폴리오 포인트**: GAS에서 어트리뷰트 변경 알림은 `GetGameplayAttributeValueChangeDelegate(Attr).AddUObject()`가 idiomatic. `PostGameplayEffectExecute`는 GE 실행에만 한정. CloseUI 시 `RemoveAll(this)`로 정리하면 생명주기 안전.
+
+**관련 파일**: `BaseAttributeSet.h/cpp`, `PlayerAttributeSet.h/cpp`, `BossEnemy.h/cpp`, `CharacterStatPopupWidget.h/cpp`
 
 ---
 

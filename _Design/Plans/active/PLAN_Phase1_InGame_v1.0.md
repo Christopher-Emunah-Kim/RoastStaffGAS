@@ -210,6 +210,15 @@ GE_WeaponDamage / GE_EnemyDamage
 - `Source/RoastStaffGAS/Public/Character/Player/RSPlayerCharacter.h`
 - `Source/RoastStaffGAS/Private/Character/Player/RSPlayerCharacter.cpp`
 - `Source/RoastStaffGAS/Public/GAS/Tags/RSGameplayTags.h`
+- `Source/RoastStaffGAS/Public/UI/InGame/CharacterStatPopupWidget.h`
+- `Source/RoastStaffGAS/Private/UI/InGame/CharacterStatPopupWidget.cpp`
+- `Source/RoastStaffGAS/Public/GAS/Attributes/BaseAttributeSet.h`
+- `Source/RoastStaffGAS/Public/GAS/Attributes/PlayerAttributeSet.h`
+- `Source/RoastStaffGAS/Private/GAS/Attributes/BaseAttributeSet.cpp`
+- `Source/RoastStaffGAS/Private/GAS/Attributes/PlayerAttributeSet.cpp`
+- `Source/RoastStaffGAS/Private/Subsystems/LevelUpSubsystem.cpp`
+- `Source/RoastStaffGAS/Private/Character/Enemy/BossEnemy.cpp`
+- `Source/RoastStaffGAS/Public/Character/Enemy/BossEnemy.h`
 
 **태스크**
 - [ ] RSGameplayTags.h: `Passive.SlotFull` 태그 추가

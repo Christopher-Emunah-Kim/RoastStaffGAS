@@ -14,6 +14,17 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ## COMMITTED
 
+- date: 2026-04-15
+  plan: PLAN_Phase1_InGame_v1.0
+  commits: ["cc4ab96c4", "f0efdb971", "fd502de74", "9d449833e", "5cea35082"]
+  status: COMMITTED
+  summary: "refactor(GAS-Delegate) + fix(HP-Behavior) + feat(CharacterStat) + data(Passive) + chore(에디터): ASC delegate 일원화, HP 버그 수정, 스탯팝업 Base+Bonus 표시, 패시브 magnitude 원복"
+  bugs_fixed:
+    - GAS Multiplicative 공식 오진 — magnitude 0.2x(80%감소)→1.2x(20%증가) 원복
+    - MaxHP StatUpgrade 적용 시 CurHP=MaxHP 회복 전용 처리
+    - MaxHP 패시브 적용 시 CurHP 델타만큼 연동
+    - 레벨업 카드 선택 후 스탯 창 미갱신 — ASC attribute delegate로 교체
+
 - date: 2026-04-14
   plan: PLAN_CharacterStatPopup_v1.0
   commits: ["a6b407a34", "6a35704d7", "58de4f52b", "d2be49f02", "5d1ba8d47", "8b1e18e42"]

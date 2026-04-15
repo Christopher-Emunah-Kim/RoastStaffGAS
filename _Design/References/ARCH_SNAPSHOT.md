@@ -3,6 +3,12 @@
 > INIT마다 로드. CODE 완료 시 [E] 단계에서 갱신.
 > COMPACT 트리거: DESIGN_DECISIONS 10개 초과 / INTEGRATION_MAP 15개 초과 / "ARCH 정리해줘"
 > 상세 compact 정책: .claude/refs/protocols.md#ARCH_COMPACT
+>
+> ## HARNESS (2026-04-15)
+> Hooks 8개: session-start / plan-check / commit-check / pre/post-compact / log-agent×2 / session-handoff
+> Permissions: allow [git 읽기] / deny [rm-rf, force-push, reset--hard, .env]
+> 코딩 표준(rules/): gas-code / ui-code / general-code  ← 가이드라인 (harness 아님)
+> 품질 파이프라인: @ue-gas-specialist / @ue-umg-specialist / @senior-reviewer / @learning-coach
 
 ---
 

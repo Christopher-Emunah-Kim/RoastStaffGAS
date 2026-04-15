@@ -53,7 +53,14 @@
       "Bash(find C:UsersKGAProjectsRoastStaffGASSourceRoastStaffGAS -name *Equipment* -type f)",
       "Bash(python gen_dummy_data.py)",
       "Bash(python3:*)",
-      "Bash(python -c \":*)"
+      "Bash(python -c \":*)",
+      "Bash(powershell.exe -Command \":*)",
+      "WebSearch",
+      "Bash(grep -A 12 '\"\"permissions\"\"' \"C:\\\\Users\\\\KGA\\\\Projects\\\\RoastStaffGAS\\\\.claude\\\\settings.json\")",
+      "WebFetch(domain:www.anthropic.com)",
+      "Bash(mv \"C:\\\\Users\\\\KGA\\\\Projects\\\\RoastStaffGAS\\\\.claude\\\\skills\\\\harness\" \"C:\\\\Users\\\\KGA\\\\Projects\\\\RoastStaffGAS\\\\.claude\\\\skills\\\\guardrails\")",
+      "Bash(mv \"C:\\\\Users\\\\KGA\\\\Projects\\\\RoastStaffGAS\\\\.claude\\\\refs\\\\harness-manifest.md\" \"C:\\\\Users\\\\KGA\\\\Projects\\\\RoastStaffGAS\\\\.claude\\\\refs\\\\guardrails-manifest.md\")",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []
