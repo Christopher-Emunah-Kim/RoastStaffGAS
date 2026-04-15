@@ -33,9 +33,9 @@ INIT ──→ [A] CHANGESET + TODO 읽기
           └─ [A2] DEVLOG 회고 (포트폴리오)
                 └─ [B] 파일 → MODULE 매핑
                       └─ [C] 커밋 순서 + 메시지 일괄 제안 (ASK_USER_FORMAT)
-                            ├─ 승인 → [D] Claude가 직접 커밋 실행
+                            ├─ 승인 → [D] 커밋 실행 → [D2] 푸시 자동 실행
                             └─ 수정 → [C] 재조정
-[D] → [E] 해시 자동 수집 → [F] CHANGESET+TODO 갱신 → DONE
+[D2] → [E] 해시 자동 수집 → [F] CHANGESET+TODO 갱신 → DONE
 ```
 
 ## EXEC
@@ -125,6 +125,14 @@ ref: PLAN_Pierce_v1.0"
 - 각 커밋 실행 후 성공 여부 확인
 - 실패 시 즉시 중단 + 오류 내용 보고
 
+### [D2] 푸시 자동 실행
+모든 커밋 성공 후 자동 실행:
+```bash
+git push
+```
+- 실패 시 (upstream 없음 등) → `git push -u origin HEAD` 재시도
+- 재시도 실패 시 오류 보고 후 중단 (force push 금지)
+
 ### [E] 해시 자동 수집
 각 커밋 실행 결과에서 해시 자동 추출 (git log --oneline -1)
 
@@ -160,7 +168,8 @@ FEATURE 전체 완료 시 즉시 처리 (SESSION_END 중복 방지):
 - 미분류 파일은 사용자 확인 후 배정 (임의 배정 금지)
 - 커밋 순서 = _Design/TODO.md MODULE 순서
 - 해시 수령 전 CHANGESET/TODO 갱신 금지
-- [ABSOLUTE] git commit 명령 실행 전 반드시 [C] 계획 제안 + 사용자 승인 수령
+- [ABSOLUTE] git commit/push 전 반드시 [C] 계획 제안 + 사용자 승인 수령
+- [ABSOLUTE] 승인 = 커밋 계획 1회 확인. 이후 커밋 실행 + 푸시는 자동 (재확인 없음)
 - [ABSOLUTE] 승인 없이 git commit 실행 금지 (어떤 상황에서도 예외 없음)
 - [ABSOLUTE] 커밋 = 기능 완성 + 테스트 완료 상태. 중간 작업 상태 커밋 금지
 - [ABSOLUTE] 커밋 메시지에 다음 문구 포함 금지:

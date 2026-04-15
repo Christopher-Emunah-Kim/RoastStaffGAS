@@ -102,6 +102,19 @@ COMMIT
       사용자 승인 하에 파이프라인 파일을 직접 개선한다.
 
 ─────────────────────────────────────────
+[PR-0] Harness 무결성 경량 체크 (자동, 항상 실행)
+─────────────────────────────────────────
+기준: .claude/refs/guardrails-manifest.md 자가진단 체크리스트
+
+  Bash로 빠르게 확인:
+  · ls .claude/hooks/ | wc -l        → 8개 파일 존재 여부
+  · grep '"allow"\|"deny"' settings.json → permissions 존재 여부
+  · 에이전트 frontmatter → maxTurns 필드 존재 여부
+
+  누락 발견 시 → [PR-2] 관찰 항목에 포함 후 개선 제안
+  모두 정상 시 → "Harness 무결성 확인 (hooks 8 / permissions ✓)" 한 줄 출력
+
+─────────────────────────────────────────
 [PR-1] 이번 세션 관찰 항목
 ─────────────────────────────────────────
 아래 신호를 대화 흐름에서 자가 진단:
@@ -175,32 +188,35 @@ COMMIT
 3. 빌드 성공 시 → TEST 자동 시작 (승인 요청 없음)
    빌드 실패 시 → 원인 분석 후 수정 → 재빌드 요청
 
-4. TEST 완료 → SR 실행 여부 판단 (KARVIS 제안)
-   판단 형식:
-     "📊 [SR 판단] 이번 세션 규모:
-      변경: [파일 수]개 / 신규: [파일 수]개 / GAS 변경: Y/N
-      → SR [권장 / 생략 권장] — 이유: [한 줄]
-      A) SR 실행  B) 생략 후 COMMIT 준비"
+4. TEST 완료 → SR 자동 실행 (승인 요청 없음)
+   실행 기준:
+     실행: 신규 파일 1개+, 수정 3개+, GAS/ASC 변경, 새 클래스
+     생략: 버그픽스 1~2파일, DataTable만, 로직 없는 리팩토링
+   생략 시 → 한 줄 안내 후 6번으로 진행
 
-   A 선택 시: @senior-reviewer 호출
-     HIGH 이슈 → 시니에게 처리 방향 요청
-     MED/LOW → 기록만, 자동 진행
+   @senior-reviewer 호출 후:
+     HIGH [CODE] 이슈 중 단순 누락만 루프 대상:
+       · UPROPERTY() 누락 / break 누락 / EndAbility() 누락 / 하드코딩 수치
+       → KARVIS 자동 수정 → SR 재검증 1회 한정
+       2회 시도 후 잔존 또는 논리 재설계 필요 시 → 시니에게 처리 방향 요청
+     HIGH [CODE] 이슈 중 논리 재설계 필요 → 즉시 시니에게 처리 방향 요청 (루프 금지)
+     HIGH [ARCH] 이슈 → 즉시 시니에게 처리 방향 요청
+     MED/LOW      → 기록만, 자동 진행
 
-5. SR 완료 → LEARN 실행 여부 판단 (KARVIS 제안)
-   판단 형식:
-     "📊 [LEARN 판단]
-      SR 이슈: HIGH [N]개 / MED [N]개 / EXPLAIN_IMPL 몰라/애매해: [N]개
-      → LEARN [권장 / 생략 권장] — 이유: [한 줄]
-      A) LEARN 실행  B) 생략 후 COMMIT 준비"
+5. SR 완료 → LEARN 자동 실행 (승인 요청 없음)
+   실행 기준:
+     실행: SR HIGH 1개+, MED 3개+, EXPLAIN_IMPL "몰라/애매해" 2개+
+     생략: SR LOW만, MED 2개 이하, EXPLAIN_IMPL 전부 "알아", 동일 패턴 반복
+   생략 시 → 한 줄 안내 후 6번으로 진행
 
-   A 선택 시: @learning-coach 호출
+   실행 시: @learning-coach 호출
 
 6. (SR/LEARN 완료 or 생략) → COMMIT 제안
    → 스테이지 + 메시지 제안 → 시니 승인 대기
 
 [단계 전환 안내 형식]
   자동 실행: "✅ [이전] 완료 → [다음] 자동 시작."
-  제안:      "📊 [SR/LEARN 판단] ..." → A/B 대기
+  생략:      "⏭️ [SR/LEARN] 생략 — 이유: [한 줄] → 다음 단계로"
 ```
 
 ## ARCH_COMPACT

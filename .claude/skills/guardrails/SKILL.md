@@ -1,13 +1,13 @@
 ---
-name: harness
-version: 2.0.0
+name: guardrails
+version: 3.0.0
 depends-on: []
 suggests-next: ["@senior-reviewer", "COMMIT"]
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 ---
-# /harness RUNBOOK
+# /guardrails RUNBOOK
 > 역할: 워크플로 실패 패턴 감지 → 구조적 차단 장치 설계 + 적용
-> 원칙: 프롬프트 수정 금지. 시스템 레벨 차단 필수.
+> 원칙: 프롬프트 수정 금지. 시스템 레벨 차단 필수 (hooks / permissions).
 
 ## STATE_MACHINE
 ```
@@ -82,7 +82,7 @@ INIT ──→ [A] 증상 분류 (매트릭스 조회)
 
 ### [D] 변경 계획 제시
 ```
-📌 [HARNESS] | [코드]: [증상 한 줄]
+📌 [GUARDRAILS] | [코드]: [증상 한 줄]
 
 진단:  분류: [코드]  체크: [N/M 통과]  부족: [구체적으로]
 
@@ -96,8 +96,8 @@ A) 적용  B) 수정
 
 ### [E] 파일 수정
 ```
-순서: CLAUDE.md → SKILL.md → Git hooks → 참조 파일
-각 파일: Read → Edit (부분 수정만) → version +0.1 → 주석 # [HARNESS] YYYY-MM-DD
+순서: CLAUDE.md → SKILL.md → settings.json (hooks/permissions) → 참조 파일
+각 파일: Read → Edit (부분 수정만) → version +0.1 → 주석 # [GUARDRAILS] YYYY-MM-DD
 ```
 
 ### [F] 검증
@@ -145,15 +145,16 @@ A) 적용  B) 수정
 
 ## ON_DEMAND_REFS
 ```yaml
-action-catalog: .claude/skills/harness/refs/action-catalog.md  # 액션별 상세 예시
+action-catalog: .claude/skills/guardrails/refs/action-catalog.md  # 액션별 상세 예시
 protocols:      .claude/refs/protocols.md
+guardrails:     .claude/refs/guardrails-manifest.md
 ```
 
 ## COMPLETION
 ```
-DONE:           하네스 강화 완료
-DONE_WITH_HOOK: 완료 + Git hooks 추가 (테스트 권장)
-BLOCKED:        현재 구조로 차단 불가
+DONE:            가드레일 강화 완료
+DONE_WITH_HOOK:  완료 + settings.json hooks/permissions 추가 (테스트 권장)
+BLOCKED:         현재 구조로 차단 불가
 ```
 
 ## ABSOLUTE_RULES

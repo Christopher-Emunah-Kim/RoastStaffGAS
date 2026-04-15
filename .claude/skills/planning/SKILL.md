@@ -14,11 +14,12 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Agent(planning-architect)
 INIT ──→ [A] _Design/TODO.md 확인
           └─ [B] 사용자와 구현 목표 협의
                 └─ [C] @planning-architect 호출
-                      └─ [D] 결과 검토 + 사용자 승인
-                            ├─ A) 승인 ──────────────→ [E] TODO 갱신 + 파일 저장
-                            ├─ B) Gemini리뷰 → 반영 → [E]
-                            ├─ C) 수정 ──────────────→ [C] 재호출
-                            └─ D) 일부 DEFERRED ─────→ [E]
+                      └─ [C1] KARVIS 자동 검증 (제약 + 아키텍처 충돌 체크)
+                            └─ [D] 계획 + 검증 결과 → 사용자 승인 게이트 (항상)
+                                  ├─ A) 승인 ──────────────→ [E] TODO 갱신 + 파일 저장
+                                  ├─ B) Gemini리뷰 → 반영 → [E]
+                                  ├─ C) 수정 ──────────────→ [C] 재호출
+                                  └─ D) 일부 DEFERRED ─────→ [E]
 [E] → [F] 기획서 정정 제안(있으면) → DONE
 ```
 
@@ -57,17 +58,39 @@ DEFERRED 있음: "미뤄둔 작업: [목록] — 이번에 처리할까요?"
 - missing_specs → 기획서 미정의 항목 (있으면 경고)
 - modules[].deferred=true → [D] 옵션 D 자동 제안
 
-### [D] 승인 요청 (ASK_USER_FORMAT)
+### [C1] KARVIS 자동 검증
+@planning-architect 결과를 아래 기준으로 자동 체크. 추가 파일 읽기 없이 컨텍스트 내 정보만 사용.
+
+```
+체크 항목:
+① constraints.md 규칙 1~10 위반 여부
+   예: 기획서 없이 코드 작성 / 네트워크 RPC 추가 / 하드코딩 수치 계획
+② ARCH_SNAPSHOT DESIGN_DECISIONS (D1~D9, SD1~SD4) 충돌 여부
+   예: "별도 UIManager 신설" → D1 위반 / "Slot 3개" → SD1 위반
+③ ARCH_SNAPSHOT FROZEN 목록 수정 여부
+④ CLASS_REGISTRY 기존 책임 침범 여부
+   예: Widget이 GE를 직접 Apply하는 설계
+
+판정:
+  충돌 없음 → "✅ 제약 충돌 없음" 한 줄 표시 후 [D]로
+  충돌 있음 → "⚠️ 충돌: [항목]" 표시 후 [D]로 (사용자가 계획과 함께 판단)
+```
+
+### [D] 승인 게이트 (항상 — ASK_USER_FORMAT)
 ```
 📌 [PLAN] | [기능명]
 상황: [기능명] 구현 계획서가 준비됐습니다.
       [아키텍처 다이어그램]
-      [모듈 목록]
+      [모듈 목록 + 파일 목록]
 
 🔗 통합 지점 (내가 제안 — 맞아/이상해 판단만 해주세요):
-  소유:     [owner] — 이 시스템을 관리할 클래스
-  진입점:   [entry] — 기존 코드에서 어디서 호출되는가
-  참고:     [ref_pattern]
+  소유:   [owner]
+  진입점: [entry]
+  참고:   [ref_pattern]
+
+[충돌 있을 때만]
+⚠️ 충돌 감지:
+  ① [제약/결정 번호] "[원문]" ↔ 계획의 "[충돌 내용]"
 
 결정: 이 계획대로 진행할까요?
 권장: A) — 설계가 기획서와 정합하고 모듈 분해가 적절합니다.
@@ -76,7 +99,7 @@ B) Gemini 검증 후 승인
 C) 수정 요청
 D) 일부 모듈 나중에
 ```
-⚠️ missing_specs 있으면 D 전에 별도 질문
+⚠️ missing_specs 있으면 위 게이트 전에 별도 질문
 
 ### [E] TODO 갱신 + 저장
 `_Design/TODO.md` ACTIVE_WORK에 추가:

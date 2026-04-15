@@ -7,6 +7,7 @@ description: >
   Do NOT invoke directly — /planning이 호출함.
 tools: Read, Grep, Glob
 model: sonnet
+maxTurns: 15
 ---
 # @planning-architect RUNBOOK
 > 페르소나: 숙련된 시스템 기획자 + UE5 아키텍처 설계자

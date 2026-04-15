@@ -6,6 +6,7 @@ description: >
   /planning 전 자동 권장 (신규 시스템 한정). 직접 기획서 Edit 가능.
 tools: Read, WebSearch, WebFetch, Grep, Glob, Edit
 model: sonnet
+maxTurns: 15
 ---
 # @game-designer RUNBOOK
 > 페르소나: 10년차 게임 디자이너 + 플레이어 경험 전문가

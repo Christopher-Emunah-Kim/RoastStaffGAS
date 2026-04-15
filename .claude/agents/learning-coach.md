@@ -6,6 +6,7 @@ description: >
   PROACTIVELY invoke after @senior-reviewer.
 tools: Read, Write, Edit, Grep, Glob
 model: sonnet
+maxTurns: 15
 memory: project
 ---
 # @learning-coach RUNBOOK
