@@ -13,10 +13,10 @@
 #include "Subsystems/SkillManagerSubsystem.h"
 #include "Subsystems/UIManagerSubsystem.h"
 #include "UI/RSHUDWidget.h"
-#include "UI/Ingame/CharacterStatPopupWidget.h"
-#include "UI/Ingame/SlotContainerWidget.h"
-#include "UI/Ingame/WeaponSlotWidget.h"
-#include "UI/Ingame/CharacterSkillSlotWidget.h"
+#include "UI/InGame/CharacterStatPopupWidget.h"
+#include "UI/InGame/SlotContainerWidget.h"
+#include "UI/InGame/WeaponSlotWidget.h"
+#include "UI/InGame/CharacterSkillSlotWidget.h"
 #include "UI/FloatingDamageWidget.h"
 #include "UI/LevelUpWeaponSelectWidget.h"
 #include "UI/WeaponReplaceWidget.h"
@@ -350,8 +350,24 @@ void ARSPlayerController::OnWeaponSlotFull(FName PendingWeaponID)
 
 void ARSPlayerController::OnPassiveSlotChanged()
 {
-	// U4: 패시브 슬롯 HUD 위치 미확정 — 현재는 로그만 기록, HUD 확정 후 UI 갱신 구현
-	KHS_INFO(TEXT("패시브 슬롯 변경 — HUD 갱신 예정 (U4 미해결)"));
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance())
+	GET_WORLD_SUBSYSTEM(UPassiveSlotSubsystem, PassiveSys)
+
+	URSHUDWidget* HUD = Cast<URSHUDWidget>(UMS->GetWidgetByID(EUIID::HUD));
+	if (!HUD)
+	{
+		KHS_WARN("OnPassiveSlotChanged: HUD Widget 없음");
+		return;
+	}
+
+	USlotContainerWidget* SlotContainer = HUD->GetSlotContainerWidget();
+	if (!SlotContainer)
+	{
+		KHS_WARN("OnPassiveSlotChanged: SlotContainer 없음");
+		return;
+	}
+
+	SlotContainer->UpdatePassiveSlots(PassiveSys->GetEquippedPassives());
 }
 
 void ARSPlayerController::OnStatPopupToggle(const FInputActionValue& Value)
