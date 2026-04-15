@@ -10,10 +10,6 @@
 // EXP 변경 감지 델리게이트 — 레벨업 시스템이 구독
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnEXPChanged, float, NewEXP, int32, CurrentLevel);
 
-// 전투 스탯 변경 감지 델리게이트 — 스탯 팝업 UI가 구독
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_FiveParams(FOnPlayerStatChanged,
-	float, NewATK, float, NewDEF, float, NewAttackSpeed, float, NewCritRate, float, NewCritDmg);
-
 /**
  * 플레이어 전용 AttributeSet
  * ATK, DEF, AttackSpeed, CastingSpeed, CriticalRate, CriticalDamage, EXP, Level
@@ -30,7 +26,6 @@ class ROASTSTAFFGAS_API UPlayerAttributeSet : public UBaseAttributeSet
 	
 	// 델리게이트
 	FOnEXPChanged OnEXPChangedDel;
-	FOnPlayerStatChanged OnPlayerStatChangedDel;
 	
 	// -------------------------------------------------------------------------
 	// 어트리뷰트

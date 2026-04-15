@@ -7,6 +7,7 @@
 #include "Data/DataTableStructs.h"
 #include "BossEnemy.generated.h"
 
+struct FOnAttributeChangeData;
 class AEnemyProjectile;
 class UGameplayEffect;
 class UNiagaraSystem;
@@ -56,8 +57,7 @@ protected:
 	virtual void HandleDeath() override;
 
 private:
-	UFUNCTION()
-	void OnHealthChanged(float NewHP, float MaxHP);
+	void OnHPChanged(const FOnAttributeChangeData& Data);
 
 	void CheckPhaseTransition(float NewHP, float MaxHP);
 	void StartPhaseTransition();

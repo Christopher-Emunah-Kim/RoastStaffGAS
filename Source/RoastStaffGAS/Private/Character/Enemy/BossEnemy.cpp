@@ -26,9 +26,10 @@ void ABossEnemy::BeginPlay()
 	Super::BeginPlay();
 
 	// HP 변화 구독 — 페이즈 전환 감시
-	if (UBaseAttributeSet* AS = GetBaseAttributeSet())
+	if (UAbilitySystemComponent* MyASC = GetAbilitySystemComponent())
 	{
-		AS->OnHealthChangedDel.AddUniqueDynamic(this, &ABossEnemy::OnHealthChanged);
+		MyASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetCurrentHPAttribute())
+			.AddUObject(this, &ABossEnemy::OnHPChanged);
 	}
 }
 
@@ -67,9 +68,12 @@ void ABossEnemy::InitializeBossParams(float InAttackDamage, const FEnemyExtData&
 // 페이즈 전환
 // ─────────────────────────────────────────────────────────────────────────────
 
-void ABossEnemy::OnHealthChanged(float NewHP, float MaxHP)
+void ABossEnemy::OnHPChanged(const FOnAttributeChangeData& Data)
 {
-	CheckPhaseTransition(NewHP, MaxHP);
+	if (UBaseAttributeSet* AS = GetBaseAttributeSet())
+	{
+		CheckPhaseTransition(Data.NewValue, AS->GetMaxHP());
+	}
 }
 
 void ABossEnemy::CheckPhaseTransition(float NewHP, float MaxHP)

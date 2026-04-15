@@ -51,16 +51,6 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCall
 		SetLevel(FMath::Max(GetLevel(), 1.f));
 	}
 
-	// 전투 스탯 변경 시 팝업 UI에 통보
-	const FGameplayAttribute& Attr = Data.EvaluatedData.Attribute;
-	if (Attr == GetATKAttribute()           ||
-		Attr == GetDEFAttribute()           ||
-		Attr == GetAttackSpeedAttribute()   ||
-		Attr == GetCriticalRateAttribute()  ||
-		Attr == GetCriticalDamageAttribute())
-	{
-		OnPlayerStatChangedDel.Broadcast(GetATK(), GetDEF(), GetAttackSpeed(), GetCriticalRate(), GetCriticalDamage());
-	}
 }
 
 void UPlayerAttributeSet::ClampPositive(const FGameplayAttribute& Attribute, float& NewValue) const

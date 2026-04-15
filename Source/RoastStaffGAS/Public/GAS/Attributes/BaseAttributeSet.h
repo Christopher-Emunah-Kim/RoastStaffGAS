@@ -17,12 +17,6 @@ GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 // 사망 감지 델리게이트 — BaseCharacter가 구독
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
 
-// HP 변경 감지 델리게이트 — UI가 구독
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChanged, float, NewValue, float, MaxValue);
-
-// MoveSpeed 변경 감지 델리게이트 — 스탯 팝업 UI가 구독
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMoveSpeedChanged, float, NewValue);
-
 /**
  * 플레이어/에너미 공통 AttributeSet
  * MaxHP, CurrentHP, MoveSpeed 관리
@@ -42,8 +36,6 @@ public:
 
 	// 델리게이트
 	FOnDeath OnDeathDel;
-	FOnHealthChanged OnHealthChangedDel;
-	FOnMoveSpeedChanged OnMoveSpeedChangedDel;
 	
 	// 어트리뷰트
 	UPROPERTY(BlueprintReadOnly, Category = "MY|Attribute")
