@@ -421,15 +421,20 @@ void ULevelUpSubsystem::ApplyStatUpgrade(const FLevelUpCardStaticData& CardData)
 		return;
 	}
 
+	if (CardData.StatType == "MaxHP")
+	{
+		// MaxHP 카드: MaxHP 변경 없이 CurHP만 회복 (MaxHP 초과 클램핑)
+		const float MaxHP    = ASC->GetNumericAttribute(UBaseAttributeSet::GetMaxHPAttribute());
+		const float CurHP    = ASC->GetNumericAttribute(UBaseAttributeSet::GetCurrentHPAttribute());
+		const float NewCurHP = FMath::Min(CurHP + CardData.StatModifier, MaxHP);
+		ASC->SetNumericAttributeBase(UBaseAttributeSet::GetCurrentHPAttribute(), NewCurHP);
+		KHS_INFO(TEXT("HP 회복 카드 — CurHP: %.0f → %.0f (MaxHP: %.0f)"), CurHP, NewCurHP, MaxHP);
+		return;
+	}
+
 	const float CurrentBase = ASC->GetNumericAttributeBase(Attr);
 	const float NewBase     = CurrentBase + CardData.StatModifier;
 	ASC->SetNumericAttributeBase(Attr, NewBase);
-
-	if (CardData.StatType == "MaxHP")
-	{
-		ASC->SetNumericAttributeBase(UBaseAttributeSet::GetCurrentHPAttribute(), NewBase);
-	}
-
 	KHS_INFO(TEXT("스탯 업그레이드 — %s: %.1f → %.1f"), *CardData.StatType.ToString(), CurrentBase, NewBase);
 }
 

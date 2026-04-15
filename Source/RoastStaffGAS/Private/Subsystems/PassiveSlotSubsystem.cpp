@@ -9,6 +9,8 @@
 #include "System/LoggingSystem.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
+#include "GAS/Attributes/BaseAttributeSet.h"
+#include "GAS/Attributes/PlayerAttributeSet.h"
 
 void UPassiveSlotSubsystem::InitializeSubsystem(UAbilitySystemComponent* InASC)
 {
@@ -71,8 +73,22 @@ bool UPassiveSlotSubsystem::TryAddPassive(FName PassiveID)
 	// DT_Passive.Magnitude → GE SetByCaller 주입 (GE Modifier가 Data.PassiveMagnitude 태그 사용)
 	Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_PassiveMagnitude, PassiveData.Magnitude);
 
+	// MaxHP 변화 델타 추적 — HP 패시브 적용 시 CurHP 연동
+	const float MaxHPBefore = ASC->GetNumericAttribute(UBaseAttributeSet::GetMaxHPAttribute());
+
 	ASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
 	EquippedPassiveIDs.Add(PassiveID);
+
+	// MaxHP가 증가했으면 CurHP도 같은 증가분만큼 추가
+	const float MaxHPAfter = ASC->GetNumericAttribute(UBaseAttributeSet::GetMaxHPAttribute());
+	const float MaxHPDelta = MaxHPAfter - MaxHPBefore;
+	if (MaxHPDelta > 0.f)
+	{
+		const float CurHP    = ASC->GetNumericAttribute(UBaseAttributeSet::GetCurrentHPAttribute());
+		const float NewCurHP = FMath::Min(CurHP + MaxHPDelta, MaxHPAfter);
+		ASC->SetNumericAttributeBase(UBaseAttributeSet::GetCurrentHPAttribute(), NewCurHP);
+		KHS_INFO(TEXT("HP 패시브 — MaxHP +%.0f → CurHP: %.0f → %.0f"), MaxHPDelta, CurHP, NewCurHP);
+	}
 
 	KHS_INFO(TEXT("패시브 장착 완료 — PassiveID: %s | 슬롯: %d/%d"), *PassiveID.ToString(), EquippedPassiveIDs.Num(), MAX_SLOTS);
 
