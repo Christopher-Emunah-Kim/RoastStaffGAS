@@ -13,6 +13,38 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
+## [FEATURE] 패시브 슬롯 UI | PLAN_PassiveSlotUI_v1.0
+> 시작: 2026-04-15 | 기획서: 게임 시스템 개선안 v1.0.md
+
+  ### [MODULE-1] PassiveSlotWidget 신규 ✓ DONE 2026-04-15
+  신규: `UI/InGame/PassiveSlotWidget.h` / `PassiveSlotWidget.cpp`
+    - [x] UPassiveSlotWidget 클래스 선언 (BindWidget: Btn_PassiveSlot, Img_PassiveIcon, Ovl_Tooltip, Txt_PassiveName, Txt_PassiveDesc)
+    - [x] NativeOnInitialized: Btn OnHovered/OnUnhovered 바인딩, Ovl_Tooltip Hidden 초기화
+    - [x] UpdateSlot(FName PassiveID): GDS 조회 → 아이콘 로드 → 텍스트 세팅 → Visible
+    - [x] ClearSlot(): 슬롯 Hidden, Ovl_Tooltip Hidden
+    - [x] OnSlotHovered / OnSlotUnhovered: Ovl_Tooltip 토글
+
+  ### [MODULE-2] SlotContainerWidget 확장 ✓ DONE 2026-04-15
+  수정: `UI/InGame/SlotContainerWidget.h` / `SlotContainerWidget.cpp`
+    - [x] PassiveSlotWidget_0 ~ PassiveSlotWidget_7 BindWidget 8개 추가
+    - [x] UpdatePassiveSlots(TArray<FName>) 구현
+    - [x] GetPassiveSlotWidget(int32) accessor 추가
+    - [x] NativeConstruct: 8개 ensureMsgf + ClearSlot() 초기화
+
+  ### [MODULE-3] RSPlayerController OnPassiveSlotChanged stub → 구현 ✓ DONE 2026-04-15
+  수정: `Character/Player/RSPlayerController.cpp`
+    - [x] stub 제거 → UMS→HUD→SlotContainer→UpdatePassiveSlots() 구현
+    - [x] GetWidgetByID 패턴 사용 (OpenUIByID 아님)
+
+  ### [에디터] ✓ DONE 2026-04-15
+    - [x] WBP_PassiveSlot 신규 생성 (PassiveSlotWidget 기반)
+    - [x] WBP_SlotContainer에 PassiveSlotWidget_0~7 배치
+
+  ### SR_ISSUES 2026-04-15 ✓ ALL FIXED
+    - [x] HIGH [CODE]: SlotContainerWidget.cpp NativeConstruct nullptr guard 추가
+    - [x] LOW: include 경로 UI/InGame으로 통일 (RSPlayerController.cpp, SlotContainerWidget.cpp)
+    - [x] LOW: PLAN Bdr_Tooltip → Ovl_Tooltip 갱신
+
 ### [BUG] 레벨업 카드 선택 후 스탯 창 미갱신 ✓ FIXED cc4ab96c4 2026-04-15
 
 ### [BUG] FloatingDamageWidgetClass 중복 관리 ✓ FIXED a6b407a34 2026-04-14
@@ -54,8 +86,7 @@
 - [x] 캐릭터 고유 스킬 시스템 (GA 2개, Q/E, ESkillActivationType ENUM)      [P1]
 - [x] 데미지 공식 ExecCalc 적용 (ATK/DEF 실제 계산 반영)                    [P1]
 - [x] 레벨업 선택지 확장 (정적+동적 카드 풀, 무기 최소 1장 보장)            [P1]
-- [>] 패시브 슬롯 시스템 — 로직·스탯표시 완료, **슬롯 UI/UX 미구현** (기획 필요)  [P1]
-  <!-- PassiveSlotSubsystem + GE(Multiplicative) 동작 확인. CharacterStatPopup "Base (+Bonus)" 표시 구현. 슬롯 위젯 UI + 진입 UX 설계 필요 -->
+- [x] 패시브 슬롯 시스템 — 로직·스탯표시·슬롯 UI 완료  [P1]
 
 #### PHASE 2 — 아웃게임 플로우 재조립
 - [ ] 로비 캐릭터 선택 UI 통합                                               [P2]

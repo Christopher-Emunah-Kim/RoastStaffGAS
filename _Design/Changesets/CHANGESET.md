@@ -12,6 +12,19 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ## PENDING_COMMIT
 
+- date: 2026-04-15
+  plan: PLAN_PassiveSlotUI_v1.0
+  modules: [MODULE-1 PassiveSlotWidget, MODULE-2 SlotContainerWidget 확장, MODULE-3 PC stub 구현]
+  files:
+    created:
+      - Source/RoastStaffGAS/Public/UI/InGame/PassiveSlotWidget.h
+      - Source/RoastStaffGAS/Private/UI/InGame/PassiveSlotWidget.cpp
+    modified:
+      - Source/RoastStaffGAS/Public/UI/InGame/SlotContainerWidget.h
+      - Source/RoastStaffGAS/Private/UI/InGame/SlotContainerWidget.cpp
+      - Source/RoastStaffGAS/Private/Character/Player/RSPlayerController.cpp
+  status: PENDING_COMMIT (에디터 작업 후 커밋)
+
 ## COMMITTED
 
 - date: 2026-04-15

@@ -56,6 +56,7 @@
 | ARSPlayerCharacter | 카메라/SpringArm, EquipmentComponent 소유, GAS 초기화, HandleDeath | 입력 처리, UI 관리 |
 | UEquipmentComponent | 장비 데이터 보유 | UI 갱신, 입력 처리 |
 | UPoolingSubsystem | 오브젝트 풀 생성·관리·회수 | 게임 로직 |
+| UPassiveSlotWidget | 패시브 슬롯 1칸 표시 (아이콘 + hover 툴팁) | 패시브 로직, GE 적용 |
 
 ---
 
@@ -128,6 +129,7 @@
 | `외부 시스템::X` → `UGameDataSubsystem::GetSkillsByCharacter(CharacterID)` | 캐릭터 선택 후 스킬 목록 조회 시 (M-5) |
 | `외부 시스템::X` → `UGameDataSubsystem::GetAllLevelUpCards()` → `LevelUpSubsystem 카드풀 구성` | 레벨업 이벤트 (M-6) |
 | `외부 시스템::X` → `UGameDataSubsystem::GetPassiveData(PassiveID)` → `PassiveSlotSubsystem::TryAddPassive` | 패시브 카드 선택 시 (M-7) |
+| `PassiveSlotSubsystem::OnPassiveSlotChangedDel` → `ARSPlayerController::OnPassiveSlotChanged` → `USlotContainerWidget::UpdatePassiveSlots` → `UPassiveSlotWidget::UpdateSlot` | 패시브 슬롯 UI 갱신 |
 
 ---
 

@@ -1,3 +1,11 @@
+## 2026-04-15 — PassiveSlotUI
+keywords: [ensureMsgf-nullptr-guard, include-path-case-sensitivity, LoadSynchronous-UPROPERTY-GC, UpdateSlot-icon-null-defense, NativeOnInitialized, UPROPERTY-GC-tracking]
+status:   🟡심화필요 (UPROPERTY/NativeOnInitialized RESOLVED, ensureMsgf/include 신규 진입)
+score:    기획서정합:4 UMG:4 메모리:5 OOP:4 컨벤션:4 /5
+report:   _Design/Learning/reports/KnowledgeCheck_2026-04-15_PassiveSlotUI.md
+
+---
+
 ## 2026-04-08 — SR-FULL (전체 아키텍처 리뷰)
 keywords: [UPROPERTY-TMap-GC, hardcoding-4th-recurrence, USTRUCT-defaults, Template-Method-Pattern-Enemy, constexpr-type-mismatch, AddDynamic-PC-guard, LoadRequiredClass-duplication, FEnemyRangedParams]
 status:   🔴미숙 (하드코딩 4회차 미해결, UPROPERTY TMap 3회차 미해결)

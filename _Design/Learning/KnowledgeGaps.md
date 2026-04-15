@@ -33,6 +33,10 @@
 | TDA (Tell, Don't Ask) — Widget이 도메인 Subsystem 직접 호출 금지, 위임으로 전환 기준 | OOP 설계 원칙 | 1 | 2026-04-14 | 🟡 학습중 | MODULE-6 |
 | Post-generation Constraint Enforcement — BuildXxx 후 EnsureXxx 분리, 필수 항목 강제 보장 패턴 | 설계 패턴 | 1 | 2026-04-14 | 🟡 학습중 | MODULE-6 |
 | SetNumericAttributeBase vs ApplyGameplayEffect — 영구 기반값 직접 세팅과 GE 파이프라인 선택 기준 | GAS Attribute | 1 | 2026-04-14 | 🟡 학습중 | MODULE-6 |
+| LoadSynchronous + UPROPERTY GC 강참조 — 반환값을 UPROPERTY 멤버에 저장하지 않으면 GC 즉시 수거 | UE5 메모리 | 1 | 2026-04-15 | 🟡 학습중 | PassiveSlotUI |
+| ensureMsgf-nullptr-guard — Shipping에서 ensure false 시 실행 멈추지 않음, 역참조 전 if guard 필수 | UE5 방어 패턴 | 1 | 2026-04-15 | 🟡 학습중 | PassiveSlotUI |
+| include-path-case-sensitivity — UI/Ingame vs UI/InGame 혼용은 Linux/Mac 빌드 에러 원인 | C++ 컨벤션 | 1 | 2026-04-15 | 🟡 학습중 | PassiveSlotUI |
+| UpdateSlot icon-null 방어 — 패시브 교체 시 기존 브러시 오염 방지, ClearSlot 리셋 또는 else 빈 브러시 세팅 | UMG 방어 패턴 | 1 | 2026-04-15 | 🟡 학습중 | PassiveSlotUI |
 
 ---
 
@@ -44,3 +48,4 @@
 | KnowledgeCheck_2026-04-07_MODULE-7.md | 2026-04-07 | MODULE-7 |
 | KnowledgeCheck_2026-04-07_MODULE-7-debug.md | 2026-04-07 | MODULE-7 디버깅 |
 | KnowledgeCheck_2026-04-14_MODULE-6.md | 2026-04-14 | MODULE-6 레벨업 카드풀 |
+| KnowledgeCheck_2026-04-15_PassiveSlotUI.md | 2026-04-15 | PassiveSlotUI |

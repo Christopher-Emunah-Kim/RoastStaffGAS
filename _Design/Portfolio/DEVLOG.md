@@ -469,6 +469,26 @@ UENUM()이 있는 헤더에는 반드시 `#include "파일명.generated.h"` 가 
 
 ---
 
+## [2026-04-15] ARCH — UMG 툴팁 컨테이너: UBorder 대신 UOverlay 선택
+
+**상황**: PassiveSlotWidget 툴팁 컨테이너를 초기 설계에서 UBorder로 지정. C++ 코드 작성 후 WBP 제작 단계에서 문제 발견.
+
+**문제·과제**: Canvas Panel 위에 배치된 UBorder는 내부 TextBlock 크기에 맞게 자동 리사이징이 되지 않음. Canvas Panel 슬롯의 크기가 고정 좌표/크기로 잡히기 때문이며, Content Alignment를 Fill로 두면 부모 공간을 꽉 채워 TextBlock이 짧아도 Border가 늘어난 채로 유지됨.
+
+**검토한 선택지**:
+- A) VerticalBox/HBox 로 감싸서 Auto 슬롯 사이즈 활용 — 위젯 계층 한 단계 추가
+- B) UOverlay 로 교체 — 자식 크기에 자연스럽게 맞고, Image(배경) + VerticalBox(텍스트) 레이어링도 동시에 해결
+
+**결정**: UOverlay 채택. BindWidget 이름을 `Bdr_Tooltip → Ovl_Tooltip`으로 변경하고 C++ include도 `Border.h → Overlay.h`로 교체. WBP 계층 구조: Ovl_Tooltip(Overlay) > Image(배경) + VerticalBox > Txt_PassiveName / Txt_PassiveDesc.
+
+**결과**: 툴팁이 내부 텍스트 길이에 맞게 자동 리사이징. Image 배경이 텍스트 영역에 정확히 맞춰짐.
+
+**포트폴리오 포인트**: UMG 패널별 크기 결정 방식 차이를 실제 제작 중 발견하고 적용 — Canvas Panel 슬롯은 고정, Box/Overlay는 자식 크기(Auto)를 따름. 설계 단계에서 WBP 레이아웃 의존성을 미리 고려해야 C++ BindWidget 타입 선택이 흔들리지 않는다는 교훈.
+
+**관련 파일**: `PassiveSlotWidget.h/.cpp`, `WBP_PassiveSlot`
+
+---
+
 ## [2026-04-15] BUG_FIX — GAS Multiplicative modifier 공식 오진 → 진단 로그로 재확인
 
 **UE_Ver**: 5.4
