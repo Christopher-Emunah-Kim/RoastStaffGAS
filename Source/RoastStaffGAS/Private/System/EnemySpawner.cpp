@@ -200,8 +200,8 @@ FVector AEnemySpawner::CalculateOffScreenSpawnLocation(const FVector& PlayerLoca
 		return FVector::ZeroVector;
 	}
 
-	// NavMesh 투영 탐색 범위: XY는 캡슐 반경 여유, Z는 지형 높낮이 커버
-	const FVector QueryExtent(150.f, 150.f, 500.f);
+	// NavMesh 투영 탐색 범위: XY는 캡슐 반경 여유, Z는 플레이어 레벨 ±150만 허용
+	const FVector QueryExtent(150.f, 150.f, 150.f);
 
 	for (int32 i = 0; i < MaxAttempts; ++i)
 	{
@@ -218,17 +218,32 @@ FVector AEnemySpawner::CalculateOffScreenSpawnLocation(const FVector& PlayerLoca
 			continue;
 		}
 
-		// NavMesh 표면 Z + 캡슐 절반 높이 여유 → 캐릭터 루트(캡슐 center)를 표면 위에 배치
-		const FVector ProposedLocation(NavLocation.Location.X, NavLocation.Location.Y, NavLocation.Location.Z + 90.f);
+		// 플레이어와 Z 차이가 너무 크면 지하/공중 NavMesh 폴리곤 — 스킵
+		if (FMath::Abs(NavLocation.Location.Z - PlayerLocation.Z) > 200.f)
+		{
+			continue;
+		}
 
-		// 캡슐이 실제로 들어갈 수 있는 위치인지 검증 — 겹치는 지오메트리가 있으면 조정
+		// 라인 트레이스로 실제 바닥 지오메트리 확인 — NavMesh는 런타임 지오메트리를 보장하지 않음
+		const FVector TraceStart(NavLocation.Location.X, NavLocation.Location.Y, NavLocation.Location.Z + 200.f);
+		const FVector TraceEnd  (NavLocation.Location.X, NavLocation.Location.Y, NavLocation.Location.Z - 200.f);
+		FHitResult HitResult;
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(EnemySpawnTrace), false);
+		const bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_WorldStatic, Params);
+		if (!bHit)
+		{
+			continue;
+		}
+
+		// 바닥 표면 Z + 캡슐 절반 높이 → 캐릭터 루트를 바닥 위에 배치
+		const FVector ProposedLocation(NavLocation.Location.X, NavLocation.Location.Y, HitResult.ImpactPoint.Z + 90.f);
+
 		FVector AdjustedLocation = ProposedLocation;
 		if (GetWorld()->FindTeleportSpot(this, AdjustedLocation, FRotator::ZeroRotator))
 		{
 			return AdjustedLocation;
 		}
 
-		// 조정 실패 시 다음 시도로
 		continue;
 	}
 
