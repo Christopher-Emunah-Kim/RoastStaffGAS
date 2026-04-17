@@ -38,7 +38,7 @@ ARSPlayerCharacter::ARSPlayerCharacter()
 	SpringArm->bDoCollisionTest = false;
 	SpringArm->bInheritYaw = false;
 	SpringArm->bEnableCameraLag = true;
-	SpringArm->CameraLagSpeed = 0.5f;
+	SpringArm->CameraLagSpeed = 8.f;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);

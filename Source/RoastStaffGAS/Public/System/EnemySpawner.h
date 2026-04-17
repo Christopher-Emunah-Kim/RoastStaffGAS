@@ -34,8 +34,11 @@ public:
 	int32 GetPoolCountPerClass() const { return PoolCountPerClass; }
 
 private:
-	/** 플레이어 위치 기준 랜덤 방향 외곽 스폰 위치 계산 */
-	FVector CalculateOffScreenSpawnLocation(const FVector& PlayerLocation) const;
+	/**
+	 * 플레이어 위치 기준 랜덤 방향 외곽 NavMesh 유효 위치 계산.
+	 * MaxAttempts 횟수까지 NavMesh 투영을 시도하고, 전부 실패 시 FVector::ZeroVector 반환.
+	 */
+	FVector CalculateOffScreenSpawnLocation(const FVector& PlayerLocation, int32 MaxAttempts = 5) const;
 	/** AIType에 따라 타입별 확장 초기화 (ExtData 주입) */
 	void InitializeEnemyByType(AEnemyBaseCharacter* Enemy, FName EnemyID);
 

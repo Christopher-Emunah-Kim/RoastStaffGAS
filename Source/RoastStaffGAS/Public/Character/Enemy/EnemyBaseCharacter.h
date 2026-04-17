@@ -42,6 +42,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "MY|Enemy")
 	void InitializeEnemy(FName InEnemyID);
 
+	void ForcePoolActive();
+	
 	FORCEINLINE FName GetEnemyID() const { return EnemyID; }
 
 protected:
@@ -80,6 +82,8 @@ protected:
 	float ProjectileSpeed    = 600.f;
 	float ProjectileLifetime = 3.f;
 	float AttackDamage       = 0.f;
+	// 중복 초기화 방지
+	bool bIsInitialized = false;
 
 	// ── 투사체 공통 클래스 (BP에서 할당) ──
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Projectile")
@@ -103,8 +107,6 @@ private:
 
 	// EnemyID 캐싱(초기화/사망 시 델리게이트 용도)
 	FName EnemyID;
-	// 중복 초기화 방지
-	bool bIsInitialized = false;
 
 	/** 사망 후 풀 반납까지 대기 시간 (초) — 사망 연출 길이에 맞춰 BP에서 조정 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy")

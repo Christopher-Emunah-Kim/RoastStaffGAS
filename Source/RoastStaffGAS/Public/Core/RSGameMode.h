@@ -59,6 +59,8 @@ private:
 	/** FPoolPreWarmRequest 생성 헬퍼 */
 	FPoolPreWarmRequest MakeActorRequest(TSubclassOf<AActor> Class, int32 Count);
 	FPoolPreWarmRequest MakeWidgetRequest(TSubclassOf<UUserWidget> Class, int32 Count);
+	/** 모든 스트리밍 레벨이 로드+가시 상태인지 확인 */
+	bool AreAllStreamingLevelsLoaded() const;
 
 	// ── 스테이지 판정 ─────────────────────────────────────────────────────────
 	void CheckStageClearCondition();
@@ -91,4 +93,6 @@ private:
 	FName CurrentStageID = NAME_None;
 	/** 스테이지 종료 플래그 (중복 호출 방지) */
 	bool bIsStageEnded = false;
+	/** 프리웜 완료 후 스트리밍 레벨 로드 대기 플래그 */
+	bool bWaitingForLevelLoad = false;
 };

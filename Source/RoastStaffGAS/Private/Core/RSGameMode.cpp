@@ -22,6 +22,7 @@
 #include "Data/DataTableStructs.h"
 #include "Data/RuntimeDataStructs.h"
 #include "Kismet/GameplayStatics.h"
+#include "Engine/LevelStreaming.h"
 
 FPoolPreWarmRequest ARSGameMode::MakeActorRequest(TSubclassOf<AActor> Class, int32 Count)
 {
@@ -93,6 +94,13 @@ void ARSGameMode::Tick(float DeltaTime)
 	if (bIsPreWarmActive)
 	{
 		UpdatePreWarmProgress();
+	}
+
+	if (bWaitingForLevelLoad && AreAllStreamingLevelsLoaded())
+	{
+		bWaitingForLevelLoad = false;
+		StartStageFlow();
+		KHS_INFO(TEXT("스트리밍 레벨 로드 완료 — 스테이지 시작"));
 	}
 
 	if (!bIsStageEnded)
@@ -229,9 +237,17 @@ void ARSGameMode::OnPreWarmCompleted()
 	}
 
 	CloseLoadingUI();
-	StartStageFlow();
 
-	KHS_INFO(TEXT("프리웜 완료 — 스테이지 시작"));
+	if (AreAllStreamingLevelsLoaded())
+	{
+		StartStageFlow();
+		KHS_INFO(TEXT("프리웜 완료 — 스테이지 시작"));
+	}
+	else
+	{
+		bWaitingForLevelLoad = true;
+		KHS_INFO(TEXT("프리웜 완료 — 스트리밍 레벨 로드 대기 중..."));
+	}
 }
 
 void ARSGameMode::CloseLoadingUI()
@@ -258,6 +274,27 @@ void ARSGameMode::UpdatePreWarmProgress()
 	{
 		LoadingWidget->SetLoadingProgress(PoolSys->GetPreWarmProgress());
 	}
+}
+
+bool ARSGameMode::AreAllStreamingLevelsLoaded() const
+{
+	for (ULevelStreaming* StreamingLevel : GetWorld()->GetStreamingLevels())
+	{
+		if (!StreamingLevel)
+		{
+			continue;
+		}
+		// 로드+표시 요청된 레벨만 검사 — 요청되지 않은 레벨은 스킵
+		if (!StreamingLevel->ShouldBeLoaded() || !StreamingLevel->ShouldBeVisible())
+		{
+			continue;
+		}
+		if (!StreamingLevel->HasLoadedLevel() || !StreamingLevel->IsLevelVisible())
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 void ARSGameMode::StartStageFlow()

@@ -97,6 +97,12 @@ void AEnemyBaseCharacter::InitializeEnemy(FName InEnemyID)
 	KHS_INFO(TEXT("%s — 초기화 완료. EnemyID: %s / HP: %.0f / Speed: %.0f"), *GetName(), *EnemyID.ToString(), EnemyData.MaxHP, EnemyData.MoveSpeed);
 }
 
+void AEnemyBaseCharacter::ForcePoolActive()
+{
+	//BossEnemy 스폰용도 (강제 풀활성화)
+	OnPoolActivate();
+}
+
 void AEnemyBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -188,6 +194,12 @@ void AEnemyBaseCharacter::OnPoolActivate()
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(true);
 
+	// MovementMode 복원 — OnPoolDeactivate에서 DisableMovement로 MOVE_None 설정됐으므로 Walking으로 복구
+	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+	{
+		MoveComp->SetMovementMode(EMovementMode::MOVE_Walking);
+	}
+
 	// ASC Actor 정보 갱신 및 State.Dead 태그 제거
 	if (ASC)
 	{
@@ -214,6 +226,13 @@ void AEnemyBaseCharacter::OnPoolDeactivate()
 	// 가시성 및 충돌 비활성화
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
+
+	// 물리/중력 정지 — 풀 대기 중 낙하 방지
+	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+	{
+		MoveComp->DisableMovement();
+		MoveComp->StopMovementImmediately();
+	}
 
 	// 진행 중인 Ability 강제 종료 (ASC가 준비된 경우만)
 	if (ASC)

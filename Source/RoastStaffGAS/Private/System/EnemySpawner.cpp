@@ -3,6 +3,7 @@
 
 #include "System/EnemySpawner.h"
 #include "RoastStaffGAS.h"
+#include "NavigationSystem.h"
 #include "Character/Enemy/EnemyBaseCharacter.h"
 #include "Character/Enemy/EnemyAIController.h"
 #include "Character/Enemy/RangedEnemy.h"
@@ -65,8 +66,13 @@ void AEnemySpawner::SpawnEnemy(FName EnemyID, const FVector& PlayerLocation)
 		return;
 	}
 
-	// 스폰 위치 계산
+	// 스폰 위치 계산 (NavMesh 유효 위치, 실패 시 ZeroVector)
 	const FVector SpawnLocation = CalculateOffScreenSpawnLocation(PlayerLocation);
+	if (SpawnLocation == FVector::ZeroVector)
+	{
+		KHS_WARN(TEXT("SpawnEnemy — NavMesh 유효 위치 탐색 실패. EnemyID: %s 스폰 스킵."), *EnemyID.ToString());
+		return;
+	}
 	const FTransform SpawnTransform(FRotator::ZeroRotator, SpawnLocation);
 
 	// 풀에서 꺼냄 (내부에서 OnPoolActivate 호출)
@@ -127,6 +133,10 @@ void AEnemySpawner::InitializeEnemyByType(AEnemyBaseCharacter* Enemy, FName Enem
 
 	switch (StaticData.AIType)
 	{
+	case EAIType::CHASE:
+		// MeleeEnemy — InitializeEnemy 내부에서 처리
+		break;
+
 	case EAIType::RANGED:
 		if (ARangedEnemy* Ranged = Cast<ARangedEnemy>(Enemy))
 		{
@@ -163,8 +173,6 @@ void AEnemySpawner::InitializeEnemyByType(AEnemyBaseCharacter* Enemy, FName Enem
 		}
 		break;
 
-	default:
-		break;
 	}
 }
 
@@ -183,11 +191,47 @@ void AEnemySpawner::OnBossKilled()
 	CachedBossHPBar = nullptr;
 }
 
-FVector AEnemySpawner::CalculateOffScreenSpawnLocation(const FVector& PlayerLocation) const
+FVector AEnemySpawner::CalculateOffScreenSpawnLocation(const FVector& PlayerLocation, int32 MaxAttempts) const
 {
-	const float AngleDeg = FMath::FRandRange(0.f, 360.f);
-	const float AngleRad = FMath::DegreesToRadians(AngleDeg);
-	const FVector Offset(FMath::Cos(AngleRad) * OffScreenDistance,FMath::Sin(AngleRad),0.f	);
-	
-	return PlayerLocation + Offset;
+	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
+	if (!NavSys)
+	{
+		KHS_WARN(TEXT("CalculateOffScreenSpawnLocation — NavigationSystem 없음."));
+		return FVector::ZeroVector;
+	}
+
+	// NavMesh 투영 탐색 범위: XY는 캡슐 반경 여유, Z는 지형 높낮이 커버
+	const FVector QueryExtent(150.f, 150.f, 500.f);
+
+	for (int32 i = 0; i < MaxAttempts; ++i)
+	{
+		const float AngleRad = FMath::DegreesToRadians(FMath::FRandRange(0.f, 360.f));
+		const FVector Candidate = PlayerLocation + FVector(
+			FMath::Cos(AngleRad) * OffScreenDistance,
+			FMath::Sin(AngleRad) * OffScreenDistance,
+			0.f
+		);
+
+		FNavLocation NavLocation;
+		if (!NavSys->ProjectPointToNavigation(Candidate, NavLocation, QueryExtent))
+		{
+			continue;
+		}
+
+		// NavMesh 표면 Z + 캡슐 절반 높이 여유 → 캐릭터 루트(캡슐 center)를 표면 위에 배치
+		const FVector ProposedLocation(NavLocation.Location.X, NavLocation.Location.Y, NavLocation.Location.Z + 90.f);
+
+		// 캡슐이 실제로 들어갈 수 있는 위치인지 검증 — 겹치는 지오메트리가 있으면 조정
+		FVector AdjustedLocation = ProposedLocation;
+		if (GetWorld()->FindTeleportSpot(this, AdjustedLocation, FRotator::ZeroRotator))
+		{
+			return AdjustedLocation;
+		}
+
+		// 조정 실패 시 다음 시도로
+		continue;
+	}
+
+	KHS_WARN(TEXT("CalculateOffScreenSpawnLocation — %d회 시도 후 NavMesh 위치 탐색 실패."), MaxAttempts);
+	return FVector::ZeroVector;
 }
