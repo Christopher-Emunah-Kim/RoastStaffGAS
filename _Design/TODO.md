@@ -37,14 +37,21 @@
 
 ### [MODULE-4] ElementTag + SpawnSkillFX 색상 분기
 수정: RSGameplayTags.h/.cpp / DefaultGame.ini / GA_CharacterSkill.cpp
-  - [ ] Element.Fire / Ice / Thunder 태그 등록 (ini + Tags.h/cpp)           [P0]
-  - [ ] SpawnSkillFX 시그니처 확장 + ElementColor 분기 구현                 [P0]
+  - [x] Element.Fire / Ice / Thunder 태그 등록 (Tags.h/cpp)                [P0]
+  - [x] SpawnSkillFX 시그니처 확장 + ElementColor 분기 구현                [P0]
+  - [ ] 스킬 Niagara FX에 Radius(float) + ElementColor(LinearColor) User Parameter 추가 (에디터) [P0]
 
-### [MODULE-5] ARS_GroundEffectActor 공통 클래스
-신규: ARS_GroundEffectActor.h/.cpp
+### [MODULE-5] AGroundEffectActor 공통 클래스
+신규: GroundEffectActor.h/.cpp
 수정: GA_CharacterSkill.h/.cpp
-  - [ ] ARS_GroundEffectActor 구현 (IPoolableInterface + Overlap GE)        [P0]
-  - [ ] GA_CharacterSkill::ExecuteGroundEffect() 구현                       [P0]
+  - [x] AGroundEffectActor 구현 (IPoolableInterface + Overlap GE)           [P0]
+  - [x] GA_CharacterSkill::ExecuteGroundEffect() 구현                       [P0]
+  - [ ] BP_GroundEffectActor 서브클래스 생성 + DT_CharacterSkill 컬럼 추가 (에디터) [P0]
+
+### [MODULE-에디터] 에디터 작업 (집 PC에서)
+  - [ ] M_Enemy 머티리얼 — EmissiveIntensity ScalarParameter 추가           [P0]
+  - [ ] DT_CharacterSkill — SkillEffectID / ElementTag / FireInterval / GroundEffectActorClass 컬럼 더미데이터 입력 [P0]
+  - [ ] 각 GA BP (BP_GA_*) — SkillGEClass 할당 확인                        [P0]
 
 ---
 
