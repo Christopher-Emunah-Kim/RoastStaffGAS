@@ -119,6 +119,13 @@ namespace RSTags
 	
 	
 	//===============================================
+	// 속성 태그 (Element.*) — SpawnSkillFX 색상 분기용
+	//===============================================
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Element_Fire);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Element_Ice);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Element_Thunder);
+
+	//===============================================
 	// 캐릭터 스킬 태그 (Skill.*)
 	//===============================================
 	// Q키 (슬롯1) 스킬 식별

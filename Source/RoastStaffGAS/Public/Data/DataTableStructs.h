@@ -137,6 +137,7 @@ struct FWeaponStaticData : public FTableRowBase
 // DT_Skill_Common_Static_Data — 스킬 기본 데이터 
 // ----------------------------------------------------------------------------
 class ABaseProjectile;
+class AGroundEffectActor;
 
 USTRUCT(BlueprintType)
 struct FSkillCommonStaticData : public FTableRowBase
@@ -703,6 +704,25 @@ struct FCharacterSkillStaticData : public FTableRowBase
 	/** 레벨별 수치+FX 데이터. 3개 원소 (Lv1/Lv2/Lv3) 필수 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Level")
 	TArray<FCharacterSkillLevelData> LevelData;
+
+	/** 스킬 효과 FK — DT_Skill_Attack_Common_Params_Data 등 효과 테이블 참조 키.
+	 *  ProjectileSpawn: SkillAttackCommonParams + SkillAttackSpawnParams + (SkillHitTypePierce) 복합 조회.
+	 *  SkillEffectID 미설정 시 GDS 복합 조회 생략. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill")
+	FName SkillEffectID = NAME_None;
+
+	/** 속성 태그 — SpawnSkillFX ElementColor 분기용. 없으면 White. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill")
+	FGameplayTag ElementTag;
+
+	/** ProjectileSpawn 전용 — 연속 발사 간격 (초). 무기 스킬 테이블에 없는 캐릭터 스킬 전용 파라미터.
+	 *  단발(ProjectileCount==1)이면 미사용. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Projectile")
+	float FireInterval = 0.f;
+
+	/** GroundEffect 전용 — 스폰할 장판 Actor 클래스 (AARS_GroundEffectActor 상속 BP). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|GroundEffect")
+	TSoftClassPtr<AGroundEffectActor> GroundEffectActorClass;
 };
 
 // ----------------------------------------------------------------------------

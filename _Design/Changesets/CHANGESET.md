@@ -12,6 +12,35 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ## PENDING_COMMIT
 
+- date: 2026-04-18
+  plan: PLAN_CombatInfra_v1.0 MODULE-2 + MODULE-3
+  status: PENDING_COMMIT
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/GAS/Attributes/EnemyAttributeSet.h
+      - Source/RoastStaffGAS/Private/GAS/Attributes/EnemyAttributeSet.cpp
+      - Source/RoastStaffGAS/Public/Character/Enemy/EnemyBaseCharacter.h
+      - Source/RoastStaffGAS/Private/Character/Enemy/EnemyBaseCharacter.cpp
+      - Source/RoastStaffGAS/Public/Data/EnumTypes.h
+      - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
+      - Source/RoastStaffGAS/Public/Data/RuntimeDataStructs.h
+      - Source/RoastStaffGAS/Private/Subsystems/GameDataSubsystem.cpp
+      - Source/RoastStaffGAS/Public/GAS/Abilities/GA_CharacterSkill.h
+      - Source/RoastStaffGAS/Private/GAS/Abilities/GA_CharacterSkill.cpp
+  summary: "feat(CombatInfra): 피격 반응(넉백+히트스탑+이미시브) + ProjectileSpawn 타입 추가 (SkillEffectID FK 복합 조회 방식)"
+
+- date: 2026-04-17
+  plan: PLAN_CombatInfra_v1.0 MODULE-1
+  commits: ["75ba1d80b", "6ecf988c7"]
+  status: COMMITTED
+  files:
+    modified:
+      - Config/DefaultGame.ini
+      - Content/Blueprint/Enemy/Boss/BP_BossEnemy.uasset
+      - Content/UI/Ingame/Enemy/WBP_BossHPBar.uasset
+      - Source/RoastStaffGAS/Private/System/EnemySpawner.cpp
+  summary: "fix(EnemySpawn): NavMesh 투영 + LineTrace 바닥 검증 + Z 범위 제한 + 보스 캡슐 충돌 Block 수정"
+
 - date: 2026-04-15
   plan: PLAN_PassiveSlotUI_v1.0
   commits: ["0a9533b9b", "7c36f7fd3", "ab9d95674", "c2a58ec1a", "5b45d6edd", "ccb38598c"]

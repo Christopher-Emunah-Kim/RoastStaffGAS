@@ -22,6 +22,7 @@
 // ============================================================================
 
 class ABaseProjectile;
+class AGroundEffectActor;
 class UNiagaraSystem;
 class ASummonPreviewObject;
 class USoundBase;
@@ -280,6 +281,67 @@ struct FCharacterSkillExecData
 	/** 해당 레벨 수치+FX 데이터 (FCharacterSkillStaticData.LevelData[Level-1]) */
 	UPROPERTY(BlueprintReadOnly)
 	FCharacterSkillLevelData LevelData;
+
+	// ── ProjectileSpawn — SkillEffectID 복합 조회 결과 ─────────────────────
+	// GDS.GetCharacterSkillExecData 내에서 SkillEffectID로 무기 스킬 테이블을 복합 조회하여 채운다.
+	// SkillEffectID == NAME_None이면 아래 필드 미사용 (InstantAoE / SelfBuff / SpawnPreview만 사용).
+
+	/** 속성 태그 — SpawnSkillFX ElementColor 분기용 (FCharacterSkillStaticData.ElementTag 그대로 전달) */
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag ElementTag;
+
+	/** GroundEffect 전용 장판 Actor 클래스 (FCharacterSkillStaticData.GroundEffectActorClass 그대로 전달) */
+	UPROPERTY(BlueprintReadOnly)
+	TSoftClassPtr<AGroundEffectActor> GroundEffectActorClass;
+
+	/** 스킬 효과 FK (FCharacterSkillStaticData.SkillEffectID 그대로 전달) */
+	UPROPERTY(BlueprintReadOnly)
+	FName SkillEffectID;
+
+	/** 투사체 클래스 — SkillCommonResourceCache[SkillID].ProjectileClass */
+	UPROPERTY(BlueprintReadOnly)
+	TSoftClassPtr<ABaseProjectile> ProjectileClass;
+
+	/** 기본 데미지 수치 — SkillAttackCommonParamsData.Amount.
+	 *  FireOneProjectile에서 Amount * LevelData.DamageMultiplier 로 최종 데미지 산출. */
+	UPROPERTY(BlueprintReadOnly)
+	float Amount = 0.f;
+
+	/** 투사체 이동 속도 (cm/s) — SkillAttackCommonParamsData.Speed */
+	UPROPERTY(BlueprintReadOnly)
+	float ProjectileSpeed = 0.f;
+
+	/** 투사체 수명 (초) — SkillCommonParamData.Lifetime */
+	UPROPERTY(BlueprintReadOnly)
+	float ProjectileLifetime = 0.f;
+
+	/** 이동 방식 — SkillAttackCommonParamsData.MoveType */
+	UPROPERTY(BlueprintReadOnly)
+	EMoveType MoveType = EMoveType::LINEAR;
+
+	/** 타격 방식 — SkillAttackCommonParamsData.HitType */
+	UPROPERTY(BlueprintReadOnly)
+	EHitType HitType = EHitType::SINGLE;
+
+	/** 소환 방식 — SkillAttackCommonParamsData.SpawnType */
+	UPROPERTY(BlueprintReadOnly)
+	ESpawnPattern SpawnPattern = ESpawnPattern::SINGLE;
+
+	/** 연속 발사 수 — SkillAttackSpawnParamsData.SpawnCount */
+	UPROPERTY(BlueprintReadOnly)
+	int32 ProjectileCount = 1;
+
+	/** 연속 발사 간격 (초) — FCharacterSkillStaticData.FireInterval (캐릭터 스킬 전용) */
+	UPROPERTY(BlueprintReadOnly)
+	float FireInterval = 0.f;
+
+	/** 관통 횟수 — SkillHitTypePierceCache.PierceCount (0 = 비관통) */
+	UPROPERTY(BlueprintReadOnly)
+	int32 PierceCount = 0;
+
+	/** 관통 데미지 감쇠율 — SkillHitTypePierceCache.DamageDecay */
+	UPROPERTY(BlueprintReadOnly)
+	float DamageDecay = 0.f;
 };
 
 // ----------------------------------------------------------------------------

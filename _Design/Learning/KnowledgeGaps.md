@@ -37,6 +37,7 @@
 | ensureMsgf-nullptr-guard — Shipping에서 ensure false 시 실행 멈추지 않음, 역참조 전 if guard 필수 | UE5 방어 패턴 | 1 | 2026-04-15 | 🟡 학습중 | PassiveSlotUI |
 | include-path-case-sensitivity — UI/Ingame vs UI/InGame 혼용은 Linux/Mac 빌드 에러 원인 | C++ 컨벤션 | 1 | 2026-04-15 | 🟡 학습중 | PassiveSlotUI |
 | UpdateSlot icon-null 방어 — 패시브 교체 시 기존 브러시 오염 방지, ClearSlot 리셋 또는 else 빈 브러시 세팅 | UMG 방어 패턴 | 1 | 2026-04-15 | 🟡 학습중 | PassiveSlotUI |
+| UMaterialInstanceDynamic 지연 초기화 캐싱 — CreateAndSetMaterialInstanceDynamic은 렌더 스테이트 무효화 + GC 비용 발생, 최초 1회 생성 후 SetScalarParameterValue만 반복 사용 | UE5 렌더링 최적화 | 1 | 2026-04-17 | 🟡 학습중 | CombatInfra MODULE-2 |
 
 ---
 
@@ -49,3 +50,4 @@
 | KnowledgeCheck_2026-04-07_MODULE-7-debug.md | 2026-04-07 | MODULE-7 디버깅 |
 | KnowledgeCheck_2026-04-14_MODULE-6.md | 2026-04-14 | MODULE-6 레벨업 카드풀 |
 | KnowledgeCheck_2026-04-15_PassiveSlotUI.md | 2026-04-15 | PassiveSlotUI |
+| KnowledgeCheck_2026-04-17_CombatInfra_MODULE-2.md | 2026-04-17 | CombatInfra MODULE-2 |

@@ -46,6 +46,36 @@
 
 ## 2026-04
 
+### [2026-04-18] [ARCH] 캐릭터 스킬 ProjectileSpawn — DataTable 신규 컬럼 vs SkillEffectID FK 재사용
+
+**UE_Ver**: 5.4
+**Knowledge_Risk**: LOW
+
+**상황**: 캐릭터 고유 스킬(Q/E)에 ProjectileSpawn 타입을 추가하면서 투사체 파라미터(속도, 수명, 관통 수 등)를 어디에 저장할지 결정해야 했다.
+
+**문제/과제**: `FCharacterSkillStaticData`에 ProjectileClass, Speed, PierceCount 등 파라미터를 직접 추가하는 초기 구현이 이미 존재하는 무기 스킬 테이블(DT_Skill_Attack_Common_Params_Data, DT_Skill_Attack_HitType_Params_Pierce 등)과 동일한 데이터를 중복 정의하는 구조가 됨. 같은 수치를 두 곳에서 관리하면 수정 시 불일치 발생 위험.
+
+**검토한 선택지**:
+  - A) `FCharacterSkillStaticData`에 직접 파라미터 추가 (초기 구현) — 구현이 단순하나 무기 스킬 테이블과 데이터 중복. 수치 변경 시 두 테이블 동기화 필요. 나중에 타입별 파라미터가 늘어날수록 구조체가 비대해짐.
+  - B) `SkillEffectID` FK를 추가하고 GDS 복합 조회로 기존 테이블 재사용 — FK 하나만 추가하면 무기 스킬 인프라(AttackCommonParams, SpawnParams, HitTypePierce) 전체를 공유. 단, 캐릭터 스킬 SkillID로 DT_Skill_Common_Resource_Data에 row도 추가해야 한다는 에디터 설정 부담 존재.
+
+**결정**: Option B 선택. DRY 원칙 우선 — 수치가 두 곳에 있으면 버그 재현이 어렵고 DataTable 유지보수 비용이 높아진다. 에디터 설정 부담은 개발 초기에 수용 가능한 수준.
+
+**결과/효과**: `FCharacterSkillStaticData`에 `SkillEffectID`와 `FireInterval`(캐릭터 스킬 전용 burst 파라미터) 2개만 추가. `GetCharacterSkillExecData`가 SkillEffectID를 통해 기존 캐시 5개(Resource, AttackCommon, CommonParam, SpawnParams, HitTypePierce)를 복합 조회해 `FCharacterSkillExecData`를 완성. 하드코딩 10.f도 `AttackCommonParams.Amount`로 대체되어 제거.
+
+**포트폴리오 포인트**: 데이터 중복 vs FK 재사용 트레이드오프 인식 / 기존 스키마를 최소 변경으로 확장하는 OCP 적용 / GDS 복합 조회 패턴 설계
+
+**관련 파일**:
+  - Source/RoastStaffGAS/Public/Data/DataTableStructs.h (FCharacterSkillStaticData)
+  - Source/RoastStaffGAS/Public/Data/RuntimeDataStructs.h (FCharacterSkillExecData)
+  - Source/RoastStaffGAS/Private/Subsystems/GameDataSubsystem.cpp (GetCharacterSkillExecData)
+
+**검증 기준**:
+  - [x] 빌드 성공 (2026-04-18)
+  - [ ] ProjectileSpawn 타입 스킬 발동 시 DT row 설정대로 투사체 발사 확인
+
+---
+
 ### [2026-04-14] [BUG_FIX] LoadingWidget Dangling Pointer — 레벨 전환 시 UIManagerSubsystem 캐시 불일치
 
 **상황**: InGame 진입 후 LoadingWidget이 PreWarm 완료 전에 닫히고, 첫 무기 슬롯 등록이 지연되는 버그. `FinishLoading()` 호출 시점에 `IsVisible: 0` 로그 발견.

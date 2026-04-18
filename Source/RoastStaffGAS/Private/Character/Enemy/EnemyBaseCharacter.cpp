@@ -17,6 +17,8 @@
 #include "GAS/Tags/RSGameplayTags.h"
 #include "Components/WidgetComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "UI/Enemy/EnemyHPBarWidget.h"
 
 AEnemyBaseCharacter::AEnemyBaseCharacter()
@@ -248,6 +250,18 @@ void AEnemyBaseCharacter::OnPoolDeactivate()
 
 	// 사망 복귀 타이머 정리 (비정상 반납 시 중복 실행 방지)
 	GetWorldTimerManager().ClearTimer(DeathReturnTimerHandle);
+
+	// 히트 반응 타이머 클리어 + 상태 복원 (풀 재사용 에너미 속도/머티리얼 오염 방지)
+	CustomTimeDilation = 1.0f;
+	GetWorldTimerManager().ClearTimer(HitstopTimerHandle);
+	GetWorldTimerManager().ClearTimer(FlashTimerHandle);
+	for (TObjectPtr<UMaterialInstanceDynamic>& MID : CachedMIDs)
+	{
+		if (MID)
+		{
+			MID->SetScalarParameterValue(TEXT("EmissiveIntensity"), 0.f);
+		}
+	}
 }
 
 
@@ -308,13 +322,96 @@ void AEnemyBaseCharacter::LaunchEnemyProjectile(const FVector& Direction, float 
 	Projectile->SetInstigator(this);
 	Projectile->InitEnemyProjectile(Direction, ProjectileSpeed, ProjectileLifetime,	Damage, AttackGEClass, GetAbilitySystemComponent());
 
-	KHS_DEBUG(TEXT("%s — 투사체 발사. 방향: %s"), *GetName(), *Direction.ToString());
+	KHS_INFO(TEXT("%s — 투사체 발사. 방향: %s"), *GetName(), *Direction.ToString());
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 피격 반응
+// ─────────────────────────────────────────────────────────────────────────────
+
+void AEnemyBaseCharacter::ApplyHitReact(FVector ImpactDir)
+{
+	// 넉백 — 공격자 방향으로 밀어냄
+	LaunchCharacter(ImpactDir * KnockbackForce, true, true);
+
+	// 히트스탑 — 이 에너미만 순간 정지 
+	CustomTimeDilation = 0.0f;
+	TWeakObjectPtr<AEnemyBaseCharacter> WeakThis(this);
+	GetWorldTimerManager().SetTimer(
+		HitstopTimerHandle,
+		[WeakThis]()
+		{
+			if (WeakThis.IsValid())
+			{
+				WeakThis->CustomTimeDilation = 1.0f;
+			}
+		},
+		HitstopDuration,
+		false
+	);
+
+	// 이미시브 플래시
+	MaterialEmissiveFlash();
+}
+
+void AEnemyBaseCharacter::MaterialEmissiveFlash()
+{
+	USkeletalMeshComponent* MeshComp = GetMesh();
+	if (!MeshComp)
+	{
+		return;
+	}
+
+	// 최초 피격 시 MID 생성 및 캐싱 (이후 재사용)
+	if (CachedMIDs.IsEmpty())
+	{
+		const int32 NumMaterials = MeshComp->GetNumMaterials();
+		CachedMIDs.Reserve(NumMaterials);
+		for (int32 i = 0; i < NumMaterials; ++i)
+		{
+			UMaterialInstanceDynamic* MID = MeshComp->CreateAndSetMaterialInstanceDynamic(i);
+			if (MID)
+			{
+				CachedMIDs.Add(MID);
+			}
+		}
+	}
+
+	for (TObjectPtr<UMaterialInstanceDynamic>& MID : CachedMIDs)
+	{
+		if (MID)
+		{
+			MID->SetScalarParameterValue(TEXT("EmissiveIntensity"), FlashIntensity);
+		}
+	}
+
+	// FlashDuration 후 이미시브 복원
+	TWeakObjectPtr<AEnemyBaseCharacter> WeakThis(this);
+	GetWorldTimerManager().SetTimer(
+		FlashTimerHandle,
+		[WeakThis]()
+		{
+			if (!WeakThis.IsValid())
+			{
+				return;
+			}
+			for (TObjectPtr<UMaterialInstanceDynamic>& MID : WeakThis->CachedMIDs)
+			{
+				if (MID)
+				{
+					MID->SetScalarParameterValue(TEXT("EmissiveIntensity"), 0.f);
+				}
+			}
+		},
+		FlashDuration,
+		false
+	);
 }
 
 bool AEnemyBaseCharacter::ApplyStatData(FEnemyStaticData& EnemyData)
 {
 	//  GDS에서 DT_Enemy 조회
-	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS);
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS)
 
 	if (!GDS->GetEnemyData(EnemyID, EnemyData))
 	{

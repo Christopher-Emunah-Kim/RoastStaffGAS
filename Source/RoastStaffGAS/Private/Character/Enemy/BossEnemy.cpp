@@ -181,7 +181,7 @@ void ABossEnemy::ExecuteShockwave()
 	const float DistSq = FVector::DistSquared(GetActorLocation(), Player->GetActorLocation());
 	if (DistSq > FMath::Square(ShockwaveRadius))
 	{
-		KHS_DEBUG(TEXT("%s — Shockwave: 플레이어 범위 밖. 스킵."), *GetName());
+		KHS_INFO(TEXT("%s — Shockwave: 플레이어 범위 밖. 스킵."), *GetName());
 		return;
 	}
 
@@ -214,7 +214,7 @@ void ABossEnemy::ApplyShockwaveDamage(AActor* Target)
 	Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_EnemyAttackDamage, ShockwaveDamage);
 	TargetASC->ApplyGameplayEffectSpecToSelf(*Spec.Data);
 
-	KHS_DEBUG(TEXT("%s — Shockwave 데미지 적용. 데미지: %.0f"), *GetName(), ShockwaveDamage);
+	KHS_INFO(TEXT("%s — Shockwave 데미지 적용. 데미지: %.0f"), *GetName(), ShockwaveDamage);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -232,7 +232,7 @@ void ABossEnemy::FireSpreadProjectile()
 		LaunchEnemyProjectile(Direction, DamageWithMult);
 	}
 
-	KHS_DEBUG(TEXT("%s — 보스 방사형 투사체 발사. 데미지: %.0f"), *GetName(), DamageWithMult);
+	KHS_INFO(TEXT("%s — 보스 방사형 투사체 발사. 데미지: %.0f"), *GetName(), DamageWithMult);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

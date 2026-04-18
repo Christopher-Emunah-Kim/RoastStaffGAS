@@ -128,9 +128,11 @@ enum class EStageNodeState : uint8
 UENUM(BlueprintType)
 enum class ESkillActivationType : uint8
 {
-	InstantAoE    UMETA(DisplayName = "InstantAoE"),    // 즉발 범위기 — Q/E 누르면 캐릭터 주변 즉시 발동
-	SpawnPreview  UMETA(DisplayName = "SpawnPreview"),  // 위치 지정형 — 프리뷰 FX → 좌클릭 확정, 우클릭 취소
-	SelfBuff      UMETA(DisplayName = "SelfBuff"),      // 자가 버프 — Q/E 누르면 자신에게 즉시 적용
+	InstantAoE      UMETA(DisplayName = "InstantAoE"),      // 즉발 범위기 — 캐릭터 주변 즉시 발동
+	SpawnPreview    UMETA(DisplayName = "SpawnPreview"),    // 위치 지정형 — 프리뷰 FX → 좌클릭 확정
+	SelfBuff        UMETA(DisplayName = "SelfBuff"),        // 자가 버프 — 자신에게 즉시 GE 적용
+	ProjectileSpawn UMETA(DisplayName = "ProjectileSpawn"), // 투사체 직접 발사 — ProjectileCount × FireInterval
+	GroundEffect    UMETA(DisplayName = "GroundEffect"),    // 장판 배치 — ARS_GroundEffectActor 스폰
 };
 
 /** 레벨업 카드 타입 */

@@ -27,8 +27,28 @@ if (!SkillData)
 // ❌ 일반 UE_LOG 사용
 UE_LOG(LogTemp, Warning, TEXT("..."));
 
-// ✅ 프로젝트 매크로 사용 (LoggingSystem.h 참조)
-KHS_WARN(TEXT("SkillData is null"));
+// ❌ KHS_DEBUG 사용 금지 — 에디터 필터에서 표시 안 됨, 디버깅 불가
+KHS_DEBUG(TEXT("..."));
+
+// ✅ 프로젝트 매크로 사용, 최소 레벨 KHS_INFO
+KHS_INFO(TEXT("SkillData is null"));   // 일반 흐름 정보
+KHS_WARN(TEXT("SkillData is null"));   // 비정상 경로
+KHS_ERROR(TEXT("..."));                // 오류
+// KHS_TRACE, KHS_DEBUG는 LoggingSystem.h에 정의되어 있으나 사용 금지
+```
+
+## 서브시스템 조회
+
+```cpp
+// ❌ 날 것의 GetSubsystem 호출 금지
+USkillManagerSubsystem* Mgr = GetWorld()->GetSubsystem<USkillManagerSubsystem>();
+
+// ✅ 프로젝트 매크로 사용 (RoastStaffGAS.h 정의)
+GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, Mgr)
+GET_GI_SUBSYSTEM(URSGameDataSubsystem, GDS)
+
+// ❌ 매크로 뒤 세미콜론 금지 (매크로 내부에 세미콜론 포함, 이중 세미콜론 컴파일 경고)
+GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, Mgr);  // 금지
 ```
 
 ## NULL 체크 계층

@@ -70,6 +70,11 @@ namespace RSTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_Montage_HitCheck, "Event.Montage.HitCheck");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Enemy_Spawned, "Event.Enemy.Spawned");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Enemy_Killed,  "Event.Enemy.Killed");
-	
-	
+
+	// 속성 태그 — SpawnSkillFX 색상 분기
+	UE_DEFINE_GAMEPLAY_TAG(Element_Fire,    "Element.Fire");
+	UE_DEFINE_GAMEPLAY_TAG(Element_Ice,     "Element.Ice");
+	UE_DEFINE_GAMEPLAY_TAG(Element_Thunder, "Element.Thunder");
+
+
 }

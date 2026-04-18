@@ -25,6 +25,7 @@ class UEnemyHPBarWidget;
 class UFloatingDamageWidget;
 class AEnemyProjectile;
 class UGameplayEffect;
+class UMaterialInstanceDynamic;
 
 // 에너미 처치 델리게이트 — StageWaveSubsystem이 구독
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyKilled, FName, EnemyID);
@@ -41,8 +42,10 @@ public:
 	// 스폰 직후 DT_Enemy 기반 스탯 주입 및 AI 시작
 	UFUNCTION(BlueprintCallable, Category = "MY|Enemy")
 	void InitializeEnemy(FName InEnemyID);
-
 	void ForcePoolActive();
+	
+	/** 피격 반응 — UEnemyAttributeSet::PostGameplayEffectExecute에서 위임 호출 */
+	void ApplyHitReact(FVector ImpactDir);
 	
 	FORCEINLINE FName GetEnemyID() const { return EnemyID; }
 
@@ -68,6 +71,9 @@ private:
 
 	/** WidgetComponent에 HPBarWidget을 설정하고 ASC에 바인딩 */
 	void SetupHPBar();
+
+	/** 피격 시 메시 이미시브 플래시 + 복원 타이머 설정 */
+	void MaterialEmissiveFlash();
 
 public:
 	// 처치 델리게이트
@@ -112,6 +118,23 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy")
 	float DeathPoolReturnDelay = 2.f;
 
+	// ── 피격 반응 설정 (BP에서 에너미 종류별 조정 가능) ──
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|HitReact")
+	float KnockbackForce = 400.f;
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|HitReact")
+	float HitstopDuration = 0.08f;
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|HitReact")
+	float FlashIntensity = 3.f;
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|HitReact")
+	float FlashDuration = 0.12f;
+
+	/** 피격 이미시브 플래시에 사용되는 동적 머티리얼 인스턴스 캐시 */
+	UPROPERTY()
+	TArray<TObjectPtr<UMaterialInstanceDynamic>> CachedMIDs;
 	/** 사망 후 풀 반납 타이머 */
 	FTimerHandle DeathReturnTimerHandle;
+	/** 히트스탑 복원 타이머 */
+	FTimerHandle HitstopTimerHandle;
+	/** 이미시브 플래시 복원 타이머 */
+	FTimerHandle FlashTimerHandle;
 };

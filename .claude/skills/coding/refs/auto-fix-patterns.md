@@ -24,8 +24,8 @@ grep 패턴: \)\s*\{[^}]+\}
 
 ## P0 — UE_LOG → KHS_* 변환 규칙
 ```
-UE_LOG(LogTemp, VeryVerbose, TEXT("..."))  → KHS_TRACE("...")
-UE_LOG(LogTemp, Verbose, TEXT("..."))     → KHS_DEBUG("...")
+UE_LOG(LogTemp, VeryVerbose, TEXT("..."))  → KHS_INFO("...")   ← TRACE/DEBUG 금지
+UE_LOG(LogTemp, Verbose, TEXT("..."))     → KHS_INFO("...")
 UE_LOG(LogTemp, Log, TEXT("..."))         → KHS_INFO("...")
 UE_LOG(LogTemp, Warning, TEXT("..."))     → KHS_WARN("...")
 UE_LOG(LogTemp, Error, TEXT("..."))       → KHS_ERROR("...")
@@ -33,6 +33,29 @@ UE_LOG(LogTemp, Fatal, TEXT("..."))       → KHS_FATAL("...")
 
 주의: TEXT() 매크로 제거 (KHS_* 내부에서 처리)
 주의: 포맷 인자(%s, %d 등)는 그대로 유지
+```
+
+## P0 — KHS_DEBUG → KHS_INFO 변환
+```
+감지 패턴: KHS_DEBUG\(
+이유: KHS_DEBUG는 에디터 로그 필터에서 표시되지 않아 디버깅 불가
+→ 모든 KHS_DEBUG → KHS_INFO 으로 대체
+
+grep 패턴: KHS_DEBUG\(
+수정: KHS_DEBUG( → KHS_INFO(
+```
+
+## P0 — 서브시스템 매크로 강제
+```
+감지 패턴: GetWorld\(\)->GetSubsystem<  또는  GetGameInstance\(\)->GetSubsystem<
+이유: 프로젝트 매크로(GET_WORLD_SUBSYSTEM / GET_GI_SUBSYSTEM)를 사용해야 일관성 유지
+
+→ GetWorld()->GetSubsystem<T>()  →  GET_WORLD_SUBSYSTEM(T, VarName)
+→ GetGameInstance()->GetSubsystem<T>()  →  GET_GI_SUBSYSTEM(T, VarName)
+
+주의: 매크로 뒤 세미콜론 금지 (매크로 내부에 check() + 세미콜론 포함)
+감지 패턴: GET_(WORLD|GI)_SUBSYSTEM\([^)]+\);
+수정: 끝의 세미콜론 제거
 ```
 
 ## P0 — 데드코드 판별 기준

@@ -148,7 +148,7 @@ void AEnemyAIController::PauseAI()
 		Brain->PauseLogic(TEXT("Boss phase transition"));
 	}
 	StopMovement();
-	KHS_DEBUG(TEXT("%s — AI 일시 중단 (페이즈 전환)."), *GetName());
+	KHS_INFO(TEXT("%s — AI 일시 중단 (페이즈 전환)."), *GetName());
 }
 
 void AEnemyAIController::ResumeAI()
@@ -157,5 +157,5 @@ void AEnemyAIController::ResumeAI()
 	{
 		Brain->ResumeLogic(TEXT("Boss phase transition complete"));
 	}
-	KHS_DEBUG(TEXT("%s — AI 재개 (페이즈2 활성)."), *GetName());
+	KHS_INFO(TEXT("%s — AI 재개 (페이즈2 활성)."), *GetName());
 }
