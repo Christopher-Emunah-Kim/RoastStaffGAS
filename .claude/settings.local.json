@@ -61,7 +61,8 @@
       "Bash(mv \"C:\\\\Users\\\\KGA\\\\Projects\\\\RoastStaffGAS\\\\.claude\\\\skills\\\\harness\" \"C:\\\\Users\\\\KGA\\\\Projects\\\\RoastStaffGAS\\\\.claude\\\\skills\\\\guardrails\")",
       "Bash(mv \"C:\\\\Users\\\\KGA\\\\Projects\\\\RoastStaffGAS\\\\.claude\\\\refs\\\\harness-manifest.md\" \"C:\\\\Users\\\\KGA\\\\Projects\\\\RoastStaffGAS\\\\.claude\\\\refs\\\\guardrails-manifest.md\")",
       "Bash(python:*)",
-      "Bash(export CLAUDE_PROJECT_DIR=\"C:/Users/KGA/Projects/RoastStaffGAS\")"
+      "Bash(export CLAUDE_PROJECT_DIR=\"C:/Users/KGA/Projects/RoastStaffGAS\")",
+      "Skill(update-config)"
     ],
     "deny": [],
     "ask": []

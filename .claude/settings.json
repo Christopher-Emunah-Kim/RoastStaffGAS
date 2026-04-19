@@ -13,7 +13,10 @@
       "Bash(git push -u origin HEAD)",
       "Bash(git -C * add *)",
       "Bash(git -C * commit*)",
-      "Bash(git -C * push*)"
+      "Bash(git -C * push*)",
+      "Bash(cd *)",
+      "Bash(cat *)",
+      "Edit(**.md)"
     ],
     "deny": [
       "Bash(rm -rf*)",
