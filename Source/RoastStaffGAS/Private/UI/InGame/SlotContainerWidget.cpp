@@ -12,6 +12,10 @@ void USlotContainerWidget::NativeConstruct()
 
 	ensureMsgf(SkillSlotWidget_0,    TEXT("SkillSlotWidget_0 BindWidget 누락"));
 	ensureMsgf(SkillSlotWidget_1,    TEXT("SkillSlotWidget_1 BindWidget 누락"));
+	ensureMsgf(SkillSlotWidget_2,    TEXT("SkillSlotWidget_2 BindWidget 누락"));
+	ensureMsgf(SkillSlotWidget_3,    TEXT("SkillSlotWidget_3 BindWidget 누락"));
+	ensureMsgf(SkillSlotWidget_4,    TEXT("SkillSlotWidget_4 BindWidget 누락"));
+	ensureMsgf(SkillSlotWidget_5,    TEXT("SkillSlotWidget_5 BindWidget 누락"));
 	ensureMsgf(SlotWidget_0,         TEXT("SlotWidget_0 BindWidget 누락"));
 	ensureMsgf(SlotWidget_1,         TEXT("SlotWidget_1 BindWidget 누락"));
 	ensureMsgf(SlotWidget_2,         TEXT("SlotWidget_2 BindWidget 누락"));
@@ -24,15 +28,18 @@ void USlotContainerWidget::NativeConstruct()
 	ensureMsgf(PassiveSlotWidget_6,  TEXT("PassiveSlotWidget_6 BindWidget 누락"));
 	ensureMsgf(PassiveSlotWidget_7,  TEXT("PassiveSlotWidget_7 BindWidget 누락"));
 
-	if (SkillSlotWidget_0)
+	// 스킬 슬롯 0~5 초기화
+	TObjectPtr<UCharacterSkillSlotWidget> SkillSlots[] = {
+		SkillSlotWidget_0, SkillSlotWidget_1, SkillSlotWidget_2,
+		SkillSlotWidget_3, SkillSlotWidget_4, SkillSlotWidget_5
+	};
+	for (int32 i = 0; i < static_cast<int32>(UE_ARRAY_COUNT(SkillSlots)); ++i)
 	{
-		SkillSlotWidget_0->InitSlot(0);
-		SkillSlotWidget_0->UpdateSlot(nullptr);
-	}
-	if (SkillSlotWidget_1)
-	{
-		SkillSlotWidget_1->InitSlot(1);
-		SkillSlotWidget_1->UpdateSlot(nullptr);
+		if (SkillSlots[i])
+		{
+			SkillSlots[i]->InitSlot(i);
+			SkillSlots[i]->UpdateSlot(nullptr);
+		}
 	}
 	if (SlotWidget_0)
 	{
@@ -79,6 +86,10 @@ UCharacterSkillSlotWidget* USlotContainerWidget::GetSkillSlotWidget(int32 SlotIn
 	{
 	case 0: return SkillSlotWidget_0;
 	case 1: return SkillSlotWidget_1;
+	case 2: return SkillSlotWidget_2;
+	case 3: return SkillSlotWidget_3;
+	case 4: return SkillSlotWidget_4;
+	case 5: return SkillSlotWidget_5;
 	default:
 		KHS_WARN("[SlotContainer] 유효하지 않은 SkillSlotIndex: %d", SlotIndex);
 		return nullptr;

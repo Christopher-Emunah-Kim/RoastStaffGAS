@@ -16,6 +16,14 @@ new_files:
   - Source/RoastStaffGAS/Private/Objects/GroundEffect/GroundEffectActor.cpp
 
 modified_files:
+  - Source/RoastStaffGAS/Public/Subsystems/SkillManagerSubsystem.h
+  - Source/RoastStaffGAS/Private/Subsystems/SkillManagerSubsystem.cpp
+  - Source/RoastStaffGAS/Public/Character/Player/RSPlayerController.h
+  - Source/RoastStaffGAS/Private/Character/Player/RSPlayerController.cpp
+  - Source/RoastStaffGAS/Public/UI/InGame/SlotContainerWidget.h
+  - Source/RoastStaffGAS/Private/UI/InGame/SlotContainerWidget.cpp
+  - Source/RoastStaffGAS/Public/Objects/Projectile/BaseProjectile.h
+  - Source/RoastStaffGAS/Private/Objects/Projectile/BaseProjectile.cpp
   - Source/RoastStaffGAS/Public/Data/EnumTypes.h
   - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
   - Source/RoastStaffGAS/Public/Data/RuntimeDataStructs.h
@@ -180,9 +188,12 @@ Gemini 반영:   미진행
 ```
 [x] MODULE-1: EnemySpawnFix 커밋
 [x] MODULE-2: 피격 반응 공통 구조
-[ ] MODULE-3: ProjectileSpawn 타입 추가
-[ ] MODULE-4: ElementTag + SpawnSkillFX 색상 분기
-[ ] MODULE-5: ARS_GroundEffectActor 공통 클래스
+[x] MODULE-3: ProjectileSpawn 타입 추가          (57b0a00a2)
+[x] MODULE-4: ElementTag + SpawnSkillFX 색상 분기 (57b0a00a2)
+[x] MODULE-5: ARS_GroundEffectActor 공통 클래스   (57b0a00a2)
+[ ] MODULE-에디터: 에디터 작업 (진행 중)
+[x] MODULE-6: SkillSlot 2→6 확장 + 숫자키 1~6 바인딩
+[x] MODULE-7: 환영의 문 텔레포트 + 콩콩이 HOMING_BOUNCE
 ```
 
 ---

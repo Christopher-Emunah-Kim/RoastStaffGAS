@@ -30,7 +30,7 @@ void USkillManagerSubsystem::InitializeSkills(FName CharacterID, UAbilitySystemC
 
 	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance())
 
-	// 슬롯 1(Q)=SlotIndex 0, 슬롯 2(E)=SlotIndex 1
+	// 슬롯 1~6 → SlotIndex 0~5
 	for (int32 i = 0; i < SKILL_SLOT_COUNT; ++i)
 	{
 		const int32 SkillSlot = i + 1; // DT SkillSlot 필드는 1/2 기반

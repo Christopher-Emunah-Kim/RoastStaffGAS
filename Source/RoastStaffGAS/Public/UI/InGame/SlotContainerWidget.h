@@ -37,6 +37,14 @@ private:
 	TObjectPtr<UCharacterSkillSlotWidget> SkillSlotWidget_0;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCharacterSkillSlotWidget> SkillSlotWidget_1;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UCharacterSkillSlotWidget> SkillSlotWidget_2;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UCharacterSkillSlotWidget> SkillSlotWidget_3;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UCharacterSkillSlotWidget> SkillSlotWidget_4;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UCharacterSkillSlotWidget> SkillSlotWidget_5;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UWeaponSlotWidget> SlotWidget_0;

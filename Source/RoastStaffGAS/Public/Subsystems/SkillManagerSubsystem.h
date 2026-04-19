@@ -42,7 +42,7 @@ public:
 
 	/** RSPlayerCharacter::InitializeAbilitySystem()에서 호출 */
 	void InitializeSkills(FName CharacterID, UAbilitySystemComponent* InASC);
-	/** Q(Slot=0) / E(Slot=1) 입력 진입점 */
+	/** 숫자키 1~6 입력 진입점 (SlotIndex 0~5) */
 	void ActivateSkillSlot(int32 SlotIndex);
 	/** LMB 확정 — 프리뷰 파괴 + GA 발동 + 쿨타임 시작 */
 	void ConfirmSkillPreview(FVector WorldLocation);
@@ -63,10 +63,10 @@ private:
 	void DestroyPreviewActor();
 	void StartCooldown(int32 SlotIndex);
 
+public:
+	static constexpr int32 SKILL_SLOT_COUNT = 6; // 숫자키 1~6 → SlotIndex 0~5
 	
 private:
-	static constexpr int32 SKILL_SLOT_COUNT = 2; // Q=0, E=1
-
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> ASC;
 	/** GC 방지 — GiveAbility에 주입한 SourceObject 보관 */

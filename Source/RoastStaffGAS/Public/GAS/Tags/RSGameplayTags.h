@@ -126,6 +126,13 @@ namespace RSTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Element_Thunder);
 
 	//===============================================
+	// CC 태그 (CC.*) — GE GrantedTags로 부여, PostGameplayEffectExecute에서 읽어 분기
+	//===============================================
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(CC_Knockdown); // 넉다운 — 래그돌 + 기립
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(CC_Stun);      // 스턴   — 이동/공격 불가, Duration 동안 유지
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(CC_Blind);     // 실명   — (연출 TODO) Duration 동안 유지
+
+	//===============================================
 	// 캐릭터 스킬 태그 (Skill.*)
 	//===============================================
 	// Q키 (슬롯1) 스킬 식별

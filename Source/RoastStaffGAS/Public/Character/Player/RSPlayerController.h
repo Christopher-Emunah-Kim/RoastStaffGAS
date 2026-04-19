@@ -79,10 +79,13 @@ private:
 	void OnMove(const FInputActionValue& Value);
 	/** LMB — 스킬 프리뷰 활성 시 SkillManagerSubsystem::ConfirmSkillPreview, 비활성 시 무입력 */
 	void OnConfirm(const FInputActionValue& Value);
-	/** Q키 — SkillManagerSubsystem::ActivateSkillSlot(0) */
-	void OnSkillQ(const FInputActionValue& Value);
-	/** E키 — SkillManagerSubsystem::ActivateSkillSlot(1) */
-	void OnSkillE(const FInputActionValue& Value);
+	/** 숫자키 1~6 — SkillManagerSubsystem::ActivateSkillSlot(SlotIndex 0~5) */
+	void OnSkill1(const FInputActionValue& Value);
+	void OnSkill2(const FInputActionValue& Value);
+	void OnSkill3(const FInputActionValue& Value);
+	void OnSkill4(const FInputActionValue& Value);
+	void OnSkill5(const FInputActionValue& Value);
+	void OnSkill6(const FInputActionValue& Value);
 	/** RMB — 스킬 프리뷰 취소 */
 	void OnSkillCancel(const FInputActionValue& Value);
 	/** Tab — 캐릭터 스탯 팝업 토글 */
@@ -102,9 +105,17 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
 	TObjectPtr<UInputAction> IA_Attack;
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
-	TObjectPtr<UInputAction> IA_SkillQ;
+	TObjectPtr<UInputAction> IA_Skill1;
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
-	TObjectPtr<UInputAction> IA_SkillE;
+	TObjectPtr<UInputAction> IA_Skill2;
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
+	TObjectPtr<UInputAction> IA_Skill3;
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
+	TObjectPtr<UInputAction> IA_Skill4;
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
+	TObjectPtr<UInputAction> IA_Skill5;
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
+	TObjectPtr<UInputAction> IA_Skill6;
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")
 	TObjectPtr<UInputAction> IA_SkillCancel;
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Input")

@@ -45,11 +45,12 @@ enum class ESkillType : uint8
 UENUM(BlueprintType)
 enum class EMoveType : uint8
 {
-	MELEE		UMETA(DisplayName = "Melee"),
-	LINEAR		UMETA(DisplayName = "Linear"),
-	HOMING		UMETA(DisplayName = "Homing"),
-	ARC			UMETA(DisplayName = "Arc"),
-	SUMMON		UMETA(DisplayName = "Summon"),
+	MELEE			UMETA(DisplayName = "Melee"),
+	LINEAR			UMETA(DisplayName = "Linear"),
+	HOMING			UMETA(DisplayName = "Homing"),
+	HOMING_BOUNCE	UMETA(DisplayName = "HomingBounce"),  // 유도 + 적 충돌 시 다음 적으로 바운스
+	ARC				UMETA(DisplayName = "Arc"),
+	SUMMON			UMETA(DisplayName = "Summon"),
 };
 
 /** 타격 방식 */

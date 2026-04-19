@@ -251,6 +251,9 @@ void AEnemyBaseCharacter::OnPoolDeactivate()
 	// 사망 복귀 타이머 정리 (비정상 반납 시 중복 실행 방지)
 	GetWorldTimerManager().ClearTimer(DeathReturnTimerHandle);
 
+	// 넉다운 타이머 클리어 (풀 반납 시 AI 재개 타이머 중복 실행 방지)
+	GetWorldTimerManager().ClearTimer(KnockdownRecoverTimerHandle);
+
 	// 히트 반응 타이머 클리어 + 상태 복원 (풀 재사용 에너미 속도/머티리얼 오염 방지)
 	CustomTimeDilation = 1.0f;
 	GetWorldTimerManager().ClearTimer(HitstopTimerHandle);
@@ -352,6 +355,65 @@ void AEnemyBaseCharacter::ApplyHitReact(FVector ImpactDir)
 
 	// 이미시브 플래시
 	MaterialEmissiveFlash();
+}
+
+void AEnemyBaseCharacter::ApplyKnockdown(FVector ImpactDir)
+{
+	// 이미 넉다운 중이면 중복 적용 방지
+	if (GetWorldTimerManager().IsTimerActive(KnockdownRecoverTimerHandle))
+	{
+		return;
+	}
+
+	// 히트스탑 + 이미시브 (타격감 유지)
+	MaterialEmissiveFlash();
+
+	// AI 일시 정지 — 래그돌 중 AI가 이동 명령을 내리지 않도록
+	if (AController* Ctrl = GetController())
+	{
+		if (UBrainComponent* Brain = Ctrl->FindComponentByClass<UBrainComponent>())
+		{
+			Brain->PauseLogic(TEXT("Knockdown"));
+		}
+	}
+
+	// 포물선 날아가기 — LaunchCharacter 사용 (래그돌 없이)
+	GetCharacterMovement()->StopMovementImmediately();
+	LaunchCharacter(ImpactDir * KnockdownLaunchForce + FVector(0.f, 0.f, KnockdownLaunchZ), true, true);
+
+	// 넉다운 몽타주 재생 (BP에서 할당된 경우)
+	if (KnockdownMontage)
+	{
+		PlayAnimMontage(KnockdownMontage);
+	}
+
+	KHS_INFO(TEXT("%s — 넉다운 시작. Duration: %.1fs"), *GetName(), KnockdownDuration);
+
+	// KnockdownDuration 후 AI 재개
+	TWeakObjectPtr<AEnemyBaseCharacter> WeakThis(this);
+	GetWorldTimerManager().SetTimer(
+		KnockdownRecoverTimerHandle,
+		[WeakThis]()
+		{
+			if (!WeakThis.IsValid())
+			{
+				return;
+			}
+
+			// AI 재개
+			if (AController* Ctrl = WeakThis->GetController())
+			{
+				if (UBrainComponent* Brain = Ctrl->FindComponentByClass<UBrainComponent>())
+				{
+					Brain->ResumeLogic(TEXT("Knockdown"));
+				}
+			}
+
+			KHS_INFO(TEXT("%s — 넉다운 기립 완료."), *WeakThis->GetName());
+		},
+		KnockdownDuration,
+		false
+	);
 }
 
 void AEnemyBaseCharacter::MaterialEmissiveFlash()

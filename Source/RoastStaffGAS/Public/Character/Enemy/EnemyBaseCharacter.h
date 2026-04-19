@@ -44,8 +44,11 @@ public:
 	void InitializeEnemy(FName InEnemyID);
 	void ForcePoolActive();
 	
-	/** 피격 반응 — UEnemyAttributeSet::PostGameplayEffectExecute에서 위임 호출 */
+	/** 일반 피격 반응 (넉백+히트스탑+이미시브) — CC 없는 스킬에 사용 */
 	void ApplyHitReact(FVector ImpactDir);
+
+	/** 넉다운 — 포물선 날아가기 + 래그돌 + 기립 타이머 */
+	void ApplyKnockdown(FVector ImpactDir);
 	
 	FORCEINLINE FName GetEnemyID() const { return EnemyID; }
 
@@ -128,6 +131,20 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|HitReact")
 	float FlashDuration = 0.12f;
 
+	// ── 넉다운 설정 ──
+	/** 넉다운 몽타주 — 쓰러지기 + 기립 섹션 포함. BP에서 에너미별 할당 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Knockdown")
+	TObjectPtr<UAnimMontage> KnockdownMontage;
+	/** 넉다운 수평 이동 속도 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Knockdown")
+	float KnockdownLaunchForce = 300.f;
+	/** 넉다운 수직 속도 (포물선 높이) */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Knockdown")
+	float KnockdownLaunchZ = 400.f;
+	/** 몽타주 재생 시간 — 이 시간 후 AI 재개 (몽타주 길이에 맞춰 BP에서 조정) */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Knockdown")
+	float KnockdownDuration = 2.0f;
+
 	/** 피격 이미시브 플래시에 사용되는 동적 머티리얼 인스턴스 캐시 */
 	UPROPERTY()
 	TArray<TObjectPtr<UMaterialInstanceDynamic>> CachedMIDs;
@@ -137,4 +154,6 @@ private:
 	FTimerHandle HitstopTimerHandle;
 	/** 이미시브 플래시 복원 타이머 */
 	FTimerHandle FlashTimerHandle;
+	/** 넉다운 기립 타이머 */
+	FTimerHandle KnockdownRecoverTimerHandle;
 };

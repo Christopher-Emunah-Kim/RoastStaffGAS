@@ -34,9 +34,10 @@ void AGroundEffectActor::BeginPlay()
 
 void AGroundEffectActor::OnPoolActivate()
 {
+	// 충돌은 InitGroundEffect 마지막에 활성화 — 캐시 세팅 전 Overlap 이벤트 방지
 	SetActorHiddenInGame(false);
-	SetActorEnableCollision(true);
-	OverlapSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	SetActorEnableCollision(false);
+	OverlapSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AGroundEffectActor::OnPoolDeactivate()
@@ -94,6 +95,10 @@ void AGroundEffectActor::InitGroundEffect(
 			}
 		}, Duration, false);
 	}
+
+	// 캐시 세팅 완료 후 충돌 활성화 — Overlap 이벤트가 캐시 null 상태에서 발생하지 않도록
+	SetActorEnableCollision(true);
+	OverlapSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
 	KHS_INFO(TEXT("GroundEffect 초기화 — Radius: %.0f | Duration: %.1fs | Amount: %.1f"), Radius, Duration, Amount);
 }

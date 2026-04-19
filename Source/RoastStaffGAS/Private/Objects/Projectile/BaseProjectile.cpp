@@ -48,6 +48,7 @@ void ABaseProjectile::OnPoolDeactivate()
 	SphereComp->ClearMoveIgnoreActors();
 	bHasPierceFinished = false;
 	PierceHitCount = 0;
+	BounceHitCount = 0;
 
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
@@ -142,6 +143,24 @@ void ABaseProjectile::OnProjectileInitialized()
 			}
 		}
 		break;
+	case EMoveType::HOMING_BOUNCE:
+		{
+			// Pawn 채널 Overlap으로 변경 — OnHit 대신 HandleBounceHit으로 처리
+			SphereComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
+			// 첫 타겟: InitData.HomingTarget 우선, 없으면 전방 가장 가까운 적 탐색
+			if (InitData.HomingTarget.IsValid())
+			{
+				ProjectileComp->bIsHomingProjectile = true;
+				ProjectileComp->HomingTargetComponent = InitData.HomingTarget.Get();
+				ProjectileComp->HomingAccelerationMagnitude = InitData.TurnSpeed;
+			}
+			else
+			{
+				KHS_WARN(TEXT("HOMING_BOUNCE 초기 타겟 없음 — 직선 비행. SkillID: %s"), *InitData.SkillID.ToString());
+			}
+		}
+		break;
 	case EMoveType::ARC:
 		{
 			// RotateAngleAxis로 짐벌락 없이 LaunchAngle만큼 상방 회전
@@ -215,6 +234,10 @@ void ABaseProjectile::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor
 	if (InitData.HitType == EHitType::PIERCE)
 	{
 		HandlePierceHit(OtherActor);
+	}
+	else if (InitData.MoveType == EMoveType::HOMING_BOUNCE)
+	{
+		HandleBounceHit(OtherActor, SweepResult);
 	}
 }
 
@@ -386,6 +409,90 @@ void ABaseProjectile::HandlePierceHit(AActor* OtherActor)
 	{
 		bHasPierceFinished = true;
 		ReturnToPool();
+	}
+}
+
+void ABaseProjectile::HandleBounceHit(AActor* OtherActor, const FHitResult& Hit)
+{
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
+	if (!TargetASC || !TargetASC->HasMatchingGameplayTag(RSTags::Team_Enemy))
+	{
+		return;
+	}
+
+	// 동일 액터 중복 히트 방지
+	SphereComp->IgnoreActorWhenMoving(OtherActor, true);
+
+	// 데미지 적용
+	ApplyMultipleEffectsToTarget(TargetASC, 1.f);
+	++BounceHitCount;
+
+	// 최대 바운스 횟수 도달 시 소멸
+	if (BounceHitCount >= MAX_BOUNCE_COUNT)
+	{
+		ReturnToPool();
+		return;
+	}
+
+	// 다음 가장 가까운 적 탐색 (이미 맞은 액터 제외)
+	const FVector CurrentLoc = GetActorLocation();
+	constexpr float BounceSearchRadius = 1500.f;
+
+	TArray<FOverlapResult> Overlaps;
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+	QueryParams.AddIgnoredActor(GetInstigator());
+
+	GetWorld()->OverlapMultiByChannel(Overlaps, CurrentLoc, FQuat::Identity,
+		ECC_Pawn, FCollisionShape::MakeSphere(BounceSearchRadius), QueryParams);
+
+	AActor* NextTarget = nullptr;
+	USceneComponent* NextTargetComp = nullptr;
+	float MinDist = FLT_MAX;
+
+	for (const FOverlapResult& Overlap : Overlaps)
+	{
+		AActor* Candidate = Overlap.GetActor();
+		if (!Candidate || Candidate == OtherActor)
+		{
+			continue;
+		}
+
+		UAbilitySystemComponent* CandidateASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Candidate);
+		if (!CandidateASC || !CandidateASC->HasMatchingGameplayTag(RSTags::Team_Enemy))
+		{
+			continue;
+		}
+
+		// MoveIgnoreActors에 등록된 액터(이미 맞은 적) 제외
+		if (SphereComp->GetMoveIgnoreActors().Contains(Candidate))
+		{
+			continue;
+		}
+
+		const float Dist = FVector::Dist(CurrentLoc, Candidate->GetActorLocation());
+		if (Dist < MinDist)
+		{
+			MinDist = Dist;
+			NextTarget = Candidate;
+			NextTargetComp = Candidate->GetRootComponent();
+		}
+	}
+
+	if (NextTarget && NextTargetComp)
+	{
+		// 다음 타겟으로 유도 전환
+		ProjectileComp->bIsHomingProjectile = true;
+		ProjectileComp->HomingTargetComponent = NextTargetComp;
+		ProjectileComp->HomingAccelerationMagnitude = InitData.TurnSpeed > 0.f ? InitData.TurnSpeed : 3000.f;
+
+		KHS_INFO(TEXT("Bounce %d → %s"), BounceHitCount, *NextTarget->GetName());
+	}
+	else
+	{
+		// 다음 타겟 없음 — 직선 비행 후 수명 만료 대기
+		ProjectileComp->bIsHomingProjectile = false;
+		KHS_INFO(TEXT("Bounce %d — 다음 타겟 없음, 직선 비행"), BounceHitCount);
 	}
 }
 

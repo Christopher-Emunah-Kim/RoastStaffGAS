@@ -8,6 +8,7 @@
 #include "Subsystems/SkillManagerSubsystem.h"
 #include "Subsystems/PoolingSubsystem.h"
 #include "Character/BaseCharacter.h"
+#include "Character/Player/RSPlayerController.h"
 #include "Data/EnumTypes.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
@@ -16,6 +17,12 @@
 #include "Objects/Projectile/BaseProjectile.h"
 #include "Objects/GroundEffect/GroundEffectActor.h"
 #include "System/LoggingSystem.h"
+#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#if WITH_EDITOR
+#include "DrawDebugHelpers.h"
+#endif
 
 
 void UGA_CharacterSkill::OnAbilityActivated(const FGameplayAbilitySpecHandle Handle,const FGameplayAbilityActorInfo* ActorInfo,const FGameplayAbilityActivationInfo ActivationInfo)
@@ -35,30 +42,134 @@ void UGA_CharacterSkill::OnAbilityActivated(const FGameplayAbilitySpecHandle Han
 
 	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
 
-	const FCharacterSkillExecData& ExecData = SkillMgr->GetSlotExecData(SkillData->SlotIndex);
+	const FCharacterSkillExecData ExecData = SkillMgr->GetSlotExecData(SkillData->SlotIndex);
 
 	switch (ExecData.ActivationType)
 	{
 	case ESkillActivationType::InstantAoE:
-		ExecuteInstantAoE(ExecData, Handle, ActorInfo, ActivationInfo);
+		StartSkillWithMontage(ExecData, Handle, ActorInfo, ActivationInfo,
+			[this, ExecData, Handle, ActorInfo, ActivationInfo]()
+			{
+				ExecuteInstantAoE(ExecData, Handle, ActorInfo, ActivationInfo);
+			});
 		break;
 	case ESkillActivationType::SelfBuff:
-		ExecuteSelfBuff(ExecData, Handle, ActorInfo, ActivationInfo);
+		StartSkillWithMontage(ExecData, Handle, ActorInfo, ActivationInfo,
+			[this, ExecData, Handle, ActorInfo, ActivationInfo]()
+			{
+				ExecuteSelfBuff(ExecData, Handle, ActorInfo, ActivationInfo);
+			});
 		break;
 	case ESkillActivationType::SpawnPreview:
-		ExecuteSpawnPreview(ExecData, Handle, ActorInfo, ActivationInfo);
+		StartSkillWithMontage(ExecData, Handle, ActorInfo, ActivationInfo,
+			[this, ExecData, Handle, ActorInfo, ActivationInfo]()
+			{
+				ExecuteSpawnPreview(ExecData, Handle, ActorInfo, ActivationInfo);
+			});
 		break;
 	case ESkillActivationType::ProjectileSpawn:
-		ExecuteProjectileSpawn(ExecData, Handle, ActorInfo, ActivationInfo);
+		StartSkillWithMontage(ExecData, Handle, ActorInfo, ActivationInfo,
+			[this, ExecData, Handle, ActorInfo, ActivationInfo]()
+			{
+				ExecuteProjectileSpawn(ExecData, Handle, ActorInfo, ActivationInfo);
+			});
 		break;
 	case ESkillActivationType::GroundEffect:
-		ExecuteGroundEffect(ExecData, Handle, ActorInfo, ActivationInfo);
+		StartSkillWithMontage(ExecData, Handle, ActorInfo, ActivationInfo,
+			[this, ExecData, Handle, ActorInfo, ActivationInfo]()
+			{
+				ExecuteGroundEffect(ExecData, Handle, ActorInfo, ActivationInfo);
+			});
 		break;
 	default:
 		KHS_WARN(TEXT("처리되지 않은 ActivationType — SlotIndex: %d"), SkillData->SlotIndex);
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		break;
 	}
+}
+
+void UGA_CharacterSkill::StartSkillWithMontage(
+	const FCharacterSkillExecData& ExecData,
+	const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo,
+	TFunction<void()> ExecuteFunc)
+{
+	// 몽타주 미할당 시 즉시 발동 (기존 동작 유지)
+	if (!CastingMontage)
+	{
+		ExecuteFunc();
+		return;
+	}
+
+	// 이동 잠금
+	ABaseCharacter* Instigator = const_cast<ABaseCharacter*>(CachedInstigator.Get());
+	if (Instigator)
+	{
+		if (UCharacterMovementComponent* MoveComp = Instigator->FindComponentByClass<UCharacterMovementComponent>())
+		{
+			MoveComp->DisableMovement();
+		}
+	}
+
+	// 몽타주 재생 태스크
+	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+		this, NAME_None, CastingMontage, 1.f, NAME_None, true);
+
+	// HitCheck 노티파이 대기 태스크
+	UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+		this, RSTags::Event_Montage_HitCheck);
+
+	// HitCheck 노티파이 수신 → 실제 효과 발동
+	EventTask->EventReceived.AddDynamic(this, &UGA_CharacterSkill::OnHitCheckReceived);
+
+	// 몽타주 완료 → 이동 복원 + EndAbility
+	// 람다 캡처 불가(AddDynamic) → OnMontageEnded 멤버함수로 위임
+	MontageTask->OnCompleted.AddDynamic(this, &UGA_CharacterSkill::OnCastingMontageEnded);
+	MontageTask->OnCancelled.AddDynamic(this, &UGA_CharacterSkill::OnCastingMontageEnded);
+	MontageTask->OnInterrupted.AddDynamic(this, &UGA_CharacterSkill::OnCastingMontageEnded);
+
+	// ExecuteFunc를 멤버 변수에 캐싱 (노티파이 수신 시 호출)
+	PendingExecuteFunc = MoveTemp(ExecuteFunc);
+	bExecuteFuncCalled = false;
+
+	EventTask->ReadyForActivation();
+	MontageTask->ReadyForActivation();
+
+	KHS_INFO(TEXT("스킬 몽타주 시작 — SkillID: %s"), *ExecData.SkillID.ToString());
+}
+
+void UGA_CharacterSkill::OnHitCheckReceived(FGameplayEventData Payload)
+{
+	if (bExecuteFuncCalled)
+	{
+		return;
+	}
+	bExecuteFuncCalled = true;
+
+	if (PendingExecuteFunc)
+	{
+		PendingExecuteFunc();
+		PendingExecuteFunc = nullptr;
+	}
+}
+
+void UGA_CharacterSkill::OnCastingMontageEnded()
+{
+	// 이동 복원
+	ABaseCharacter* Instigator = const_cast<ABaseCharacter*>(CachedInstigator.Get());
+	if (Instigator)
+	{
+		if (UCharacterMovementComponent* MoveComp = Instigator->FindComponentByClass<UCharacterMovementComponent>())
+		{
+			MoveComp->SetMovementMode(EMovementMode::MOVE_Walking);
+		}
+	}
+
+	// 몽타주 없이 즉시 발동한 경우는 이 콜백이 오지 않으므로 EndAbility는 각 Execute에서 처리
+	// 몽타주 있는 경우: 효과가 HitCheck에서 이미 발동됐으므로 여기서 GA 종료
+	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
+	KHS_INFO(TEXT("스킬 몽타주 종료 — 이동 복원 + EndAbility"));
 }
 
 void UGA_CharacterSkill::ExecuteInstantAoE(	const FCharacterSkillExecData& ExecData, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,	const FGameplayAbilityActivationInfo ActivationInfo)
@@ -69,8 +180,23 @@ void UGA_CharacterSkill::ExecuteInstantAoE(	const FCharacterSkillExecData& ExecD
 		return;
 	}
 
-	const FVector Center = CachedInstigator->GetActorLocation();
-	const float Radius   = FMath::Max(1.f, ExecData.LevelData.EffectRadius);
+	const FVector PlayerLoc = CachedInstigator->GetActorLocation();
+	const float Radius      = FMath::Max(1.f, ExecData.LevelData.EffectRadius);
+
+	// 플레이어 → 마우스 방향 (수평면)
+	FVector AimDir = CachedInstigator->GetActorForwardVector();
+	if (const ARSPlayerController* PC = Cast<ARSPlayerController>(GetWorld()->GetFirstPlayerController()))
+	{
+		const FVector Dir = (PC->GetCachedAimLocation() - PlayerLoc).GetSafeNormal2D();
+		if (!Dir.IsNearlyZero())
+		{
+			AimDir = Dir;
+		}
+	}
+
+	// 데미지/FX 중심점: 플레이어에서 에임 방향으로 Radius만큼 전진
+	// → 플레이어가 원주 위에 위치, 원이 마우스 방향으로 뻗어나감
+	const FVector Center = PlayerLoc + AimDir * Radius;
 
 	// 범위 내 적 탐색
 	TArray<FOverlapResult> Overlaps;
@@ -98,22 +224,42 @@ void UGA_CharacterSkill::ExecuteInstantAoE(	const FCharacterSkillExecData& ExecD
 
 		FGameplayEffectContextHandle Context = OwnerASC->MakeEffectContext();
 		Context.AddInstigator(const_cast<ABaseCharacter*>(CachedInstigator.Get()), const_cast<ABaseCharacter*>(CachedInstigator.Get()));
+
+		// Center를 HitResult ImpactPoint로 주입 → EnemyAttributeSet에서 넉백 방향 계산에 사용
+		FHitResult CenterHit;
+		CenterHit.ImpactPoint = Center;
+		Context.AddHitResult(CenterHit, true);
+
 		FGameplayEffectSpecHandle Spec = OwnerASC->MakeOutgoingSpec(SkillGEClass, 1, Context);
 		if (!Spec.IsValid())
 		{
 			continue;
 		}
 
-		// ExecCalc 입력: BaseDamage = 10 × DamageMultiplier (기준 데미지 × 배율)
-		Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_WeaponBaseDamage,10.f * ExecData.LevelData.DamageMultiplier);
+		Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_WeaponBaseDamage, 10.f * ExecData.LevelData.DamageMultiplier);
 
 		OwnerASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
 	}
 
-	SpawnSkillFX(ExecData.LevelData.FXClass, Center, Radius, ExecData.ElementTag);
+	// FX: Center에서 플레이어 → 마우스 방향으로 스폰
+	// FX는 플레이어 → 마우스 방향으로 재생 — AimDir 기준 180도 반전
+	FRotator FXRotation = AimDir.Rotation();
+	FXRotation.Yaw += 180.f;
+	SpawnSkillFX(ExecData.LevelData.FXClass, Center, Radius, ExecData.ElementTag, 0.f, FXRotation);
+
+#if WITH_EDITOR
+	// 실제 충돌 판정 구체 시각화 — FX 크기와 비교용 (에디터 전용)
+	DrawDebugSphere(GetWorld(), Center, Radius, 24, FColor::Red, false, 0.2f);
+	DrawDebugLine(GetWorld(), PlayerLoc, Center, FColor::Yellow, false, 0.2f);
+#endif
 
 	KHS_INFO(TEXT("InstantAoE 발동 — SkillID: %s | 반경: %.0f"), *ExecData.SkillID.ToString(), Radius);
-	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+
+	// 몽타주 없이 즉시 발동한 경우만 여기서 종료 — 몽타주 있는 경우 OnCastingMontageEnded에서 종료
+	if (!CastingMontage)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+	}
 }
 
 void UGA_CharacterSkill::ExecuteSelfBuff(const FCharacterSkillExecData& ExecData, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,	const FGameplayAbilityActivationInfo ActivationInfo)
@@ -136,11 +282,17 @@ void UGA_CharacterSkill::ExecuteSelfBuff(const FCharacterSkillExecData& ExecData
 
 	if (CachedInstigator)
 	{
-		SpawnSkillFX(ExecData.LevelData.FXClass, CachedInstigator->GetActorLocation(), ExecData.LevelData.EffectRadius);
+		// Duration을 FX 수명으로 전달 — 버프 지속 시간 동안 FX 유지
+		SpawnSkillFX(ExecData.LevelData.FXClass, CachedInstigator->GetActorLocation(), ExecData.LevelData.EffectRadius,
+			FGameplayTag(), ExecData.LevelData.Duration);
 	}
 
 	KHS_INFO(TEXT("SelfBuff 발동 — SkillID: %s | Duration: %.1fs"), *ExecData.SkillID.ToString(), ExecData.LevelData.Duration);
-	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+
+	if (!CastingMontage)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+	}
 }
 
 void UGA_CharacterSkill::ExecuteSpawnPreview(const FCharacterSkillExecData& ExecData, const FGameplayAbilitySpecHandle Handle,	const FGameplayAbilityActorInfo* ActorInfo,	const FGameplayAbilityActivationInfo ActivationInfo)
@@ -190,10 +342,58 @@ void UGA_CharacterSkill::ExecuteSpawnPreview(const FCharacterSkillExecData& Exec
 		OwnerASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
 	}
 
-	SpawnSkillFX(ExecData.LevelData.FXClass, TargetLoc, Radius, ExecData.ElementTag);
+	// 텔레포트 전 출발지 FX 스폰
+	const FVector DepartureLoc = CachedInstigator ? CachedInstigator->GetActorLocation() : FVector::ZeroVector;
+	if (FXActorClass)
+	{
+		// BP 액터 스폰 — 내부 NiagaraComponent 로컬 회전은 BP에서 설정
+		GetWorld()->SpawnActor<AActor>(FXActorClass, DepartureLoc, FRotator::ZeroRotator);
+	}
+	else
+	{
+		FRotator FXRotation = FRotator::ZeroRotator;
+		if (const APlayerController* PC = GetWorld()->GetFirstPlayerController())
+		{
+			FXRotation = PC->GetControlRotation();
+			FXRotation.Pitch = 0.f;
+			FXRotation.Roll  = 0.f;
+		}
+		if (CachedInstigator)
+		{
+			SpawnSkillFX(ExecData.LevelData.FXClass, DepartureLoc, Radius, ExecData.ElementTag, DESTROY_FX_DELAY, FXRotation);
+		}
+	}
 
-	KHS_INFO(TEXT("SpawnPreview AoE 발동 — SkillID: %s | 위치: %s"), *ExecData.SkillID.ToString(), *TargetLoc.ToString());
-	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+	// 텔레포트 — PendingTargetLocation으로 이동
+	if (CachedInstigator)
+	{
+		ABaseCharacter* MutableInstigator = const_cast<ABaseCharacter*>(CachedInstigator.Get());
+		MutableInstigator->SetActorLocation(TargetLoc, false, nullptr, ETeleportType::TeleportPhysics);
+	}
+
+	// 도착지 FX 스폰
+	if (FXActorClass)
+	{
+		GetWorld()->SpawnActor<AActor>(FXActorClass, TargetLoc, FRotator::ZeroRotator);
+	}
+	else
+	{
+		FRotator FXRotation = FRotator::ZeroRotator;
+		if (const APlayerController* PC = GetWorld()->GetFirstPlayerController())
+		{
+			FXRotation = PC->GetControlRotation();
+			FXRotation.Pitch = 0.f;
+			FXRotation.Roll  = 0.f;
+		}
+		SpawnSkillFX(ExecData.LevelData.FXClass, TargetLoc, Radius, ExecData.ElementTag, DESTROY_FX_DELAY, FXRotation);
+	}
+
+	KHS_INFO(TEXT("SpawnPreview 텔레포트 발동 — SkillID: %s | 위치: %s"), *ExecData.SkillID.ToString(), *TargetLoc.ToString());
+
+	if (!CastingMontage)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+	}
 }
 
 void UGA_CharacterSkill::ExecuteProjectileSpawn(
@@ -211,9 +411,12 @@ void UGA_CharacterSkill::ExecuteProjectileSpawn(
 
 	if (ExecData.ProjectileCount <= 1)
 	{
-		// 단발 — 즉시 발사 후 종료
+		// 단발 — 즉시 발사 후 종료 (몽타주 없는 경우만)
 		FireOneProjectile(LoadedClass, ExecData);
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		if (!CastingMontage)
+		{
+			EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		}
 		return;
 	}
 
@@ -272,6 +475,56 @@ void UGA_CharacterSkill::FireOneProjectile(TSubclassOf<ABaseProjectile> ProjClas
 	InitData.DamageDecay   = ExecData.DamageDecay;
 	InitData.SpreadAngle   = 0.f;
 
+	// HOMING_BOUNCE: 시전자 전방 반구 내 가장 가까운 적을 첫 타겟으로 설정
+	if (ExecData.MoveType == EMoveType::HOMING_BOUNCE && CachedInstigator)
+	{
+		constexpr float InitSearchRadius = 2000.f;
+		const FVector Origin = CachedInstigator->GetActorLocation();
+		const FVector Forward = CachedInstigator->GetActorForwardVector();
+
+		TArray<FOverlapResult> Overlaps;
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(CachedInstigator.Get());
+
+		GetWorld()->OverlapMultiByChannel(Overlaps, Origin, FQuat::Identity,
+			ECC_Pawn, FCollisionShape::MakeSphere(InitSearchRadius), QueryParams);
+
+		float MinDist = FLT_MAX;
+		for (const FOverlapResult& Overlap : Overlaps)
+		{
+			AActor* Candidate = Overlap.GetActor();
+			if (!Candidate)
+			{
+				continue;
+			}
+
+			UAbilitySystemComponent* CandidateASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Candidate);
+			if (!CandidateASC || !CandidateASC->HasMatchingGameplayTag(RSTags::Team_Enemy))
+			{
+				continue;
+			}
+
+			// 전방 반구 필터 (내적 > 0 = 시전자 앞쪽)
+			const FVector ToCandidate = (Candidate->GetActorLocation() - Origin).GetSafeNormal();
+			if (FVector::DotProduct(Forward, ToCandidate) <= 0.f)
+			{
+				continue;
+			}
+
+			const float Dist = FVector::Dist(Origin, Candidate->GetActorLocation());
+			if (Dist < MinDist)
+			{
+				MinDist = Dist;
+				InitData.HomingTarget = Candidate->GetRootComponent();
+			}
+		}
+
+		if (!InitData.HomingTarget.IsValid())
+		{
+			KHS_WARN(TEXT("HOMING_BOUNCE 첫 타겟 없음 — 직선 발사. SkillID: %s"), *ExecData.SkillID.ToString());
+		}
+	}
+
 	SpawnProjectiles(ProjClass, InitData);
 
 	if (CachedInstigator)
@@ -282,7 +535,8 @@ void UGA_CharacterSkill::FireOneProjectile(TSubclassOf<ABaseProjectile> ProjClas
 	KHS_INFO(TEXT("ProjectileSpawn 단발 — SkillID: %s"), *ExecData.SkillID.ToString());
 }
 
-void UGA_CharacterSkill::SpawnSkillFX(TSoftObjectPtr<UNiagaraSystem> FXClass, FVector Location, float Radius, FGameplayTag ElementTag)
+void UGA_CharacterSkill::SpawnSkillFX(TSoftObjectPtr<UNiagaraSystem> FXClass, FVector Location, float Radius,
+	FGameplayTag ElementTag, float FXLifetime, FRotator Rotation)
 {
 	UNiagaraSystem* FX = FXClass.LoadSynchronous();
 	if (!FX)
@@ -291,7 +545,7 @@ void UGA_CharacterSkill::SpawnSkillFX(TSoftObjectPtr<UNiagaraSystem> FXClass, FV
 	}
 
 	UNiagaraComponent* NiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-		GetWorld(), FX, Location, FRotator::ZeroRotator, FVector(1.f), true, true);
+		GetWorld(), FX, Location, Rotation, FVector(1.f), true, true);
 
 	if (!NiagaraComp)
 	{
@@ -316,7 +570,9 @@ void UGA_CharacterSkill::SpawnSkillFX(TSoftObjectPtr<UNiagaraSystem> FXClass, FV
 	}
 	NiagaraComp->SetVariableLinearColor(FName(TEXT("ElementColor")), ElementColor);
 
-	// 루프 이펙트 자동 제거 — DESTROY_FX_DELAY 후 Deactivate (bAutoDestroy=true이므로 즉시 파괴)
+	// FXLifetime: 0 이하면 DESTROY_FX_DELAY 사용 (버스트 FX 기본값)
+	const float ActualLifetime = FXLifetime > 0.f ? FXLifetime : DESTROY_FX_DELAY;
+
 	TWeakObjectPtr<UNiagaraComponent> WeakComp(NiagaraComp);
 	FTimerHandle FXLifetimeHandle;
 	GetWorld()->GetTimerManager().SetTimer(FXLifetimeHandle, [WeakComp]()
@@ -325,7 +581,7 @@ void UGA_CharacterSkill::SpawnSkillFX(TSoftObjectPtr<UNiagaraSystem> FXClass, FV
 		{
 			WeakComp->Deactivate();
 		}
-	}, DESTROY_FX_DELAY, false);
+	}, ActualLifetime, false);
 }
 
 void UGA_CharacterSkill::ExecuteGroundEffect(
@@ -342,8 +598,18 @@ void UGA_CharacterSkill::ExecuteGroundEffect(
 	}
 
 	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSub)
-	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
-	const FVector SpawnLoc = SkillMgr->GetPendingTargetLocation();
+	// GroundEffect는 즉발형 — SpawnPreview 플로우를 거치지 않아 PendingTargetLocation이 유효하지 않음.
+	// PlayerController의 현재 마우스 에임 위치를 직접 사용.
+	FVector SpawnLoc = FVector::ZeroVector;
+	if (const ARSPlayerController* PC = Cast<ARSPlayerController>(GetWorld()->GetFirstPlayerController()))
+	{
+		SpawnLoc = PC->GetCachedAimLocation();
+	}
+	else if (CachedInstigator)
+	{
+		SpawnLoc = CachedInstigator->GetActorLocation();
+		KHS_WARN(TEXT("ARSPlayerController 캐스트 실패 — 시전자 위치 폴백. SkillID: %s"), *ExecData.SkillID.ToString());
+	}
 
 	AGroundEffectActor* GroundActor = PoolSub->SpawnPooledActor<AGroundEffectActor>(
 		GroundClass, FTransform(FRotator::ZeroRotator, SpawnLoc));
@@ -367,6 +633,9 @@ void UGA_CharacterSkill::ExecuteGroundEffect(
 	KHS_INFO(TEXT("GroundEffect 발동 — SkillID: %s | 위치: %s | Duration: %.1fs"),
 		*ExecData.SkillID.ToString(), *SpawnLoc.ToString(), ExecData.LevelData.Duration);
 
-	// 장판 Actor가 독립 수명 관리 — GA는 즉시 종료
-	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+	// 장판 Actor가 독립 수명 관리 — GA는 즉시 종료 (몽타주 없는 경우)
+	if (!CastingMontage)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+	}
 }

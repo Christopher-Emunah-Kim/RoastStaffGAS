@@ -54,11 +54,13 @@ protected:
 	UFUNCTION()
 	void OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
+protected:
+	// GE 적용 헬퍼 — 자식 클래스(HomingBounce 등) 접근 허용
+	void ApplyMultipleEffectsToTarget(UAbilitySystemComponent* TargetASC, float DamageMultiplier);
+
 private:
 	//풀 반환 헬퍼
 	void ReturnToPool();
-	// GE 적용 헬퍼
-	void ApplyMultipleEffectsToTarget(UAbilitySystemComponent* TargetASC, float DamageMultiplier);
 	void ApplyEffectToTarget(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass,	float DamageValue);
 	// 수명 만료 처리
 	void OnLifetimeExpired();
@@ -68,12 +70,17 @@ private:
 	void HandleAreaHit(const FVector& Center);
 	// 관통 공격 처리(PIERCE)
 	void HandlePierceHit(AActor* OtherActor);
+	// 바운스 공격 처리(HOMING_BOUNCE) — 적 충돌 시 데미지 후 다음 가까운 적으로 유도
+	void HandleBounceHit(AActor* OtherActor, const FHitResult& Hit);
 
 private:
 	FTimerHandle LifetimeTimerHandle;
 	bool bHasExploded = false;
 	bool bHasPierceFinished = false;
-	int32 PierceHitCount = 0; 
+	int32 PierceHitCount = 0;
+	int32 BounceHitCount = 0;
+
+	static constexpr int32 MAX_BOUNCE_COUNT = 3;
 	
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "MY|Projectile")

@@ -14,6 +14,11 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
+### [DEFERRED] Element.Ancient 태그 + 도화가 FX 색상
+  - [~] Element.Ancient Gameplay Tag 추가 (.ini 등록)                         [P2]
+  - [~] GA_CharacterSkill::SpawnSkillFX — Element.Ancient 분기 추가 (진회색) [P2]
+  - [~] DT_CharacterSkill 도화가 스킬 ElementTag → Element.Ancient 일괄 적용 [P2]
+
 ## [FEATURE] P0 전투 인프라 | PLAN_CombatInfra_v1.0
 > 시작: 2026-04-17 | 기획서: 게임 시스템 개선안 v2.0.md
 
@@ -50,8 +55,30 @@
 
 ### [MODULE-에디터] 에디터 작업 (집 PC에서)
   - [ ] M_Enemy 머티리얼 — EmissiveIntensity ScalarParameter 추가           [P0]
-  - [ ] DT_CharacterSkill — SkillEffectID / ElementTag / FireInterval / GroundEffectActorClass 컬럼 더미데이터 입력 [P0]
-  - [ ] 각 GA BP (BP_GA_*) — SkillGEClass 할당 확인                        [P0]
+  - [x] DT_CharacterSkill — SkillEffectID / ElementTag / FireInterval / GroundEffectActorClass 컬럼 더미데이터 입력 [P0]
+  - [x] 각 GA BP (BP_GA_*) — SkillGEClass 할당 확인                        [P0]
+  - [x] IA_Skill1~6 생성 + IMC_Player 숫자키 1~6 매핑                      [P0]
+  - [x] BP_RSPlayerController IA_Skill1~6 할당                              [P0]
+  - [x] WBP_SlotContainer SkillSlotWidget_2~5 추가                          [P0]
+
+### [MODULE-CC] CC 시스템 + 스킬 캐스팅 몽타주
+> 이번 세션 구현 완료 (미커밋)
+
+  - [x] CC 태그 등록 (CC.Knockdown / CC.Stun / CC.Blind) RSGameplayTags + DefaultGame.ini [P0]
+  - [x] AEnemyBaseCharacter::ApplyKnockdown 구현 (LaunchCharacter + 몽타주 + AI 정지) [P0]
+  - [x] EnemyAttributeSet::PostGameplayEffectExecute CC 태그 분기 (GetAllGrantedTags) [P0]
+  - [x] OnPoolDeactivate 넉다운 타이머 클리어                               [P0]
+  - [x] GA_CharacterSkill 몽타주 캐스팅 구조 (StartSkillWithMontage + HitCheck) [P0]
+  - [x] GA_CharacterSkill FXActorClass 추가 (SpawnPreview BP 액터 FX 지원) [P0]
+  - [x] GE HitResult Context 주입 — AoE Center 기준 넉백 방향 계산         [P0]
+
+### [MODULE-스킬점검] 도화가 스킬 1~6 점검
+  - [>] 1번 흩뿌리기 — 진행 중 (FX방향/위치/넉백 완료, 머티리얼 플래시 미완)
+  - [>] 3번 환영의 문 — 진행 중 (FXActor Local Space 완료)
+  - [ ] 2번 해그리기                                                         [P1]
+  - [ ] 4번 범가르기                                                         [P1]
+  - [ ] 5번 먹물세례                                                         [P1]
+  - [ ] 6번 콩콩이                                                           [P1]
 
 ---
 
@@ -117,6 +144,14 @@
 
 - [ ] 설정 UI 및 SaveData 연동 (EUIID::SETTING + RDS::SetSettingsData)            [P2]
 - [ ] 게임 배속 관리 기능 (CustomTimeDilation or WorldSettings)                   [P2]
+- [ ] M_Enemy 머티리얼 EmissiveIntensity ScalarParameter 추가 (에디터) — 1번 스킬 피격 플래시 미적용 원인 [P0]
+- [ ] 에너미 BP별 KnockdownMontage 할당 (BP_MeleeEnemy, BP_RangedEnemy, BP_EliteEnemy, BP_BossEnemy) [P2]
+- [ ] 스킬 GA BP별 CastingMontage 할당 (BP_GA_Skill1~6) [P2]
+      AnimMontage 세팅 방법:
+        1. AnimMontage 열기 → Notifies 트랙 우클릭 → Add Notify → AnimNotify_SendGameplayEvent 선택
+        2. 노티파이 클릭 → Details에서 Tag = "Event.Montage.HitCheck" 입력
+        3. 노티파이를 히트 판정 원하는 프레임으로 드래그
+        4. GA BP의 CastingMontage 슬롯에 해당 몽타주 할당
 
 ---
 

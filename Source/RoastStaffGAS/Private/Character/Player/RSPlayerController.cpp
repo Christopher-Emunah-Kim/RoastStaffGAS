@@ -83,7 +83,7 @@ void ARSPlayerController::OpenHUDUI()
 void ARSPlayerController::InitSlotUIGuarantee()
 {
 	// Character::BeginPlay가 먼저 실행돼 InitializeSkills 브로드캐스트를 놓쳤을 경우 대비
-	for (int32 i = 0; i < 2; ++i)
+	for (int32 i = 0; i < USkillManagerSubsystem::SKILL_SLOT_COUNT; ++i)
 	{
 		RefreshSkillSlotUI(i);
 	}
@@ -119,8 +119,12 @@ void ARSPlayerController::SetupInputComponent()
 
 	EIC->BindAction(IA_Move,   ETriggerEvent::Triggered, this, &ARSPlayerController::OnMove);
 	EIC->BindAction(IA_Attack, ETriggerEvent::Started,   this, &ARSPlayerController::OnConfirm);
-	EIC->BindAction(IA_SkillQ,      ETriggerEvent::Started, this, &ARSPlayerController::OnSkillQ);
-	EIC->BindAction(IA_SkillE,      ETriggerEvent::Started, this, &ARSPlayerController::OnSkillE);
+	EIC->BindAction(IA_Skill1, ETriggerEvent::Started, this, &ARSPlayerController::OnSkill1);
+	EIC->BindAction(IA_Skill2, ETriggerEvent::Started, this, &ARSPlayerController::OnSkill2);
+	EIC->BindAction(IA_Skill3, ETriggerEvent::Started, this, &ARSPlayerController::OnSkill3);
+	EIC->BindAction(IA_Skill4, ETriggerEvent::Started, this, &ARSPlayerController::OnSkill4);
+	EIC->BindAction(IA_Skill5, ETriggerEvent::Started, this, &ARSPlayerController::OnSkill5);
+	EIC->BindAction(IA_Skill6, ETriggerEvent::Started, this, &ARSPlayerController::OnSkill6);
 	EIC->BindAction(IA_SkillCancel, ETriggerEvent::Started, this, &ARSPlayerController::OnSkillCancel);
 	EIC->BindAction(IA_StatPopup,   ETriggerEvent::Started, this, &ARSPlayerController::OnStatPopupToggle);
 }
@@ -255,16 +259,40 @@ void ARSPlayerController::OnConfirm(const FInputActionValue& Value)
 	// 프리뷰 비활성 시 → 무입력 (무기 자동발사 전환으로 수동 공격 없음)
 }
 
-void ARSPlayerController::OnSkillQ(const FInputActionValue& Value)
+void ARSPlayerController::OnSkill1(const FInputActionValue& Value)
 {
 	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
 	SkillMgr->ActivateSkillSlot(0);
 }
 
-void ARSPlayerController::OnSkillE(const FInputActionValue& Value)
+void ARSPlayerController::OnSkill2(const FInputActionValue& Value)
 {
 	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
 	SkillMgr->ActivateSkillSlot(1);
+}
+
+void ARSPlayerController::OnSkill3(const FInputActionValue& Value)
+{
+	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
+	SkillMgr->ActivateSkillSlot(2);
+}
+
+void ARSPlayerController::OnSkill4(const FInputActionValue& Value)
+{
+	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
+	SkillMgr->ActivateSkillSlot(3);
+}
+
+void ARSPlayerController::OnSkill5(const FInputActionValue& Value)
+{
+	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
+	SkillMgr->ActivateSkillSlot(4);
+}
+
+void ARSPlayerController::OnSkill6(const FInputActionValue& Value)
+{
+	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
+	SkillMgr->ActivateSkillSlot(5);
 }
 
 void ARSPlayerController::OnSkillCancel(const FInputActionValue& Value)

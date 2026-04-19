@@ -3,6 +3,7 @@
 #include "GAS/Attributes/EnemyAttributeSet.h"
 #include "Character/Enemy/EnemyBaseCharacter.h"
 #include "GameplayEffectTypes.h"
+#include "GAS/Tags/RSGameplayTags.h"
 #include "RoastStaffGAS.h"
 
 UEnemyAttributeSet::UEnemyAttributeSet()
@@ -33,10 +34,21 @@ void UEnemyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallb
 		return;
 	}
 
-	// 공격자 → 에너미 방향으로 넉백 벡터 계산
+	// AoE 히트: GE Context HitResult Location(AoE Center) → 에너미 방향으로 밀어냄
+	// 투사체 히트: Instigator(플레이어) → 에너미 방향으로 밀어냄 (fallback)
 	FVector ImpactDir = FVector::ForwardVector;
 	const FGameplayEffectContextHandle& EffectContext = Data.EffectSpec.GetContext();
-	if (const AActor* Instigator = EffectContext.GetInstigator())
+	const FHitResult* HitResult = EffectContext.GetHitResult();
+	if (HitResult && !HitResult->ImpactPoint.IsZero())
+	{
+		// HitResult.ImpactPoint = AoE Center (GA_CharacterSkill에서 SetHitResult로 주입)
+		const FVector Delta = Enemy->GetActorLocation() - HitResult->ImpactPoint;
+		if (!Delta.IsNearlyZero())
+		{
+			ImpactDir = Delta.GetSafeNormal2D();
+		}
+	}
+	else if (const AActor* Instigator = EffectContext.GetInstigator())
 	{
 		const FVector Delta = Enemy->GetActorLocation() - Instigator->GetActorLocation();
 		if (!Delta.IsNearlyZero())
@@ -45,5 +57,15 @@ void UEnemyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallb
 		}
 	}
 
-	Enemy->ApplyHitReact(ImpactDir);
+	// GE GrantedTags에 CC 태그가 있으면 해당 CC 적용, 없으면 일반 히트 반응
+	FGameplayTagContainer GrantedTags;
+	Data.EffectSpec.GetAllGrantedTags(GrantedTags);
+	if (GrantedTags.HasTag(RSTags::CC_Knockdown))
+	{
+		Enemy->ApplyKnockdown(ImpactDir);
+	}
+	else
+	{
+		Enemy->ApplyHitReact(ImpactDir);
+	}
 }

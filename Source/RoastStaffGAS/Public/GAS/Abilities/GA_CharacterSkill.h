@@ -10,6 +10,8 @@
 class UNiagaraSystem;
 class ABaseProjectile;
 class AGroundEffectActor;
+class UAbilityTask_PlayMontageAndWait;
+class UAbilityTask_WaitGameplayEvent;
 
 /**
  * UGA_CharacterSkill
@@ -26,6 +28,25 @@ protected:
 		const FGameplayAbilitySpecHandle Handle,
 		const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo) override;
+
+	/**
+	 * 몽타주가 할당된 경우: 몽타주 재생 + 이동 잠금 → HitCheck 노티파이 대기 → Execute
+	 * 몽타주 없는 경우: 즉시 Execute
+	 */
+	void StartSkillWithMontage(
+		const FCharacterSkillExecData& ExecData,
+		const FGameplayAbilitySpecHandle Handle,
+		const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo,
+		TFunction<void()> ExecuteFunc);
+
+	/** AbilityTask_PlayMontageAndWait 완료/취소/중단 콜백 — 이동 복원 + EndAbility */
+	UFUNCTION()
+	void OnCastingMontageEnded();
+
+	/** AbilityTask_WaitGameplayEvent — HitCheck 노티파이 수신 콜백 */
+	UFUNCTION()
+	void OnHitCheckReceived(FGameplayEventData Payload);
 
 private:
 	/** InstantAoE: 시전자 위치 기준 구형 범위 내 적에게 GE 적용 */
@@ -76,8 +97,11 @@ private:
 	/**
 	 * FXClass를 Location에 스폰, Radius + ElementColor(ElementTag 기반) 파라미터 주입.
 	 * ElementTag 없으면 White. Niagara FX에 "Radius"(float), "ElementColor"(LinearColor) 파라미터 필수.
+	 * FXLifetime: 0 이하면 DESTROY_FX_DELAY 사용 (기본값).
+	 * Rotation: FX 스폰 방향 (기본값 ZeroRotator).
 	 */
-	void SpawnSkillFX(TSoftObjectPtr<UNiagaraSystem> FXClass, FVector Location, float Radius, FGameplayTag ElementTag = FGameplayTag());
+	void SpawnSkillFX(TSoftObjectPtr<UNiagaraSystem> FXClass, FVector Location, float Radius,
+		FGameplayTag ElementTag = FGameplayTag(), float FXLifetime = 0.f, FRotator Rotation = FRotator::ZeroRotator);
 
 protected:
 	/**
@@ -88,6 +112,22 @@ protected:
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|CharacterSkill")
 	TSubclassOf<UGameplayEffect> SkillGEClass;
+
+	/**
+	 * 스킬 시전 몽타주 — 할당 시 몽타주 재생 후 HitCheck 노티파이에서 효과 발동.
+	 * 미할당 시 즉시 발동 (기존 동작 유지).
+	 * BP에서 스킬별로 할당.
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|CharacterSkill")
+	TObjectPtr<UAnimMontage> CastingMontage;
+
+	/**
+	 * FX Actor 클래스 — 할당 시 SpawnSkillFX 대신 BP 액터를 스폰.
+	 * BP 내부에서 NiagaraComponent 로컬 회전을 자유롭게 설정 가능.
+	 * 미할당 시 기존 SpawnSkillFX(NiagaraSystem 직접 스폰) 동작 유지.
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|CharacterSkill")
+	TSubclassOf<AActor> FXActorClass;
 
 	static constexpr float DESTROY_FX_DELAY = 2.0f;
 
@@ -107,4 +147,12 @@ private:
 
 	/** 연속 발사 간격 타이머 */
 	FTimerHandle MultiFireTimerHandle;
+
+	// ── 몽타주 캐스팅 상태 ────────────────────────────────────────────────────
+
+	/** HitCheck 노티파이 수신 시 호출할 Execute 함수 (몽타주 있을 때만 사용) */
+	TFunction<void()> PendingExecuteFunc;
+
+	/** HitCheck 중복 호출 방지 플래그 */
+	bool bExecuteFuncCalled = false;
 };

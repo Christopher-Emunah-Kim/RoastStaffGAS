@@ -46,6 +46,59 @@
 
 ## 2026-04
 
+### [2026-04-20] [BUG_FIX] AGroundEffectActor 충돌 활성화 타이밍 버그 — OnPoolActivate vs InitGroundEffect
+
+**UE_Ver**: 5.4
+**Knowledge_Risk**: LOW
+
+**상황**: 장판(GroundEffectActor)이 스폰되자마자 근처 에너미에게 GE가 적용되는 버그. 로그에 "필수 데이터 누락" 경고가 찍히면서 ApplyGEToTarget이 null 체크에서 return.
+
+**문제/과제**: 충돌 감지는 되는데 GE 적용에 필요한 ASC/GEClass 캐시가 null인 상태. 원인 진단이 필요했다.
+
+**검토한 선택지**:
+  - A) `OnPoolActivate`에서 충돌 활성화 (기존 구현) — 풀에서 꺼내자마자 충돌이 켜지므로 `InitGroundEffect` 호출 전에 이미 Overlap 이벤트 발생 가능. 에너미가 스폰 위치 근처에 있으면 InitGroundEffect 이전에 ApplyGEToTarget 호출 → 캐시 null → 조용한 실패.
+  - B) `InitGroundEffect` 마지막 줄에서 충돌 활성화 — 모든 캐시 설정 완료 후 충돌을 열므로 순서 보장.
+
+**결정**: B안 채택. `OnPoolActivate`에서는 충돌을 비활성화하고, `InitGroundEffect` 끝에서만 활성화.
+
+**결과/효과**: "필수 데이터 누락" 로그 사라짐. 장판이 올바르게 GE를 적용.
+
+**포트폴리오 포인트**: 풀링 패턴에서 초기화 순서(Activate → Init)와 이벤트 트리거 타이밍의 경합 조건 진단. GAS 컴포넌트의 생명주기와 UE 충돌 시스템의 상호작용 이해.
+
+**관련 파일**: Source/RoastStaffGAS/Private/Objects/GroundEffect/GroundEffectActor.cpp
+
+**검증 기준**:
+  - [x] 장판 스폰 시 "필수 데이터 누락" 로그 미출력
+  - [x] 에너미가 장판 위에 있어도 초기화 전 GE 미적용
+
+---
+
+### [2026-04-20] [ARCH] CC 시스템 설계 — GE GrantedTags vs SetByCaller float 인코딩
+
+**UE_Ver**: 5.4
+**Knowledge_Risk**: LOW
+
+**상황**: AoE 스킬에 넉다운 CC를 추가하면서 GE가 "어떤 CC를 적용할지"를 EnemyAttributeSet에 전달하는 방법이 필요했다.
+
+**문제/과제**: GAS의 GE는 데미지 수치(SetByCaller)는 전달할 수 있지만, "넉다운이냐 스턴이냐"는 열거형 정보를 전달하는 공식 채널이 명확하지 않았다.
+
+**검토한 선택지**:
+  - A) SetByCaller float 인코딩 — CC 종류를 1.0(넉다운), 2.0(스턴) 등으로 인코딩. 구현이 단순하나 GE와 코드 간 암묵적 계약이 생기고 태그 기반 GAS 철학에 반함.
+  - B) GE GrantedTags에 CC 태그 부여 → PostGameplayEffectExecute에서 `GetAllGrantedTags()`로 읽어 분기 — GAS 설계 원칙에 부합, GE BP에서 태그만 추가하면 새 CC 종류 확장 가능.
+
+**결정**: B안 채택. `CC.Knockdown` / `CC.Stun` / `CC.Blind` 태그를 네이티브 태그로 등록하고 `GetAllGrantedTags()`로 읽어 분기. Instant GE에서 `GrantedTags`가 ASC에 유지되지 않는 문제는 `GetAllGrantedTags()`가 실행 시점 스펙에서 직접 읽으므로 무관.
+
+**결과/효과**: GE BP에서 태그 하나 추가로 CC 종류 지정 가능. C++ 코드 수정 없이 GE 레벨에서 CC 조합 가능한 확장성 확보.
+
+**포트폴리오 포인트**: GAS GrantedTags의 Instant vs HasDuration 동작 차이 이해. GE Context(HitResult ImpactPoint)를 통한 AoE Center 기반 넉백 방향 계산 패턴.
+
+**관련 파일**: Source/RoastStaffGAS/Private/GAS/Attributes/EnemyAttributeSet.cpp, Source/RoastStaffGAS/Private/GAS/Abilities/GA_CharacterSkill.cpp
+
+**검증 기준**:
+  - [x] CC.Knockdown 태그 GE 적용 시 ApplyKnockdown 호출
+  - [x] CC 태그 없는 GE 적용 시 ApplyHitReact 호출
+  - [x] AoE Center 기준 넉백 방향 정확 (에너미가 Center에서 멀어지는 방향)
+
 ### [2026-04-18] [ARCH] 캐릭터 스킬 ProjectileSpawn — DataTable 신규 컬럼 vs SkillEffectID FK 재사용
 
 **UE_Ver**: 5.4
