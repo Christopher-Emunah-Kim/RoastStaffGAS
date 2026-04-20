@@ -112,7 +112,6 @@ protected:
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|CharacterSkill")
 	TSubclassOf<UGameplayEffect> SkillGEClass;
-
 	/**
 	 * 스킬 시전 몽타주 — 할당 시 몽타주 재생 후 HitCheck 노티파이에서 효과 발동.
 	 * 미할당 시 즉시 발동 (기존 동작 유지).
@@ -120,7 +119,6 @@ protected:
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|CharacterSkill")
 	TObjectPtr<UAnimMontage> CastingMontage;
-
 	/**
 	 * FX Actor 클래스 — 할당 시 SpawnSkillFX 대신 BP 액터를 스폰.
 	 * BP 내부에서 NiagaraComponent 로컬 회전을 자유롭게 설정 가능.
@@ -133,26 +131,20 @@ protected:
 
 private:
 	// ── ProjectileSpawn 연속 발사 상태 ──────────────────────────────────────
-
 	/** 연속 발사 시 캐시된 투사체 클래스 (로드 완료) */
 	UPROPERTY()
 	TSubclassOf<ABaseProjectile> ActiveProjClass;
-
 	/** 연속 발사 시 캐시된 ExecData */
 	UPROPERTY()
 	FCharacterSkillExecData CachedProjExecData;
-
 	/** 연속 발사 남은 횟수 */
 	int32 RemainingFireCount = 0;
-
 	/** 연속 발사 간격 타이머 */
 	FTimerHandle MultiFireTimerHandle;
 
 	// ── 몽타주 캐스팅 상태 ────────────────────────────────────────────────────
-
 	/** HitCheck 노티파이 수신 시 호출할 Execute 함수 (몽타주 있을 때만 사용) */
 	TFunction<void()> PendingExecuteFunc;
-
 	/** HitCheck 중복 호출 방지 플래그 */
 	bool bExecuteFuncCalled = false;
 };
