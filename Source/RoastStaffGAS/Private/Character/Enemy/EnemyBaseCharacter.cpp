@@ -258,6 +258,7 @@ void AEnemyBaseCharacter::OnPoolDeactivate()
 	CustomTimeDilation = 1.0f;
 	GetWorldTimerManager().ClearTimer(HitstopTimerHandle);
 	GetWorldTimerManager().ClearTimer(FlashTimerHandle);
+	CurrentFlashIntensity = 0.f;
 	for (TObjectPtr<UMaterialInstanceDynamic>& MID : CachedMIDs)
 	{
 		if (MID)
@@ -439,35 +440,43 @@ void AEnemyBaseCharacter::MaterialEmissiveFlash()
 		}
 	}
 
+	// 연속 피격 시 이전 페이드 루프 리셋 후 최대 강도로 재시작
+	CurrentFlashIntensity = FlashIntensity;
 	for (TObjectPtr<UMaterialInstanceDynamic>& MID : CachedMIDs)
 	{
 		if (MID)
 		{
-			MID->SetScalarParameterValue(TEXT("EmissiveIntensity"), FlashIntensity);
+			MID->SetScalarParameterValue(TEXT("EmissiveIntensity"), CurrentFlashIntensity);
 		}
 	}
 
-	// FlashDuration 후 이미시브 복원
-	TWeakObjectPtr<AEnemyBaseCharacter> WeakThis(this);
+	GetWorldTimerManager().ClearTimer(FlashTimerHandle);
 	GetWorldTimerManager().SetTimer(
 		FlashTimerHandle,
-		[WeakThis]()
-		{
-			if (!WeakThis.IsValid())
-			{
-				return;
-			}
-			for (TObjectPtr<UMaterialInstanceDynamic>& MID : WeakThis->CachedMIDs)
-			{
-				if (MID)
-				{
-					MID->SetScalarParameterValue(TEXT("EmissiveIntensity"), 0.f);
-				}
-			}
-		},
-		FlashDuration,
-		false
+		this,
+		&AEnemyBaseCharacter::TickEmissiveFade,
+		0.016f,
+		true
 	);
+}
+
+void AEnemyBaseCharacter::TickEmissiveFade()
+{
+	CurrentFlashIntensity -= FlashIntensity / FlashDuration * 0.016f;
+
+	if (CurrentFlashIntensity <= 0.f)
+	{
+		CurrentFlashIntensity = 0.f;
+		GetWorldTimerManager().ClearTimer(FlashTimerHandle);
+	}
+
+	for (TObjectPtr<UMaterialInstanceDynamic>& MID : CachedMIDs)
+	{
+		if (MID)
+		{
+			MID->SetScalarParameterValue(TEXT("EmissiveIntensity"), CurrentFlashIntensity);
+		}
+	}
 }
 
 bool AEnemyBaseCharacter::ApplyStatData(FEnemyStaticData& EnemyData)

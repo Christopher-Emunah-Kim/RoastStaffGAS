@@ -46,7 +46,6 @@ public:
 	
 	/** 일반 피격 반응 (넉백+히트스탑+이미시브) — CC 없는 스킬에 사용 */
 	void ApplyHitReact(FVector ImpactDir);
-
 	/** 넉다운 — 포물선 날아가기 + 래그돌 + 기립 타이머 */
 	void ApplyKnockdown(FVector ImpactDir);
 	
@@ -75,8 +74,10 @@ private:
 	/** WidgetComponent에 HPBarWidget을 설정하고 ASC에 바인딩 */
 	void SetupHPBar();
 
-	/** 피격 시 메시 이미시브 플래시 + 복원 타이머 설정 */
+	/** 피격 시 메시 이미시브 플래시 + 페이드 타이머 시작 */
 	void MaterialEmissiveFlash();
+	/** 이미시브 강도를 매 틱 감소시키는 페이드 루프 헬퍼 */
+	void TickEmissiveFade();
 
 public:
 	// 처치 델리게이트
@@ -129,7 +130,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|HitReact")
 	float FlashIntensity = 3.f;
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|HitReact")
-	float FlashDuration = 0.12f;
+	float FlashDuration = 1.0f;
 
 	// ── 넉다운 설정 ──
 	/** 넉다운 몽타주 — 쓰러지기 + 기립 섹션 포함. BP에서 에너미별 할당 */
@@ -137,10 +138,10 @@ private:
 	TObjectPtr<UAnimMontage> KnockdownMontage;
 	/** 넉다운 수평 이동 속도 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Knockdown")
-	float KnockdownLaunchForce = 300.f;
+	float KnockdownLaunchForce = 200.f;
 	/** 넉다운 수직 속도 (포물선 높이) */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Knockdown")
-	float KnockdownLaunchZ = 400.f;
+	float KnockdownLaunchZ = 500.f;
 	/** 몽타주 재생 시간 — 이 시간 후 AI 재개 (몽타주 길이에 맞춰 BP에서 조정) */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Knockdown")
 	float KnockdownDuration = 2.0f;
@@ -154,6 +155,8 @@ private:
 	FTimerHandle HitstopTimerHandle;
 	/** 이미시브 플래시 복원 타이머 */
 	FTimerHandle FlashTimerHandle;
+	/** 현재 이미시브 강도 — TickEmissiveFade가 매 틱 감소 */
+	float CurrentFlashIntensity = 0.f;
 	/** 넉다운 기립 타이머 */
 	FTimerHandle KnockdownRecoverTimerHandle;
 };
