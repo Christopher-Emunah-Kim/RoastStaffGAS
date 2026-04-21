@@ -1,40 +1,39 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UI/OutGame/RSLobbyWidget.h"
-#include "Core/OutGame/RSOutGamePlayerController.h"
+#include "UI/OutGame/LobbyCharInfoPanel.h"
 #include "Subsystems/UIManagerSubsystem.h"
 #include "Data/EnumUITypes.h"
 #include "RoastStaffGAS.h"
 #include "Components/Button.h"
+#include "System/LoggingSystem.h"
 
 void URSLobbyWidget::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
-
-	if (Btn_CharacterSelect)
+	
+	// 패널은 기본 숨김 — 캐릭터 클릭 시 ShowCharInfo()로 표시
+	if (Panel_CharInfo)
 	{
-		Btn_CharacterSelect->OnClicked.AddDynamic(this, &URSLobbyWidget::OnCharacterSelectClicked);
-	}
-
-	if (Btn_Settings)
-	{
-		Btn_Settings->OnClicked.AddDynamic(this, &URSLobbyWidget::OnSettingsClicked);
+		Panel_CharInfo->Hide();
 	}
 }
 
-void URSLobbyWidget::OnCharacterSelectClicked()
+void URSLobbyWidget::ShowCharInfo(FName CharID)
 {
-	// 페이지 전환 + 델리게이트 바인딩은 OGPC가 담당
-	ARSOutGamePlayerController* OGPC = Cast<ARSOutGamePlayerController>(GetOwningPlayer());
-	if (OGPC)
+	if (!Panel_CharInfo)
 	{
-		OGPC->OnCharacterSelectClicked();
+		KHS_WARN("Panel_CharInfo 미바인딩 (WBP 확인)");
+		return;
 	}
+
+	Panel_CharInfo->Show(CharID);
 }
 
-void URSLobbyWidget::OnSettingsClicked()
+void URSLobbyWidget::HideCharInfo()
 {
-	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetWorld()->GetGameInstance());
-
-	UMS->OpenUIByID(EUIID::SETTING);
+	if (Panel_CharInfo)
+	{
+		Panel_CharInfo->Hide();
+	}
 }

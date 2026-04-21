@@ -1,32 +1,49 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Core/OutGame/RSOutGamePlayerController.h"
+#include "UI/OutGame/RSLobbyWidget.h"
 #include "RoastStaffGAS.h"
+#include "Kismet/GameplayStatics.h"
 #include "Subsystems/UIManagerSubsystem.h"
 #include "Subsystems/SaveGameSubsystem.h"
 #include "Subsystems/RuntimeDataSubsystem.h"
 #include "Core/RSGameInstance.h"
 #include "Data/EnumUITypes.h"
+#include "System/LoggingSystem.h"
+
+void ARSOutGamePlayerController::PlayerTick(float DeltaTime)
+{
+	Super::PlayerTick(DeltaTime);
+	UpdateLobbyHover();
+}
 
 void ARSOutGamePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// 클릭 감지 활성화 (hover는 PlayerTick에서 수동 처리)
+	bEnableClickEvents = true;
+
 	SetShowMouseCursor(true);
 
-	FInputModeUIOnly UIOnlyMode;
-	SetInputMode(UIOnlyMode);
+	FInputModeGameAndUI GameAndUIMode;
+	GameAndUIMode.SetHideCursorDuringCapture(false);
+	GameAndUIMode.SetLockMouseToViewportBehavior(EMouseLockMode::LockAlways);
+	SetInputMode(GameAndUIMode);
 
+	InitLobbyActors();
 	OpenFirstWidget();
+	SetViewToOverview();
 }
 
 void ARSOutGamePlayerController::EndPlay(const EEndPlayReason::Type Reason)
 {
-	// 레벨 종료 전 위젯 델리게이트 해제
-	if (CachedCharSelectWidget)
+	for (ALobbyCharacterActor* LobbyChar : LobbyCharacters)
 	{
-		CachedCharSelectWidget->OnCharacterSelectedDel.RemoveDynamic(this, &ThisClass::OnCharacterSelected);
-		CachedCharSelectWidget->OnStageSelectRequestedDel.RemoveDynamic(this, &ThisClass::OnStageSelectClicked);
+		if (LobbyChar)
+		{
+			LobbyChar->OnCharacterClickedDel.RemoveDynamic(this, &ThisClass::OnLobbyCharacterClicked);
+		}
 	}
 
 	if (CachedStageSelectWidget)
@@ -39,48 +56,120 @@ void ARSOutGamePlayerController::EndPlay(const EEndPlayReason::Type Reason)
 
 void ARSOutGamePlayerController::OpenFirstWidget()
 {
-	GET_GI_SUBSYSTEM(UUIManagerSubsystem, UMS);
+	GET_GI_SUBSYSTEM(UUIManagerSubsystem, UMS)
 
-	// PERSISTENT HUD(아웃게임 공통 레이아웃) 오픈
 	UMS->OpenUIByID(EUIID::OUTGAME);
-
-	// 이전 레벨에서 남은 PAGE 이동 이력 제거
 	UMS->ClearUIHistory();
 
-	// 첫 PAGE인 로비 화면 오픈
 	URSBaseWidget* LobbyWidget = UMS->OpenUIByID(EUIID::LOBBY);
 	if (!LobbyWidget)
 	{
-		KHS_WARN(TEXT("ARSOutGamePlayerController::OpenFirstWidget — LobbyWidget OPEN FAILED"));
+		KHS_WARN("OpenFirstWidget — LobbyWidget OPEN FAILED");
+		return;
 	}
 
+	CachedLobbyWidget = Cast<URSLobbyWidget>(LobbyWidget);
+	if (!CachedLobbyWidget)
+	{
+		KHS_WARN("OpenFirstWidget — URSLobbyWidget Cast 실패");
+	}
 }
 
-void ARSOutGamePlayerController::OnCharacterSelectClicked()
+void ARSOutGamePlayerController::InitLobbyActors()
 {
-	GET_GI_SUBSYSTEM(UUIManagerSubsystem, UMS);
+	// LobbyCharacterActor 탐색 + 클릭 델리게이트 바인딩
+	TArray<AActor*> FoundCharacters;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ALobbyCharacterActor::StaticClass(), FoundCharacters);
 
-	// 페이지 전환 후 반환된 위젯에 델리게이트 바인딩 (AddUniqueDynamic — 중복 방지)
-	URSBaseWidget* Raw = UMS->SwitchPageUI(EUIID::CHAR_SELECT);
-	CachedCharSelectWidget = Cast<URSCharacterSelectWidget>(Raw);
-	if (CachedCharSelectWidget)
+	for (AActor* Actor : FoundCharacters)
 	{
-		CachedCharSelectWidget->OnCharacterSelectedDel.AddUniqueDynamic(this, &ThisClass::OnCharacterSelected);
-		CachedCharSelectWidget->OnStageSelectRequestedDel.AddUniqueDynamic(this, &ThisClass::OnStageSelectClicked);
+		ALobbyCharacterActor* LobbyChar = Cast<ALobbyCharacterActor>(Actor);
+		if (LobbyChar)
+		{
+			LobbyChar->OnCharacterClickedDel.AddUniqueDynamic(this, &ThisClass::OnLobbyCharacterClicked);
+			LobbyCharacters.Add(LobbyChar);
+		}
+	}
+
+	if (LobbyCharacters.IsEmpty())
+	{
+		KHS_WARN("레벨에 LobbyCharacterActor 없음");
+	}
+
+	// 전체 조망 카메라 탐색
+	TArray<AActor*> CameraActors;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("LobbyOverviewCamera"), CameraActors);
+
+	if (!CameraActors.IsEmpty())
+	{
+		OverviewCameraRef = CameraActors[0];
 	}
 	else
 	{
-		KHS_WARN(TEXT("Cast 실패"));
+		KHS_WARN("LobbyOverviewCamera 태그 Actor 없음");
 	}
 }
 
-void ARSOutGamePlayerController::OnStageSelectClicked()
+void ARSOutGamePlayerController::SetViewToOverview()
 {
-	GET_GI_SUBSYSTEM(UUIManagerSubsystem, UMS);
+	if (!OverviewCameraRef)
+	{
+		KHS_WARN("SetViewToOverview — OverviewCameraRef 없음");
+		return;
+	}
 
-	// CharacterSelectWidget::OnStageSelectRequestedDel 수신 → 스테이지 선택 PAGE 전환 + 바인딩
+	SetViewTargetWithBlend(OverviewCameraRef, OverviewBlendTime);
+}
+
+void ARSOutGamePlayerController::OnLobbyCharacterClicked(FName CharID)
+{
+	// 선택 캐릭터 RDS 반영
+	GET_GI_SUBSYSTEM(URuntimeDataSubsystem, RDS)
+	RDS->SetSelectedCharacter(CharID);
+
+	// 해당 캐릭터 카메라로 블렌드
+	for (ALobbyCharacterActor* LobbyChar : LobbyCharacters)
+	{
+		if (!LobbyChar)
+		{
+			continue;
+		}
+
+		if (LobbyChar->GetCharacterID() == CharID)
+		{
+			AActor* CharCamera = LobbyChar->GetCharacterCamera();
+			if (CharCamera)
+			{
+				SetViewTargetWithBlend(CharCamera, LobbyChar->GetCameraBlendTime());
+			}
+			else
+			{
+				KHS_WARN("CharacterCameraRef 미할당 (BP 에디터 확인 필요)");
+			}
+			break;
+		}
+	}
+
+	// 우측 패널 표시 — LobbyWidget 내 BindWidget으로 전체화면 오버레이 없이 토글
+	if (CachedLobbyWidget)
+	{
+		CachedLobbyWidget->ShowCharInfo(CharID);
+	}
+}
+
+void ARSOutGamePlayerController::OnConfirmClicked()
+{
+	GET_GI_SUBSYSTEM(URuntimeDataSubsystem, RDS)
+
+	if (RDS->GetSelectedCharacterID().IsNone())
+	{
+		KHS_WARN("캐릭터 미선택. 스테이지 선택 진입 불가");
+		return;
+	}
+
+	GET_GI_SUBSYSTEM(UUIManagerSubsystem, UMS)
+
 	URSBaseWidget* Raw = UMS->SwitchPageUI(EUIID::STAGE_SELECT);
-	
 	CachedStageSelectWidget = Cast<URSStageSelectWidget>(Raw);
 	if (CachedStageSelectWidget)
 	{
@@ -88,47 +177,78 @@ void ARSOutGamePlayerController::OnStageSelectClicked()
 	}
 	else
 	{
-		KHS_WARN(TEXT("ARSOutGamePlayerController::OnStageSelectClicked — Cast 실패"));
+		KHS_WARN("StageSelectWidget Cast 실패");
 	}
+}
+
+void ARSOutGamePlayerController::OnBackClicked()
+{
+	if (CachedLobbyWidget)
+	{
+		CachedLobbyWidget->HideCharInfo();
+	}
+
+	SetViewToOverview();
 }
 
 void ARSOutGamePlayerController::OnSettingClicked()
 {
-	GET_GI_SUBSYSTEM(UUIManagerSubsystem, UMS);
-
+	GET_GI_SUBSYSTEM(UUIManagerSubsystem, UMS)
 	UMS->OpenUIByID(EUIID::SETTING);
-}
-
-void ARSOutGamePlayerController::OnCharacterSelected(FName CharID)
-{
-	// 캐릭터 선택 확정 → RDS 메모리 업데이트 (디스크 저장은 스테이지 진입 직전 일괄)
-	GET_GI_SUBSYSTEM(URuntimeDataSubsystem, RDS);
-
-	RDS->SetSelectedCharacter(CharID);
 }
 
 void ARSOutGamePlayerController::OnStageSelected(FName StageID)
 {
-	GET_GI_SUBSYSTEM(URuntimeDataSubsystem, RDS);
+	GET_GI_SUBSYSTEM(URuntimeDataSubsystem, RDS)
 
-	// 캐릭터 미선택 방어 — 정상 흐름에서는 CharSelectWidget이 Btn_StageSelect를 disabled로 유지
+	// 캐릭터 미선택 방어 — 정상 흐름에서는 OnConfirmClicked 진입 시 이미 검증됨
 	if (RDS->GetSelectedCharacterID().IsNone())
 	{
-		KHS_WARN(TEXT("선택된 캐릭터 없음. 진입 취소."));
+		KHS_WARN("선택된 캐릭터 없음. 진입 취소");
 		return;
 	}
 
-	// 마지막 플레이 스테이지 기록 — StageSelectWidget 복원용
-	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS);
+	// 마지막 플레이 스테이지 기록 + 저장
+	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS)
 	SGS->SetLastPlayedStageID(StageID);
 
-	// RDS 메모리 → SGS 동기화 후 디스크 저장 (LastPlayedStageID 포함 일괄)
 	RDS->SerializeToPersistentData();
 	SGS->SaveGame();
 
-	GET_GI(_GI);
+	GET_GI(_GI)
 	URSGameInstance* GI = Cast<URSGameInstance>(_GI);
 	check(GI);
 
 	GI->OpenNextStage(StageID);
+}
+
+void ARSOutGamePlayerController::UpdateLobbyHover()
+{
+	// 커서 아래 Visibility 채널 트레이스
+	FHitResult HitResult;
+	const bool bHit = GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
+
+	ALobbyCharacterActor* NewHovered = nullptr;
+	if (bHit)
+	{
+		NewHovered = Cast<ALobbyCharacterActor>(HitResult.GetActor());
+	}
+
+	// 이전 프레임과 동일하면 아무것도 안 함
+	if (NewHovered == CurrentHoveredLobbyChar)
+	{
+		return;
+	}
+
+	if (CurrentHoveredLobbyChar)
+	{
+		CurrentHoveredLobbyChar->SetOutlineActive(false);
+	}
+
+	CurrentHoveredLobbyChar = NewHovered;
+
+	if (CurrentHoveredLobbyChar)
+	{
+		CurrentHoveredLobbyChar->SetOutlineActive(true);
+	}
 }

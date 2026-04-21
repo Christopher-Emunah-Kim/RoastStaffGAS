@@ -36,10 +36,10 @@ void URSStageNodeWidget::SetNodeState(const FStageStaticData& Data, EStageNodeSt
 		Txt_NodeName->SetText(Data.DisplayName);
 	}
 
-	// 보스 아이콘 — 상태와 독립적으로 bIsBoss 여부만 판단
+	// 보스 아이콘 — v2.0 모든 스테이지가 보스 스테이지로 단일화됨, 항상 Collapsed
 	if (Img_BossIcon)
 	{
-		Img_BossIcon->SetVisibility(Data.bIsBoss ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+		Img_BossIcon->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
 	// 상태별 오버레이 표시
@@ -67,7 +67,7 @@ void URSStageNodeWidget::OnBtnNodeClicked()
 {
 	if (CachedStageID.IsNone())
 	{
-		KHS_WARN(TEXT("CachedStageID가 None입니다."));
+		KHS_WARN("RSStageNodeWidget::OnBtnNodeClicked — CachedStageID가 None입니다.");
 		return;
 	}
 

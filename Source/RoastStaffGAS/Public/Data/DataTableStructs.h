@@ -581,26 +581,12 @@ struct FStageStaticData : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage")
 	TArray<FName> SpawnEnemyIDs;
 
-	/** 노드맵에 표시할 스테이지 이름 */
+	/** 스테이지 선택 화면에 표시할 이름 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage|Display")
 	FText DisplayName = FText::GetEmpty();
-
-	/** 순차 해금 체인 — 이 스테이지를 클리어하면 해금되는 다음 스테이지 ID (없으면 체인 끝) */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage|Unlock")
-	FName NextStageID = NAME_None;
-
-	/** true이면 보스 노드 아이콘으로 표시 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage|Display")
-	bool bIsBoss = false;
-
-	/** 이 스테이지를 해금하기 위해 클리어해야 하는 직전 스테이지 ID (없으면 항상 진입 가능 — 첫 스테이지) */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage|Unlock")
-	FName UnlockStageID = NAME_None;
-
 	/** 이 스테이지가 속한 UE 레벨 (OpenNextLevelByName 대상) */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage|Level")
 	ELevelName WorldLevel = ELevelName::STAGE_1;
-
 	/** 노드맵 썸네일 이미지 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage|Display")
 	TSoftObjectPtr<UTexture2D> Thumbnail = nullptr;

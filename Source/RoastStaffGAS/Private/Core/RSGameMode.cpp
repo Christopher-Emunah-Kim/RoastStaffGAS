@@ -67,6 +67,15 @@ void ARSGameMode::BeginPlay()
 	}
 
 	GET_GI_SUBSYSTEM(USaveGameSubsystem, SGS)
+
+#if WITH_EDITOR
+	if (SGS->GetLastSelectedCharacter().IsNone())
+	{
+		KHS_WARN("RSGameMode — 에디터 직접 실행: CharID 없음. 디버그 기본값 'Sorceress' 사용");
+		SGS->SetLastSelectedCharacter(FName("CHAR_PAINTER"));
+	}
+#endif
+
 	const FName CharID = SGS->GetLastSelectedCharacter();
 
 	InitializePlayer(CharID);
@@ -130,9 +139,19 @@ bool ARSGameMode::InitializeStage()
 	check(GI);
 
 	CurrentStageID = GI->GetNextStageID();
+
+#if WITH_EDITOR
 	if (CurrentStageID.IsNone())
 	{
-		KHS_WARN(TEXT("NextStageID가 NAME_None. 스테이지 시작 불가."));
+		KHS_WARN("에디터 직접 실행: StageID 없음. 디버그 기본값 'STG_004' 사용");
+		GI->SetNextStageID(FName("STG_004"));
+		CurrentStageID = FName("STG_004");
+	}
+#endif
+
+	if (CurrentStageID.IsNone())
+	{
+		KHS_WARN("NextStageID가 NAME_None. 스테이지 시작 불가.");
 		return false;
 	}
 
