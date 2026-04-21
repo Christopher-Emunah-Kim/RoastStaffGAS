@@ -34,7 +34,7 @@ void AGroundEffectActor::BeginPlay()
 
 void AGroundEffectActor::OnPoolActivate()
 {
-	// 충돌은 InitGroundEffect 마지막에 활성화 — 캐시 세팅 전 Overlap 이벤트 방지
+	// 충돌은 InitEffect 마지막에 활성화 — 캐시 세팅 전 Overlap 이벤트 방지
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(false);
 	OverlapSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -58,25 +58,20 @@ void AGroundEffectActor::OnPoolDeactivate()
 	CachedAmount         = 0.f;
 }
 
-void AGroundEffectActor::InitGroundEffect(
-	UAbilitySystemComponent* InstigatorASC,
-	float Duration,
-	TSubclassOf<UGameplayEffect> OverlapGEClass,
-	float Radius,
-	TSoftObjectPtr<UNiagaraSystem> FXClass,
-	float Amount)
+void AGroundEffectActor::InitEffect(const FSkillEffectInitData& InitData)
 {
-	CachedInstigatorASC  = InstigatorASC;
-	CachedOverlapGEClass = OverlapGEClass;
-	CachedAmount         = Amount;
+	CachedInstigatorASC  = InitData.InstigatorASC;
+	CachedOverlapGEClass = InitData.SkillGEClass;
+	CachedAmount         = InitData.Amount;
 
-	OverlapSphere->SetSphereRadius(FMath::Max(1.f, Radius));
+	const float Radius = FMath::Max(1.f, InitData.EffectRadius);
+	OverlapSphere->SetSphereRadius(Radius);
 
 	// FX 스폰 후 Actor에 부착
-	if (UNiagaraSystem* FX = FXClass.LoadSynchronous())
+	if (UNiagaraSystem* FX = InitData.SkillFX.LoadSynchronous())
 	{
 		SpawnedFXComp = UNiagaraFunctionLibrary::SpawnSystemAttached(FX, OverlapSphere, NAME_None,
-			FVector::ZeroVector, FRotator::ZeroRotator,EAttachLocation::SnapToTarget, true);
+			FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
 
 		if (SpawnedFXComp)
 		{
@@ -84,7 +79,7 @@ void AGroundEffectActor::InitGroundEffect(
 		}
 	}
 
-	if (Duration > 0.f)
+	if (InitData.Duration > 0.f)
 	{
 		TWeakObjectPtr<AGroundEffectActor> WeakThis(this);
 		GetWorld()->GetTimerManager().SetTimer(DurationTimerHandle, [WeakThis]()
@@ -93,14 +88,15 @@ void AGroundEffectActor::InitGroundEffect(
 			{
 				WeakThis->ReturnToPool();
 			}
-		}, Duration, false);
+		}, InitData.Duration, false);
 	}
 
 	// 캐시 세팅 완료 후 충돌 활성화 — Overlap 이벤트가 캐시 null 상태에서 발생하지 않도록
 	SetActorEnableCollision(true);
 	OverlapSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
-	KHS_INFO(TEXT("GroundEffect 초기화 — Radius: %.0f | Duration: %.1fs | Amount: %.1f"), Radius, Duration, Amount);
+	KHS_INFO(TEXT("GroundEffect 초기화 — Radius: %.0f | Duration: %.1fs | Amount: %.1f"),
+		Radius, InitData.Duration, InitData.Amount);
 }
 
 void AGroundEffectActor::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp,AActor* OtherActor,UPrimitiveComponent* OtherComp,
