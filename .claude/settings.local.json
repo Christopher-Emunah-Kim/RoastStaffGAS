@@ -62,7 +62,18 @@
       "Bash(mv \"C:\\\\Users\\\\KGA\\\\Projects\\\\RoastStaffGAS\\\\.claude\\\\refs\\\\harness-manifest.md\" \"C:\\\\Users\\\\KGA\\\\Projects\\\\RoastStaffGAS\\\\.claude\\\\refs\\\\guardrails-manifest.md\")",
       "Bash(python:*)",
       "Bash(export CLAUDE_PROJECT_DIR=\"C:/Users/KGA/Projects/RoastStaffGAS\")",
-      "Skill(update-config)"
+      "Skill(update-config)",
+      "Bash(xargs ls:*)",
+      "Bash(awk '{print $2}' wc -l /tmp/ms3d_files.txt)",
+      "Bash(awk '{print $2}')",
+      "Bash(read f:*)",
+      "Bash(awk '{sum+=$1} END {printf \"Total: %.1f MB\\\\n\", sum/1024/1024}')",
+      "Bash(ssh:*)",
+      "Bash(\"C:/Program Files/Epic Games/UE_5.4/Engine/Build/BatchFiles/Build.bat\" RoastStaffGASEditor Win64 Development \"C:/Users/KGA/Projects/RoastStaffGAS/RoastStaffGAS.uproject\" -NoHotReload)",
+      "Bash(\"/c/Program Files/Epic Games/UE_5.5/Engine/Build/BatchFiles/Build.bat\" RoastStaffGASEditor Win64 Development \"C:/Users/KGA/Projects/RoastStaffGAS/RoastStaffGAS.uproject\" -NoHotReload)",
+      "Bash(\"/c/Program Files/Epic Games/UE_5.6/Engine/Build/BatchFiles/Build.bat\" RoastStaffGASEditor Win64 Development \"C:/Users/KGA/Projects/RoastStaffGAS/RoastStaffGAS.uproject\" -NoHotReload)",
+      "Bash(sort -k3 -n)",
+      "Bash(xargs '-I{}' sh -c 'f=\"{}\"; s=$\\(git cat-file -s \"318380ba8:$f\" 2>/dev/null || echo 0\\); [ \"$s\" -gt 104857600 ] && echo \"$f \\($s bytes\\)\" || true')"
     ],
     "deny": [],
     "ask": []
