@@ -79,3 +79,6 @@ DerivedDataCache/*
 Claude
 ============
 .env
+
+# Large assets (>100MB, GitHub limit)
+Content/Assets/Scene_Saloon/Assets/MS/3D/Res_Sto_Chest_Wood_Worn_08/SM_Res_Sto_Chest_Wood_Worn_08.uasset
