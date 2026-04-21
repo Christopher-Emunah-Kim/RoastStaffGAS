@@ -12,6 +12,52 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ## PENDING_COMMIT
 
+## COMMITTED
+
+- date: 2026-04-21
+  plan: PLAN_SkillSystemArch_v1.0 MODULE-1~6
+  commits: ["0826c050a", "206cca116", "6ba8f1487", "eb9fb975a", "23a46d884"]
+  status: COMMITTED
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
+      - Source/RoastStaffGAS/Public/Data/RuntimeDataStructs.h
+      - Source/RoastStaffGAS/Public/Subsystems/GameDataSubsystem.h
+      - Source/RoastStaffGAS/Private/Subsystems/GameDataSubsystem.cpp
+      - Source/RoastStaffGAS/Private/Subsystems/SkillManagerSubsystem.cpp
+      - Source/RoastStaffGAS/Public/GAS/Abilities/GA_CharacterSkill.h
+      - Source/RoastStaffGAS/Private/GAS/Abilities/GA_CharacterSkill.cpp
+      - Source/RoastStaffGAS/Public/Objects/GroundEffect/GroundEffectActor.h
+      - Source/RoastStaffGAS/Private/Objects/GroundEffect/GroundEffectActor.cpp
+      - ExternalSource/DT_Character_Skill_Static_Data.csv
+      - Content/Assets/Scene_Saloon/Assets/MS/3D/Res_Sto_Chest_Wood_Worn_08/SM_Res_Sto_Chest_Wood_Worn_08.uasset
+      - Content/Map/Map_Lobby.umap
+    new:
+      - Source/RoastStaffGAS/Public/Interface/SkillEffectInterface.h
+      - Source/RoastStaffGAS/Public/Objects/GroundEffect/PullVortexActor.h
+      - Source/RoastStaffGAS/Private/Objects/GroundEffect/PullVortexActor.cpp
+      - _Design/Plans/active/PLAN_SkillSystemArch_v1.0.md
+    deleted:
+      - Content/Assets/Scene_Saloon/Assets/Blueprints/BP_His_Sal_Configuration_Table_01.uasset
+      - Content/Assets/Scene_Saloon/Assets/Blueprints/BP_His_Sal_Configuration_Table_02.uasset
+      - Content/Assets/Scene_Saloon/Assets/MS/3D/His_Wil_Furniture_Table_Wood_Worn_01/* (×4)
+  summary: "refactor(skill-arch): ISkillEffectInterface 도입 + GA SkillGEClass 데이터드리븐 전환 + APullVortexActor 구현"
+
+- date: 2026-04-21
+  plan: PLAN_CombatInfra_v1.0 MODULE-스킬점검
+  commits: ["b17d85a38", "e958af9fc", "516e2b78e"]
+  status: COMMITTED
+  files:
+    modified:
+      - ExternalSource/DT_Character_Skill_Static_Data.csv
+      - Content/Data/Skill/Character/DT_Character_Skill_Static_Data.uasset
+      - Content/Data/Character/DT_Character_Static_Data.uasset
+      - Content/Data/Character/CT_BaseStatCurve.uasset
+      - Content/Map/Map_Lobby.umap
+    new:
+      - Content/GAS/GA/Character/Painter/GA_CharacterSkill_Painter05.uasset
+  summary: "data(skill/character): Painter 03/05 GA 분리 + 캐릭터 데이터 + 로비 맵 갱신"
+
 - date: 2026-04-21
   plan: PLAN_OutgameLobby3D_v1.0
   commits: ["c6fd4228c", "9c6e1a738", "810436c81", "a35bfc02b", "3a0265743"]

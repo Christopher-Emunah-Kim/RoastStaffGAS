@@ -14,6 +14,42 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
+## [FEATURE] 스킬 시스템 아키텍처 개선 | PLAN_SkillSystemArch_v1.0
+> 시작: 2026-04-21 | 기획서: 스킬 시스템 기획 v1.4.md
+> 코드 커밋: 0826c050a / 206cca116 / 6ba8f1487 / eb9fb975a / 23a46d884
+
+  ### [MODULE-1] ✓ COMMITTED eb9fb975a 2026-04-21
+  수정: DataTableStructs.h / RuntimeDataStructs.h / GameDataSubsystem.h/.cpp / SkillManagerSubsystem.cpp / GA_CharacterSkill.cpp
+  수정: ExternalSource/DT_Character_Skill_Static_Data.csv
+    - [x] FCharacterSkillLevelData 삭제 + 필드 평탄화 (DamageMultiplier/EffectRadius/Duration/SkillFX) [P0]
+    - [x] SkillGEClass / StatusGEClass 컬럼 추가 [P0]
+    - [x] GroundEffectActorClass → EffectActorClass 이름 변경 [P0]
+    - [x] GDS.GetCharacterSkillExecData SkillLevel 파라미터 제거 [P0]
+    - [x] GA_CharacterSkill.cpp ExecData.LevelData.* → flat 필드 전수 교체 [P0]
+    - [x] CSV 업데이트 + 에디터 reimport 완료 [P0]
+    - [ ] 빌드 최종 확인 (에디터 닫고 클린 빌드)                                [P0]
+
+  ### [MODULE-2] ✓ COMMITTED 206cca116 2026-04-21
+  ### [MODULE-3] ✓ COMMITTED 6ba8f1487 2026-04-21
+  ### [MODULE-4] ✓ COMMITTED eb9fb975a 2026-04-21
+    - [ ] 에디터: DT_CharacterSkill 각 스킬 행 SkillGEClass 열에 GE 클래스 할당  [P0]
+
+  ### [MODULE-5] GDS SkillGEClass/StatusGEClass 채우기
+  수정: GameDataSubsystem.cpp
+    - [x] GetCharacterSkillExecData: SkillGEClass + StatusGEClass 전달 (MODULE-1에서 완료) [P1]
+
+  ### [MODULE-5] ✓ COMMITTED eb9fb975a 2026-04-21
+
+  ### [MODULE-6] ✓ COMMITTED 23a46d884 2026-04-21
+  에디터 작업 (내일):
+    - [ ] BP_PullVortexActor 생성 (APullVortexActor 기반)                        [P0]
+    - [ ] 도화가 5번 DT 행 EffectActorClass → BP_PullVortexActor 할당            [P0]
+    - [ ] DT_CharacterSkill 각 스킬 행 SkillGEClass 열에 GE 클래스 할당          [P0]
+
+  ### [MODULE-7] 도화가 스킬 2·4·6 DT 행 등록                                   [DEFERRED]
+
+  ### [DEFERRED] PullVortex 파라미터 DT 컬럼화 검토                               [P3]
+
 ### [DEFERRED] Element.Ancient 태그 + 도화가 FX 색상
   - [~] Element.Ancient Gameplay Tag 추가 (.ini 등록)                         [P2]
   - [~] GA_CharacterSkill::SpawnSkillFX — Element.Ancient 분기 추가 (진회색) [P2]
@@ -72,13 +108,13 @@
   - [x] GA_CharacterSkill FXActorClass 추가 (SpawnPreview BP 액터 FX 지원) [P0]
   - [x] GE HitResult Context 주입 — AoE Center 기준 넉백 방향 계산         [P0]
 
-### [MODULE-스킬점검] 도화가 스킬 1~6 점검
+### [MODULE-스킬점검] 도화가 스킬 1~6 점검 ✓ COMMITTED b17d85a38 2026-04-21
   - [~] 1번 흩뿌리기 — P2로 이동 (몽타주 연출 보강 후 재점검)
-  - [x] 3번 환영의 문 — 완료 (CastingMontage 연동으로 해결)
-  - [ ] 2번 해그리기                                                         [P1]
-  - [ ] 4번 범가르기                                                         [P1]
-  - [ ] 5번 먹물세례                                                         [P1]
-  - [ ] 6번 콩콩이                                                           [P1]
+  - [x] 3번 환영의 문 — 완료 (GA_CharacterSkill_Painter03 분리, bTeleportOnConfirm=true) (b17d85a38)
+  - [x] 5번 먹물세례 — SpawnPreview 타입 전환 + GA_CharacterSkill_Painter05 분리 (b17d85a38)
+  - [ ] 2번 해그리기 — PLAN_SkillSystemArch 이후 재작업                     [P1]
+  - [ ] 4번 범가르기 — PLAN_SkillSystemArch 이후 재작업                     [P1]
+  - [ ] 6번 콩콩이 — PLAN_SkillSystemArch 이후 재작업                       [P1]
 
 ---
 
