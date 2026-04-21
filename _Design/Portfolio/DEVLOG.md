@@ -73,6 +73,43 @@
 
 ---
 
+### [2026-04-21] [PATTERN] PostProcess 아웃라인 — CustomDepth 깊이차 비교 vs CustomStencil 이진 마스크
+
+**UE_Ver**: 5.4
+**Knowledge_Risk**: LOW
+
+**상황**: 로비 캐릭터 선택 호버 시 외곽선을 표시하기 위해 PostProcess 머티리얼에서 `SceneTexture: CustomDepth`를 사용해 인접 픽셀 간 깊이 차이로 엣지를 감지하는 방식을 구현했다.
+
+**문제/과제**: 캐릭터 메시에 커서를 올리면 외곽선만 빛나야 하는데 **메시 전체가 빛나는 현상** 발생. 원인 파악이 필요했다.
+
+**검토한 선택지**:
+- A) `CustomDepth` 깊이차 비교 (기존 구현)
+  ```hlsl
+  float edge = step(0.01, abs(Center - Right)) + ...;
+  ```
+  문제: CustomDepth는 카메라로부터의 월드 거리(실수)를 저장. 메시 **내부**에서도 인접 픽셀 간 깊이가 다르기 때문에(예: 팔 200, 몸통 205 units) `abs diff > 0.01` 조건이 내부 전체에서 참이 됨 → 메시 전체 발광.
+
+- B) `CustomStencil` 이진 마스크 비교
+  ```hlsl
+  float IsCenter = step(0.5, Center); // 1=메시, 0=배경
+  float edge = IsCenter * saturate((1-IsRight) + (1-IsLeft) + (1-IsDown) + (1-IsUp));
+  ```
+  C++에서 `SetCustomDepthStencilValue(1)` 호출. Stencil은 "메시 있음(1) / 없음(0)" 이진값이므로 내부 깊이 변화에 영향받지 않음.
+
+**결정**: B안 채택. SceneTexture 노드 5개를 `CustomDepth` → `CustomStencil`로 교체하고 HLSL을 이진 비교로 변경.
+
+**결과/효과**: 메시 외곽선만 정확하게 발광. 내부는 발광 없음.
+
+**포트폴리오 포인트**: UE5 PostProcess 머티리얼에서 커스텀 깊이 버퍼의 두 채널(Depth: 실수 깊이 / Stencil: 이진 마스크) 특성 차이 이해. 화면공간 엣지 감지 알고리즘 구현 경험.
+
+**관련 파일**: Content/PostProcess/M_LobbyOutline (머티리얼 에셋), LobbyCharacterActor.cpp
+
+**검증 기준**:
+  - [x] 커서 호버 시 메시 외곽선만 발광, 내부는 발광 없음
+  - [x] `SetRenderCustomDepth(false)` 시 아웃라인 완전 소멸
+
+---
+
 ### [2026-04-20] [ARCH] CC 시스템 설계 — GE GrantedTags vs SetByCaller float 인코딩
 
 **UE_Ver**: 5.4
@@ -98,6 +135,36 @@
   - [x] CC.Knockdown 태그 GE 적용 시 ApplyKnockdown 호출
   - [x] CC 태그 없는 GE 적용 시 ApplyHitReact 호출
   - [x] AoE Center 기준 넉백 방향 정확 (에너미가 Center에서 멀어지는 방향)
+
+### [2026-04-21] [ARCH] SpawnPreview 공유 BP 상태 오염 — 스킬별 GA BP 분리 결정
+
+**UE_Ver**: 5.4
+**Knowledge_Risk**: LOW
+
+**상황**: SpawnPreview ActivationType을 스킬 3(텔레포트)과 스킬 5(장판 소환) 양쪽에 사용하면서 `bTeleportOnConfirm` 플래그로 동작을 분기하려 했다. 스킬 5가 SpawnPreview 타입으로 변경되자 예상치 못하게 텔레포트 동작을 했다.
+
+**문제/과제**: 원인 조사 결과, 공유 BP(`GA_CharacterSkill_SpawnPreview`)에 `FXActorClass`가 설정되어 있었고, 이전 코드에서 ExecuteSpawnPreview가 `FXActorClass` 존재 여부와 무관하게 항상 텔레포트를 수행하는 구조였음. `bTeleportOnConfirm` 플래그를 추가해도 `EditDefaultsOnly` 속성은 BP 클래스 단위로 공유되므로, 플래그를 true로 설정하면 해당 BP를 사용하는 **모든 스킬**이 텔레포트하게 됨.
+
+**검토한 선택지**:
+  - A) 공유 BP에 `bTeleportOnConfirm` 플래그 추가 후 분기 — 플래그 자체는 맞는 설계지만, BP가 공유되는 한 스킬별로 다른 값을 가질 수 없음. 결국 동작이 다른 스킬마다 별도 BP가 필요해 근본 해결이 아님.
+  - B) 스킬별 GA BP 분리 (Painter03, Painter05 전용 BP) — EditDefaultsOnly 속성을 스킬별로 독립적으로 설정 가능. BP 수가 늘어나는 단점은 있으나, 이는 곧 GA/Actor 레이어 구조 재설계(PLAN_SkillSystemArch)로 해소 예정.
+
+**결정**: B안. 스킬별 GA BP를 분리하고, 추후 `SkillGEClass`를 DataTable로 이동해 GA BP를 ActivationType 단위로만 유지하는 구조 리팩토링을 별도 PLAN으로 잡기로 결정.
+
+**결과/효과**: Painter03(텔레포트, bTeleportOnConfirm=true), Painter05(장판, false)가 각각 독립 동작. 동시에 아키텍처 문제가 구체적으로 드러나 PLAN_SkillSystemArch_v1.0 착수 근거 확보.
+
+**포트폴리오 포인트**: UE5 `EditDefaultsOnly`가 BP 클래스 인스턴스가 아닌 클래스 단위로 값을 공유함을 간과한 버그 케이스. "같은 타입이면 BP 공유 가능"이라는 가정이 깨질 때 발생하는 구조적 문제와, 이를 계기로 시스템 레이어 설계를 재검토한 의사결정 과정.
+
+**관련 파일**:
+  - Source/RoastStaffGAS/Public/GAS/Abilities/GA_CharacterSkill.h (bTeleportOnConfirm)
+  - Source/RoastStaffGAS/Private/GAS/Abilities/GA_CharacterSkill.cpp (ExecuteSpawnPreview)
+  - Content/GAS/GA/Character/Painter/ (GA BP 분리)
+
+**검증 기준**:
+  - [x] 스킬 3 발동 시 텔레포트, 스킬 5 발동 시 텔레포트 없이 장판 소환
+  - [x] 소서리스/호크아이 SpawnPreview 스킬 텔레포트 없음
+
+---
 
 ### [2026-04-18] [ARCH] 캐릭터 스킬 ProjectileSpawn — DataTable 신규 컬럼 vs SkillEffectID FK 재사용
 
@@ -549,6 +616,30 @@ UENUM()이 있는 헤더에는 반드시 `#include "파일명.generated.h"` 가 
 **포트폴리오 포인트**: UE5 Slate 입력 캡처 메커니즘 이해 / 잘못된 레이어 진단 → 롤백 → 올바른 순서 복구 과정 (사고 과정 투명성)
 
 **관련 파일**: `Source/RoastStaffGAS/Private/Character/Player/RSPlayerController.cpp`
+
+---
+
+## [2026-04-20] PATTERN — 머티리얼 피격 플래시: Multiply vs Add 블렌딩 선택
+
+**UE_Ver**: 5.4
+**Knowledge_Risk**: LOW
+
+**상황**: 에너미 피격 시 이미시브 붉은 플래시 연출 구현. `EmissiveIntensity` ScalarParameter를 C++에서 0→3으로 올리는 방식 채택. 머티리얼 그래프에서 `Texture_Emissive × EmissiveIntensity × Constant3Vector(1,0.3,0.3)` 구조로 연결했으나 색상 변화 없음.
+
+**문제·과제**: EmissiveIntensity를 3으로 올려도 빨갛게 변하지 않음. Multiply 연산에서 텍스처 고유 색상 채널이 Constant3Vector를 지배하기 때문. 예: 텍스처 픽셀 `(0.5, 0.7, 0.9)` × `(1, 0.3, 0.3)` = `(0.5, 0.21, 0.27)` → 의도한 붉은빛이 아닌 탁한 색.
+
+**검토한 선택지**:
+- A) Multiply 유지 + Constant3Vector 값을 강하게 올림 → 원본 텍스처 색상이 과하게 억제됨
+- B) Lerp(TextureEmissive, FlashColor, EmissiveIntensity) → 평소 이미시브가 사라지지 않지만 Saturate 처리 필요, 복잡도 증가
+- C) **Add** — 기존 텍스처 이미시브 유지 + 플래시 컬러를 additive로 합산
+
+**결정**: Add 구조 채택. `[Texture_Emissive] + [Constant3Vector × EmissiveIntensity] → Emissive Color`. EmissiveIntensity=0일 때 원본 이미시브 그대로, 피격 시 붉은빛이 텍스처 색상과 무관하게 덧씌워짐.
+
+**결과**: 모든 에너미 머티리얼에 동일 구조 적용. C++ 코드 변경 없이 일관된 붉은 플래시 연출 확보.
+
+**포트폴리오 포인트**: 머티리얼 그래프에서 Multiply는 "색조 필터", Add는 "발광 덧씌우기"로 동작이 근본적으로 다름. 피격·버프·상태이상처럼 원본 색상과 무관하게 일관된 이미시브를 올려야 할 때는 Add가 정답. Multiply는 텍스처의 밝기/색조를 바꿀 때 사용.
+
+**관련 파일**: `M_HighDemon_Skin1/3`, `M_Night_Demon_Armor/Body`, `M_Skeleton_Guard_Body/Cloth`, `M_SpiderQueen`, `EnemyBaseCharacter.cpp`
 
 ---
 

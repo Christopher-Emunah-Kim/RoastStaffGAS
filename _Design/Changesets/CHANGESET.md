@@ -12,57 +12,49 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ## PENDING_COMMIT
 
-- date: 2026-04-19
-  plan: PLAN_CombatInfra_v1.0 MODULE-6 + PLAN-2 MODULE-1,2
-  status: PENDING_COMMIT
+- date: 2026-04-21
+  plan: PLAN_OutgameLobby3D_v1.0
+  commits: ["c6fd4228c", "9c6e1a738", "810436c81", "a35bfc02b", "3a0265743"]
+  status: COMMITTED
   files:
+    new:
+      - Source/RoastStaffGAS/Public/Character/Player/LobbyCharacterActor.h
+      - Source/RoastStaffGAS/Private/Character/Player/LobbyCharacterActor.cpp
+      - Source/RoastStaffGAS/Public/UI/OutGame/LobbyCharInfoPanel.h
+      - Source/RoastStaffGAS/Private/UI/OutGame/LobbyCharInfoPanel.cpp
     modified:
-      - Source/RoastStaffGAS/Public/Subsystems/SkillManagerSubsystem.h
-      - Source/RoastStaffGAS/Private/Subsystems/SkillManagerSubsystem.cpp
-      - Source/RoastStaffGAS/Public/Character/Player/RSPlayerController.h
-      - Source/RoastStaffGAS/Private/Character/Player/RSPlayerController.cpp
-      - Source/RoastStaffGAS/Public/UI/InGame/SlotContainerWidget.h
-      - Source/RoastStaffGAS/Private/UI/InGame/SlotContainerWidget.cpp
-    modified:
-      - Source/RoastStaffGAS/Private/GAS/Abilities/GA_CharacterSkill.cpp
-      - Source/RoastStaffGAS/Public/Data/EnumTypes.h
-      - Source/RoastStaffGAS/Public/Data/RuntimeDataStructs.h
       - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
-      - Source/RoastStaffGAS/Public/Objects/Projectile/BaseProjectile.h
-      - Source/RoastStaffGAS/Private/Objects/Projectile/BaseProjectile.cpp
-      - Source/RoastStaffGAS/Private/Subsystems/GameDataSubsystem.cpp
-      - ExternalSource/DT_Character_Skill_Static_Data.csv
-      - ExternalSource/DT_Skill_Attack_Common_Param_Data.csv
-      - ExternalSource/DT_Skill_Common_Param_Data.csv
-      - ExternalSource/DT_Skill_Common_Resource_Data.csv
-    editor:
-      - Content/Input/IA_Skill1~6.uasset (신규)
-      - Content/Input/IMC_Player.uasset (숫자키 1~6 매핑)
-      - Content/Blueprint/Player/BP_RSPlayerController.uasset (IA_Skill1~6 할당)
-      - Content/UI/Ingame/WBP_SlotContainer.uasset (SkillSlotWidget_2~5 추가)
-      - Content/GAS/GA/Character/GA_CharacterSkill_SpawnProjectile.uasset (신규)
-      - Content/Data/Skill/DT_CharacterSkill.uasset (SkillEffectID 입력)
-      - Content/Data/DT_Skill_Attack_Common_Param_Data.uasset (HOMING_BOUNCE 설정)
-      - Content/Data/DT_Skill_Common_Param_Data.uasset (PAINTER_04/06 Lifetime 추가)
-      - Content/Data/DT_Skill_Common_Resource_Data.uasset (PAINTER_04/06 ProjectileClass 추가)
-  summary: "feat(PainterSkills): 환영의 문 텔레포트 + 콩콩이 HOMING_BOUNCE + SkillSlot 2→6 + 숫자키 1~6 바인딩"
+      - Source/RoastStaffGAS/Public/Data/EnumUITypes.h
+      - Source/RoastStaffGAS/Public/Core/OutGame/RSOutGamePlayerController.h
+      - Source/RoastStaffGAS/Private/Core/OutGame/RSOutGamePlayerController.cpp
+      - Source/RoastStaffGAS/Public/UI/OutGame/RSLobbyWidget.h
+      - Source/RoastStaffGAS/Private/UI/OutGame/RSLobbyWidget.cpp
+      - Source/RoastStaffGAS/Public/UI/OutGame/RSStageSelectWidget.h
+      - Source/RoastStaffGAS/Private/UI/OutGame/RSStageSelectWidget.cpp
+  summary: "feat(outgame): 3D 로비 캐릭터 인터랙션 + 스테이지 선택 개편 + Scene_Saloon 에셋 임포트"
+  design_notes:
+    - "LobbyCharInfoPanel: UIManager 풀스크린 대신 BindWidget Show/Hide 패턴으로 변경"
+    - "Hover 감지: bEnableMouseOverEvents 대신 PlayerTick GetHitResultUnderCursor 수동 트레이스"
+    - "아웃라인: CustomDepth 깊이차 비교 → CustomStencil 이진 마스크로 변경"
 
-- date: 2026-04-18
-  plan: PLAN_CombatInfra_v1.0 MODULE-2 + MODULE-3
-  status: PENDING_COMMIT
+- date: 2026-04-20
+  plan: PLAN_CombatInfra_v1.0 MODULE-2 보강
+  commits: ["385652b6e", "f6b45a9bf", "bf84ceca2"]
+  status: COMMITTED
   files:
     modified:
-      - Source/RoastStaffGAS/Public/GAS/Attributes/EnemyAttributeSet.h
-      - Source/RoastStaffGAS/Private/GAS/Attributes/EnemyAttributeSet.cpp
       - Source/RoastStaffGAS/Public/Character/Enemy/EnemyBaseCharacter.h
       - Source/RoastStaffGAS/Private/Character/Enemy/EnemyBaseCharacter.cpp
-      - Source/RoastStaffGAS/Public/Data/EnumTypes.h
-      - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
-      - Source/RoastStaffGAS/Public/Data/RuntimeDataStructs.h
-      - Source/RoastStaffGAS/Private/Subsystems/GameDataSubsystem.cpp
-      - Source/RoastStaffGAS/Public/GAS/Abilities/GA_CharacterSkill.h
-      - Source/RoastStaffGAS/Private/GAS/Abilities/GA_CharacterSkill.cpp
-  summary: "feat(CombatInfra): 피격 반응(넉백+히트스탑+이미시브) + ProjectileSpawn 타입 추가 (SkillEffectID FK 복합 조회 방식)"
+    editor:
+      - Content/Assets/.../M_Enemy 6종 (EmissiveIntensity Add 노드)
+      - Config/DefaultEngine.ini (시작맵 Map_Lobby)
+  summary: "fix(HitReact): 이미시브 Fade Out + 머티리얼 Add 노드 세팅"
+
+- date: 2026-04-19
+  plan: PLAN_CombatInfra_v1.0 MODULE-CC + 스킬점검 + 에디터
+  commits: ["bba4030c9", "b60ae6522", "303a59e87"]
+  status: COMMITTED
+  summary: "feat(combat): CC 시스템 + 몽타주 캐스팅 구조 + 스킬1~3 점검 + 숫자키 바인딩"
 
 - date: 2026-04-17
   plan: PLAN_CombatInfra_v1.0 MODULE-1

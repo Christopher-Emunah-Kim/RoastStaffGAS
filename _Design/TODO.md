@@ -31,7 +31,7 @@
   - [x] UEnemyAttributeSet::PostGameplayEffectExecute 오버라이드            [P0]
   - [x] AEnemyBaseCharacter::ApplyHitReact(FVector ImpactDir) 구현         [P0]
         넉백(LaunchCharacter) + 히트스탑(CustomTimeDilation) + 이미시브 플래시
-  - [ ] 에너미 머티리얼 EmissiveIntensity 파라미터 노출 (에디터)            [P0]
+  - [x] 에너미 머티리얼 EmissiveIntensity 파라미터 노출 (에디터) (f6b45a9bf) [P0]
 
 ### [MODULE-3] ProjectileSpawn 타입 추가
 수정: EnumTypes.h / DataTableStructs.h / RuntimeDataStructs.h / GameDataSubsystem.cpp / GA_CharacterSkill.h/.cpp
@@ -44,17 +44,17 @@
 수정: RSGameplayTags.h/.cpp / DefaultGame.ini / GA_CharacterSkill.cpp
   - [x] Element.Fire / Ice / Thunder 태그 등록 (Tags.h/cpp)                [P0]
   - [x] SpawnSkillFX 시그니처 확장 + ElementColor 분기 구현                [P0]
-  - [ ] 스킬 Niagara FX에 Radius(float) + ElementColor(LinearColor) User Parameter 추가 (에디터) [P0]
+  - [x] 스킬 Niagara FX에 Radius(float) + ElementColor(LinearColor) User Parameter 추가 (에디터) [P0]
 
 ### [MODULE-5] AGroundEffectActor 공통 클래스
 신규: GroundEffectActor.h/.cpp
 수정: GA_CharacterSkill.h/.cpp
   - [x] AGroundEffectActor 구현 (IPoolableInterface + Overlap GE)           [P0]
   - [x] GA_CharacterSkill::ExecuteGroundEffect() 구현                       [P0]
-  - [ ] BP_GroundEffectActor 서브클래스 생성 + DT_CharacterSkill 컬럼 추가 (에디터) [P0]
+  - [x] BP_GroundEffectActor 서브클래스 생성 + DT_CharacterSkill 컬럼 추가 (에디터) [P0]
 
 ### [MODULE-에디터] 에디터 작업 (집 PC에서)
-  - [ ] M_Enemy 머티리얼 — EmissiveIntensity ScalarParameter 추가           [P0]
+  - [x] M_Enemy 머티리얼 — EmissiveIntensity ScalarParameter 추가 (f6b45a9bf) [P0]
   - [x] DT_CharacterSkill — SkillEffectID / ElementTag / FireInterval / GroundEffectActorClass 컬럼 더미데이터 입력 [P0]
   - [x] 각 GA BP (BP_GA_*) — SkillGEClass 할당 확인                        [P0]
   - [x] IA_Skill1~6 생성 + IMC_Player 숫자키 1~6 매핑                      [P0]
@@ -73,8 +73,8 @@
   - [x] GE HitResult Context 주입 — AoE Center 기준 넉백 방향 계산         [P0]
 
 ### [MODULE-스킬점검] 도화가 스킬 1~6 점검
-  - [>] 1번 흩뿌리기 — 진행 중 (FX방향/위치/넉백 완료, 머티리얼 플래시 미완)
-  - [>] 3번 환영의 문 — 진행 중 (FXActor Local Space 완료)
+  - [~] 1번 흩뿌리기 — P2로 이동 (몽타주 연출 보강 후 재점검)
+  - [x] 3번 환영의 문 — 완료 (CastingMontage 연동으로 해결)
   - [ ] 2번 해그리기                                                         [P1]
   - [ ] 4번 범가르기                                                         [P1]
   - [ ] 5번 먹물세례                                                         [P1]
@@ -167,6 +167,7 @@
 
 ## COMPLETED_LOG
 <!-- compact 형식: [x] FEATURE명 | 커밋 | 날짜 | 플랜파일 -->
+[x] 아웃게임 3D 로비 + 스테이지 선택 개편 | c6fd4228c,9c6e1a738 | 2026-04-21 | PLAN_OutgameLobby3D_v1.0
 [x] EnemySpawner NavMesh 스폰 위치 버그 수정 + RSGameMode 스트리밍 레벨 대기 | 미커밋(모든 MODULE 완료) | 2026-04-16 | PLAN_EnemySpawnFix_v1.0
 [x] 캐릭터 스탯 팝업 HUD (MODULE 1~3) | 58de4f52b,d2be49f02,5d1ba8d47 | 2026-04-14 | PLAN_CharacterStatPopup_v1.0
 [x] PHASE-1 인게임 루프 완성 (MODULE 1~7 + 에디터) | cd024b49~8b1e18e42 | 2026-04-13~14 | PLAN_Phase1_InGame_v1.0

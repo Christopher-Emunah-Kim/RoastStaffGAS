@@ -18,6 +18,12 @@ check(SkillData);
 ensureMsgf(SkillData, TEXT("SkillData must not be null"));
 ```
 
+## 클래스 네이밍 컨벤션
+
+- UE5 표준 타입 접두어만 사용: `A`(Actor), `U`(UObject/Widget), `F`(Struct), `E`(Enum), `I`(Interface)
+- **프로젝트 접두어(RS) 신규 클래스에 금지** — `ALobbyCharacterActor` ✅ / `ARSLobbyCharacterActor` ❌
+- 기존 RS 접두어 클래스(ARSOutGamePlayerController 등)는 리네임 없이 유지
+
 ## 금지사항
 
 ```cpp
