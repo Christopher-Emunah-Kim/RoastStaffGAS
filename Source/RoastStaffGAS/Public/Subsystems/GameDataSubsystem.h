@@ -103,11 +103,10 @@ public:
     // 캐릭터 고유 스킬 조회
     // -------------------------------------------------------------------------
     /**
-     * CharacterID + SkillSlot(1 or 2) + SkillLevel(1~3) → FCharacterSkillExecData 반환.
+     * CharacterID + SkillSlot → FCharacterSkillExecData 반환.
      * SkillManagerSubsystem::InitializeSkills / ActivateSkillSlot에서 사용.
-     * SkillLevel은 1~3으로 클램프. LevelData 배열 범위 초과 시 false 반환.
      */
-    bool GetCharacterSkillExecData(FName CharacterID, int32 SkillSlot, int32 SkillLevel, FCharacterSkillExecData& OutData) const;
+    bool GetCharacterSkillExecData(FName CharacterID, int32 SkillSlot, FCharacterSkillExecData& OutData) const;
     /** CharacterID에 속한 스킬 목록 반환 (SkillSlot 오름차순). SkillManagerSubsystem 초기화용. */
     TArray<FCharacterSkillStaticData> GetSkillsByCharacter(FName CharacterID) const;
 

@@ -575,7 +575,7 @@ bool UGameDataSubsystem::GetEnemyPreloadBundle(FName EnemyID, FEnemyPreloadBundl
 // -----------------------------------------------------------------------------
 // 캐릭터 고유 스킬 조회
 // -----------------------------------------------------------------------------
-bool UGameDataSubsystem::GetCharacterSkillExecData(FName CharacterID, int32 SkillSlot, int32 SkillLevel, FCharacterSkillExecData& OutData) const
+bool UGameDataSubsystem::GetCharacterSkillExecData(FName CharacterID, int32 SkillSlot, FCharacterSkillExecData& OutData) const
 {
     if (!bIsDataReady)
     {
@@ -599,27 +599,22 @@ bool UGameDataSubsystem::GetCharacterSkillExecData(FName CharacterID, int32 Skil
         return false;
     }
 
-    const int32 ClampedLevel = FMath::Clamp(SkillLevel, 1, 3);
-    const int32 LevelIndex   = ClampedLevel - 1;
-
-    if (!Found->LevelData.IsValidIndex(LevelIndex))
-    {
-        KHS_WARN(TEXT("LevelData 범위 초과 — SkillID: %s, Level: %d (LevelData 수: %d)"),
-            *Found->SkillID.ToString(), ClampedLevel, Found->LevelData.Num());
-        return false;
-    }
-
-    OutData.SkillID                = Found->SkillID;
-    OutData.ActivationType         = Found->ActivationType;
-    OutData.Cooldown               = Found->Cooldown;
-    OutData.GAClass                = Found->GAClass;
-    OutData.PreviewActorClass      = Found->PreviewActorClass;
-    OutData.SkillIconSoftRef       = Found->SkillIcon;
-    OutData.LevelData              = Found->LevelData[LevelIndex];
-    OutData.ElementTag             = Found->ElementTag;
-    OutData.GroundEffectActorClass = Found->GroundEffectActorClass;
-    OutData.SkillEffectID          = Found->SkillEffectID;
-    OutData.FireInterval           = Found->FireInterval;
+    OutData.SkillID           = Found->SkillID;
+    OutData.ActivationType    = Found->ActivationType;
+    OutData.Cooldown          = Found->Cooldown;
+    OutData.GAClass           = Found->GAClass;
+    OutData.PreviewActorClass = Found->PreviewActorClass;
+    OutData.SkillIconSoftRef  = Found->SkillIcon;
+    OutData.SkillGEClass      = Found->SkillGEClass;
+    OutData.StatusGEClass     = Found->StatusGEClass;
+    OutData.DamageMultiplier  = Found->DamageMultiplier;
+    OutData.EffectRadius      = Found->EffectRadius;
+    OutData.Duration          = Found->Duration;
+    OutData.SkillFX           = Found->SkillFX;
+    OutData.ElementTag        = Found->ElementTag;
+    OutData.EffectActorClass  = Found->EffectActorClass;
+    OutData.SkillEffectID     = Found->SkillEffectID;
+    OutData.FireInterval      = Found->FireInterval;
 
     if (Found->SkillEffectID.IsNone())
     {

@@ -15,7 +15,8 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
 #include "Objects/Projectile/BaseProjectile.h"
-#include "Objects/GroundEffect/GroundEffectActor.h"
+#include "Interface/SkillEffectInterface.h"
+#include "GAS/Attributes/PlayerAttributeSet.h"
 #include "System/LoggingSystem.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
@@ -174,8 +175,10 @@ void UGA_CharacterSkill::ExecuteInstantAoE(	const FCharacterSkillExecData& ExecD
 		return;
 	}
 
+	TSubclassOf<UGameplayEffect> LoadedSkillGE = ExecData.SkillGEClass.LoadSynchronous();
+
 	const FVector PlayerLoc = CachedInstigator->GetActorLocation();
-	const float Radius      = FMath::Max(1.f, ExecData.LevelData.EffectRadius);
+	const float Radius      = FMath::Max(1.f, ExecData.EffectRadius);
 
 	// 플레이어 → 마우스 방향 (수평면)
 	FVector AimDir = CachedInstigator->GetActorForwardVector();
@@ -224,13 +227,13 @@ void UGA_CharacterSkill::ExecuteInstantAoE(	const FCharacterSkillExecData& ExecD
 		CenterHit.ImpactPoint = Center;
 		Context.AddHitResult(CenterHit, true);
 
-		FGameplayEffectSpecHandle Spec = OwnerASC->MakeOutgoingSpec(SkillGEClass, 1, Context);
+		FGameplayEffectSpecHandle Spec = OwnerASC->MakeOutgoingSpec(LoadedSkillGE, 1, Context);
 		if (!Spec.IsValid())
 		{
 			continue;
 		}
 
-		Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_WeaponBaseDamage, 10.f * ExecData.LevelData.DamageMultiplier);
+		Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_WeaponBaseDamage, GetSkillDamageAmount(ExecData));
 
 		OwnerASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
 	}
@@ -239,7 +242,7 @@ void UGA_CharacterSkill::ExecuteInstantAoE(	const FCharacterSkillExecData& ExecD
 	// FX는 플레이어 → 마우스 방향으로 재생 — AimDir 기준 180도 반전
 	FRotator FXRotation = AimDir.Rotation();
 	FXRotation.Yaw += 180.f;
-	SpawnSkillFX(ExecData.LevelData.FXClass, Center, Radius, ExecData.ElementTag, 0.f, FXRotation);
+	SpawnSkillFX(ExecData.SkillFX, Center, Radius, ExecData.ElementTag, 0.f, FXRotation);
 
 #if WITH_EDITOR
 	// 실제 충돌 판정 구체 시각화 — FX 크기와 비교용 (에디터 전용)
@@ -258,11 +261,13 @@ void UGA_CharacterSkill::ExecuteInstantAoE(	const FCharacterSkillExecData& ExecD
 
 void UGA_CharacterSkill::ExecuteSelfBuff(const FCharacterSkillExecData& ExecData, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,	const FGameplayAbilityActivationInfo ActivationInfo)
 {
+	TSubclassOf<UGameplayEffect> LoadedSkillGE = ExecData.SkillGEClass.LoadSynchronous();
+
 	UAbilitySystemComponent* OwnerASC = GetOwnerASC();
 
 	FGameplayEffectContextHandle Context = OwnerASC->MakeEffectContext();
 	Context.AddInstigator(const_cast<ABaseCharacter*>(CachedInstigator.Get()), const_cast<ABaseCharacter*>(CachedInstigator.Get()));
-	FGameplayEffectSpecHandle Spec = OwnerASC->MakeOutgoingSpec(SkillGEClass, 1, Context);
+	FGameplayEffectSpecHandle Spec = OwnerASC->MakeOutgoingSpec(LoadedSkillGE, 1, Context);
 
 	if (!Spec.IsValid())
 	{
@@ -277,7 +282,7 @@ void UGA_CharacterSkill::ExecuteSelfBuff(const FCharacterSkillExecData& ExecData
 	// 버프 오라 FX — 캐릭터 메시에 Attach하여 이동 시 따라다니게 함
 	if (CachedInstigator)
 	{
-		UNiagaraSystem* FX = ExecData.LevelData.FXClass.LoadSynchronous();
+		UNiagaraSystem* FX = ExecData.SkillFX.LoadSynchronous();
 		if (FX)
 		{
 			UNiagaraComponent* BuffFX = UNiagaraFunctionLibrary::SpawnSystemAttached(
@@ -292,7 +297,7 @@ void UGA_CharacterSkill::ExecuteSelfBuff(const FCharacterSkillExecData& ExecData
 
 			if (BuffFX)
 			{
-				BuffFX->SetVariableFloat(FName(TEXT("Radius")), ExecData.LevelData.EffectRadius);
+				BuffFX->SetVariableFloat(FName(TEXT("Radius")), ExecData.EffectRadius);
 
 				// Duration 후 오라 FX 비활성화
 				TWeakObjectPtr<UNiagaraComponent> WeakFX(BuffFX);
@@ -303,12 +308,12 @@ void UGA_CharacterSkill::ExecuteSelfBuff(const FCharacterSkillExecData& ExecData
 					{
 						WeakFX->Deactivate();
 					}
-				}, ExecData.LevelData.Duration, false);
+				}, ExecData.Duration, false);
 			}
 		}
 	}
 
-	KHS_INFO(TEXT("SelfBuff 발동 — SkillID: %s | Duration: %.1fs"), *ExecData.SkillID.ToString(), ExecData.LevelData.Duration);
+	KHS_INFO(TEXT("SelfBuff 발동 — SkillID: %s | Duration: %.1fs"), *ExecData.SkillID.ToString(), ExecData.Duration);
 
 	if (!CastingMontage)
 	{
@@ -318,12 +323,15 @@ void UGA_CharacterSkill::ExecuteSelfBuff(const FCharacterSkillExecData& ExecData
 
 void UGA_CharacterSkill::ExecuteSpawnPreview(const FCharacterSkillExecData& ExecData, const FGameplayAbilitySpecHandle Handle,	const FGameplayAbilityActorInfo* ActorInfo,	const FGameplayAbilityActivationInfo ActivationInfo)
 {
+	TSubclassOf<UGameplayEffect> LoadedSkillGE    = ExecData.SkillGEClass.LoadSynchronous();
+	TSubclassOf<UGameplayEffect> LoadedStatusGE   = ExecData.StatusGEClass.LoadSynchronous();
+
 	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
 	const FVector TargetLoc = SkillMgr->GetPendingTargetLocation();
-	const float Radius      = FMath::Max(1.f, ExecData.LevelData.EffectRadius);
+	const float Radius      = FMath::Max(1.f, ExecData.EffectRadius);
 
 	// AoE 피해 — SkillGEClass 있을 때만 적용 (텔레포트 전용 스킬은 SkillGEClass 없음)
-	if (SkillGEClass)
+	if (LoadedSkillGE)
 	{
 		TArray<FOverlapResult> Overlaps;
 		FCollisionQueryParams QueryParams;
@@ -353,43 +361,46 @@ void UGA_CharacterSkill::ExecuteSpawnPreview(const FCharacterSkillExecData& Exec
 
 			FGameplayEffectContextHandle Context = OwnerASC->MakeEffectContext();
 			Context.AddInstigator(const_cast<ABaseCharacter*>(CachedInstigator.Get()), const_cast<ABaseCharacter*>(CachedInstigator.Get()));
-			FGameplayEffectSpecHandle Spec = OwnerASC->MakeOutgoingSpec(SkillGEClass, 1, Context);
+			FGameplayEffectSpecHandle Spec = OwnerASC->MakeOutgoingSpec(LoadedSkillGE, 1, Context);
 			if (!Spec.IsValid())
 			{
 				continue;
 			}
 
 			Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_WeaponBaseDamage,
-				10.f * ExecData.LevelData.DamageMultiplier);
+				GetSkillDamageAmount(ExecData));
 
 			OwnerASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
 		}
 	}
 
-	// 장판 소환 — GroundEffectActorClass 있을 때만 (SpawnPreview 확정 위치에 즉시 배치)
-	if (ExecData.GroundEffectActorClass)
+	// 장판 소환 — EffectActorClass 있을 때만 (SpawnPreview 확정 위치에 즉시 배치)
+	if (ExecData.EffectActorClass)
 	{
 		GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSub)
-		TSubclassOf<AGroundEffectActor> GroundClass;
-		if (LoadRequiredClass(ExecData.GroundEffectActorClass, GroundClass, ExecData.SkillID))
+		TSubclassOf<AActor> EffectClass;
+		if (LoadRequiredClass(ExecData.EffectActorClass, EffectClass, ExecData.SkillID))
 		{
-			AGroundEffectActor* GroundActor = PoolSub->SpawnPooledActor<AGroundEffectActor>(
-				GroundClass, FTransform(FRotator::ZeroRotator, TargetLoc));
+			AActor* EffectActor = PoolSub->SpawnPooledActor<AActor>(
+				EffectClass, FTransform(FRotator::ZeroRotator, TargetLoc));
 
-			if (GroundActor)
+			ISkillEffectInterface* EffectInterface = Cast<ISkillEffectInterface>(EffectActor);
+			if (!EffectInterface)
 			{
-				const float FinalAmount = ExecData.Amount * ExecData.LevelData.DamageMultiplier;
-				GroundActor->InitGroundEffect(
-					GetOwnerASC(),
-					ExecData.LevelData.Duration,
-					SkillGEClass,
-					ExecData.LevelData.EffectRadius,
-					ExecData.LevelData.FXClass,
-					FinalAmount);
+				KHS_WARN(TEXT("SpawnPreview EffectActor가 ISkillEffectInterface를 구현하지 않음 — SkillID: %s"), *ExecData.SkillID.ToString());
+				PoolSub->ReturnToPool(EffectActor);
 			}
 			else
 			{
-				KHS_WARN(TEXT("SpawnPreview GroundEffect 스폰 실패 — SkillID: %s"), *ExecData.SkillID.ToString());
+				FSkillEffectInitData InitData;
+				InitData.InstigatorASC = GetOwnerASC();
+				InitData.SkillGEClass  = LoadedSkillGE;
+				InitData.StatusGEClass = LoadedStatusGE;
+				InitData.Amount        = GetSkillDamageAmount(ExecData);
+				InitData.EffectRadius  = ExecData.EffectRadius;
+				InitData.Duration      = ExecData.Duration;
+				InitData.SkillFX       = ExecData.SkillFX;
+				EffectInterface->InitEffect(InitData);
 			}
 		}
 	}
@@ -413,7 +424,7 @@ void UGA_CharacterSkill::ExecuteSpawnPreview(const FCharacterSkillExecData& Exec
 		}
 		else
 		{
-			SpawnSkillFX(ExecData.LevelData.FXClass, DepartureLoc, Radius, ExecData.ElementTag, DESTROY_FX_DELAY, FXRotation);
+			SpawnSkillFX(ExecData.SkillFX, DepartureLoc, Radius, ExecData.ElementTag, DESTROY_FX_DELAY, FXRotation);
 		}
 
 		// 텔레포트
@@ -427,10 +438,10 @@ void UGA_CharacterSkill::ExecuteSpawnPreview(const FCharacterSkillExecData& Exec
 		}
 		else
 		{
-			SpawnSkillFX(ExecData.LevelData.FXClass, TargetLoc, Radius, ExecData.ElementTag, DESTROY_FX_DELAY, FXRotation);
+			SpawnSkillFX(ExecData.SkillFX, TargetLoc, Radius, ExecData.ElementTag, DESTROY_FX_DELAY, FXRotation);
 		}
 	}
-	else if (!ExecData.GroundEffectActorClass)
+	else if (!ExecData.EffectActorClass)
 	{
 		// 텔레포트 없고 장판도 없는 경우 — 목표 위치 FX만 재생
 		if (FXActorClass)
@@ -439,10 +450,10 @@ void UGA_CharacterSkill::ExecuteSpawnPreview(const FCharacterSkillExecData& Exec
 		}
 		else
 		{
-			SpawnSkillFX(ExecData.LevelData.FXClass, TargetLoc, Radius, ExecData.ElementTag, DESTROY_FX_DELAY);
+			SpawnSkillFX(ExecData.SkillFX, TargetLoc, Radius, ExecData.ElementTag, DESTROY_FX_DELAY);
 		}
 	}
-	// GroundEffectActorClass 있는 경우 FX는 GroundEffectActor 내부에서 처리
+	// EffectActorClass 있는 경우 FX는 EffectActor 내부에서 처리
 
 	KHS_INFO(TEXT("SpawnPreview 발동 — SkillID: %s | 위치: %s | Teleport: %s"),
 		*ExecData.SkillID.ToString(), *TargetLoc.ToString(), bTeleportOnConfirm ? TEXT("true") : TEXT("false"));
@@ -519,9 +530,9 @@ void UGA_CharacterSkill::FireOneProjectile(TSubclassOf<ABaseProjectile> ProjClas
 	FProjectileInitData InitData;
 	InitData.SkillID       = ExecData.SkillID;
 	InitData.SkillEffectID = ExecData.SkillEffectID;
-	InitData.DamageGEClass = SkillGEClass;
+	InitData.DamageGEClass = ExecData.SkillGEClass.LoadSynchronous();
 	InitData.InstigatorASC = GetOwnerASC();
-	InitData.Amount        = ExecData.Amount * ExecData.LevelData.DamageMultiplier;
+	InitData.Amount        = GetSkillDamageAmount(ExecData);
 	InitData.Speed         = ExecData.ProjectileSpeed;
 	InitData.Lifetime      = ExecData.ProjectileLifetime;
 	InitData.SpawnPattern  = ExecData.SpawnPattern;
@@ -586,7 +597,7 @@ void UGA_CharacterSkill::FireOneProjectile(TSubclassOf<ABaseProjectile> ProjClas
 
 	if (CachedInstigator)
 	{
-		SpawnSkillFX(ExecData.LevelData.FXClass, CachedInstigator->GetActorLocation(), ExecData.LevelData.EffectRadius);
+		SpawnSkillFX(ExecData.SkillFX, CachedInstigator->GetActorLocation(), ExecData.EffectRadius);
 	}
 
 	KHS_INFO(TEXT("ProjectileSpawn 단발 — SkillID: %s"), *ExecData.SkillID.ToString());
@@ -647,8 +658,8 @@ void UGA_CharacterSkill::ExecuteGroundEffect(
 	const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo)
 {
-	TSubclassOf<AGroundEffectActor> GroundClass;
-	if (!LoadRequiredClass(ExecData.GroundEffectActorClass, GroundClass, ExecData.SkillID))
+	TSubclassOf<AActor> EffectClass;
+	if (!LoadRequiredClass(ExecData.EffectActorClass, EffectClass, ExecData.SkillID))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -668,31 +679,70 @@ void UGA_CharacterSkill::ExecuteGroundEffect(
 		KHS_WARN(TEXT("ARSPlayerController 캐스트 실패 — 시전자 위치 폴백. SkillID: %s"), *ExecData.SkillID.ToString());
 	}
 
-	AGroundEffectActor* GroundActor = PoolSub->SpawnPooledActor<AGroundEffectActor>(
-		GroundClass, FTransform(FRotator::ZeroRotator, SpawnLoc));
+	AActor* EffectActor = PoolSub->SpawnPooledActor<AActor>(
+		EffectClass, FTransform(FRotator::ZeroRotator, SpawnLoc));
 
-	if (!GroundActor)
+	if (!EffectActor)
 	{
 		KHS_WARN(TEXT("GroundEffect 스폰 실패 — SkillID: %s"), *ExecData.SkillID.ToString());
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
-	const float FinalAmount = ExecData.Amount * ExecData.LevelData.DamageMultiplier;
-	GroundActor->InitGroundEffect(
-		GetOwnerASC(),
-		ExecData.LevelData.Duration,
-		SkillGEClass,
-		ExecData.LevelData.EffectRadius,
-		ExecData.LevelData.FXClass,
-		FinalAmount);
+	ISkillEffectInterface* EffectInterface = Cast<ISkillEffectInterface>(EffectActor);
+	if (!EffectInterface)
+	{
+		KHS_WARN(TEXT("GroundEffect Actor가 ISkillEffectInterface를 구현하지 않음 — SkillID: %s"), *ExecData.SkillID.ToString());
+		PoolSub->ReturnToPool(EffectActor);
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	FSkillEffectInitData InitData;
+	InitData.InstigatorASC = GetOwnerASC();
+	InitData.SkillGEClass  = ExecData.SkillGEClass.LoadSynchronous();
+	InitData.StatusGEClass = ExecData.StatusGEClass.LoadSynchronous();
+	InitData.Amount        = GetSkillDamageAmount(ExecData);
+	InitData.EffectRadius  = ExecData.EffectRadius;
+	InitData.Duration      = ExecData.Duration;
+	InitData.SkillFX       = ExecData.SkillFX;
+	EffectInterface->InitEffect(InitData);
 
 	KHS_INFO(TEXT("GroundEffect 발동 — SkillID: %s | 위치: %s | Duration: %.1fs"),
-		*ExecData.SkillID.ToString(), *SpawnLoc.ToString(), ExecData.LevelData.Duration);
+		*ExecData.SkillID.ToString(), *SpawnLoc.ToString(), ExecData.Duration);
 
 	// 장판 Actor가 독립 수명 관리 — GA는 즉시 종료 (몽타주 없는 경우)
 	if (!CastingMontage)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 	}
+}
+
+float UGA_CharacterSkill::GetSkillDamageAmount(const FCharacterSkillExecData& ExecData) const
+{
+	if (ExecData.Amount > 0.f)
+	{
+		// 무기 스킬 경로: SkillEffectID → SkillAttackCommonParamsData.Amount
+		return ExecData.Amount * ExecData.DamageMultiplier;
+	}
+
+	// 캐릭터 스킬 경로: SkillEffectID 없음 → 시전자 ATK 어트리뷰트 기반
+	UAbilitySystemComponent* OwnerASC = GetOwnerASC();
+	if (!OwnerASC)
+	{
+		KHS_WARN(TEXT("GetSkillDamageAmount: OwnerASC 없음 — 0 반환"));
+		return 0.f;
+	}
+
+	bool bFound = false;
+	const float ATK = OwnerASC->GetGameplayAttributeValue(
+		UPlayerAttributeSet::GetATKAttribute(), bFound);
+
+	if (!bFound)
+	{
+		KHS_WARN(TEXT("GetSkillDamageAmount: ATK 어트리뷰트 없음 — 0 반환"));
+		return 0.f;
+	}
+
+	return ATK * ExecData.DamageMultiplier;
 }

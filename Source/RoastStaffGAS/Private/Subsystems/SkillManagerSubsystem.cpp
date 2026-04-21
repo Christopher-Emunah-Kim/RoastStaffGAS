@@ -36,7 +36,7 @@ void USkillManagerSubsystem::InitializeSkills(FName CharacterID, UAbilitySystemC
 		const int32 SkillSlot = i + 1; // DT SkillSlot 필드는 1/2 기반
 
 		FCharacterSkillExecData ExecData;
-		if (!GDS->GetCharacterSkillExecData(CharacterID, SkillSlot, 1, ExecData))
+		if (!GDS->GetCharacterSkillExecData(CharacterID, SkillSlot, ExecData))
 		{
 			KHS_WARN(TEXT("CharID[%s] Slot[%d] ExecData 조회 실패 — 해당 슬롯 스킬 없음"), *CharacterID.ToString(), SkillSlot);
 			continue;

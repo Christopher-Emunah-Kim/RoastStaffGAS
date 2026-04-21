@@ -9,7 +9,6 @@
 
 class UNiagaraSystem;
 class ABaseProjectile;
-class AGroundEffectActor;
 class UAbilityTask_PlayMontageAndWait;
 class UAbilityTask_WaitGameplayEvent;
 
@@ -95,6 +94,13 @@ private:
 	void FireOneProjectile(TSubclassOf<ABaseProjectile> ProjClass, const FCharacterSkillExecData& ExecData);
 
 	/**
+	 * SetByCaller(Data_WeaponBaseDamage)에 주입할 최종 데미지 수치 산출.
+	 *   - ExecData.Amount > 0 (SkillEffectID 있음): Amount × DamageMultiplier  (무기 스킬 경로)
+	 *   - ExecData.Amount == 0 (SkillEffectID 없음): ATK × DamageMultiplier    (캐릭터 스킬 경로)
+	 */
+	float GetSkillDamageAmount(const FCharacterSkillExecData& ExecData) const;
+
+	/**
 	 * FXClass를 Location에 스폰, Radius + ElementColor(ElementTag 기반) 파라미터 주입.
 	 * ElementTag 없으면 White. Niagara FX에 "Radius"(float), "ElementColor"(LinearColor) 파라미터 필수.
 	 * FXLifetime: 0 이하면 DESTROY_FX_DELAY 사용 (기본값).
@@ -104,14 +110,8 @@ private:
 		FGameplayTag ElementTag = FGameplayTag(), float FXLifetime = 0.f, FRotator Rotation = FRotator::ZeroRotator);
 
 protected:
-	/**
-	 * 스킬 효과 GE 클래스 — BP에서 슬롯에 맞게 설정 필수.
-	 *   InstantAoE / SpawnPreview: Data.WeaponBaseDamage SetByCaller → GE_Damage(ExecCalc) 권장
-	 *   SelfBuff: 버프 속성 GE (Duration = Instant 이외)
-	 *   ProjectileSpawn: 투사체 충돌 시 적용할 GE (단일 데미지 GE)
-	 */
-	UPROPERTY(EditDefaultsOnly, Category = "MY|CharacterSkill")
-	TSubclassOf<UGameplayEffect> SkillGEClass;
+	static constexpr float DESTROY_FX_DELAY = 2.0f;
+	
 	/**
 	 * 스킬 시전 몽타주 — 할당 시 몽타주 재생 후 HitCheck 노티파이에서 효과 발동.
 	 * 미할당 시 즉시 발동 (기존 동작 유지).
@@ -134,7 +134,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "MY|CharacterSkill")
 	bool bTeleportOnConfirm = false;
 
-	static constexpr float DESTROY_FX_DELAY = 2.0f;
 
 private:
 	// ── ProjectileSpawn 연속 발사 상태 ──────────────────────────────────────
