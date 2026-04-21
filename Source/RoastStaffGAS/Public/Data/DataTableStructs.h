@@ -137,7 +137,6 @@ struct FWeaponStaticData : public FTableRowBase
 // DT_Skill_Common_Static_Data — 스킬 기본 데이터 
 // ----------------------------------------------------------------------------
 class ABaseProjectile;
-class AGroundEffectActor;
 
 USTRUCT(BlueprintType)
 struct FSkillCommonStaticData : public FTableRowBase
@@ -628,32 +627,6 @@ struct FWaveStaticData : public FTableRowBase
 
 
 // ----------------------------------------------------------------------------
-// FCharacterSkillLevelData — 캐릭터 스킬 레벨별 수치 데이터 (중첩 구조체)
-// FCharacterSkillStaticData.LevelData 배열 원소 (Lv1/Lv2/Lv3)
-// ----------------------------------------------------------------------------
-USTRUCT(BlueprintType)
-struct FCharacterSkillLevelData
-{
-	GENERATED_BODY()
-
-	/** 스킬 레벨 (1/2/3) */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Level")
-	int32 Level = 1;
-	/** 데미지 배율 (기준: 1.0) */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Level")
-	float DamageMultiplier = 1.f;
-	/** 효과 반경 (cm). 해당 없으면 0 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Level")
-	float EffectRadius = 0.f;
-	/** 지속 시간 (초). SelfBuff 해당 시 사용. 해당 없으면 0 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Level")
-	float Duration = 0.f;
-	/** 해당 레벨 발동 FX 에셋 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Level")
-	TSoftObjectPtr<UNiagaraSystem> FXClass;
-};
-
-// ----------------------------------------------------------------------------
 // DT_CharacterSkill — 캐릭터 고유 스킬 정적 데이터
 // 에셋 경로: Content/Data/Skill/DT_CharacterSkill
 // Row Key = SkillID
@@ -687,9 +660,26 @@ struct FCharacterSkillStaticData : public FTableRowBase
 	/** 스킬 슬롯 아이콘 텍스처 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|UI")
 	TSoftObjectPtr<UTexture2D> SkillIcon;
-	/** 레벨별 수치+FX 데이터. 3개 원소 (Lv1/Lv2/Lv3) 필수 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Level")
-	TArray<FCharacterSkillLevelData> LevelData;
+
+	/** 메인 데미지/효과 GE 클래스. InstantAoE / SpawnPreview / GroundEffect / ProjectileSpawn 에서 사용. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|GE")
+	TSoftClassPtr<UGameplayEffect> SkillGEClass;
+	/** 상태이상 GE 클래스 (선택). 없으면 nullptr. PullVortex 넉다운 등 보조 효과에 사용. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|GE")
+	TSoftClassPtr<UGameplayEffect> StatusGEClass;
+
+	/** 데미지 배율 (기준: 1.0). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Params")
+	float DamageMultiplier = 1.f;
+	/** 효과 반경 (cm). 해당 없으면 0. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Params")
+	float EffectRadius = 0.f;
+	/** 지속 시간 (초). SelfBuff / GroundEffect 등에서 사용. 해당 없으면 0. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Params")
+	float Duration = 0.f;
+	/** 스킬 발동 FX 에셋. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Params")
+	TSoftObjectPtr<UNiagaraSystem> SkillFX;
 
 	/** 스킬 효과 FK — DT_Skill_Attack_Common_Params_Data 등 효과 테이블 참조 키.
 	 *  ProjectileSpawn: SkillAttackCommonParams + SkillAttackSpawnParams + (SkillHitTypePierce) 복합 조회.
@@ -706,9 +696,9 @@ struct FCharacterSkillStaticData : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Projectile")
 	float FireInterval = 0.f;
 
-	/** GroundEffect 전용 — 스폰할 장판 Actor 클래스 (AARS_GroundEffectActor 상속 BP). */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|GroundEffect")
-	TSoftClassPtr<AGroundEffectActor> GroundEffectActorClass;
+	/** GroundEffect / SpawnPreview 확정 시 스폰할 효과 Actor 클래스 (ISkillEffectInterface 구현 BP). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Effect")
+	TSoftClassPtr<AActor> EffectActorClass;
 };
 
 // ----------------------------------------------------------------------------

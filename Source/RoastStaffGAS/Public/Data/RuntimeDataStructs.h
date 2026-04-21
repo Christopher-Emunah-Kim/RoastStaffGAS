@@ -22,7 +22,6 @@
 // ============================================================================
 
 class ABaseProjectile;
-class AGroundEffectActor;
 class UNiagaraSystem;
 class ASummonPreviewObject;
 class USoundBase;
@@ -254,8 +253,44 @@ struct FWeaponCardDisplayData
 };
 
 // ----------------------------------------------------------------------------
+// FSkillEffectInitData — ISkillEffectInterface::InitEffect 파라미터 번들
+// GA_CharacterSkill → GroundEffectActor / PullVortexActor 전달
+// SoftClassPtr → TSubclassOf 변환 완료 상태 (GA에서 LoadSynchronous 완료 후 조립)
+// ----------------------------------------------------------------------------
+USTRUCT()
+struct FSkillEffectInitData
+{
+    GENERATED_BODY()
+
+    /** 시전자 ASC (GE 적용 주체) */
+    UPROPERTY()
+    TObjectPtr<UAbilitySystemComponent> InstigatorASC;
+
+    /** 메인 데미지/효과 GE 클래스. null 허용 (텔레포트 전용 등) */
+    UPROPERTY()
+    TSubclassOf<UGameplayEffect> SkillGEClass;
+
+    /** 보조 상태이상 GE 클래스 (선택). 없으면 nullptr */
+    UPROPERTY()
+    TSubclassOf<UGameplayEffect> StatusGEClass;
+
+    /** 데미지 수치 (ExecData.Amount * ExecData.DamageMultiplier 적용 완료) */
+    float Amount = 0.f;
+
+    /** 효과 반경 (cm). 해당 없으면 0. */
+    float EffectRadius = 0.f;
+
+    /** 지속 시간 (초). 0이면 무한 */
+    float Duration = 0.f;
+
+    /** 발동 FX 에셋 */
+    UPROPERTY()
+    TSoftObjectPtr<UNiagaraSystem> SkillFX;
+};
+
+// ----------------------------------------------------------------------------
 // FCharacterSkillExecData — GDS 복합 조회 반환 (캐릭터 스킬 실행 번들)
-// GDS.GetCharacterSkillExecData(CharacterID, SkillSlot, SkillLevel) 반환
+// GDS.GetCharacterSkillExecData(CharacterID, SkillSlot) 반환
 // SkillManagerSubsystem이 GA 발동 시 사용
 // ----------------------------------------------------------------------------
 USTRUCT(BlueprintType)
@@ -278,23 +313,40 @@ struct FCharacterSkillExecData
 	/** 스킬 슬롯 아이콘 텍스처 */
 	UPROPERTY(BlueprintReadOnly)
 	TSoftObjectPtr<UTexture2D> SkillIconSoftRef;
-	/** 해당 레벨 수치+FX 데이터 (FCharacterSkillStaticData.LevelData[Level-1]) */
+
+	/** 메인 데미지/효과 GE 클래스. GA에서 LoadSynchronous 후 사용. */
 	UPROPERTY(BlueprintReadOnly)
-	FCharacterSkillLevelData LevelData;
+	TSoftClassPtr<UGameplayEffect> SkillGEClass;
+	/** 상태이상 GE 클래스 (선택). 없으면 nullptr. */
+	UPROPERTY(BlueprintReadOnly)
+	TSoftClassPtr<UGameplayEffect> StatusGEClass;
+
+	/** 데미지 배율 (기준: 1.0) */
+	UPROPERTY(BlueprintReadOnly)
+	float DamageMultiplier = 1.f;
+	/** 효과 반경 (cm). 해당 없으면 0. */
+	UPROPERTY(BlueprintReadOnly)
+	float EffectRadius = 0.f;
+	/** 지속 시간 (초). SelfBuff / GroundEffect 등에서 사용. */
+	UPROPERTY(BlueprintReadOnly)
+	float Duration = 0.f;
+	/** 스킬 발동 FX 에셋. */
+	UPROPERTY(BlueprintReadOnly)
+	TSoftObjectPtr<UNiagaraSystem> SkillFX;
 
 	// ── ProjectileSpawn — SkillEffectID 복합 조회 결과 ─────────────────────
 	// GDS.GetCharacterSkillExecData 내에서 SkillEffectID로 무기 스킬 테이블을 복합 조회하여 채운다.
 	// SkillEffectID == NAME_None이면 아래 필드 미사용 (InstantAoE / SelfBuff / SpawnPreview만 사용).
 
-	/** 속성 태그 — SpawnSkillFX ElementColor 분기용 (FCharacterSkillStaticData.ElementTag 그대로 전달) */
+	/** 속성 태그 — SpawnSkillFX ElementColor 분기용 */
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag ElementTag;
 
-	/** GroundEffect 전용 장판 Actor 클래스 (FCharacterSkillStaticData.GroundEffectActorClass 그대로 전달) */
+	/** GroundEffect / SpawnPreview 확정 시 스폰할 효과 Actor 클래스 (ISkillEffectInterface 구현 BP). */
 	UPROPERTY(BlueprintReadOnly)
-	TSoftClassPtr<AGroundEffectActor> GroundEffectActorClass;
+	TSoftClassPtr<AActor> EffectActorClass;
 
-	/** 스킬 효과 FK (FCharacterSkillStaticData.SkillEffectID 그대로 전달) */
+	/** 스킬 효과 FK */
 	UPROPERTY(BlueprintReadOnly)
 	FName SkillEffectID;
 
@@ -303,43 +355,43 @@ struct FCharacterSkillExecData
 	TSoftClassPtr<ABaseProjectile> ProjectileClass;
 
 	/** 기본 데미지 수치 — SkillAttackCommonParamsData.Amount.
-	 *  FireOneProjectile에서 Amount * LevelData.DamageMultiplier 로 최종 데미지 산출. */
+	 *  GA에서 Amount * DamageMultiplier 로 최종 데미지 산출. */
 	UPROPERTY(BlueprintReadOnly)
 	float Amount = 0.f;
 
-	/** 투사체 이동 속도 (cm/s) — SkillAttackCommonParamsData.Speed */
+	/** 투사체 이동 속도 (cm/s) */
 	UPROPERTY(BlueprintReadOnly)
 	float ProjectileSpeed = 0.f;
 
-	/** 투사체 수명 (초) — SkillCommonParamData.Lifetime */
+	/** 투사체 수명 (초) */
 	UPROPERTY(BlueprintReadOnly)
 	float ProjectileLifetime = 0.f;
 
-	/** 이동 방식 — SkillAttackCommonParamsData.MoveType */
+	/** 이동 방식 */
 	UPROPERTY(BlueprintReadOnly)
 	EMoveType MoveType = EMoveType::LINEAR;
 
-	/** 타격 방식 — SkillAttackCommonParamsData.HitType */
+	/** 타격 방식 */
 	UPROPERTY(BlueprintReadOnly)
 	EHitType HitType = EHitType::SINGLE;
 
-	/** 소환 방식 — SkillAttackCommonParamsData.SpawnType */
+	/** 소환 방식 */
 	UPROPERTY(BlueprintReadOnly)
 	ESpawnPattern SpawnPattern = ESpawnPattern::SINGLE;
 
-	/** 연속 발사 수 — SkillAttackSpawnParamsData.SpawnCount */
+	/** 연속 발사 수 */
 	UPROPERTY(BlueprintReadOnly)
 	int32 ProjectileCount = 1;
 
-	/** 연속 발사 간격 (초) — FCharacterSkillStaticData.FireInterval (캐릭터 스킬 전용) */
+	/** 연속 발사 간격 (초) — 캐릭터 스킬 전용 */
 	UPROPERTY(BlueprintReadOnly)
 	float FireInterval = 0.f;
 
-	/** 관통 횟수 — SkillHitTypePierceCache.PierceCount (0 = 비관통) */
+	/** 관통 횟수 (0 = 비관통) */
 	UPROPERTY(BlueprintReadOnly)
 	int32 PierceCount = 0;
 
-	/** 관통 데미지 감쇠율 — SkillHitTypePierceCache.DamageDecay */
+	/** 관통 데미지 감쇠율 */
 	UPROPERTY(BlueprintReadOnly)
 	float DamageDecay = 0.f;
 };
