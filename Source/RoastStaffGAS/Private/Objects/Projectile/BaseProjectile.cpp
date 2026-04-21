@@ -49,6 +49,7 @@ void ABaseProjectile::OnPoolDeactivate()
 	bHasPierceFinished = false;
 	PierceHitCount = 0;
 	BounceHitCount = 0;
+	PiercedActors.Empty();
 
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
@@ -384,6 +385,13 @@ void ABaseProjectile::HandlePierceHit(AActor* OtherActor)
 		return;
 	}
 
+	// 동일 액터 중복 타격 방지 (IgnoreActorWhenMoving은 sweep 기반만 막음 — overlap 중복 방어)
+	if (PiercedActors.Contains(OtherActor))
+	{
+		return;
+	}
+	PiercedActors.Add(OtherActor);
+
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
 	if (!TargetASC)
 	{
@@ -395,7 +403,7 @@ void ABaseProjectile::HandlePierceHit(AActor* OtherActor)
 		return;
 	}
 
-	SphereComp->IgnoreActorWhenMoving(OtherActor, true); //한번 충돌한 액터는 무시
+	SphereComp->IgnoreActorWhenMoving(OtherActor, true);
 	++PierceHitCount; // MoveIgnoreActors와 분리 — 발사자 등록 영향 없음
 
 	const float Multiplier = FMath::Max(0.f, 1.f - (PierceHitCount - 1) * InitData.DamageDecay);

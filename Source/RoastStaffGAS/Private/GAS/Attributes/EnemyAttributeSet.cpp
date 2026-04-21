@@ -34,18 +34,21 @@ void UEnemyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallb
 		return;
 	}
 
-	// AoE 히트: GE Context HitResult Location(AoE Center) → 에너미 방향으로 밀어냄
+	// AoE 히트: 플레이어 → AoE 중심(에임 방향)으로 일괄 넉다운
 	// 투사체 히트: Instigator(플레이어) → 에너미 방향으로 밀어냄 (fallback)
 	FVector ImpactDir = FVector::ForwardVector;
 	const FGameplayEffectContextHandle& EffectContext = Data.EffectSpec.GetContext();
 	const FHitResult* HitResult = EffectContext.GetHitResult();
 	if (HitResult && !HitResult->ImpactPoint.IsZero())
 	{
-		// HitResult.ImpactPoint = AoE Center (GA_CharacterSkill에서 SetHitResult로 주입)
-		const FVector Delta = Enemy->GetActorLocation() - HitResult->ImpactPoint;
-		if (!Delta.IsNearlyZero())
+		if (const AActor* Instigator = EffectContext.GetInstigator())
 		{
-			ImpactDir = Delta.GetSafeNormal2D();
+			// 플레이어 → AoE 중심 방향 = 스킬 시전 에임 방향
+			const FVector AimDir = HitResult->ImpactPoint - Instigator->GetActorLocation();
+			if (!AimDir.IsNearlyZero())
+			{
+				ImpactDir = AimDir.GetSafeNormal2D();
+			}
 		}
 	}
 	else if (const AActor* Instigator = EffectContext.GetInstigator())

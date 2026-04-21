@@ -124,7 +124,7 @@ private:
 
 	// ── 피격 반응 설정 (BP에서 에너미 종류별 조정 가능) ──
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|HitReact")
-	float KnockbackForce = 400.f;
+	float KnockbackForce = 500.f;
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|HitReact")
 	float HitstopDuration = 0.08f;
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|HitReact")
@@ -138,13 +138,16 @@ private:
 	TObjectPtr<UAnimMontage> KnockdownMontage;
 	/** 넉다운 수평 이동 속도 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Knockdown")
-	float KnockdownLaunchForce = 200.f;
+	float KnockdownLaunchForce = 250.f;
 	/** 넉다운 수직 속도 (포물선 높이) */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Knockdown")
-	float KnockdownLaunchZ = 500.f;
+	float KnockdownLaunchZ = 600.f;
 	/** 몽타주 재생 시간 — 이 시간 후 AI 재개 (몽타주 길이에 맞춰 BP에서 조정) */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Knockdown")
 	float KnockdownDuration = 2.0f;
+	/** 넉다운 중 중력 배율 — 높을수록 빠르게 낙하. 수평 Force 낮출 때 함께 높여 낙하감 보정 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Knockdown")
+	float KnockdownGravityScale = 2.0f;
 
 	/** 피격 이미시브 플래시에 사용되는 동적 머티리얼 인스턴스 캐시 */
 	UPROPERTY()

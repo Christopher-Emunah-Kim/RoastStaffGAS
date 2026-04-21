@@ -79,6 +79,7 @@ private:
 	bool bHasPierceFinished = false;
 	int32 PierceHitCount = 0;
 	int32 BounceHitCount = 0;
+	TSet<TWeakObjectPtr<AActor>> PiercedActors;
 
 	static constexpr int32 MAX_BOUNCE_COUNT = 3;
 	

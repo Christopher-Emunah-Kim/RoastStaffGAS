@@ -126,6 +126,13 @@ protected:
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|CharacterSkill")
 	TSubclassOf<AActor> FXActorClass;
+	/**
+	 * SpawnPreview 확정 시 캐릭터를 목표 위치로 텔레포트.
+	 * true: 출발지/도착지 FX 포함 텔레포트 (3번 환영의 문 전용).
+	 * false: 텔레포트 없이 목표 위치에 효과만 발동 (기본값).
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|CharacterSkill")
+	bool bTeleportOnConfirm = false;
 
 	static constexpr float DESTROY_FX_DELAY = 2.0f;
 

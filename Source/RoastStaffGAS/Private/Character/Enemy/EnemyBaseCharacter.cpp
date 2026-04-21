@@ -379,7 +379,9 @@ void AEnemyBaseCharacter::ApplyKnockdown(FVector ImpactDir)
 	}
 
 	// 포물선 날아가기 — LaunchCharacter 사용 (래그돌 없이)
+	// GravityScale 강화로 수평 Force와 무관하게 빠른 낙하 보장
 	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->GravityScale = KnockdownGravityScale;
 	LaunchCharacter(ImpactDir * KnockdownLaunchForce + FVector(0.f, 0.f, KnockdownLaunchZ), true, true);
 
 	// 넉다운 몽타주 재생 (BP에서 할당된 경우)
@@ -400,6 +402,9 @@ void AEnemyBaseCharacter::ApplyKnockdown(FVector ImpactDir)
 			{
 				return;
 			}
+
+			// GravityScale 복원
+			WeakThis->GetCharacterMovement()->GravityScale = 1.0f;
 
 			// AI 재개
 			if (AController* Ctrl = WeakThis->GetController())

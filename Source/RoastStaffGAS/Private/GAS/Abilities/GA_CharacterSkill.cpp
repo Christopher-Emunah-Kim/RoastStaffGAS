@@ -34,12 +34,6 @@ void UGA_CharacterSkill::OnAbilityActivated(const FGameplayAbilitySpecHandle Han
 		return;
 	}
 
-	if (!ensureMsgf(SkillGEClass, TEXT("SkillGEClass 미설정 — BP에서 할당 필요")))
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-
 	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
 
 	const FCharacterSkillExecData ExecData = SkillMgr->GetSlotExecData(SkillData->SlotIndex);
@@ -280,11 +274,38 @@ void UGA_CharacterSkill::ExecuteSelfBuff(const FCharacterSkillExecData& ExecData
 	// Duration은 GE BP에서 설정 — 여기서는 SetByCaller로 Duration 오버라이드 불필요
 	OwnerASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
 
+	// 버프 오라 FX — 캐릭터 메시에 Attach하여 이동 시 따라다니게 함
 	if (CachedInstigator)
 	{
-		// Duration을 FX 수명으로 전달 — 버프 지속 시간 동안 FX 유지
-		SpawnSkillFX(ExecData.LevelData.FXClass, CachedInstigator->GetActorLocation(), ExecData.LevelData.EffectRadius,
-			FGameplayTag(), ExecData.LevelData.Duration);
+		UNiagaraSystem* FX = ExecData.LevelData.FXClass.LoadSynchronous();
+		if (FX)
+		{
+			UNiagaraComponent* BuffFX = UNiagaraFunctionLibrary::SpawnSystemAttached(
+				FX,
+				CachedInstigator->GetMesh(),
+				NAME_None,
+				FVector::ZeroVector,
+				FRotator::ZeroRotator,
+				EAttachLocation::SnapToTarget,
+				true
+			);
+
+			if (BuffFX)
+			{
+				BuffFX->SetVariableFloat(FName(TEXT("Radius")), ExecData.LevelData.EffectRadius);
+
+				// Duration 후 오라 FX 비활성화
+				TWeakObjectPtr<UNiagaraComponent> WeakFX(BuffFX);
+				FTimerHandle FXHandle;
+				GetWorld()->GetTimerManager().SetTimer(FXHandle, [WeakFX]()
+				{
+					if (WeakFX.IsValid())
+					{
+						WeakFX->Deactivate();
+					}
+				}, ExecData.LevelData.Duration, false);
+			}
+		}
 	}
 
 	KHS_INFO(TEXT("SelfBuff 발동 — SkillID: %s | Duration: %.1fs"), *ExecData.SkillID.ToString(), ExecData.LevelData.Duration);
@@ -301,56 +322,83 @@ void UGA_CharacterSkill::ExecuteSpawnPreview(const FCharacterSkillExecData& Exec
 	const FVector TargetLoc = SkillMgr->GetPendingTargetLocation();
 	const float Radius      = FMath::Max(1.f, ExecData.LevelData.EffectRadius);
 
-	// InstantAoE와 동일하게 처리 — 단, 중심이 PendingTargetLocation
-	TArray<FOverlapResult> Overlaps;
-	FCollisionQueryParams QueryParams;
-	if (CachedInstigator)
+	// AoE 피해 — SkillGEClass 있을 때만 적용 (텔레포트 전용 스킬은 SkillGEClass 없음)
+	if (SkillGEClass)
 	{
-		QueryParams.AddIgnoredActor(CachedInstigator.Get());
-	}
-
-	GetWorld()->OverlapMultiByChannel(Overlaps, TargetLoc, FQuat::Identity, ECC_Pawn,
-		FCollisionShape::MakeSphere(Radius), QueryParams);
-
-	UAbilitySystemComponent* OwnerASC = GetOwnerASC();
-
-	for (const FOverlapResult& Overlap : Overlaps)
-	{
-		AActor* TargetActor = Overlap.GetActor();
-		if (!TargetActor)
+		TArray<FOverlapResult> Overlaps;
+		FCollisionQueryParams QueryParams;
+		if (CachedInstigator)
 		{
-			continue;
+			QueryParams.AddIgnoredActor(CachedInstigator.Get());
 		}
 
-		UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
-		if (!TargetASC || !TargetASC->HasMatchingGameplayTag(RSTags::Team_Enemy))
+		GetWorld()->OverlapMultiByChannel(Overlaps, TargetLoc, FQuat::Identity, ECC_Pawn,
+			FCollisionShape::MakeSphere(Radius), QueryParams);
+
+		UAbilitySystemComponent* OwnerASC = GetOwnerASC();
+
+		for (const FOverlapResult& Overlap : Overlaps)
 		{
-			continue;
+			AActor* TargetActor = Overlap.GetActor();
+			if (!TargetActor)
+			{
+				continue;
+			}
+
+			UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+			if (!TargetASC || !TargetASC->HasMatchingGameplayTag(RSTags::Team_Enemy))
+			{
+				continue;
+			}
+
+			FGameplayEffectContextHandle Context = OwnerASC->MakeEffectContext();
+			Context.AddInstigator(const_cast<ABaseCharacter*>(CachedInstigator.Get()), const_cast<ABaseCharacter*>(CachedInstigator.Get()));
+			FGameplayEffectSpecHandle Spec = OwnerASC->MakeOutgoingSpec(SkillGEClass, 1, Context);
+			if (!Spec.IsValid())
+			{
+				continue;
+			}
+
+			Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_WeaponBaseDamage,
+				10.f * ExecData.LevelData.DamageMultiplier);
+
+			OwnerASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
 		}
-
-		FGameplayEffectContextHandle Context = OwnerASC->MakeEffectContext();
-		Context.AddInstigator(const_cast<ABaseCharacter*>(CachedInstigator.Get()), const_cast<ABaseCharacter*>(CachedInstigator.Get()));
-		FGameplayEffectSpecHandle Spec = OwnerASC->MakeOutgoingSpec(SkillGEClass, 1, Context);
-		if (!Spec.IsValid())
-		{
-			continue;
-		}
-
-		Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_WeaponBaseDamage,
-			10.f * ExecData.LevelData.DamageMultiplier);
-
-		OwnerASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
 	}
 
-	// 텔레포트 전 출발지 FX 스폰
-	const FVector DepartureLoc = CachedInstigator ? CachedInstigator->GetActorLocation() : FVector::ZeroVector;
-	if (FXActorClass)
+	// 장판 소환 — GroundEffectActorClass 있을 때만 (SpawnPreview 확정 위치에 즉시 배치)
+	if (ExecData.GroundEffectActorClass)
 	{
-		// BP 액터 스폰 — 내부 NiagaraComponent 로컬 회전은 BP에서 설정
-		GetWorld()->SpawnActor<AActor>(FXActorClass, DepartureLoc, FRotator::ZeroRotator);
+		GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSub)
+		TSubclassOf<AGroundEffectActor> GroundClass;
+		if (LoadRequiredClass(ExecData.GroundEffectActorClass, GroundClass, ExecData.SkillID))
+		{
+			AGroundEffectActor* GroundActor = PoolSub->SpawnPooledActor<AGroundEffectActor>(
+				GroundClass, FTransform(FRotator::ZeroRotator, TargetLoc));
+
+			if (GroundActor)
+			{
+				const float FinalAmount = ExecData.Amount * ExecData.LevelData.DamageMultiplier;
+				GroundActor->InitGroundEffect(
+					GetOwnerASC(),
+					ExecData.LevelData.Duration,
+					SkillGEClass,
+					ExecData.LevelData.EffectRadius,
+					ExecData.LevelData.FXClass,
+					FinalAmount);
+			}
+			else
+			{
+				KHS_WARN(TEXT("SpawnPreview GroundEffect 스폰 실패 — SkillID: %s"), *ExecData.SkillID.ToString());
+			}
+		}
 	}
-	else
+
+	// 텔레포트 분기
+	if (bTeleportOnConfirm && CachedInstigator)
 	{
+		// 출발지 FX
+		const FVector DepartureLoc = CachedInstigator->GetActorLocation();
 		FRotator FXRotation = FRotator::ZeroRotator;
 		if (const APlayerController* PC = GetWorld()->GetFirstPlayerController())
 		{
@@ -358,37 +406,46 @@ void UGA_CharacterSkill::ExecuteSpawnPreview(const FCharacterSkillExecData& Exec
 			FXRotation.Pitch = 0.f;
 			FXRotation.Roll  = 0.f;
 		}
-		if (CachedInstigator)
+
+		if (FXActorClass)
+		{
+			GetWorld()->SpawnActor<AActor>(FXActorClass, DepartureLoc, FRotator::ZeroRotator);
+		}
+		else
 		{
 			SpawnSkillFX(ExecData.LevelData.FXClass, DepartureLoc, Radius, ExecData.ElementTag, DESTROY_FX_DELAY, FXRotation);
 		}
-	}
 
-	// 텔레포트 — PendingTargetLocation으로 이동
-	if (CachedInstigator)
-	{
+		// 텔레포트
 		ABaseCharacter* MutableInstigator = const_cast<ABaseCharacter*>(CachedInstigator.Get());
 		MutableInstigator->SetActorLocation(TargetLoc, false, nullptr, ETeleportType::TeleportPhysics);
-	}
 
-	// 도착지 FX 스폰
-	if (FXActorClass)
-	{
-		GetWorld()->SpawnActor<AActor>(FXActorClass, TargetLoc, FRotator::ZeroRotator);
-	}
-	else
-	{
-		FRotator FXRotation = FRotator::ZeroRotator;
-		if (const APlayerController* PC = GetWorld()->GetFirstPlayerController())
+		// 도착지 FX
+		if (FXActorClass)
 		{
-			FXRotation = PC->GetControlRotation();
-			FXRotation.Pitch = 0.f;
-			FXRotation.Roll  = 0.f;
+			GetWorld()->SpawnActor<AActor>(FXActorClass, TargetLoc, FRotator::ZeroRotator);
 		}
-		SpawnSkillFX(ExecData.LevelData.FXClass, TargetLoc, Radius, ExecData.ElementTag, DESTROY_FX_DELAY, FXRotation);
+		else
+		{
+			SpawnSkillFX(ExecData.LevelData.FXClass, TargetLoc, Radius, ExecData.ElementTag, DESTROY_FX_DELAY, FXRotation);
+		}
 	}
+	else if (!ExecData.GroundEffectActorClass)
+	{
+		// 텔레포트 없고 장판도 없는 경우 — 목표 위치 FX만 재생
+		if (FXActorClass)
+		{
+			GetWorld()->SpawnActor<AActor>(FXActorClass, TargetLoc, FRotator::ZeroRotator);
+		}
+		else
+		{
+			SpawnSkillFX(ExecData.LevelData.FXClass, TargetLoc, Radius, ExecData.ElementTag, DESTROY_FX_DELAY);
+		}
+	}
+	// GroundEffectActorClass 있는 경우 FX는 GroundEffectActor 내부에서 처리
 
-	KHS_INFO(TEXT("SpawnPreview 텔레포트 발동 — SkillID: %s | 위치: %s"), *ExecData.SkillID.ToString(), *TargetLoc.ToString());
+	KHS_INFO(TEXT("SpawnPreview 발동 — SkillID: %s | 위치: %s | Teleport: %s"),
+		*ExecData.SkillID.ToString(), *TargetLoc.ToString(), bTeleportOnConfirm ? TEXT("true") : TEXT("false"));
 
 	if (!CastingMontage)
 	{
