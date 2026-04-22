@@ -10,6 +10,9 @@
 #include "GAS/Tags/RSGameplayTags.h"
 #include "Subsystems/PoolingSubsystem.h"
 #include "System/LoggingSystem.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
+#include "DrawDebugHelpers.h"
 
 
 APullVortexActor::APullVortexActor()
@@ -45,6 +48,12 @@ void APullVortexActor::OnPoolDeactivate()
 	CachedAmount        = 0.f;
 	CachedEffectRadius  = 0.f;
 	RemainingHitCount   = 0;
+
+	if (SpawnedFXComp && SpawnedFXComp->IsActive())
+	{
+		SpawnedFXComp->Deactivate();
+		SpawnedFXComp = nullptr;
+	}
 }
 
 void APullVortexActor::InitEffect(const FSkillEffectInitData& InitData)
@@ -76,19 +85,43 @@ void APullVortexActor::InitEffect(const FSkillEffectInitData& InitData)
 	}, HitInterval, true);
 
 	// Duration 후 풀 반납
+	// 모든 HitTick이 완료된 이후에 반납되도록 HitCount * HitInterval보다 작지 않게 보정
 	if (InitData.Duration > 0.f)
 	{
+		const float SafeDuration = FMath::Max(InitData.Duration, static_cast<float>(HitCount) * HitInterval + 0.1f);
 		GetWorld()->GetTimerManager().SetTimer(DurationTimerHandle, [WeakThis]()
 		{
 			if (WeakThis.IsValid())
 			{
 				WeakThis->ReturnToPool();
 			}
-		}, InitData.Duration, false);
+		}, SafeDuration, false);
 	}
 
-	KHS_INFO(TEXT("PullVortex 초기화 — EffectRadius: %.0f | PullRadius: %.0f | HitCount: %d | Duration: %.1fs"),
-		CachedEffectRadius, PullRadius, HitCount, InitData.Duration);
+	// FX — Duration 동안 Actor에 Attach (Looping Niagara 권장)
+	if (UNiagaraSystem* FX = InitData.SkillFX.LoadSynchronous())
+	{
+		SpawnedFXComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
+			FX, GetRootComponent(), NAME_None,
+			FVector::ZeroVector, FRotator::ZeroRotator,
+			EAttachLocation::SnapToTarget, true);
+
+		if (SpawnedFXComp)
+		{
+			SpawnedFXComp->SetVariableFloat(FName(TEXT("Radius")), CachedEffectRadius);
+			SpawnedFXComp->SetVariableLinearColor(FName(TEXT("ElementColor")), InitData.ElementColor);
+		}
+	}
+
+#if WITH_EDITOR
+	// PullRadius (파란색) + EffectRadius (빨간색) 시각화
+	const float DbgDuration = InitData.Duration > 0.f ? InitData.Duration : 3.f;
+	DrawDebugSphere(GetWorld(), GetActorLocation(), PullRadius,        24, FColor::Blue, false, DbgDuration);
+	DrawDebugSphere(GetWorld(), GetActorLocation(), CachedEffectRadius, 24, FColor::Red,  false, DbgDuration);
+#endif
+
+	KHS_DEBUG(TEXT("PullVortex 초기화 — EffectRadius: %.0f | PullRadius: %.0f | HitCount: %d | Duration: %.1fs | Amount: %.1f"),
+		CachedEffectRadius, PullRadius, HitCount, InitData.Duration, CachedAmount);
 }
 
 void APullVortexActor::PullTick()
@@ -97,7 +130,7 @@ void APullVortexActor::PullTick()
 
 	TArray<FOverlapResult> Overlaps;
 	FCollisionQueryParams QueryParams;
-	
+
 	GetWorld()->OverlapMultiByChannel(Overlaps, Center, FQuat::Identity,
 		ECC_Pawn, FCollisionShape::MakeSphere(PullRadius), QueryParams);
 
@@ -121,9 +154,12 @@ void APullVortexActor::PullTick()
 			continue;
 		}
 
-		const FVector PullDir = (Center - Target->GetActorLocation()).GetSafeNormal2D();
-		// bXYOverride=false: 기존 수평 속도에 추가 / bZOverride=false: 수직 속도 유지
-		EnemyChar->LaunchCharacter(PullDir * PullStrength, false, false);
+		// 거리 비례 흡입 속도 — 멀수록 빠르게, 가까울수록 느리게
+		// bXYOverride=true: 매 틱 XY 속도를 덮어써서 예측 가능한 이동
+		const FVector ToCenter   = Center - Target->GetActorLocation();
+		const float   CurrentDist = static_cast<float>(ToCenter.Size2D());
+		const FVector PullDir     = ToCenter.GetSafeNormal2D();
+		EnemyChar->LaunchCharacter(PullDir * CurrentDist * PullStrength, true, false);
 	}
 }
 
@@ -134,42 +170,61 @@ void APullVortexActor::HitTick()
 		return;
 	}
 
-	const bool bIsLastHit = (RemainingHitCount == 1);
-	const FVector Center  = GetActorLocation();
+	const bool   bIsLastHit  = (RemainingHitCount == 1);
+	const FVector Center     = GetActorLocation();
+	const int32  CurrentHit  = HitCount - RemainingHitCount + 1;
 
 	TArray<FOverlapResult> Overlaps;
 	FCollisionQueryParams QueryParams;
-	
+
 	GetWorld()->OverlapMultiByChannel(Overlaps, Center, FQuat::Identity,
 		ECC_Pawn, FCollisionShape::MakeSphere(CachedEffectRadius), QueryParams);
+
+	// 컴포넌트 단위 감지 → 같은 액터 중복 처리 방지
+	TSet<AActor*> ProcessedActors;
+	int32 HitTargetCount = 0;
 
 	for (const FOverlapResult& Overlap : Overlaps)
 	{
 		AActor* Target = Overlap.GetActor();
-		if (!Target)
+		if (!Target || ProcessedActors.Contains(Target))
 		{
 			continue;
 		}
+		ProcessedActors.Add(Target);
 
 		// 메인 데미지 GE
 		if (CachedSkillGEClass)
 		{
 			ApplyGEToTarget(Target, CachedSkillGEClass);
+			HitTargetCount++;
 		}
 
-		// 마지막 히트 — 넉다운 등 StatusGE 추가 적용
-		if (bIsLastHit && CachedStatusGEClass)
+		// 마지막 히트 — 바깥 방향 넉백 + StatusGE (넉다운)
+		if (bIsLastHit)
 		{
-			ApplyGEToTarget(Target, CachedStatusGEClass);
+			ACharacter* EnemyChar = Cast<ACharacter>(Target);
+			if (EnemyChar)
+			{
+				const FVector KnockDir = (Target->GetActorLocation() - Center).GetSafeNormal2D();
+				EnemyChar->LaunchCharacter(KnockDir * KnockbackStrength, true, true);
+			}
+
+			if (CachedStatusGEClass)
+			{
+				ApplyGEToTarget(Target, CachedStatusGEClass);
+			}
 		}
 	}
+
+	KHS_INFO(TEXT("PullVortex 히트 [%d/%d] — 범위 내 적: %d | 마지막: %s"),
+		CurrentHit, HitCount, HitTargetCount, bIsLastHit ? TEXT("YES") : TEXT("NO"));
 
 	RemainingHitCount--;
 
 	if (bIsLastHit)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(HitTimerHandle);
-		KHS_INFO(TEXT("PullVortex 히트 완료 — 마지막 히트 처리"));
 	}
 }
 
@@ -187,7 +242,7 @@ void APullVortexActor::ApplyGEToTarget(AActor* TargetActor, TSubclassOf<UGamepla
 	}
 
 	FGameplayEffectContextHandle Context = CachedInstigatorASC->MakeEffectContext();
-	Context.AddInstigator(GetInstigator(), GetInstigator());
+	// MakeEffectContext가 세팅한 instigator를 유지 — GetInstigator()는 null(풀링 액터 미설정)이므로 덮어쓰지 않음
 	FGameplayEffectSpecHandle Spec = CachedInstigatorASC->MakeOutgoingSpec(GEClass, 1, Context);
 	if (!Spec.IsValid())
 	{

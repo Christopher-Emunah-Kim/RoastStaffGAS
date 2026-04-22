@@ -75,6 +75,7 @@ namespace RSTags
 	UE_DEFINE_GAMEPLAY_TAG(Element_Fire,    "Element.Fire");
 	UE_DEFINE_GAMEPLAY_TAG(Element_Ice,     "Element.Ice");
 	UE_DEFINE_GAMEPLAY_TAG(Element_Thunder, "Element.Thunder");
+	UE_DEFINE_GAMEPLAY_TAG(Element_Ancient, "Element.Ancient");
 
 	// CC 태그 — GE GrantedTags 부여, PostGameplayEffectExecute 분기
 	UE_DEFINE_GAMEPLAY_TAG(CC_Knockdown, "CC.Knockdown");

@@ -10,15 +10,17 @@
 
 class UAbilitySystemComponent;
 class UGameplayEffect;
+class UNiagaraComponent;
 
 /**
  * APullVortexActor
- * 흡입 + 다단 데미지 + 넉다운 장판 Actor.
+ * 흡입 + 다단 데미지 + 마지막 히트 넉다운 장판 Actor.
  *
  * InitEffect() 호출 시:
- *   - PullTick: PullRadius 내 적을 중심으로 흡입 (PullTickRate 간격)
+ *   - PullTick: PullRadius 내 적을 거리 비례 속도로 중심으로 흡입 (PullTickRate 간격)
+ *              bXYOverride=true — 매 틱 XY 속도 덮어쓰기로 예측 가능한 흡입
  *   - HitTick:  EffectRadius 내 적에게 SkillGEClass 적용 (HitInterval 간격, HitCount 회)
- *   - 마지막 HitTick: StatusGEClass (넉다운) 추가 적용
+ *   - 마지막 HitTick: 바깥 방향 LaunchCharacter(KnockbackStrength) + StatusGEClass (넉다운 GE)
  *   - Duration 후 ReturnToPool
  *
  * EditDefaultsOnly 파라미터는 BP에서 스킬별로 설정.
@@ -57,18 +59,25 @@ protected:
 	/** 흡입이 작용하는 범위 (cm). EffectRadius보다 크게 설정 권장. */
 	UPROPERTY(EditDefaultsOnly, Category = "PullVortex")
 	float PullRadius = 600.f;
-	/** 흡입 틱당 적용하는 충격량 (cm/s). */
+	/**
+	 * 흡입 속도 배율. 매 틱 XY 속도 = 현재거리 * PullStrength.
+	 * 1.0이면 PullTickRate당 현재 거리만큼 이동 (틱 간격이 짧을수록 더 빠름).
+	 * 권장 범위: 1.5 ~ 3.0
+	 */
 	UPROPERTY(EditDefaultsOnly, Category = "PullVortex")
-	float PullStrength = 500.f;
+	float PullStrength = 2.f;
 	/** 흡입 틱 간격 (초). */
 	UPROPERTY(EditDefaultsOnly, Category = "PullVortex")
-	float PullTickRate = 0.15f;
+	float PullTickRate = 0.1f;
 	/** 총 데미지 히트 횟수. */
 	UPROPERTY(EditDefaultsOnly, Category = "PullVortex")
 	int32 HitCount = 5;
 	/** 데미지 히트 간격 (초). */
 	UPROPERTY(EditDefaultsOnly, Category = "PullVortex")
-	float HitInterval = 0.5f;
+	float HitInterval = 0.2f;
+	/** 마지막 히트 시 바깥 방향 날리기 세기 (cm/s). */
+	UPROPERTY(EditDefaultsOnly, Category = "PullVortex")
+	float KnockbackStrength = 1200.f;
 	
 private:
 	// ── 런타임 캐시 ─────────────────────────────────────────────────────────
@@ -83,6 +92,9 @@ private:
 	float CachedEffectRadius = 0.f;
 
 	int32 RemainingHitCount  = 0;
+
+	UPROPERTY()
+	TObjectPtr<UNiagaraComponent> SpawnedFXComp;
 
 	FTimerHandle PullTimerHandle;
 	FTimerHandle HitTimerHandle;

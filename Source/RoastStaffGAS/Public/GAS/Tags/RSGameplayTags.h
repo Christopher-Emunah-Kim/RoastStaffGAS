@@ -124,6 +124,7 @@ namespace RSTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Element_Fire);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Element_Ice);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Element_Thunder);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Element_Ancient);
 
 	//===============================================
 	// CC 태그 (CC.*) — GE GrantedTags로 부여, PostGameplayEffectExecute에서 읽어 분기

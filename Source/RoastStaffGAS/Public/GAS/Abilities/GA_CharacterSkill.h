@@ -136,6 +136,9 @@ protected:
 
 
 private:
+	/** ElementTag → FLinearColor 변환. SpawnSkillFX + InitData 조립에서 공통 사용. */
+	static FLinearColor ResolveElementColor(FGameplayTag ElementTag);
+
 	// ── ProjectileSpawn 연속 발사 상태 ──────────────────────────────────────
 	/** 연속 발사 시 캐시된 투사체 클래스 (로드 완료) */
 	UPROPERTY()

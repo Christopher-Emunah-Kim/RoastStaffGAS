@@ -131,7 +131,7 @@ void UGA_CharacterSkill::StartSkillWithMontage(
 	EventTask->ReadyForActivation();
 	MontageTask->ReadyForActivation();
 
-	KHS_INFO(TEXT("스킬 몽타주 시작 — SkillID: %s"), *ExecData.SkillID.ToString());
+	KHS_DEBUG(TEXT("스킬 몽타주 시작 — SkillID: %s"), *ExecData.SkillID.ToString());
 }
 
 void UGA_CharacterSkill::OnHitCheckReceived(FGameplayEventData Payload)
@@ -164,7 +164,7 @@ void UGA_CharacterSkill::OnCastingMontageEnded()
 	// 몽타주 없이 즉시 발동한 경우는 이 콜백이 오지 않으므로 EndAbility는 각 Execute에서 처리
 	// 몽타주 있는 경우: 효과가 HitCheck에서 이미 발동됐으므로 여기서 GA 종료
 	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
-	KHS_INFO(TEXT("스킬 몽타주 종료 — 이동 복원 + EndAbility"));
+	KHS_DEBUG(TEXT("스킬 몽타주 종료 — 이동 복원 + EndAbility"));
 }
 
 void UGA_CharacterSkill::ExecuteInstantAoE(	const FCharacterSkillExecData& ExecData, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,	const FGameplayAbilityActivationInfo ActivationInfo)
@@ -313,7 +313,7 @@ void UGA_CharacterSkill::ExecuteSelfBuff(const FCharacterSkillExecData& ExecData
 		}
 	}
 
-	KHS_INFO(TEXT("SelfBuff 발동 — SkillID: %s | Duration: %.1fs"), *ExecData.SkillID.ToString(), ExecData.Duration);
+	KHS_DEBUG(TEXT("SelfBuff 발동 — SkillID: %s | Duration: %.1fs"), *ExecData.SkillID.ToString(), ExecData.Duration);
 
 	if (!CastingMontage)
 	{
@@ -331,7 +331,8 @@ void UGA_CharacterSkill::ExecuteSpawnPreview(const FCharacterSkillExecData& Exec
 	const float Radius      = FMath::Max(1.f, ExecData.EffectRadius);
 
 	// AoE 피해 — SkillGEClass 있을 때만 적용 (텔레포트 전용 스킬은 SkillGEClass 없음)
-	if (LoadedSkillGE)
+	// EffectActorClass 있으면 액터가 데미지를 직접 관리 → 즉시 AoE 생략
+	if (LoadedSkillGE && !ExecData.EffectActorClass)
 	{
 		TArray<FOverlapResult> Overlaps;
 		FCollisionQueryParams QueryParams;
@@ -455,7 +456,7 @@ void UGA_CharacterSkill::ExecuteSpawnPreview(const FCharacterSkillExecData& Exec
 	}
 	// EffectActorClass 있는 경우 FX는 EffectActor 내부에서 처리
 
-	KHS_INFO(TEXT("SpawnPreview 발동 — SkillID: %s | 위치: %s | Teleport: %s"),
+	KHS_DEBUG(TEXT("SpawnPreview 발동 — SkillID: %s | 위치: %s | Teleport: %s"),
 		*ExecData.SkillID.ToString(), *TargetLoc.ToString(), bTeleportOnConfirm ? TEXT("true") : TEXT("false"));
 
 	if (!CastingMontage)
@@ -522,7 +523,7 @@ void UGA_CharacterSkill::ExecuteProjectileSpawn(
 		true
 	);
 
-	KHS_INFO(TEXT("ProjectileSpawn 연속 발사 시작 — SkillID: %s | %d발 × %.2fs"), *ExecData.SkillID.ToString(), ExecData.ProjectileCount, ExecData.FireInterval);
+	KHS_DEBUG(TEXT("ProjectileSpawn 연속 발사 시작 — SkillID: %s | %d발 × %.2fs"), *ExecData.SkillID.ToString(), ExecData.ProjectileCount, ExecData.FireInterval);
 }
 
 void UGA_CharacterSkill::FireOneProjectile(TSubclassOf<ABaseProjectile> ProjClass, const FCharacterSkillExecData& ExecData)
@@ -600,7 +601,28 @@ void UGA_CharacterSkill::FireOneProjectile(TSubclassOf<ABaseProjectile> ProjClas
 		SpawnSkillFX(ExecData.SkillFX, CachedInstigator->GetActorLocation(), ExecData.EffectRadius);
 	}
 
-	KHS_INFO(TEXT("ProjectileSpawn 단발 — SkillID: %s"), *ExecData.SkillID.ToString());
+	KHS_DEBUG(TEXT("ProjectileSpawn 단발 — SkillID: %s"), *ExecData.SkillID.ToString());
+}
+
+FLinearColor UGA_CharacterSkill::ResolveElementColor(FGameplayTag ElementTag)
+{
+	if (ElementTag == RSTags::Element_Fire)
+	{
+		return FLinearColor(1.f, 0.3f, 0.f, 1.f);
+	}
+	else if (ElementTag == RSTags::Element_Ice)
+	{
+		return FLinearColor(0.3f, 0.8f, 1.f, 1.f);
+	}
+	else if (ElementTag == RSTags::Element_Thunder)
+	{
+		return FLinearColor(1.f, 1.f, 0.f, 1.f);
+	}
+	else if (ElementTag == RSTags::Element_Ancient)
+	{
+		return FLinearColor(0.5f, 0.05f, 0.4f, 1.f);
+	}
+	return FLinearColor::White;
 }
 
 void UGA_CharacterSkill::SpawnSkillFX(TSoftObjectPtr<UNiagaraSystem> FXClass, FVector Location, float Radius,
@@ -621,22 +643,7 @@ void UGA_CharacterSkill::SpawnSkillFX(TSoftObjectPtr<UNiagaraSystem> FXClass, FV
 	}
 
 	NiagaraComp->SetVariableFloat(FName(TEXT("Radius")), Radius);
-
-	// ElementTag → ElementColor 분기 (Niagara FX에 "ElementColor" LinearColor 파라미터 필수)
-	FLinearColor ElementColor = FLinearColor::White;
-	if (ElementTag == RSTags::Element_Fire)
-	{
-		ElementColor = FLinearColor(1.f, 0.3f, 0.f, 1.f);
-	}
-	else if (ElementTag == RSTags::Element_Ice)
-	{
-		ElementColor = FLinearColor(0.3f, 0.8f, 1.f, 1.f);
-	}
-	else if (ElementTag == RSTags::Element_Thunder)
-	{
-		ElementColor = FLinearColor(1.f, 1.f, 0.f, 1.f);
-	}
-	NiagaraComp->SetVariableLinearColor(FName(TEXT("ElementColor")), ElementColor);
+	NiagaraComp->SetVariableLinearColor(FName(TEXT("ElementColor")), ResolveElementColor(ElementTag));
 
 	// FXLifetime: 0 이하면 DESTROY_FX_DELAY 사용 (버스트 FX 기본값)
 	const float ActualLifetime = FXLifetime > 0.f ? FXLifetime : DESTROY_FX_DELAY;
@@ -706,9 +713,10 @@ void UGA_CharacterSkill::ExecuteGroundEffect(
 	InitData.EffectRadius  = ExecData.EffectRadius;
 	InitData.Duration      = ExecData.Duration;
 	InitData.SkillFX       = ExecData.SkillFX;
+	InitData.ElementColor  = ResolveElementColor(ExecData.ElementTag);
 	EffectInterface->InitEffect(InitData);
 
-	KHS_INFO(TEXT("GroundEffect 발동 — SkillID: %s | 위치: %s | Duration: %.1fs"),
+	KHS_DEBUG(TEXT("GroundEffect 발동 — SkillID: %s | 위치: %s | Duration: %.1fs"),
 		*ExecData.SkillID.ToString(), *SpawnLoc.ToString(), ExecData.Duration);
 
 	// 장판 Actor가 독립 수명 관리 — GA는 즉시 종료 (몽타주 없는 경우)

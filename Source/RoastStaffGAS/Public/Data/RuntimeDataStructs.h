@@ -286,6 +286,9 @@ struct FSkillEffectInitData
     /** 발동 FX 에셋 */
     UPROPERTY()
     TSoftObjectPtr<UNiagaraSystem> SkillFX;
+
+    /** 속성 색상 — GA_CharacterSkill::ResolveElementColor 완료 상태. Niagara "ElementColor" 파라미터에 직접 주입. */
+    FLinearColor ElementColor = FLinearColor::White;
 };
 
 // ----------------------------------------------------------------------------

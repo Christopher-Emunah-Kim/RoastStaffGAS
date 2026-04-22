@@ -76,6 +76,7 @@ void AGroundEffectActor::InitEffect(const FSkillEffectInitData& InitData)
 		if (SpawnedFXComp)
 		{
 			SpawnedFXComp->SetVariableFloat(FName(TEXT("Radius")), Radius);
+			SpawnedFXComp->SetVariableLinearColor(FName(TEXT("ElementColor")), InitData.ElementColor);
 		}
 	}
 
@@ -95,7 +96,7 @@ void AGroundEffectActor::InitEffect(const FSkillEffectInitData& InitData)
 	SetActorEnableCollision(true);
 	OverlapSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
-	KHS_INFO(TEXT("GroundEffect 초기화 — Radius: %.0f | Duration: %.1fs | Amount: %.1f"),
+	KHS_DEBUG(TEXT("GroundEffect 초기화 — Radius: %.0f | Duration: %.1fs | Amount: %.1f"),
 		Radius, InitData.Duration, InitData.Amount);
 }
 
@@ -120,7 +121,7 @@ void AGroundEffectActor::ApplyGEToTarget(AActor* TargetActor)
 	}
 
 	FGameplayEffectContextHandle Context = CachedInstigatorASC->MakeEffectContext();
-	Context.AddInstigator(GetInstigator(), GetInstigator());
+	// MakeEffectContext가 세팅한 instigator를 유지 — GetInstigator()는 null(풀링 액터 미설정)이므로 덮어쓰지 않음
 	FGameplayEffectSpecHandle Spec = CachedInstigatorASC->MakeOutgoingSpec(CachedOverlapGEClass, 1, Context);
 	if (!Spec.IsValid())
 	{
@@ -130,7 +131,7 @@ void AGroundEffectActor::ApplyGEToTarget(AActor* TargetActor)
 	Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_WeaponBaseDamage, CachedAmount);
 	CachedInstigatorASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
 
-	KHS_INFO(TEXT("GroundEffect GE 적용 — Target: %s | Amount: %.1f"), *TargetActor->GetName(), CachedAmount);
+	KHS_DEBUG(TEXT("GroundEffect GE 적용 — Target: %s | Amount: %.1f"), *TargetActor->GetName(), CachedAmount);
 }
 
 void AGroundEffectActor::ReturnToPool()
