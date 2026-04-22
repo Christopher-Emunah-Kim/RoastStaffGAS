@@ -46,6 +46,37 @@
 
 ## 2026-04
 
+### [2026-04-22] [ARCH] ElementColor 부여 책임 — Actor 자율 해석 vs GA 중앙 해석
+
+**UE_Ver**: 5.4
+**Knowledge_Risk**: LOW
+
+**상황**: 도화가 스킬 장판(GroundEffectActor) / 흡입(PullVortexActor)에 속성 색상(ElementColor)을 Niagara FX에 주입해야 했음. 기존 `SpawnSkillFX`에는 `ElementTag → FLinearColor` 매핑 로직이 이미 구현되어 있었고, `FSkillEffectInitData`를 통해 Actor에 초기화 번들을 전달하는 구조였음.
+
+**문제/과제**: `FSkillEffectInitData`에는 `ElementTag`만 있고 `ElementColor`가 없었음. Actor들이 `InitEffect`에서 색상을 적용하려면 Tag → Color 매핑을 어디서 수행할지 결정해야 했음.
+
+**검토한 선택지**:
+- A) 각 Actor의 `InitEffect`에서 `ElementTag → FLinearColor` 직접 해석
+  — 매핑 로직 중복, `Element.Ancient` 추가 시 Actor 수만큼 수정 필요
+- B) GA가 `ResolveElementColor()`로 해석 완료 → `FSkillEffectInitData.ElementColor` 전달
+  — 매핑 단일화, Actor는 색을 "해석"하지 않고 "적용"만 함
+
+**결정**: 안B. `static FLinearColor ResolveElementColor(FGameplayTag)` 헬퍼를 GA에 추가, `SpawnSkillFX` 인라인 분기도 동일 헬퍼로 교체. `FSkillEffectInitData`에 `FLinearColor ElementColor` 필드 추가.
+
+**결과/효과**: `Element.Ancient` 추가 시 `ResolveElementColor` 한 곳만 수정. Actor는 FX 파라미터 세팅에만 집중.
+
+**포트폴리오 포인트**: 데이터 흐름 책임 분리 — "해석자(GA)"와 "적용자(Actor)" 역할 명확화. 변경 파급 범위를 의식적으로 축소하는 설계 판단.
+
+**관련 파일**:
+  - `Source/.../GAS/Abilities/GA_CharacterSkill.h/.cpp` (ResolveElementColor)
+  - `Source/.../Data/RuntimeDataStructs.h` (FSkillEffectInitData.ElementColor)
+  - `Source/.../Objects/GroundEffect/GroundEffectActor.cpp`, `PullVortexActor.cpp` (InitEffect)
+
+**검증 기준**:
+  - [ ] Element.Ancient 스킬 발동 시 장판/흡입 FX가 먹자주색으로 표시됨
+
+---
+
 ### [2026-04-22] [ARCH] PreWarm 풀 수량 정보의 분산 보유 — 책임 기반 설계 검증
 
 **UE_Ver**: 5.4

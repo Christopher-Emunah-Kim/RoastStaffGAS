@@ -14,6 +14,33 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ## COMMITTED
 
+- date: 2026-04-22
+  plan: PLAN_SkillSystemArch_v1.0 ElementColor 에디터 작업
+  commits: ["df93b7515", "1f5cf3bc1", "47de7546b", "e0c48354a", "10184ec32"]
+  status: COMMITTED
+  files:
+    modified:
+      - Content/FX/Skill/Painter/NS_Painter_Skill02.uasset
+      - Content/FX/Skill/Painter/NS_Painter_Skill03.uasset
+      - Content/FX/Skill/Painter/NS_Painter_Skill05.uasset
+      - Content/Data/Skill/Character/DT_Character_Skill_Static_Data.uasset
+      - Content/Data/Skill/DT_Skill_Common_Resource_Data.uasset
+      - Content/Data/Stage/DT_Wave_Static_Data.uasset
+      - Content/Blueprint/Enemy/BP_EnemySpawner.uasset
+      - Content/Map/Map_Lobby.umap
+      - Content/UI/Lobby/StageSelect/WBP_StageSelectPage.uasset
+      - ExternalSource/DT_Wave_Static_Data.csv
+    new:
+      - Content/Blueprint/Objects/Projectiles/CharacterSkill/BP_Painter_Skill04.uasset
+      - Content/Assets/Mixed_Magic_VFX_Pack/VFX/NS_Shattering_Painter04.uasset
+      - Content/Assets/Necropolis/Materials/MI_PinterMoon.uasset
+      - Content/Assets/LootandPickupVFXPack/LootVFX/Glows/FlareTheme/NS_FlareGlow05.uasset
+    deleted:
+      - Content/Blueprint/Objects/Projectiles/BP_Painter_Skill04.uasset
+  summary: "feat(element-color): 도화가 FX ElementColor + DT ElementTag + 스킬4 BP 이동 + Wave 데이터 갱신"
+
+
+
 - date: 2026-04-21
   plan: PLAN_SkillSystemArch_v1.0 MODULE-1~6
   commits: ["0826c050a", "206cca116", "6ba8f1487", "eb9fb975a", "23a46d884"]

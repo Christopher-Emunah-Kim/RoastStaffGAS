@@ -69,11 +69,11 @@
   >   GAClass / SkillGEClass / StatusGEClass / SkillIcon 등 겹침
   >   캐릭터 스킬은 FCharacterSkillStaticData 자체 완결 방향 검토
 
-### [DEFERRED] Element.Ancient 태그 + 도화가 FX 색상
-  - [~] Element.Ancient Gameplay Tag 추가 (.ini 등록)                         [P2]
-  - [~] GA_CharacterSkill::SpawnSkillFX — Element.Ancient 분기 추가 (진회색) [P2]
-  - [~] DT_CharacterSkill 도화가 스킬 ElementTag → Element.Ancient 일괄 적용 [P2]
-  - [~] FSkillEffectInitData에 ElementTag 추가 + GroundEffectActor/PullVortexActor InitEffect ElementColor 적용 [P2]
+### [MODULE-8] ✓ COMMITTED df93b7515 2026-04-22 — Element.Ancient 태그 + 도화가 FX 색상
+  - [x] Element.Ancient Gameplay Tag 추가 (.ini 등록)
+  - [x] GA_CharacterSkill::ResolveElementColor 헬퍼 추출 + Element.Ancient 먹자주색 추가
+  - [x] DT_CharacterSkill 도화가 스킬 ElementTag → Element.Ancient 일괄 적용
+  - [x] FSkillEffectInitData에 ElementColor 필드 추가 + GroundEffectActor/PullVortexActor InitEffect ElementColor 적용
 
 ## [FEATURE] P0 전투 인프라 | PLAN_CombatInfra_v1.0
 > 시작: 2026-04-17 | 기획서: 게임 시스템 개선안 v2.0.md
