@@ -18,9 +18,11 @@
 #include "Character/Player/RSPlayerState.h"
 #include "Character/Enemy/EnemyBaseCharacter.h"
 #include "Objects/Projectile/EnemyProjectile.h"
+#include "Objects/Projectile/BaseProjectile.h"
 #include "Core/RSGameInstance.h"
 #include "Data/DataTableStructs.h"
 #include "Data/RuntimeDataStructs.h"
+#include "Subsystems/RuntimeDataSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/LevelStreaming.h"
 
@@ -240,8 +242,43 @@ TArray<FPoolPreWarmRequest> ARSGameMode::BuildPreWarmList(AEnemySpawner* Spawner
 		}
 	}
 
-	KHS_INFO(TEXT("BuildPreWarmList — 요청 %d건 (에너미 %d클래스 + 투사체 + 위젯)"),	PreWarmList.Num(), UniqueEnemyClasses.Num());
-	
+	// 캐릭터 스킬 이펙트 액터 — RDS에서 선택된 캐릭터 ID 읽어 DT 조회
+	GET_GI_SUBSYSTEM_FROM(URuntimeDataSubsystem, RDS, GetGameInstance())
+	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetGameInstance())
+	const FName CharID = RDS->GetSelectedCharacterID();
+	if (!CharID.IsNone())
+	{
+		for (const FCharacterSkillStaticData& SkillData : GDS->GetSkillsByCharacter(CharID))
+		{
+			// EffectActorClass (PullVortexActor, GroundEffectActor 등)
+			if (!SkillData.EffectActorClass.IsNull())
+			{
+				if (TSubclassOf<AActor> EffectClass = SkillData.EffectActorClass.LoadSynchronous())
+				{
+					PreWarmList.Add(MakeActorRequest(EffectClass, SkillEffectActorPoolCount));
+				}
+			}
+
+			// ProjectileClass (ProjectileSpawn 타입)
+			// GetSkillResourceData는 private — GetCharacterSkillExecData 통해 ProjectileClass 조회
+			FCharacterSkillExecData ExecData;
+			if (GDS->GetCharacterSkillExecData(CharID, SkillData.SkillSlot, ExecData)
+				&& !ExecData.ProjectileClass.IsNull())
+			{
+				if (TSubclassOf<AActor> ProjClass = ExecData.ProjectileClass.LoadSynchronous())
+				{
+					PreWarmList.Add(MakeActorRequest(ProjClass, SkillProjectilePoolCount));
+				}
+			}
+		}
+	}
+	else
+	{
+		KHS_WARN(TEXT("BuildPreWarmList — SelectedCharacterID 없음, 스킬 이펙트 액터 PreWarm 생략"));
+	}
+
+	KHS_INFO(TEXT("BuildPreWarmList — 요청 %d건 (에너미 %d클래스 + 투사체 + 위젯 + 스킬이펙트)"), PreWarmList.Num(), UniqueEnemyClasses.Num());
+
 	return PreWarmList;
 }
 

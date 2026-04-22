@@ -46,6 +46,29 @@
 
 ## 2026-04
 
+### [2026-04-22] [ARCH] PreWarm 풀 수량 정보의 분산 보유 — 책임 기반 설계 검증
+
+**UE_Ver**: 5.4
+**Knowledge_Risk**: LOW
+
+**상황**: 스킬 이펙트 액터(PullVortexActor 등)를 PreWarm에 추가하면서, 풀 수량이 GameMode/EnemySpawner/PC에 분산되어 있는 구조가 의도된 것인지 설계 결함인지 점검이 필요했다.
+
+**문제/과제**: `BuildPreWarmList`가 EnemySpawner, PlayerController, RuntimeDataSubsystem, GameDataSubsystem 등 여러 소스에서 데이터를 수집하는 구조. "GameMode 단일 집중"이 맞는지, "책임별 분산"이 맞는지 판단.
+
+**검토한 선택지**:
+  - A) GameMode 단일 집중 — 모든 풀 수량을 GameMode의 `EditDefaultsOnly`로 관리. 조회 지점이 하나지만, GameMode가 에너미·위젯·스킬 세부사항을 모두 알아야 해 단일 책임 위반.
+  - B) 책임 기반 분산 (현재 구조) — EnemySpawner는 스테이지 구성(에너미 종류·수량)을, PC는 자신의 UI 위젯 클래스를, GameMode는 GameMode 수준 수량만 보유. `BuildPreWarmList`는 이를 "조율"하는 역할만 담당.
+
+**결정**: B안이 올바른 설계. `BuildPreWarmList`는 데이터 소유자가 아니라 PreWarm 요청 조립자이며, 오케스트레이터인 GameMode의 책임 범위 안에 있다. 각 소유자는 자신의 도메인 안에서 값을 결정하고, GameMode는 이를 수집해 PoolingSubsystem에 위임한다.
+
+**결과/효과**: 스킬 이펙트 액터 PreWarm 추가 시 기존 패턴을 그대로 따라 자연스럽게 확장됨. 설계 의도를 명확히 인지함으로써 이후 PreWarm 항목 추가 시 올바른 위치(소유자)에 수량을 두는 기준이 생겼다.
+
+**포트폴리오 포인트**: 동작하는 코드에서 의도를 역추적해 설계 원칙(단일 책임, 오케스트레이터 패턴)과 대조·검증하는 사고 과정.
+
+**관련 파일**: Source/RoastStaffGAS/Private/Core/RSGameMode.cpp (BuildPreWarmList), Public/System/EnemySpawner.h
+
+---
+
 ### [2026-04-20] [BUG_FIX] AGroundEffectActor 충돌 활성화 타이밍 버그 — OnPoolActivate vs InitGroundEffect
 
 **UE_Ver**: 5.4
@@ -858,6 +881,27 @@ UE5의 BeginPlay 순서 비보장 특성. 이벤트 드리븐 초기화만 믿�
 **포트폴리오 포인트**: 위젯-UMS 간 비동기 생명주기 충돌을 플래그+캐시 조합으로 조율. UMS `CloseUIInternal`의 `CloseUI → RemoveFromParent` 즉시 호출 구조를 분석하고, 위젯 자율 종료 패턴과 UMS 중앙 관리 원칙을 모두 만족하는 설계를 도출한 사례.
 
 **관련 파일**: `Source/RoastStaffGAS/Public/UI/Enemy/BossHPBarWidget.h`, `Source/RoastStaffGAS/Private/System/EnemySpawner.cpp`
+
+---
+
+## [2026-04-22] BUG — 스테이지 클리어 후 로비 복귀 시 쿨타임 타이머 dangling 크래시
+
+**상황**: 스킬 사용 중 스테이지를 클리어하면 로비로 레벨 전환되면서 에디터가 크래시. 스택 트레이스 최심단은 `USkillManagerSubsystem::StartCooldown` 내부 람다 → `OnSkillSlotUpdatedDel.Broadcast` → `ProcessMulticastDelegate` → `ConstructItems`(메모리 손상).
+
+**문제·과제**: `StartCooldown`의 쿨타임 만료 타이머 람다가 raw `this`를 캡처. 레벨 전환 시 `USkillManagerSubsystem`(WorldSubsystem)은 소멸 경로에 진입하는데, `Deinitialize()` 오버라이드가 없어 타이머가 정리되지 않음. 타이머가 만료되면 소멸된 서브시스템의 `OnSkillSlotUpdatedDel`에 접근 → 델리게이트 내부 배열 오염 → `ConstructItems` 크래시.
+
+**검토한 선택지**:
+- A) `Deinitialize()`만 추가해 타이머를 강제 정리 — 타이머가 Deinitialize 이전에 만료될 경우 여전히 raw `this` 위험 잔존
+- B) 람다만 `TWeakObjectPtr`로 교체 — 리스너(PC)가 소멸된 경우 델리게이트 오염 경로 차단 불완전
+- C) 두 가지 모두 적용 — `Deinitialize()`에서 타이머 전체 Clear + 델리게이트 Clear, 람다는 `TWeakObjectPtr<USkillManagerSubsystem>` + `IsValid()` 가드
+
+**결정**: C안 채택. `Deinitialize()`는 월드 해체 시 타이머와 델리게이트를 일괄 정리하는 방어선, `TWeakObjectPtr` 가드는 그 사이 타이머가 만료될 경우를 대비하는 이중 안전망. `PullVortexActor`가 이미 `TWeakObjectPtr` 패턴으로 동일 문제를 방지하고 있었음 — 서브시스템에도 동일 원칙 확산 적용.
+
+**결과**: 레벨 전환 시 `Deinitialize()`에서 6개 슬롯 `CooldownTimer` 전부 `ClearTimer` → `OnSkillSlotUpdatedDel.Clear()` → `ASC = nullptr` → `bIsInitialized = false` 순으로 정리. 이후 람다가 실행되더라도 `WeakThis.IsValid()` false 분기에서 즉시 return.
+
+**포트폴리오 포인트**: UE WorldSubsystem 생명주기와 TimerManager 정리 타이밍 이해 — `Deinitialize()` 미구현 시 레벨 전환 중 타이머 dangling이 발생하는 구조적 원인 분석. `TWeakObjectPtr` 이중 안전망 패턴을 프로젝트 내 일관 적용(PullVortexActor 선례 → SkillManagerSubsystem 확산).
+
+**관련 파일**: `Source/RoastStaffGAS/Public/Subsystems/SkillManagerSubsystem.h`, `Source/RoastStaffGAS/Private/Subsystems/SkillManagerSubsystem.cpp`
 
 ---
 

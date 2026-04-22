@@ -87,6 +87,14 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "MY|PreWarm")
 	int32 DamageFloatingWidgetPoolCount = 20;
 
+	/** 캐릭터 스킬 이펙트 액터(GroundEffect 등) 프리웜 수량 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|PreWarm")
+	int32 SkillEffectActorPoolCount = 4;
+
+	/** 캐릭터 스킬 투사체(ProjectileSpawn 타입) 프리웜 수량 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|PreWarm")
+	int32 SkillProjectilePoolCount = 10;
+
 	/** 스테이지 시작 시간 (GetWorld()->GetTimeSeconds() 기준) */
 	float StageStartTime = 0.f;
 	/** 현재 진행 중인 스테이지 ID */
