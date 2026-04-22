@@ -96,6 +96,93 @@
 
 ---
 
+### [2026-04-22] [BUG_FIX] GAS MakeEffectContext + AddInstigator null 덮어쓰기 — 데미지 0 무증상 버그
+
+**UE_Ver**: 5.4
+**Knowledge_Risk**: LOW
+
+**상황**: PullVortexActor / GroundEffectActor에서 GE를 적용했으나 에너미 HP가 줄지 않았다. ExecCalc 로그에 데미지 계산은 정상이었으나 실제 어트리뷰트 변화 없음.
+
+**문제/과제**: 풀링 액터(`GetInstigator() == null`)에서 `Context.AddInstigator(GetInstigator(), GetInstigator())`를 호출하면 `MakeEffectContext`가 이미 세팅한 유효한 Instigator를 null로 덮어쓴다. ExecCalc에서 SourceASC 조회 실패 → 데미지 배율 0.
+
+**검토한 선택지**:
+  - A) `AddInstigator` 호출 유지 — InstigatorASC의 AvatarActor를 명시적으로 전달. 코드 의도는 명확하나 풀링 액터의 Instigator 미설정 문제를 외부에서 매번 해결해야 함.
+  - B) `AddInstigator` 호출 제거 — `MakeEffectContext`가 세팅한 Instigator를 그대로 사용. 풀링 액터에서 `GetInstigator()`는 항상 null이므로 AddInstigator 자체가 불필요.
+
+**결정**: B안. `MakeEffectContext()`는 `InstigatorASC` 기반으로 Instigator를 자동 세팅하므로 null `GetInstigator()`로 덮어쓰는 AddInstigator 호출이 오히려 유해.
+
+**결과/효과**: GE 적용 즉시 데미지 정상 반영. PullVortexActor와 GroundEffectActor 동시 수정.
+
+**포트폴리오 포인트**: GAS `EffectContext` 내부 구조 이해. `MakeEffectContext`의 암묵적 Instigator 세팅과 `AddInstigator`의 명시적 덮어쓰기 동작 구분. 무증상 실패(데미지 0)를 GAS 파이프라인 레이어별 로그로 추적한 진단 과정.
+
+**관련 파일**: Source/.../GroundEffect/GroundEffectActor.cpp, PullVortexActor.cpp (ApplyGEToTarget)
+
+**검증 기준**:
+  - [x] PullVortexActor HitTick에서 에너미 HP 감소 확인
+  - [x] GroundEffectActor Overlap 시 GE 정상 적용
+
+---
+
+### [2026-04-22] [BUG_FIX] HOMING_BOUNCE 투사체 — 다중 컴포넌트 OnBeginOverlap 중복 + HitType 우선순위 충돌
+
+**UE_Ver**: 5.4
+**Knowledge_Risk**: LOW
+
+**상황**: 콩콩이(HOMING_BOUNCE) 투사체가 적 1기를 맞고 즉시 소멸. 로그에 Bounce 기록 없음. Lifetime 만료 메시지도 없음.
+
+**문제/과제**: 두 개의 독립적 원인이 순서대로 발견됐다.
+
+원인 1 — **HitType 우선순위 충돌**: `OnBeginOverlap`에서 `HitType == PIERCE` 체크가 `MoveType == HOMING_BOUNCE` 체크보다 먼저 실행된다. DT에 `HitType=PIERCE`가 설정되어 있어 `HandlePierceHit`이 호출됨. `PierceCount=1` → 첫 타격 후 `ReturnToPool`.
+
+원인 2 — **다중 컴포넌트 중복 Overlap**: `IgnoreActorWhenMoving`은 이후 이동 sweep만 차단하고, 동일 프레임에 이미 발생한 이벤트를 막지 못한다. 에너미의 캡슐 + 스켈레탈 메시 컴포넌트가 모두 Pawn 채널에 응답하면 `HandleBounceHit`이 같은 Actor에 대해 2~3회 연속 호출 → `BounceHitCount`가 `MAX_BOUNCE_COUNT(3)`에 조기 도달 → 즉시 소멸.
+
+**검토한 선택지 (원인 2)**:
+  - A) `PiercedActors` 방식(TSet) — 별도 컨테이너 유지. 함수 진입 시 포함 여부 체크. 기존 Pierce 패턴 재사용.
+  - B) `GetMoveIgnoreActors().Contains()` 조기 리턴 — 첫 호출에서 IgnoreActorWhenMoving 등록 직후, 두 번째 호출에서 맨 위 조기 리턴. 추가 컨테이너 불필요.
+
+**결정**: B안. 이미 IgnoreActorWhenMoving 인프라가 있으므로 같은 목록을 중복 방어에 재활용. 코드가 단순하고 의도가 자명함.
+
+**결과/효과**: HitType=SINGLE 수정 후 바운스 동작. 중복 방어 추가 후 3회 바운스 정상 작동.
+
+**포트폴리오 포인트**: UE5 물리 이벤트 시스템의 컴포넌트 단위 발화 이해. `IgnoreActorWhenMoving`의 sweep-only 한계 파악. 진단 로그를 최소 삽입(`MoveType/HitType/Lifetime`)으로 원인 계층을 분리한 접근.
+
+**관련 파일**: Source/.../Projectile/BaseProjectile.cpp (HandleBounceHit, OnBeginOverlap)
+
+**검증 기준**:
+  - [x] 적 1기 상대로 3회 바운스 후 소멸
+  - [x] 다수 적 상대로 적당 1회씩 피해 적용
+
+---
+
+### [2026-04-22] [ARCH] HOMING_BOUNCE 다음 타겟 선택 전략 — 클러스터 스킵 + Z 튕김
+
+**UE_Ver**: 5.4
+**Knowledge_Risk**: LOW
+
+**상황**: 바운스 투사체가 최근접 적을 다음 타겟으로 선택하도록 구현했으나, PullVortex 등 흡입 스킬로 적이 밀집한 상황에서 바운스가 관통(Pierce)과 구별이 안 됨. 또한 Z축 움직임이 없어 시각적으로 평면적.
+
+**문제/과제**: 밀집 클러스터 내 최근접 선택은 방향 전환이 거의 없어 "튕기는" 연출을 살릴 수 없음.
+
+**검토한 선택지**:
+  - A) 최소 각도 임계값 필터 — 진행 방향 대비 N도 미만 후보 제외. 각도 계산으로 방향 전환 강제. 그러나 클러스터가 밀집하면 각도 조건 만족 후보가 여전히 클러스터 내에 존재.
+  - B) 반사 벡터 기반 — 입사 방향을 반사해 가장 가까운 방향의 적 선택. 물리 바운스와 동일하나 반사 방향에 적이 없으면 실패율 높음.
+  - C) 최소 거리 배제 + 폴백 — 현재 위치에서 `MinBounceSkipRadius` 이내 후보 전부 제외. 클러스터 전체를 공간적으로 스킵. 폴백으로 조건 미충족 시 최근접 복귀.
+
+**결정**: C안. A/B는 클러스터 밀집 시 클러스터 내부 후보를 걸러내지 못하는 공통 한계가 있음. C는 공간 자체를 배제해 클러스터 통째를 스킵. `MinBounceSkipRadius` 단일 파라미터 노출로 튜닝 단순화.
+Z 튕김: 타겟 재설정 시 현재 XY 속도에 `BounceZLaunchFactor` 비율로 Z 속도 추가 → homing 가속도가 타겟으로 당기는 동안 자연스러운 포물선 형성.
+
+**결과/효과**: 적 밀집 환경에서 투사체가 클러스터를 건너뛰며 원거리 적으로 이동. Z 튕김으로 "통통이" 시각 연출 구현.
+
+**포트폴리오 포인트**: 게임플레이 느낌(game feel) 문제를 기하학적 선택 전략으로 해결. 단순 거리 기반에서 공간 배제 + 폴백 구조로 확장하는 설계 결정.
+
+**관련 파일**: Source/.../Projectile/BaseProjectile.h (MinBounceSkipRadius, BounceZLaunchFactor), BaseProjectile.cpp (HandleBounceHit)
+
+**검증 기준**:
+  - [x] 밀집 적 환경에서 바운스 시 클러스터 외부 적으로 이동
+  - [x] 바운스 시 Z축 상승 후 타겟으로 곡선 유도
+
+---
+
 ### [2026-04-21] [PATTERN] PostProcess 아웃라인 — CustomDepth 깊이차 비교 vs CustomStencil 이진 마스크
 
 **UE_Ver**: 5.4

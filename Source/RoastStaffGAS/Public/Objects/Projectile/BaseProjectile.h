@@ -82,8 +82,25 @@ private:
 	TSet<TWeakObjectPtr<AActor>> PiercedActors;
 
 	static constexpr int32 MAX_BOUNCE_COUNT = 3;
-	
+
 protected:
+	/**
+	 * 바운스 후 다음 타겟 탐색 시 현재 위치에서 이 반경 이내 적을 후보에서 제외.
+	 * 밀집 클러스터 스킵 → 시각적 바운스 연출 강화.
+	 * 폴백: 반경 밖 후보가 없으면 기존 최근접 로직으로 복귀.
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Projectile|Bounce")
+	float MinBounceSkipRadius = 350.f;
+
+	/**
+	 * 바운스 시 Z 방향 튕김 세기.
+	 * XY 평면 속도 대비 Z 속도 비율. 0 = 튕김 없음, 1 = XY와 동일 세기로 상승.
+	 * 권장 범위: 0.3 ~ 0.8
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Projectile|Bounce")
+	float BounceZLaunchFactor = 0.5f;
+
+private:
 	UPROPERTY(VisibleAnywhere, Category = "MY|Projectile")
 	TObjectPtr<USphereComponent> SphereComp;
 	UPROPERTY(VisibleAnywhere, Category = "MY|Projectile")

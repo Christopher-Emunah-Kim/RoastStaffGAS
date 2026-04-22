@@ -245,7 +245,7 @@ void ABaseProjectile::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor
 
 void ABaseProjectile::ReturnToPool()
 {
-	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys);
+	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys)
 	PoolSys->ReturnToPool(this);
 }
 
@@ -422,13 +422,20 @@ void ABaseProjectile::HandlePierceHit(AActor* OtherActor)
 
 void ABaseProjectile::HandleBounceHit(AActor* OtherActor, const FHitResult& Hit)
 {
+	// 동일 액터 다중 컴포넌트 Overlap 중복 방지
+	// IgnoreActorWhenMoving은 미래 이동만 막음 — 이미 발생한 이벤트 중복은 여기서 차단
+	if (SphereComp->GetMoveIgnoreActors().Contains(OtherActor))
+	{
+		return;
+	}
+
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
 	if (!TargetASC || !TargetASC->HasMatchingGameplayTag(RSTags::Team_Enemy))
 	{
 		return;
 	}
 
-	// 동일 액터 중복 히트 방지
+	// 이후 이벤트 차단 — 데미지 적용 전에 등록해야 재진입 방지
 	SphereComp->IgnoreActorWhenMoving(OtherActor, true);
 
 	// 데미지 적용
@@ -444,7 +451,7 @@ void ABaseProjectile::HandleBounceHit(AActor* OtherActor, const FHitResult& Hit)
 
 	// 다음 가장 가까운 적 탐색 (이미 맞은 액터 제외)
 	const FVector CurrentLoc = GetActorLocation();
-	constexpr float BounceSearchRadius = 1500.f;
+	constexpr float BounceSearchRadius = 3500.f;
 
 	TArray<FOverlapResult> Overlaps;
 	FCollisionQueryParams QueryParams;
@@ -454,9 +461,15 @@ void ABaseProjectile::HandleBounceHit(AActor* OtherActor, const FHitResult& Hit)
 	GetWorld()->OverlapMultiByChannel(Overlaps, CurrentLoc, FQuat::Identity,
 		ECC_Pawn, FCollisionShape::MakeSphere(BounceSearchRadius), QueryParams);
 
+	// 1차 탐색: MinBounceSkipRadius 밖 후보 (클러스터 스킵)
 	AActor* NextTarget = nullptr;
 	USceneComponent* NextTargetComp = nullptr;
 	float MinDist = FLT_MAX;
+
+	// 2차 폴백: 반경 조건 무시하고 가장 가까운 후보
+	AActor* FallbackTarget = nullptr;
+	USceneComponent* FallbackTargetComp = nullptr;
+	float FallbackMinDist = FLT_MAX;
 
 	for (const FOverlapResult& Overlap : Overlaps)
 	{
@@ -472,33 +485,57 @@ void ABaseProjectile::HandleBounceHit(AActor* OtherActor, const FHitResult& Hit)
 			continue;
 		}
 
-		// MoveIgnoreActors에 등록된 액터(이미 맞은 적) 제외
+		// 이미 맞은 적 제외
 		if (SphereComp->GetMoveIgnoreActors().Contains(Candidate))
 		{
 			continue;
 		}
 
 		const float Dist = FVector::Dist(CurrentLoc, Candidate->GetActorLocation());
-		if (Dist < MinDist)
+
+		// 폴백 후보 갱신 (거리 무관)
+		if (Dist < FallbackMinDist)
 		{
-			MinDist = Dist;
-			NextTarget = Candidate;
+			FallbackMinDist    = Dist;
+			FallbackTarget     = Candidate;
+			FallbackTargetComp = Candidate->GetRootComponent();
+		}
+
+		// 1차 후보: MinBounceSkipRadius 밖만 허용
+		if (Dist >= MinBounceSkipRadius && Dist < MinDist)
+		{
+			MinDist        = Dist;
+			NextTarget     = Candidate;
 			NextTargetComp = Candidate->GetRootComponent();
 		}
 	}
 
+	// 1차 후보 없으면 폴백 적용
+	if (!NextTarget && FallbackTarget)
+	{
+		NextTarget     = FallbackTarget;
+		NextTargetComp = FallbackTargetComp;
+		KHS_INFO(TEXT("Bounce %d — 반경 밖 후보 없음, 폴백 → %s"), BounceHitCount, *NextTarget->GetName());
+	}
+
 	if (NextTarget && NextTargetComp)
 	{
-		// 다음 타겟으로 유도 전환
+		// Z 튕김: 현재 XY 속도 기반으로 상방 속도 추가 — homing 가속도가 타겟으로 당겨주며 포물선 형성
+		if (BounceZLaunchFactor > 0.f)
+		{
+			const FVector CurVel   = ProjectileComp->Velocity;
+			const float   XYSpeed  = static_cast<float>(FVector(CurVel.X, CurVel.Y, 0.f).Size());
+			ProjectileComp->Velocity = FVector(CurVel.X, CurVel.Y, XYSpeed * BounceZLaunchFactor);
+		}
+
 		ProjectileComp->bIsHomingProjectile = true;
 		ProjectileComp->HomingTargetComponent = NextTargetComp;
 		ProjectileComp->HomingAccelerationMagnitude = InitData.TurnSpeed > 0.f ? InitData.TurnSpeed : 3000.f;
 
-		KHS_INFO(TEXT("Bounce %d → %s"), BounceHitCount, *NextTarget->GetName());
+		KHS_INFO(TEXT("Bounce %d → %s (dist: %.0f)"), BounceHitCount, *NextTarget->GetName(), static_cast<float>(FVector::Dist(CurrentLoc, NextTarget->GetActorLocation())));
 	}
 	else
 	{
-		// 다음 타겟 없음 — 직선 비행 후 수명 만료 대기
 		ProjectileComp->bIsHomingProjectile = false;
 		KHS_INFO(TEXT("Bounce %d — 다음 타겟 없음, 직선 비행"), BounceHitCount);
 	}

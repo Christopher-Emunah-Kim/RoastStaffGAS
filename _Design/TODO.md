@@ -50,10 +50,26 @@
 
   ### [DEFERRED] PullVortex 파라미터 DT 컬럼화 검토                               [P3]
 
+### [DEFERRED] SkillActivationType 리팩터링 — TargetingType × EffectType 2축 분리  [P2]
+  > 트리거: 도화가 스킬 6개 완료 후, 소서리스 설계 착수 전
+  > 현재 문제:
+  >   - ActivationType 하나가 조준방식+효과방식을 동시에 담아 Execute 함수 분기 지옥
+  >   - SpawnPreview 안에 Teleport / AoE / SpawnActor 분기가 혼재
+  >   - EffectActorClass 유무로 AoE 스킵하는 조건 추가 (코드 냄새)
+  > 목표 설계:
+  >   TargetingType: Instant / AimPreview / Projectile (조준방식)
+  >   EffectType:    SelfBuff / FrontalHit / RadialAoE / SpawnActor / Teleport (효과방식)
+  > 범위: ESkillActivationType 교체 → DT 스키마 변경 → Execute 함수 재설계 → CSV 재작성
+  - [~] 소서리스 스킬 설계 전 PLAN 수립                                          [P2]
+  - [~] DT 통폐합: FSkillCommonResourceData ↔ FCharacterSkillStaticData 중복 컬럼 제거  [P2]
+  >   GAClass / SkillGEClass / StatusGEClass / SkillIcon 등 겹침
+  >   캐릭터 스킬은 FCharacterSkillStaticData 자체 완결 방향 검토
+
 ### [DEFERRED] Element.Ancient 태그 + 도화가 FX 색상
   - [~] Element.Ancient Gameplay Tag 추가 (.ini 등록)                         [P2]
   - [~] GA_CharacterSkill::SpawnSkillFX — Element.Ancient 분기 추가 (진회색) [P2]
   - [~] DT_CharacterSkill 도화가 스킬 ElementTag → Element.Ancient 일괄 적용 [P2]
+  - [~] FSkillEffectInitData에 ElementTag 추가 + GroundEffectActor/PullVortexActor InitEffect ElementColor 적용 [P2]
 
 ## [FEATURE] P0 전투 인프라 | PLAN_CombatInfra_v1.0
 > 시작: 2026-04-17 | 기획서: 게임 시스템 개선안 v2.0.md
