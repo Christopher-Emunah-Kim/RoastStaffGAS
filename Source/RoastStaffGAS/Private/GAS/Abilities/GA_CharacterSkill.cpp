@@ -401,6 +401,7 @@ void UGA_CharacterSkill::ExecuteSpawnPreview(const FCharacterSkillExecData& Exec
 				InitData.EffectRadius  = ExecData.EffectRadius;
 				InitData.Duration      = ExecData.Duration;
 				InitData.SkillFX       = ExecData.SkillFX;
+				InitData.ElementColor  = ResolveElementColor(ExecData.ElementTag);
 				EffectInterface->InitEffect(InitData);
 			}
 		}
