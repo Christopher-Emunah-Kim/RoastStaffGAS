@@ -17,11 +17,15 @@ void URSStageSelectWidget::NativeOnInitialized()
 	if (Btn_Card_Left)
 	{
 		Btn_Card_Left->OnClicked.AddUniqueDynamic(this, &ThisClass::OnCardLeftClicked);
+		Btn_Card_Left->OnHovered.AddUniqueDynamic(this, &ThisClass::OnCardLeftHovered);
+		Btn_Card_Left->OnUnhovered.AddUniqueDynamic(this, &ThisClass::OnCardLeftUnhovered);
 	}
 
 	if (Btn_Card_Right)
 	{
 		Btn_Card_Right->OnClicked.AddUniqueDynamic(this, &ThisClass::OnCardRightClicked);
+		Btn_Card_Right->OnHovered.AddUniqueDynamic(this, &ThisClass::OnCardRightHovered);
+		Btn_Card_Right->OnUnhovered.AddUniqueDynamic(this, &ThisClass::OnCardRightUnhovered);
 	}
 
 	if (Btn_Back)
@@ -36,6 +40,10 @@ void URSStageSelectWidget::NativeConstruct()
 
 	StageIDLeft  = NAME_None;
 	StageIDRight = NAME_None;
+
+	// 초기 상태: 하이라이트 숨김, 텍스트 기본 색상
+	SetCardHighlight(Img_Highlight_Left,  Txt_Stage_Left,  false);
+	SetCardHighlight(Img_Highlight_Right, Txt_Stage_Right, false);
 
 	InitStageCards();
 }
@@ -83,6 +91,22 @@ void URSStageSelectWidget::SetStageCardDisplay(UImage* Img, UTextBlock* Txt, con
 	}
 }
 
+// ── 하이라이트 공통 처리 ──────────────────────────────────────────────────────
+
+void URSStageSelectWidget::SetCardHighlight(UImage* ImgHighlight, UTextBlock* Txt, bool bHighlighted)
+{
+	if (ImgHighlight)
+	{
+		ImgHighlight->SetVisibility(
+			bHighlighted ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	}
+
+	if (Txt)
+	{
+		Txt->SetColorAndOpacity(bHighlighted ? HighlightFontColor : NormalFontColor);
+	}
+}
+
 // ── 버튼 핸들러 ───────────────────────────────────────────────────────────────
 
 void URSStageSelectWidget::OnCardLeftClicked()
@@ -111,4 +135,24 @@ void URSStageSelectWidget::OnBackClicked()
 {
 	GET_GI_SUBSYSTEM(UUIManagerSubsystem, UMS)
 	UMS->BackPage();
+}
+
+void URSStageSelectWidget::OnCardLeftHovered()
+{
+	SetCardHighlight(Img_Highlight_Left, Txt_Stage_Left, true);
+}
+
+void URSStageSelectWidget::OnCardLeftUnhovered()
+{
+	SetCardHighlight(Img_Highlight_Left, Txt_Stage_Left, false);
+}
+
+void URSStageSelectWidget::OnCardRightHovered()
+{
+	SetCardHighlight(Img_Highlight_Right, Txt_Stage_Right, true);
+}
+
+void URSStageSelectWidget::OnCardRightUnhovered()
+{
+	SetCardHighlight(Img_Highlight_Right, Txt_Stage_Right, false);
 }

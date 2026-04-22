@@ -38,46 +38,57 @@ public:
 private:
 	/** GDS에서 스테이지 2개 조회 → 좌/우 카드 세팅 */
 	void InitStageCards();
-
 	/** 카드 1개분 이미지 + 텍스트 세팅 */
 	void SetStageCardDisplay(UImage* Img, UTextBlock* Txt, const FStageStaticData& Data);
+	/** 카드 호버/언호버 — 하이라이트 이미지 + 텍스트 색상 공통 처리 */
+	void SetCardHighlight(UImage* ImgHighlight, UTextBlock* Txt, bool bHighlighted);
 
 	UFUNCTION() void OnCardLeftClicked();
 	UFUNCTION() void OnCardRightClicked();
 	UFUNCTION() void OnBackClicked();
+	UFUNCTION() void OnCardLeftHovered();
+	UFUNCTION() void OnCardLeftUnhovered();
+	UFUNCTION() void OnCardRightHovered();
+	UFUNCTION() void OnCardRightUnhovered();
 
 	// ── BindWidget ──────────────────────────────────────────────────────────
 	/** 좌측 카드 클릭 감지 (투명 UButton — WBP에서 전체 영역 커버) */
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> Btn_Card_Left;
-
 	/** 우측 카드 클릭 감지 */
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> Btn_Card_Right;
-
 	/** 좌측 카드 배경 스크린샷 */
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> Img_Card_Left;
-
 	/** 우측 카드 배경 스크린샷 */
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> Img_Card_Right;
-
+	/** 좌측 하이라이트 오버레이 이미지 */
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> Img_Highlight_Left;
+	/** 우측 하이라이트 오버레이 이미지 */
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> Img_Highlight_Right;
 	/** 좌측 스테이지 이름 */
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> Txt_Stage_Left;
-
 	/** 우측 스테이지 이름 */
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> Txt_Stage_Right;
-
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> Btn_Back;
 
+	/** 호버 시 텍스트 강조 색상 (BP에서 설정) */
+	UPROPERTY(EditDefaultsOnly, Category = "RS|StageSelect")
+	FLinearColor HighlightFontColor = FLinearColor(1.f, 0.8f, 0.2f, 1.f);
+	/** 기본 텍스트 색상 (BP에서 설정) */
+	UPROPERTY(EditDefaultsOnly, Category = "RS|StageSelect")
+	FLinearColor NormalFontColor = FLinearColor::White;
+	
 	// ── 런타임 상태 ─────────────────────────────────────────────────────────
 	/** InitStageCards에서 확정 — OnCardLeftClicked에서 브로드캐스트 */
 	FName StageIDLeft = NAME_None;
-
 	/** InitStageCards에서 확정 — OnCardRightClicked에서 브로드캐스트 */
 	FName StageIDRight = NAME_None;
 };
