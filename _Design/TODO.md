@@ -46,6 +46,10 @@
     - [ ] 도화가 5번 DT 행 EffectActorClass → BP_PullVortexActor 할당            [P0]
     - [ ] DT_CharacterSkill 각 스킬 행 SkillGEClass 열에 GE 클래스 할당          [P0]
 
+  ### [OPEN] SR + 학습 리포트 — CombatInfra + SkillSystemArch 합산               [P1]
+  - [ ] @senior-reviewer 실행 (SkillSystemArch 전체 파일 포함)
+  - [ ] @learning-coach 실행
+
   ### [MODULE-7] 도화가 스킬 2·4·6 DT 행 등록                                   [DEFERRED]
 
   ### [DEFERRED] PullVortex 파라미터 DT 컬럼화 검토                               [P3]
