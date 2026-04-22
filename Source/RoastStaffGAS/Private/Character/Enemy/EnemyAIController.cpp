@@ -23,7 +23,7 @@ AEnemyAIController::AEnemyAIController()
 void AEnemyAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-	KHS_INFO(TEXT("[AI] OnPossess — %s → %s"), *GetName(), InPawn ? *InPawn->GetName() : TEXT("NULL"));
+	KHS_DEBUG(TEXT("[AI] OnPossess — %s → %s"), *GetName(), InPawn ? *InPawn->GetName() : TEXT("NULL"));
 }
 
 void AEnemyAIController::Tick(float DeltaTime)
@@ -116,7 +116,7 @@ void AEnemyAIController::StartAI(UBehaviorTree* BehaviorTree)
 		BB->SetValueAsBool(BBKey_bPlayerDead, false);
 	}
 
-	KHS_INFO(TEXT("%s — BehaviorTree 실행 완료."), *GetName());
+	KHS_DEBUG(TEXT("%s — BehaviorTree 실행 완료."), *GetName());
 }
 
 void AEnemyAIController::SetInitialTargetLocation(const FVector& Location)
@@ -138,7 +138,7 @@ void AEnemyAIController::StopAI()
 		Brain->StopLogic(TEXT("Pooled — deactivated"));
 	}
 	StopMovement();
-	KHS_INFO(TEXT("%s — AI 중단."), *GetName());
+	KHS_DEBUG(TEXT("%s — AI 중단."), *GetName());
 }
 
 void AEnemyAIController::PauseAI()
@@ -148,7 +148,7 @@ void AEnemyAIController::PauseAI()
 		Brain->PauseLogic(TEXT("Boss phase transition"));
 	}
 	StopMovement();
-	KHS_INFO(TEXT("%s — AI 일시 중단 (페이즈 전환)."), *GetName());
+	KHS_DEBUG(TEXT("%s — AI 일시 중단 (페이즈 전환)."), *GetName());
 }
 
 void AEnemyAIController::ResumeAI()
@@ -157,5 +157,5 @@ void AEnemyAIController::ResumeAI()
 	{
 		Brain->ResumeLogic(TEXT("Boss phase transition complete"));
 	}
-	KHS_INFO(TEXT("%s — AI 재개 (페이즈2 활성)."), *GetName());
+	KHS_DEBUG(TEXT("%s — AI 재개 (페이즈2 활성)."), *GetName());
 }

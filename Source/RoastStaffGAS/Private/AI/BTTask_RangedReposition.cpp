@@ -81,8 +81,7 @@ EBTNodeResult::Type UBTTask_RangedReposition::ExecuteTask(UBehaviorTreeComponent
 	Dir.Z                   = 0.f;
 	const float   Dist      = Dir.Size2D();
 
-	KHS_INFO(TEXT("[BTRepos] %s — Dist=%.0f Preferred=%.0f Max=%.0f"),
-		*Pawn->GetName(), Dist, PreferredRange, MaxAttackRange);
+	KHS_DEBUG(TEXT("[BTRepos] %s — Dist=%.0f Preferred=%.0f Max=%.0f"),	*Pawn->GetName(), Dist, PreferredRange, MaxAttackRange);
 
 	// 사거리 내 — 즉시 성공
 	if (Dist >= PreferredRange && Dist <= MaxAttackRange)

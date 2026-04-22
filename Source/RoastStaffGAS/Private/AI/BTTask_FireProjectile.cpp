@@ -30,7 +30,7 @@ EBTNodeResult::Type UBTTask_FireProjectile::ExecuteTask(UBehaviorTreeComponent& 
 	}
 
 	//타입별 발사
-	KHS_INFO(TEXT("[BTFire] ExecuteTask — %s"), *Pawn->GetName());
+	//KHS_INFO(TEXT("[BTFire] ExecuteTask — %s"), *Pawn->GetName());
 
 	if (ARangedEnemy* Ranged = Cast<ARangedEnemy>(Pawn))
 	{

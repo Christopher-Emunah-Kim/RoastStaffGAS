@@ -44,7 +44,7 @@ void UBaseAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 		// 클램핑 재보정 (PostExecute 시점에도 한 번 더)
 		SetCurrentHP(FMath::Clamp(GetCurrentHP(), 0.f, GetMaxHP()));
 
-		KHS_INFO(TEXT("[HP 변경] %s → CurrentHP: %.0f / MaxHP: %.0f"),
+		KHS_DEBUG(TEXT("[HP 변경] %s → CurrentHP: %.0f / MaxHP: %.0f"),
 		*GetOwningActor()->GetName(), GetCurrentHP(), GetMaxHP());
 
 		// 사망 판정 이벤트 발행

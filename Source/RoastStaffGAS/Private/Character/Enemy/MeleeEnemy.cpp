@@ -22,7 +22,7 @@ void AMeleeEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 	//TODO [테스트] 임시
-	InitializeEnemy(TEXT("ENM_Melee_01"));
+	//InitializeEnemy(TEXT("ENM_Melee_01"));
 	
 	AttackRangeSphere->OnComponentBeginOverlap.AddDynamic(this, &AMeleeEnemy::OnAttackRangeBeginOverlap);
 	AttackRangeSphere->OnComponentEndOverlap.AddDynamic(this, &AMeleeEnemy::OnAttackRangeEndOverlap);
@@ -81,7 +81,7 @@ void AMeleeEnemy::OnAttackRangeEndOverlap(UPrimitiveComponent* OverlappedComp, A
 	GetWorld()->GetTimerManager().ClearTimer(AttackRepeatTimerHandle);
 	AttackTarget.Reset();
 
-	KHS_INFO(TEXT("%s — 플레이어 공격 범위 이탈. 공격 타이머 정지."), *GetName());
+	KHS_DEBUG(TEXT("%s — 플레이어 공격 범위 이탈. 공격 타이머 정지."), *GetName());
 }
 
 void AMeleeEnemy::TryAttack(AActor* Target)
@@ -132,7 +132,7 @@ void AMeleeEnemy::TryAttack(AActor* Target)
 	SpecHandle.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_EnemyAttackDamage, AttackDamage);
 	TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 
-	KHS_INFO(TEXT("%s — 근접 공격. 대상: %s / 데미지: %.0f"), *GetName(), *Target->GetName(), AttackDamage);
+	KHS_DEBUG(TEXT("%s — 근접 공격. 대상: %s / 데미지: %.0f"), *GetName(), *Target->GetName(), AttackDamage);
 
 }
 
@@ -146,5 +146,5 @@ void AMeleeEnemy::InitializeMeleeParams(float InAttackDamage, float InAttackCool
 		AttackRangeSphere->SetSphereRadius(InAttackRange);
 	}
 
-	KHS_INFO(TEXT("%s — MeleeParams 초기화. Damage: %.0f / Cooldown: %.1f / Range: %.0f"), *GetName(), AttackDamage, AttackCooldown, InAttackRange);
+	KHS_DEBUG(TEXT("%s — MeleeParams 초기화. Damage: %.0f / Cooldown: %.1f / Range: %.0f"), *GetName(), AttackDamage, AttackCooldown, InAttackRange);
 }

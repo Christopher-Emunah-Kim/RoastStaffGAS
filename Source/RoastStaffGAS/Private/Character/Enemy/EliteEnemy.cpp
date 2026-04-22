@@ -37,7 +37,7 @@ void AEliteEnemy::InitializeEliteParams(float InAttackDamage, const FEnemyExtDat
 	ProjectileSpeed   = ExtData.ProjectileSpeed;
 	ProjectileLifetime = ExtData.ProjectileLifetime;
 
-	KHS_INFO(TEXT("%s — EliteParams 초기화. ATK: %.0f / PreferredRange: %.0f / MaxRange: %.0f"),
+	KHS_DEBUG(TEXT("%s — EliteParams 초기화. ATK: %.0f / PreferredRange: %.0f / MaxRange: %.0f"),
 		*GetName(), AttackDamage, PreferredRange, MaxAttackRange);
 }
 
@@ -81,7 +81,7 @@ void AEliteEnemy::MeleeCharge()
 	// 돌진 피해 감지 활성
 	ChargeHitSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
-	KHS_INFO(TEXT("%s — 근접 돌진 시작."), *GetName());
+	KHS_DEBUG(TEXT("%s — 근접 돌진 시작."), *GetName());
 }
 
 void AEliteEnemy::EndCharge()
@@ -102,7 +102,7 @@ void AEliteEnemy::EndCharge()
 	// 돌진 피해 감지 비활성
 	ChargeHitSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	KHS_INFO(TEXT("%s — 근접 돌진 종료."), *GetName());
+	KHS_DEBUG(TEXT("%s — 근접 돌진 종료."), *GetName());
 }
 
 
@@ -165,7 +165,7 @@ void AEliteEnemy::ApplyChargeDamage(AActor* Target)
 	Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_EnemyAttackDamage, AttackDamage * ChargeDamageMult);
 	TargetASC->ApplyGameplayEffectSpecToSelf(*Spec.Data);
 
-	KHS_INFO(TEXT("%s — 돌진 데미지 적용. 대상: %s / 데미지: %.0f"), *GetName(), *Target->GetName(), AttackDamage * ChargeDamageMult);
+	KHS_DEBUG(TEXT("%s — 돌진 데미지 적용. 대상: %s / 데미지: %.0f"), *GetName(), *Target->GetName(), AttackDamage * ChargeDamageMult);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

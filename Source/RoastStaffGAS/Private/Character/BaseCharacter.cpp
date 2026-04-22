@@ -50,7 +50,7 @@ void ABaseCharacter::HandleDeath()
 
 	// 사망 애니메이션 재생 로직
 
-	KHS_INFO(TEXT(" %s — 부모 공통 사망 처리 완료."), *GetName());
+	KHS_DEBUG(TEXT(" %s — 부모 공통 사망 처리 완료."), *GetName());
 
 	// 고유 사망 처리는 자식 클래스에서 오버라이드
 }
@@ -100,7 +100,7 @@ void ABaseCharacter::BindAttributeDelegates()
 	AS->OnDeathDel.RemoveDynamic(this, &ABaseCharacter::HandleDeath);
 	AS->OnDeathDel.AddDynamic(this, &ABaseCharacter::HandleDeath);
 
-	KHS_INFO(TEXT(" %s — ATTRIBUTE DELEGATE BINDING SUCCESS"), *GetName());
+	KHS_DEBUG(TEXT(" %s — ATTRIBUTE DELEGATE BINDING SUCCESS"), *GetName());
 }
 
 void ABaseCharacter::ApplyPassiveEffects(const TArray<TSoftClassPtr<UGameplayEffect>>& DefaultEffects)

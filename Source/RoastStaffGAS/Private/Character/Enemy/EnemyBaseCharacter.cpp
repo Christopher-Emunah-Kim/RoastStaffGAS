@@ -96,7 +96,7 @@ void AEnemyBaseCharacter::InitializeEnemy(FName InEnemyID)
 
 	bIsInitialized = true;
 
-	KHS_INFO(TEXT("%s — 초기화 완료. EnemyID: %s / HP: %.0f / Speed: %.0f"), *GetName(), *EnemyID.ToString(), EnemyData.MaxHP, EnemyData.MoveSpeed);
+	KHS_DEBUG(TEXT("%s — 초기화 완료. EnemyID: %s / HP: %.0f / Speed: %.0f"), *GetName(), *EnemyID.ToString(), EnemyData.MaxHP, EnemyData.MoveSpeed);
 }
 
 void AEnemyBaseCharacter::ForcePoolActive()
@@ -139,7 +139,7 @@ void AEnemyBaseCharacter::InitializeAbilitySystem()
 	EnemyTag.AddTag(RSTags::Team_Enemy);
 	ASC->AddLooseGameplayTags(EnemyTag);
 
-	KHS_INFO(TEXT("%s — ASC 초기화 완료"), *GetName());
+	//KHS_INFO(TEXT("%s — ASC 초기화 완료"), *GetName());
 }
 
 void AEnemyBaseCharacter::HandleDeath()
@@ -187,7 +187,7 @@ void AEnemyBaseCharacter::HandleDeath()
 		false
 	);
 
-	KHS_INFO(TEXT("%s — 에너미 사망 처리 완료. EnemyID: %s"), *GetName(), *EnemyID.ToString());
+	//KHS_INFO(TEXT("%s — 에너미 사망 처리 완료. EnemyID: %s"), *GetName(), *EnemyID.ToString());
 }
 
 void AEnemyBaseCharacter::OnPoolActivate()
@@ -326,7 +326,7 @@ void AEnemyBaseCharacter::LaunchEnemyProjectile(const FVector& Direction, float 
 	Projectile->SetInstigator(this);
 	Projectile->InitEnemyProjectile(Direction, ProjectileSpeed, ProjectileLifetime,	Damage, AttackGEClass, GetAbilitySystemComponent());
 
-	KHS_INFO(TEXT("%s — 투사체 발사. 방향: %s"), *GetName(), *Direction.ToString());
+	//KHS_INFO(TEXT("%s — 투사체 발사. 방향: %s"), *GetName(), *Direction.ToString());
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -390,7 +390,7 @@ void AEnemyBaseCharacter::ApplyKnockdown(FVector ImpactDir)
 		PlayAnimMontage(KnockdownMontage);
 	}
 
-	KHS_INFO(TEXT("%s — 넉다운 시작. Duration: %.1fs"), *GetName(), KnockdownDuration);
+	KHS_DEBUG(TEXT("%s — 넉다운 시작. Duration: %.1fs"), *GetName(), KnockdownDuration);
 
 	// KnockdownDuration 후 AI 재개
 	TWeakObjectPtr<AEnemyBaseCharacter> WeakThis(this);
@@ -415,7 +415,7 @@ void AEnemyBaseCharacter::ApplyKnockdown(FVector ImpactDir)
 				}
 			}
 
-			KHS_INFO(TEXT("%s — 넉다운 기립 완료."), *WeakThis->GetName());
+			KHS_DEBUG(TEXT("%s — 넉다운 기립 완료."), *WeakThis->GetName());
 		},
 		KnockdownDuration,
 		false

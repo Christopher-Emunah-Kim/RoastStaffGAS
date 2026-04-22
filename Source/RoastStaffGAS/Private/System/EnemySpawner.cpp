@@ -103,7 +103,7 @@ void AEnemySpawner::SpawnEnemy(FName EnemyID, const FVector& PlayerLocation)
 	// AddUniqueDynamic: 풀 재사용 시 중복 바인딩 방지
 	Enemy->OnEnemyKilledDel.AddUniqueDynamic(StageMgr, &UStageManagerSubsystem::OnEnemyKilled);
 
-	KHS_INFO(TEXT("SpawnEnemy — EnemyID: %s / 스폰 위치: %s"),*EnemyID.ToString(), *SpawnLocation.ToString());
+	KHS_DEBUG(TEXT("SpawnEnemy — EnemyID: %s / 스폰 위치: %s"),*EnemyID.ToString(), *SpawnLocation.ToString());
 }
 
 void AEnemySpawner::InitializeEnemyByType(AEnemyBaseCharacter* Enemy, FName EnemyID)

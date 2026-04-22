@@ -97,7 +97,7 @@ void AEnemyProjectile::InitEnemyProjectile(const FVector& Direction,float Speed,
 	// 수명 타이머
 	GetWorldTimerManager().SetTimer(LifetimeTimerHandle,	this, &AEnemyProjectile::OnLifetimeExpired,Lifetime, false);
 
-	KHS_INFO(TEXT("%s — 투사체 발사. Speed:%.0f / Lifetime:%.1f / Damage:%.0f"), *GetName(), Speed, Lifetime, Damage);
+	KHS_DEBUG(TEXT("%s — 투사체 발사. Speed:%.0f / Lifetime:%.1f / Damage:%.0f"), *GetName(), Speed, Lifetime, Damage);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -178,7 +178,7 @@ void AEnemyProjectile::ApplyDamageToTarget(UAbilitySystemComponent* TargetASC)
 	SpecHandle.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_EnemyAttackDamage, CachedDamage);
 	TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 
-	KHS_INFO(TEXT("Enemy 투사체 피격! 데미지: %.0f"), CachedDamage);
+	//KHS_INFO(TEXT("Enemy 투사체 피격! 데미지: %.0f"), CachedDamage);
 }
 
 void AEnemyProjectile::ReturnToPool()
@@ -194,6 +194,6 @@ void AEnemyProjectile::ReturnToPool()
 
 void AEnemyProjectile::OnLifetimeExpired()
 {
-	KHS_INFO(TEXT("EnemyProjectile 수명 만료 — ReturnToPool."));
+	//KHS_INFO(TEXT("EnemyProjectile 수명 만료 — ReturnToPool."));
 	ReturnToPool();
 }
