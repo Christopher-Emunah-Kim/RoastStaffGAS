@@ -40,6 +40,8 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnSkillSlotUpdated OnSkillSlotUpdatedDel;
 
+	virtual void Deinitialize() override;
+
 	/** RSPlayerCharacter::InitializeAbilitySystem()에서 호출 */
 	void InitializeSkills(FName CharacterID, UAbilitySystemComponent* InASC);
 	/** 숫자키 1~6 입력 진입점 (SlotIndex 0~5) */

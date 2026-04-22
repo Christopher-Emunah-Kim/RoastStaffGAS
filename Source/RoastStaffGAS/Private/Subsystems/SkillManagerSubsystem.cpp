@@ -12,6 +12,24 @@
 
 const FCharacterSkillExecData USkillManagerSubsystem::EmptyExecData = FCharacterSkillExecData{};
 
+void USkillManagerSubsystem::Deinitialize()
+{
+	// 레벨 전환 시 쿨타임 타이머가 만료돼 소멸된 리스너로 브로드캐스트하는 크래시 방지
+	if (UWorld* World = GetWorld())
+	{
+		for (int32 i = 0; i < SKILL_SLOT_COUNT; ++i)
+		{
+			World->GetTimerManager().ClearTimer(SkillSlots[i].CooldownTimer);
+		}
+	}
+
+	OnSkillSlotUpdatedDel.Clear();
+	ASC = nullptr;
+	bIsInitialized = false;
+
+	Super::Deinitialize();
+}
+
 void USkillManagerSubsystem::InitializeSkills(FName CharacterID, UAbilitySystemComponent* InASC)
 {
 	if (!ensureMsgf(InASC, TEXT("ASC가 null")))
@@ -266,12 +284,17 @@ void USkillManagerSubsystem::StartCooldown(int32 SlotIndex)
 
 	OnSkillSlotUpdatedDel.Broadcast(SlotIndex);
 
+	TWeakObjectPtr<USkillManagerSubsystem> WeakThis(this);
 	GetWorld()->GetTimerManager().SetTimer(SkillSlots[SlotIndex].CooldownTimer,
-		[this, SlotIndex]()
+		[WeakThis, SlotIndex]()
 		{
-			SkillSlots[SlotIndex].bIsOnCooldown     = false;
-			SkillSlots[SlotIndex].CooldownRemaining = 0.f;
-			OnSkillSlotUpdatedDel.Broadcast(SlotIndex);
+			if (!WeakThis.IsValid())
+			{
+				return;
+			}
+			WeakThis->SkillSlots[SlotIndex].bIsOnCooldown     = false;
+			WeakThis->SkillSlots[SlotIndex].CooldownRemaining = 0.f;
+			WeakThis->OnSkillSlotUpdatedDel.Broadcast(SlotIndex);
 			KHS_INFO(TEXT("Skill Slot %d 쿨타임 종료"), SlotIndex);
 		},
 		Cooldown, false);
