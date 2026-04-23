@@ -2,6 +2,7 @@
 
 
 #include "System/EnemySpawner.h"
+#include "ProfilingDebugging/CpuProfilerTrace.h"
 #include "RoastStaffGAS.h"
 #include "NavigationSystem.h"
 #include "Character/Enemy/EnemyBaseCharacter.h"
@@ -16,6 +17,7 @@
 #include "UI/Enemy/BossHPBarWidget.h"
 #include "Data/EnumUITypes.h"
 #include "AbilitySystemInterface.h"
+#include "BehaviorTree/BehaviorTree.h"
 
 AEnemySpawner::AEnemySpawner()
 {
@@ -27,7 +29,9 @@ void AEnemySpawner::InitPools(const TArray<FName>& EnemyIDs)
 	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetWorld()->GetGameInstance())
 
 	ClassCache.Empty();
+	BTCache.Empty();
 
+	TRACE_BOOKMARK(TEXT("EnemySpawner_InitPools_SyncLoad"));
 	for (const FName& EnemyID : EnemyIDs)
 	{
 		FEnemyStaticData EnemyData;
@@ -51,9 +55,24 @@ void AEnemySpawner::InitPools(const TArray<FName>& EnemyIDs)
 		}
 
 		ClassCache.Add(EnemyID, LoadedClass);
+
+		// BT 강참조 캐시 — GC 방지. StartEnemyAI의 LoadSynchronous가 FindObject 경로(0ms)로 처리됨
+		if (!EnemyData.BehaviorTree.IsNull())
+		{
+			UBehaviorTree* BTAsset = EnemyData.BehaviorTree.LoadSynchronous();
+			if (BTAsset)
+			{
+				BTCache.Add(EnemyID, BTAsset);
+			}
+			else
+			{
+				KHS_WARN(TEXT("EnemyID '%s' BehaviorTree 로드 실패."), *EnemyID.ToString());
+			}
+		}
 	}
 
-	KHS_INFO(TEXT("InitPools — ClassCache %d개 빌드 완료 (풀 초기화는 PoolingSubsystem 위임)"), ClassCache.Num());
+	KHS_INFO(TEXT("InitPools — ClassCache %d개 / BTCache %d개 빌드 완료 (풀 초기화는 PoolingSubsystem 위임)"),
+		ClassCache.Num(), BTCache.Num());
 }
 
 void AEnemySpawner::SpawnEnemy(FName EnemyID, const FVector& PlayerLocation)
@@ -203,6 +222,7 @@ FVector AEnemySpawner::CalculateOffScreenSpawnLocation(const FVector& PlayerLoca
 	// NavMesh 투영 탐색 범위: XY는 캡슐 반경 여유, Z는 플레이어 레벨 ±150만 허용
 	const FVector QueryExtent(150.f, 150.f, 150.f);
 
+	TRACE_BOOKMARK(TEXT("EnemySpawn_NavTrace"));
 	for (int32 i = 0; i < MaxAttempts; ++i)
 	{
 		const float AngleRad = FMath::DegreesToRadians(FMath::FRandRange(0.f, 360.f));

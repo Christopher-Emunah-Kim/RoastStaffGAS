@@ -2,6 +2,7 @@
 
 
 #include "Objects/GroundEffect/GroundEffectActor.h"
+#include "ProfilingDebugging/CpuProfilerTrace.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Components/SphereComponent.h"
@@ -68,6 +69,7 @@ void AGroundEffectActor::InitEffect(const FSkillEffectInitData& InitData)
 	OverlapSphere->SetSphereRadius(Radius);
 
 	// FX 스폰 후 Actor에 부착
+	TRACE_BOOKMARK(TEXT("GroundEffect_FX_SyncLoad"));
 	if (UNiagaraSystem* FX = InitData.SkillFX.LoadSynchronous())
 	{
 		SpawnedFXComp = UNiagaraFunctionLibrary::SpawnSystemAttached(FX, OverlapSphere, NAME_None,

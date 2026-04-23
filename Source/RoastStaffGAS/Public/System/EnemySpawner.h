@@ -9,6 +9,7 @@
 class AEnemyBaseCharacter;
 class AEnemyProjectile;
 class UBossHPBarWidget;
+class UBehaviorTree;
 
 /**
  * AEnemySpawner
@@ -50,13 +51,16 @@ private:
 	/** EnemyID → 에너미 클래스 런타임 캐시 (DT_Enemy.EnemyClass 로드 결과) */
 	UPROPERTY()
 	TMap<FName, TSubclassOf<AEnemyBaseCharacter>> ClassCache;
+	/** EnemyID → BehaviorTree 강참조 캐시 — GC 방지용. StartEnemyAI LoadSynchronous를 FindObject 경로로 처리 */
+	UPROPERTY()
+	TMap<FName, TObjectPtr<UBehaviorTree>> BTCache;
 	/** 플레이어로부터의 스폰 반경 (언리얼 유닛) */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Spawn")
 	float OffScreenDistance = 1500.f;
 	
-	/** 클래스당 풀 예비 수량 */
+	/** 클래스당 풀 예비 수량 — GC 스파이크 방지용. 최대 동시 활성 적 수 기준으로 설정 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Spawn")
-	int32 PoolCountPerClass = 30;
+	int32 PoolCountPerClass = 60;
 	/** 에너미 투사체 풀 예비 수량 (동시 사격 가능한 최대 에너미 수 * 여유분) */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Spawn")
 	int32 ProjectilePoolCount = 60;

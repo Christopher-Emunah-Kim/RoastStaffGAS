@@ -2,6 +2,7 @@
 
 
 #include "Core/RSGameMode.h"
+#include "ProfilingDebugging/CpuProfilerTrace.h"
 #include "RoastStaffGAS.h"
 #include "System/EnemySpawner.h"
 #include "Character/Player/RSPlayerController.h"
@@ -193,6 +194,7 @@ TSet<TSubclassOf<AActor>> ARSGameMode::CollectUniqueEnemyClasses() const
 	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GetGameInstance())
 	
 	TSet<TSubclassOf<AActor>> UniqueClasses;
+	TRACE_BOOKMARK(TEXT("GameMode_CollectEnemyClasses_SyncLoad"));
 	for (const FWaveStaticData& Wave : GDS->GetWaveDataByStage(CurrentStageID))
 	{
 		for (const FName& EnemyID : Wave.SpawnEnemyIDs)
@@ -251,6 +253,7 @@ TArray<FPoolPreWarmRequest> ARSGameMode::BuildPreWarmList(AEnemySpawner* Spawner
 		for (const FCharacterSkillStaticData& SkillData : GDS->GetSkillsByCharacter(CharID))
 		{
 			// EffectActorClass (PullVortexActor, GroundEffectActor 등)
+			TRACE_BOOKMARK(TEXT("GameMode_BuildPreWarmList_SyncLoad"));
 			if (!SkillData.EffectActorClass.IsNull())
 			{
 				if (TSubclassOf<AActor> EffectClass = SkillData.EffectActorClass.LoadSynchronous())
@@ -355,6 +358,7 @@ bool ARSGameMode::AreAllStreamingLevelsLoaded() const
 
 void ARSGameMode::StartStageFlow()
 {
+	TRACE_BOOKMARK(TEXT("Stage_Start"));
 	if (!CachedSpawner)
 	{
 		KHS_WARN(TEXT("CachedSpawner가 없습니다. 스테이지 시작 불가."));
@@ -543,5 +547,6 @@ void ARSGameMode::OnResultConfirmed()
 	check(GI)
 
 	KHS_INFO(TEXT("OUTGAME 레벨로 복귀 시작..."));
+	TRACE_BOOKMARK(TEXT("LevelTransition_Start"));
 	GI->OpenNextLevelByName(ELevelName::OUTGAME);
 }

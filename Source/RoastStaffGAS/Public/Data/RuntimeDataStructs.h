@@ -441,7 +441,9 @@ struct FCharacterPreloadBundle
 	TSoftObjectPtr<USkeletalMesh>  Mesh;
 	UPROPERTY()
 	TSoftClassPtr<UAnimInstance>   AnimBP;
-	// 추후 추가: IdleVFX, PortraitUI 등
+	/** 선택 캐릭터의 모든 스킬 FX — 발동 시 콜드 로드 방지 */
+	UPROPERTY()
+	TArray<TSoftObjectPtr<UNiagaraSystem>> SkillFXList;
 };
 
 // ----------------------------------------------------------------------------

@@ -21,6 +21,7 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "ProfilingDebugging/CpuProfilerTrace.h"
 #if WITH_EDITOR
 #include "DrawDebugHelpers.h"
 #endif
@@ -200,6 +201,7 @@ void UGA_CharacterSkill::ExecuteInstantAoE(	const FCharacterSkillExecData& ExecD
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(CachedInstigator.Get());
 
+	TRACE_BOOKMARK(TEXT("SkillEffect_AoE_Overlap"));
 	GetWorld()->OverlapMultiByChannel(Overlaps, Center, FQuat::Identity, ECC_Pawn,
 		FCollisionShape::MakeSphere(Radius), QueryParams);
 
@@ -282,6 +284,7 @@ void UGA_CharacterSkill::ExecuteSelfBuff(const FCharacterSkillExecData& ExecData
 	// 버프 오라 FX — 캐릭터 메시에 Attach하여 이동 시 따라다니게 함
 	if (CachedInstigator)
 	{
+		TRACE_BOOKMARK(TEXT("SkillFX_BuffAura_Spawn"));
 		UNiagaraSystem* FX = ExecData.SkillFX.LoadSynchronous();
 		if (FX)
 		{
@@ -629,12 +632,14 @@ FLinearColor UGA_CharacterSkill::ResolveElementColor(FGameplayTag ElementTag)
 void UGA_CharacterSkill::SpawnSkillFX(TSoftObjectPtr<UNiagaraSystem> FXClass, FVector Location, float Radius,
 	FGameplayTag ElementTag, float FXLifetime, FRotator Rotation)
 {
+	TRACE_BOOKMARK(TEXT("SkillFX_SyncLoad"));
 	UNiagaraSystem* FX = FXClass.LoadSynchronous();
 	if (!FX)
 	{
 		return;
 	}
 
+	TRACE_BOOKMARK(TEXT("SkillFX_NiagaraSpawn"));
 	UNiagaraComponent* NiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
 		GetWorld(), FX, Location, Rotation, FVector(1.f), true, true);
 

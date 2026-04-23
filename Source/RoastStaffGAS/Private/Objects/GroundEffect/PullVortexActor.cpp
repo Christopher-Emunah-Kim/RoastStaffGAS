@@ -2,6 +2,9 @@
 
 
 #include "Objects/GroundEffect/PullVortexActor.h"
+#include "ProfilingDebugging/CpuProfilerTrace.h"
+
+DECLARE_CYCLE_STAT(TEXT("PullVortex PullTick"), STAT_PullVortexTick, STATGROUP_Game);
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameFramework/Character.h"
@@ -99,6 +102,7 @@ void APullVortexActor::InitEffect(const FSkillEffectInitData& InitData)
 	}
 
 	// FX — Duration 동안 Actor에 Attach (Looping Niagara 권장)
+	TRACE_BOOKMARK(TEXT("PullVortex_FX_SyncLoad"));
 	if (UNiagaraSystem* FX = InitData.SkillFX.LoadSynchronous())
 	{
 		SpawnedFXComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
@@ -126,6 +130,7 @@ void APullVortexActor::InitEffect(const FSkillEffectInitData& InitData)
 
 void APullVortexActor::PullTick()
 {
+	SCOPE_CYCLE_COUNTER(STAT_PullVortexTick);
 	const FVector Center = GetActorLocation();
 
 	TArray<FOverlapResult> Overlaps;

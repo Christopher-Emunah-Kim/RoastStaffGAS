@@ -2,6 +2,7 @@
 
 
 #include "Subsystems/PoolingSubsystem.h"
+#include "ProfilingDebugging/CpuProfilerTrace.h"
 #include "RoastStaffGAS.h"
 #include "Interface/PoolableInterface.h"
 
@@ -14,6 +15,7 @@ void UPoolingSubsystem::InitializePool(TSubclassOf<AActor> ActorClass, int32 Cou
         return;
     }
 
+    TRACE_BOOKMARK(TEXT("Pool_InitializePool_Spawn"));
     for (int32 i = 0; i < Count; ++i)
     {
         if (!AddActorToPool(ActorClass))
@@ -109,6 +111,7 @@ void UPoolingSubsystem::ReturnToPool(AActor* Actor)
 
 void UPoolingSubsystem::ReturnAllActiveActors()
 {
+    TRACE_BOOKMARK(TEXT("Pool_ReturnAll_StageEnd"));
     // 조회 중 수정되는 상황 방지하기 위해 배열 따로 만들어 처리
     TArray<TObjectPtr<AActor>> Snapshot(ActiveActors.Array());
     for (TObjectPtr<AActor>& Actor : Snapshot)

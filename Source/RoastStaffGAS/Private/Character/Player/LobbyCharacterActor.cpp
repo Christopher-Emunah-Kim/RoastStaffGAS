@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Character/Player/LobbyCharacterActor.h"
+#include "ProfilingDebugging/CpuProfilerTrace.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "System/LoggingSystem.h"
@@ -37,5 +38,6 @@ void ALobbyCharacterActor::SetOutlineActive(bool bActive)
 	}
 
 	MeshComp->SetCustomDepthStencilValue(1);
+	TRACE_BOOKMARK(TEXT("Lobby_CustomDepth_Enable"));
 	MeshComp->SetRenderCustomDepth(bActive);
 }

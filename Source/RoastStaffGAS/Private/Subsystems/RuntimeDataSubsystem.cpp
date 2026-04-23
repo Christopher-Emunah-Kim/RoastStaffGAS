@@ -45,9 +45,18 @@ void URuntimeDataSubsystem::GatherPreloadCharacterAssets(TArray<FSoftObjectPath>
 			{
 				OutPaths.AddUnique(CharBundle.Mesh.ToSoftObjectPath());
 			}
+			
 			if (!CharBundle.AnimBP.IsNull())
 			{
 				OutPaths.AddUnique(CharBundle.AnimBP.ToSoftObjectPath());
+			}
+			
+			for (const TSoftObjectPtr<UNiagaraSystem>& FX : CharBundle.SkillFXList)
+			{
+				if (!FX.IsNull())
+				{
+					OutPaths.AddUnique(FX.ToSoftObjectPath());
+				}
 			}
 		}
 	}

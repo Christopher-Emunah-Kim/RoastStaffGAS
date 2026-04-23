@@ -86,11 +86,9 @@ private:
 	/** 데미지 플로팅 위젯 프리웜 수량 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|PreWarm")
 	int32 DamageFloatingWidgetPoolCount = 80;
-
 	/** 캐릭터 스킬 이펙트 액터(GroundEffect 등) 프리웜 수량 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|PreWarm")
 	int32 SkillEffectActorPoolCount = 4;
-
 	/** 캐릭터 스킬 투사체(ProjectileSpawn 타입) 프리웜 수량 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|PreWarm")
 	int32 SkillProjectilePoolCount = 10;

@@ -22,7 +22,7 @@ void ARSTransitionGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GET_GI_SUBSYSTEM(UUIManagerSubsystem, UMS);
+	GET_GI_SUBSYSTEM(UUIManagerSubsystem, UMS)
 	LoadingWidget = Cast<URSLoadingWidget>(UMS->OpenUIByID(EUIID::LOADING));
 	if (LoadingWidget)
 	{
@@ -38,18 +38,12 @@ void ARSTransitionGameMode::BeginPlay()
 
 void ARSTransitionGameMode::PreloadAssetsAsync()
 {
-	GET_GI(_GI);
+	GET_GI(_GI)
 	URSGameInstance* GI = Cast<URSGameInstance>(_GI);
-	check(GI);
+	check(GI)
 
-	URuntimeDataSubsystem* RDS = GI->GetSubsystem<URuntimeDataSubsystem>();
-	UGameDataSubsystem*    GDS = GI->GetSubsystem<UGameDataSubsystem>();
-
-	if (!ensureMsgf(RDS && GDS, TEXT("RDS 또는 GDS 없음")))
-	{
-		StartLevelStreaming();
-		return;
-	}
+	GET_GI_SUBSYSTEM_FROM(URuntimeDataSubsystem, RDS, GI)
+	GET_GI_SUBSYSTEM_FROM(UGameDataSubsystem, GDS, GI)
 
 	// 스테이지 웨이브에서 등장 에너미 ID 수집
 	TArray<FName> EnemyIDList;
@@ -86,9 +80,9 @@ void ARSTransitionGameMode::PreloadAssetsAsync()
 
 void ARSTransitionGameMode::StartLevelStreaming()
 {
-	GET_GI(_GI);
+	GET_GI(_GI)
 	URSGameInstance* GI = Cast<URSGameInstance>(_GI);
-	check(GI);
+	check(GI)
 
 	const UMapSettings* Settings = UMapSettings::Get();
 	if (!ensureMsgf(Settings, TEXT("MapSettings 없음")))
@@ -117,9 +111,9 @@ void ARSTransitionGameMode::OnLevelPreloadCompleted()
 {
 	// 스트리밍 완료 즉시 Stage 레벨로 전환
 	// LoadingWidget 닫힘은 Stage 레벨 PreWarm 완료 시(RSGameMode::OnPreWarmCompleted) 처리
-	GET_GI(_GI);
+	GET_GI(_GI)
 	URSGameInstance* GI = Cast<URSGameInstance>(_GI);
-	check(GI);
+	check(GI)
 
 	GI->OpenNextLevelLatent();
 }

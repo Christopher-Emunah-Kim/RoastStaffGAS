@@ -556,6 +556,15 @@ bool UGameDataSubsystem::GetCharacterPreloadBundle(FName CharID, FCharacterPrelo
 
     OutBundle.Mesh   = Data.Mesh;
     OutBundle.AnimBP = Data.AnimBP;
+
+    for (const FCharacterSkillStaticData& Skill : GetSkillsByCharacter(CharID))
+    {
+        if (!Skill.SkillFX.IsNull())
+        {
+            OutBundle.SkillFXList.AddUnique(Skill.SkillFX);
+        }
+    }
+
     return true;
 }
 

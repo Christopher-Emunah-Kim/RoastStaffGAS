@@ -2,6 +2,7 @@
 
 
 #include "Subsystems/StageManagerSubsystem.h"
+#include "ProfilingDebugging/CpuProfilerTrace.h"
 #include "RoastStaffGAS.h"
 #include "System/EnemySpawner.h"
 #include "Character/Enemy/EnemyBaseCharacter.h"
@@ -120,6 +121,7 @@ void UStageManagerSubsystem::OnEnemyKilled(FName InEnemyID)
 
 void UStageManagerSubsystem::ActivateWave(int32 WaveIdx)
 {
+	TRACE_BOOKMARK(TEXT("Wave_Activate"));
 	if (!CachedWaveData.IsValidIndex(WaveIdx))
 	{
 		KHS_WARN(TEXT("UStageManagerSubsystem::ActivateWave — 유효하지 않은 WaveIdx: %d"), WaveIdx);
