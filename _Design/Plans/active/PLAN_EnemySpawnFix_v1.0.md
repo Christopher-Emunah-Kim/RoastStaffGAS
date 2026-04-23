@@ -23,6 +23,7 @@
 | `Source/RoastStaffGAS/Public/Character/Enemy/BossEnemy.h` | 진단용 Tick 선언 |
 | `Source/RoastStaffGAS/Private/Core/RSGameMode.cpp` | OnPreWarmCompleted: 스트리밍 레벨 로드 완료 후 StartStageFlow |
 | `Source/RoastStaffGAS/Public/Core/RSGameMode.h` | bWaitingForLevelLoad 플래그 + AreAllStreamingLevelsLoaded 선언 |
+| `Source/RoastStaffGAS/Private/Subsystems/StageManagerSubsystem.cpp` | 프로파일링 북마크 추가 |
 
 ---
 

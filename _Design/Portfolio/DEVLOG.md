@@ -46,6 +46,150 @@
 
 ## 2026-04
 
+### [2026-04-23] [OPT] 전 구간 렌더링 병목 진단 — Ray Tracing / 동기 로딩 / GC 스파이크
+
+**UE_Ver**: 5.4
+**Knowledge_Risk**: LOW
+
+**상황**: 포트폴리오 빌드 전 퍼포먼스 기준선 측정. stat unit / stat scenerendering / Insights로 6개 구간 프로파일링.
+
+**Before 수치**
+
+| 구간 | FPS | Frame | Game | Draw | GPU | Draws | Prims |
+|------|-----|-------|------|------|-----|-------|-------|
+| 로비 커스텀뎁스 | 8.55 | 113.52ms | 29.22 | 106.71 | 73.05 | 400 | 600.2K |
+| 로딩 구간 | 8.86 | 112.90ms | 83.64 | 54.91 | 43.51 | 435 | 234.2K |
+| 웨이브 시작 | 13.97 | 71.56ms | 64.70 | 57.07 | 27.18 | 614 | 957.3K |
+| 스킬 이펙트 | 15.64 | 63.93ms | 61.49 | 43.14 | 17.98 | 498 | 388.3K |
+| 적 대량 스폰 | 11.14 | 91.24ms | 90.78 | 36.57 | 23.15 | 1563 | 5750.7K |
+| 적+스킬 복합 | 8.71 | 110.06ms | 92.22 | 109.91 | 78.88 | 1395 | 5501.9K |
+
+**병목 원인 분류**
+
+- **A. Hardware Ray Tracing (전 구간 공통)**: `r.RayTracing=True` + `RayTracingProxies.ProjectEnabled=True` 상태에서 Lumen은 소프트웨어 RT 경로를 쓰고 있었음 → GPU가 BVH 프록시를 불필요하게 빌드. `Ray tracing dynamic update primitives` 최대 2,719,681. Project Settings → Support Hardware Ray Tracing OFF로 해소.
+- **B. 동기 에셋 로딩 (구간 2, 3)**: `FLinkerLoad::Preload` 98.2ms (SKM_Skeleton_Guard_Clothing), `GameThreadWaitForTask` 343.8ms (EnemyAI_BT_SyncLoad) → GameThread 블로킹. LoadAsync 전환 필요.
+- **C. 스킬 이펙트 셰이더 (구간 4, 6)**: Shader Complexity 흰색(Extremely bad). `PullVortex_FX_SyncLoad` — 스킬 발동 시에도 동기 로딩 발생.
+- **D. GC 스파이크 + 대량 스폰 (구간 5, 6)**: GarbageCollection 328.2ms 스파이크. Draws 구간 4(498) → 구간 5(1563) 3배 급증. 적 스폰이 풀에서 나오지 않고 새로 생성되는 구조 의심.
+
+**최적화 우선순위 및 진행 상황**
+
+| # | 작업 | 상태 | 비고 |
+|---|------|------|------|
+| 1 | Hardware Ray Tracing OFF | ✅ 완료 | `r.RayTracing=False` |
+| 2 | 동기 로딩 → 프리로드 전환 | ✅ 완료 | SkillFX/BT 프리로드 + TransitionGameMode 버그 수정 |
+| 3 | GC 스파이크 제거 | ✅ 완료 | SetWidgetClass 중복 호출 차단 → GC 블록 소멸 확인 |
+| 4 | 스킬 이펙트 셰이더 (GPU) | 예정 | GPU 68ms — 다음 단계 |
+
+**After 수치 — CPU 병목 해소 완료 (2026-04-23)**
+
+| 구간 | Before FPS | After FPS | Before Frame | After Frame | 개선율 |
+|------|-----------|-----------|-------------|------------|--------|
+| 로비 커스텀뎁스 | 8.55 | 62.81 | 113.52ms | 16.94ms | **-85%** |
+| 로딩 구간 | 8.86 | 26.65 | 112.90ms | 57.02ms | -50% |
+| Wave_Activate | 13.97 | 18.21 | 71.56ms | 54.93ms | -23% |
+| 오브젝트 풀링 | 8.86 | 9.15 | 112.90ms | 92.41ms | -18% |
+| 적 대량 스폰 | 10.46 | 10.46 | 95.77ms | 95.59ms | ≈0% (Game 95.64ms 잔존) |
+| 적+스킬 복합 | 8.10 | 8.10 | 120.14ms | 123.43ms | ≈0% (Game 119.81ms / GPU 68.79ms) |
+| 스킬 이펙트 | 15.64 | 6.91 | 63.93ms | 144.78ms | ⚠️ 악화 (텍스처 컴파일) |
+
+> 구간 5·6: GC 블록은 Insights에서 소멸 확인. Game ms 95~119ms 잔존 — GameThread 별도 원인 존재.
+> 구간 6: GPU 68ms 본격 드러남 — CPU 병목 제거 후 GPU 병목이 가시화된 것으로 판단.
+> 구간 5 스킬 이펙트 악화는 텍스처 컴파일 타이밍 문제. GPU 병목 단계에서 처리 예정.
+
+**결과/효과**: 로비 85% / 로딩 50% / 웨이브 23% 개선. CPU GC 블록 제거 완료. 잔여 Game ms는 GameThread 다른 원인 — 프로파일링 추가 필요.
+
+**포트폴리오 포인트**: (1) RT가 켜져 있어도 Lumen 소프트웨어 경로를 쓰면 효과는 없지만 BVH 빌드 비용은 그대로라는 비자명한 함정 진단. (2) 프리로드 경로에 에셋이 등록됐어도 `StartLevelStreaming()` 조기 호출 버그로 실제 보장이 안 됐던 케이스 — 코드 리뷰 없이 측정만으로는 발견 불가한 버그. (3) Actor 풀링은 정상이었지만 Actor에 부착된 WidgetComponent는 풀 재사용 시마다 새 인스턴스 생성 — 풀링 범위를 Actor 단위가 아니라 Actor 내 소유 UObject 전체로 검토해야 한다는 교훈.
+
+**관련 파일**: `Config/DefaultEngine.ini` / `Core/Transition/RSTransitionGameMode.cpp` / `System/EnemySpawner.cpp` / `Character/Enemy/EnemyBaseCharacter.cpp` / `UI/Enemy/EnemyHPBarWidget.h/.cpp`
+
+**검증 기준**:
+  - [x] RT OFF 후 구간 1 Frame 85% 감소 확인
+  - [x] GC 스파이크 제거 후 Insights GC 블록 소멸 확인
+  - [ ] GameThread 잔여 95~119ms 원인 특정 및 추가 최적화
+  - [ ] 텍스처 컴파일 완료 후 구간 5 재측정
+  - [ ] GPU 병목(구간 6, 68ms) 최적화
+
+---
+
+### [2026-04-23] [BUG_FIX] 동기 로딩 343ms — 프리로드 코드가 있었지만 실제로는 동작하지 않았던 버그
+
+**UE_Ver**: 5.4
+**Knowledge_Risk**: LOW
+
+**상황**: Insights에서 `GameThreadWaitForTask` 343.8ms (BehaviorTree 동기 로드), `FLinkerLoad::Preload` 98.2ms (SKM 스켈레탈 메시)가 측정됨. `RSTransitionGameMode`에 `RequestAsyncLoad` 코드가 이미 있었기 때문에 프리로드가 동작하고 있다고 가정했지만, 실제로는 BT가 첫 스폰 시점에 블로킹 로드되고 있었음.
+
+**문제/과제**: 프리로드 코드가 존재하는데 왜 런타임에 동기 로드가 발생하는가.
+
+**원인 진단 1 — TransitionGameMode 조기 StartLevelStreaming 버그**:
+```cpp
+// Before (버그): 프리로드 요청 직후 즉시 레벨 전환
+GET_GI_SUBSYSTEM_FROM(URuntimeDataSubsystem, RDS, GI)
+StartLevelStreaming();  // ← 비동기 로드 완료 전에 레벨 전환
+RDS->GatherPreloadAssets(OutPaths, ...);
+Streamable.RequestAsyncLoad(OutPaths, ...);
+```
+비동기 로드가 완료되기 전에 레벨이 전환되면 `StreamableHandle` 수명이 `GameMode` 소멸과 함께 끊김 → GC가 프리로드된 에셋 회수 → 첫 스폰 시 재로드.
+`StartLevelStreaming()` 단독 호출 한 줄 제거로 수정. 이후 비동기 로드 완료 콜백에서만 레벨 전환.
+
+**원인 진단 2 — BT가 프리로드 목록에 없었음**:
+`FEnemyPreloadBundle`에 `BehaviorTree` 필드가 있었지만 `GatherPreloadAssets`에서 경로 수집 코드가 누락. `EnemySpawner::InitPools`에서 매 스폰마다 `LoadSynchronous()` 호출 → 343ms 블로킹.
+수정: `GatherPreloadEnemyAssets`에 BT 경로 수집 추가 + `InitPools`에서 `BTCache(TObjectPtr<UBehaviorTree>)` 빌드 → GC 방지 강참조 유지 → 이후 `LoadSynchronous`가 FindObject 경로(0ms)로 처리.
+
+**원인 진단 3 — SkillFX가 프리로드 목록에 없었음**:
+`FCharacterPreloadBundle`이 Mesh + AnimBP만 수집. 스킬 발동 시 `EffectActorClass.LoadSynchronous()` 콜드 로드.
+수정: `GameDataSubsystem::GetCharacterPreloadBundle`에서 `GetSkillsByCharacter`로 SkillFX 경로 수집, `FCharacterPreloadBundle.SkillFXList` 필드 추가.
+
+**결과/효과**: 로딩 구간 Frame -50% (112.90ms → 57.02ms), Wave_Activate -23% (71.56ms → 54.93ms). BT 343ms 블로킹 제거.
+
+**포트폴리오 포인트**: "프리로드 코드가 있다 = 프리로드가 동작한다"는 가정의 함정. `StreamableHandle` 수명이 `GameMode` 수명에 종속된다는 비자명한 UE 메모리 모델. 코드 리뷰나 로그만으로는 발견 불가 — Insights 계측이 없었다면 원인 미특정 상태로 넘어갔을 버그.
+
+**관련 파일**: `Core/Transition/RSTransitionGameMode.cpp` / `Subsystems/RuntimeDataSubsystem.cpp` / `Subsystems/GameDataSubsystem.cpp` / `System/EnemySpawner.cpp` / `Data/RuntimeDataStructs.h`
+
+**검증 기준**:
+  - [x] Wave_Activate Frame -23% 확인 (71.56ms → 54.93ms)
+  - [x] 로딩 구간 Frame -50% 확인 (112.90ms → 57.02ms)
+
+---
+
+### [2026-04-23] [BUG_FIX] GC 스파이크 117ms — Actor 풀링은 정상, WidgetComponent가 누수
+
+**UE_Ver**: 5.4
+**Knowledge_Risk**: LOW
+
+**상황**: Insights에서 GC 블록이 반복 발생. `obj list` / Insights Timing 트랙에서 GC 직전 GameThread에 "모든 적의 HPBar 갱신 로직"만 쌓여 있음이 확인됨.
+
+**문제/과제**: 적 Actor는 풀에서 꺼내 재사용 중 — 신규 생성이 없는데 왜 GC가 발생하는가. 풀링은 Actor 단위였지만, Actor 내부 UObject가 매번 새로 생성되고 있었다.
+
+**원인 진단**:
+`AEnemyBaseCharacter::SetupHPBar()`가 `InitializeEnemy()` 내에서 매 풀 재사용 시 호출됨.
+`UWidgetComponent::SetWidgetClass()`는 호출마다 기존 위젯 참조를 끊고 `CreateWidget`으로 새 인스턴스를 생성하는 UE 내부 동작.
+→ 웨이브마다 적 60마리 꺼냄 → HP바 위젯 60개 신규 생성 → 이전 60개 GC 대기 → 임계치 도달 → GC 발동.
+Actor 재사용이 오히려 "풀에서 꺼낼 때마다 위젯이 폐기되는 주기적 GC"를 만들고 있었음.
+
+**수정**:
+```cpp
+// Before: 매번 SetWidgetClass → 새 위젯 생성
+HPBarWidgetComp->SetWidgetClass(HPBarWidgetClass);
+
+// After: 위젯이 없을 때만 생성, 이후 재사용 시 BindToASC만 호출
+if (!HPBarWidgetComp->GetWidget())
+{
+    HPBarWidgetComp->SetWidgetClass(HPBarWidgetClass);
+}
+```
+`OnPoolDeactivate()`에 `UnbindFromASC()` 추가 — 반납된 위젯이 소멸된 ASC에 콜백하는 댕글링 방지.
+
+**결과/효과**: Insights GC 블록 소멸 확인. 위젯 인스턴스 60개가 웨이브 전체에서 재사용됨.
+
+**포트폴리오 포인트**: 풀링 효과를 Actor 단위로만 검증하면 놓치는 함정 — Actor에 부착된 WidgetComponent, 동적 컴포넌트 등 내부 소유 UObject도 풀 재사용 시 생성 비용 검토 필요. GC 원인을 "신규 스폰"이 아닌 "재사용 Actor 내부"에서 찾아낸 진단 과정.
+
+**관련 파일**: `Character/Enemy/EnemyBaseCharacter.cpp:SetupHPBar` / `UI/Enemy/EnemyHPBarWidget.h/.cpp`
+
+**검증 기준**:
+  - [x] Insights에서 GC 블록 소멸 확인
+
+---
+
 ### [2026-04-22] [ARCH] ElementColor 부여 책임 — Actor 자율 해석 vs GA 중앙 해석
 
 **UE_Ver**: 5.4

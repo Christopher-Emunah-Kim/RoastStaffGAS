@@ -41,6 +41,7 @@ modified_files:
   - Source/RoastStaffGAS/Private/Character/Enemy/BossEnemy.cpp
   - Source/RoastStaffGAS/Private/Character/Enemy/EliteEnemy.cpp
   - Source/RoastStaffGAS/Private/Character/Enemy/EnemyAIController.cpp
+  - Source/RoastStaffGAS/Private/Subsystems/PoolingSubsystem.cpp
 
 new_datatables:
   - DT_CharacterSkill 컬럼 추가 (ElementTag / ProjectileClass / PierceCount / ProjectileCount / FireInterval / GroundEffectActorClass)

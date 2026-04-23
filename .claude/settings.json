@@ -10,6 +10,8 @@
       "Bash(cd * && git show*)",
       "Bash(cd * && git status*)",
       "Bash(cd * && git commit*)",
+      "Bash(cd * && git push)",
+      "Bash(cd * && git push *)",
       "Bash(cd *)",
       "Bash(cat *)",
       "Edit(**.md)"

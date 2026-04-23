@@ -14,6 +14,21 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
+## [FEATURE] 비동기 로딩 최적화 | PLAN_AsyncLoadOpt_v1.0
+> 시작: 2026-04-23 | 기획서: 없음 (기술 최적화)
+
+  ### [MODULE-1] SkillFX 프리로드
+  수정: RuntimeDataStructs.h / GameDataSubsystem.cpp (완료) / RuntimeDataSubsystem.cpp
+    - [x] FCharacterPreloadBundle에 SkillFXList 추가 (RuntimeDataStructs.h)          [P0]
+    - [x] GetCharacterPreloadBundle에서 GetSkillsByCharacter로 SkillFX 수집 (GameDataSubsystem.cpp) [P0]
+    - [x] GatherPreloadCharacterAssets에 SkillFXList 경로 루프 추가 (RuntimeDataSubsystem.cpp) [P0]
+
+  ### [MODULE-2] BT 강참조 캐시
+  수정: EnemySpawner.h / EnemySpawner.cpp
+    - [x] BTCache UPROPERTY 선언 (EnemySpawner.h)                                    [P0]
+    - [x] InitPools에 BT LoadSynchronous + BTCache.Add 추가 (EnemySpawner.cpp)       [P0]
+    - [x] InitPools 완료 로그에 BTCache 카운트 추가 (EnemySpawner.cpp)               [P0]
+
 ## [FEATURE] 스킬 시스템 아키텍처 개선 | PLAN_SkillSystemArch_v1.0
 > 시작: 2026-04-21 | 기획서: 스킬 시스템 기획 v1.4.md
 > 코드 커밋: 0826c050a / 206cca116 / 6ba8f1487 / eb9fb975a / 23a46d884

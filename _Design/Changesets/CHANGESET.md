@@ -12,6 +12,16 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ## PENDING_COMMIT
 
+- date: 2026-04-23
+  plan: PLAN_AsyncLoadOpt_v1.0
+  changes:
+    - "RuntimeDataStructs.h: FCharacterPreloadBundle.SkillFXList 추가"
+    - "GameDataSubsystem.cpp: GetCharacterPreloadBundle SkillFX 수집"
+    - "RuntimeDataSubsystem.cpp: GatherPreloadCharacterAssets SkillFXList 경로 추가"
+    - "EnemySpawner.h: BTCache UPROPERTY 추가"
+    - "EnemySpawner.cpp: InitPools BT 강참조 캐시"
+  status: PENDING_COMMIT
+
 ## COMMITTED
 
 - date: 2026-04-22
