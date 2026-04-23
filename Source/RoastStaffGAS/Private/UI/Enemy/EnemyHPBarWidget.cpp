@@ -52,6 +52,22 @@ void UEnemyHPBarWidget::BindToASC(UAbilitySystemComponent* InASC)
 		.AddUObject(this, &UEnemyHPBarWidget::OnMaxHPChanged);
 }
 
+void UEnemyHPBarWidget::UnbindFromASC()
+{
+	if (!CachedASC)
+	{
+		return;
+	}
+
+	CachedASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetCurrentHPAttribute())
+		.RemoveAll(this);
+
+	CachedASC->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetMaxHPAttribute())
+		.RemoveAll(this);
+
+	CachedASC = nullptr;
+}
+
 void UEnemyHPBarWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);

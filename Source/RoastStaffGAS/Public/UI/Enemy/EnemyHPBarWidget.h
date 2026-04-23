@@ -31,6 +31,8 @@ protected:
 public:
 	/** ASC에 바인딩하고 초기 HP 값으로 위젯을 렌더링 */
 	void BindToASC(UAbilitySystemComponent* InASC);
+	/** ASC 델리게이트 구독 해제 — 풀 반납 시 호출하여 댕글링 콜백 방지 */
+	void UnbindFromASC();
 	/** EnemyID를 Txt_EnemyName에 표시 (디버그 식별용) */
 	void SetEnemyName(const FText& InName);
 	

@@ -2,6 +2,7 @@
 
 
 #include "Character/Enemy/EnemyBaseCharacter.h"
+#include "ProfilingDebugging/CpuProfilerTrace.h"
 #include "Objects/Projectile/EnemyProjectile.h"
 #include "RoastStaffGAS.h"
 #include "AbilitySystemComponent.h"
@@ -53,6 +54,7 @@ bool AEnemyBaseCharacter::StartEnemyAI(FEnemyStaticData EnemyData)
 		return false;
 	}
 
+	TRACE_BOOKMARK(TEXT("EnemyAI_BT_SyncLoad"));
 	UBehaviorTree* BTAsset = EnemyData.BehaviorTree.LoadSynchronous();
 	if (!BTAsset)
 	{
@@ -192,6 +194,7 @@ void AEnemyBaseCharacter::HandleDeath()
 
 void AEnemyBaseCharacter::OnPoolActivate()
 {
+	TRACE_BOOKMARK(TEXT("Enemy_PoolActivate"));
 	// 가시성 및 충돌 활성화
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(true);
@@ -254,6 +257,16 @@ void AEnemyBaseCharacter::OnPoolDeactivate()
 	// 넉다운 타이머 클리어 (풀 반납 시 AI 재개 타이머 중복 실행 방지)
 	GetWorldTimerManager().ClearTimer(KnockdownRecoverTimerHandle);
 
+	// HPBar — ASC 델리게이트 구독 해제 (반납된 위젯이 소멸된 ASC에 콜백하는 댕글링 방지)
+	if (HPBarWidgetComp)
+	{
+		if (UEnemyHPBarWidget* HPBarWidget = Cast<UEnemyHPBarWidget>(HPBarWidgetComp->GetWidget()))
+		{
+			HPBarWidget->UnbindFromASC();
+		}
+		HPBarWidgetComp->SetVisibility(false);
+	}
+
 	// 히트 반응 타이머 클리어 + 상태 복원 (풀 재사용 에너미 속도/머티리얼 오염 방지)
 	CustomTimeDilation = 1.0f;
 	GetWorldTimerManager().ClearTimer(HitstopTimerHandle);
@@ -277,7 +290,11 @@ void AEnemyBaseCharacter::SetupHPBar()
 		return;
 	}
 
-	HPBarWidgetComp->SetWidgetClass(HPBarWidgetClass);
+	// SetWidgetClass는 위젯이 없을 때만 — 풀 재사용 시 매번 호출하면 기존 위젯 폐기 후 신규 생성으로 GC 스파이크 유발
+	if (!HPBarWidgetComp->GetWidget())
+	{
+		HPBarWidgetComp->SetWidgetClass(HPBarWidgetClass);
+	}
 
 	UEnemyHPBarWidget* HPBarWidget = Cast<UEnemyHPBarWidget>(HPBarWidgetComp->GetWidget());
 	if (!HPBarWidget)
@@ -433,6 +450,7 @@ void AEnemyBaseCharacter::MaterialEmissiveFlash()
 	// 최초 피격 시 MID 생성 및 캐싱 (이후 재사용)
 	if (CachedMIDs.IsEmpty())
 	{
+		TRACE_BOOKMARK(TEXT("Enemy_MIDCreate_Batch"));
 		const int32 NumMaterials = MeshComp->GetNumMaterials();
 		CachedMIDs.Reserve(NumMaterials);
 		for (int32 i = 0; i < NumMaterials; ++i)
