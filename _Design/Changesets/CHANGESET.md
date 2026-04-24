@@ -12,15 +12,30 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ## PENDING_COMMIT
 
-- date: 2026-04-23
-  plan: PLAN_AsyncLoadOpt_v1.0
-  changes:
-    - "RuntimeDataStructs.h: FCharacterPreloadBundle.SkillFXList 추가"
-    - "GameDataSubsystem.cpp: GetCharacterPreloadBundle SkillFX 수집"
-    - "RuntimeDataSubsystem.cpp: GatherPreloadCharacterAssets SkillFXList 경로 추가"
-    - "EnemySpawner.h: BTCache UPROPERTY 추가"
-    - "EnemySpawner.cpp: InitPools BT 강참조 캐시"
+- date: 2026-04-24
+  plan: PLAN_GameMsOpt_v1.0
   status: PENDING_COMMIT
+  summary: "opt(game-ms): AIC/BT Tick 간격 + 거리 기반 CMC/Anim + VisibilityBasedAnimTickOption + FlashTimer 최적화"
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Character/Enemy/EnemyAIController.h
+      - Source/RoastStaffGAS/Private/Character/Enemy/EnemyAIController.cpp
+      - Source/RoastStaffGAS/Public/Character/Enemy/EnemyBaseCharacter.h
+      - Source/RoastStaffGAS/Private/Character/Enemy/EnemyBaseCharacter.cpp
+  changes:
+    - "AIC 생성자: PrimaryActorTick.TickInterval = 0.1f (매 프레임 → 10Hz)"
+    - "StartAI: BrainComponent SetComponentTickInterval(0.2f) (BT 결정 5Hz)"
+    - "AdjustPawnTickRates: 거리 기반 CMC/Anim 틱 간격 (근거리 매 프레임 / 중거리 30Hz·20Hz / 원거리 20Hz·10Hz)"
+    - "EnemyBaseCharacter 생성자: VisibilityBasedAnimTickOption = OnlyTickPoseWhenRendered"
+    - "TickEmissiveFade 타이머: 0.016f → FlashTickInterval(0.05f) — 60Hz → 20Hz"
+
+## COMMITTED
+
+- date: 2026-04-24
+  plan: PLAN_AsyncLoadOpt_v1.0
+  commits: ["15a2e7198", "0734f2ab6", "004886f61", "0f5d568d9", "42db1f8e7"]
+  status: COMMITTED
+  summary: "opt(async-load) + fix(gc-spike) + chore(config/ppfree) + docs(opt): 퍼포먼스 최적화 세션"
 
 ## COMMITTED
 

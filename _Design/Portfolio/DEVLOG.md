@@ -42,6 +42,43 @@
   - [ ] (해당 항목이 실제로 해결됐음을 확인하는 구체적 조건)
 ```
 
+## [2026-04-24] OPT Game ms 병목 진단 + 다층 Tick 최적화
+
+**UE_Ver**: 5.4
+**Knowledge_Risk**: LOW
+
+**상황**: `stat game` 기준 Game ms 90ms 이상 (FPS 8~11). 적 웨이브 + 스킬 복합 시 더 악화. CPU 병목이 GameThread에 집중.
+
+**문제/과제**: 무엇이 GameThread를 막고 있는지 profiler 없이 코드 레벨에서 후보를 추려 우선순위를 매겨야 했다.
+
+**검토한 선택지**:
+- A) AIC Tick 매 프레임 → 0.1s 간격 — 플레이어 위치·사망 상태 갱신은 10Hz로 충분. BB 갱신 지연 0.1s는 AI 반응에 무의미
+- B) BT Component 0.2s — BT는 내부 조건 캐싱을 하므로 5Hz로도 AI 품질 유지
+- C) 거리 기반 CMC/Anim Tick 간격 — 근거리 전투 품질 유지(매 프레임) + 원거리 연산 절감(10~20Hz)
+- D) `VisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered` — 프러스텀 밖 적 Anim 자동 중단. 싱글플레이어라 부작용 없음
+- E) `TickEmissiveFade` 타이머 0.016f(60Hz) → 0.05f(20Hz) — 피격 플래시 페이드가 60fps 필요 없음. AoE 히트 시 적 수×60 콜백이 GameThread 누적
+- F) `UWidgetComponent` Screen space HPBar — 적 수만큼 Slate 위젯 독립 렌더. Shadow 연산 비활성화로 부하 절감
+
+**결정**: A~E 전부 적용. F는 에디터 설정(Shadow off)으로 처리.
+적 수 70→30 감축은 선형 비례 효과라 가장 직접적이지만, 개별 최적화가 각 적당 비용을 줄이는 근본 해결.
+
+**결과/효과**:
+| 구간 | Before | After | 개선율 |
+|---|---|---|---|
+| 적 대량 스폰 Game ms | 90ms (11fps) | 30ms (31fps) | -67% / FPS +183% |
+| 적+스킬 복합 Game ms | 92ms (8fps) | 29ms (29fps) | -68% / FPS +240% |
+
+**포트폴리오 포인트**: profiler 없이 코드 분석으로 병목 후보 우선순위화 → 각 컴포넌트(AIC/BT/CMC/Anim/Timer)의 틱 비용을 독립적으로 격리·측정하는 사고 방식. UE5 Tick 아키텍처(SetComponentTickInterval / VisibilityBasedAnimTickOption)를 계층별로 활용.
+
+**관련 파일**:
+- `Source/.../Enemy/EnemyAIController.h/.cpp` — AIC/BT Tick + AdjustPawnTickRates
+- `Source/.../Enemy/EnemyBaseCharacter.h/.cpp` — VisibilityBasedAnimTickOption + FlashTickInterval
+
+**검증 기준**:
+- [x] stat game Game ms 30ms 이하 (적 30마리 + 스킬 복합)
+- [x] 근거리 전투 이동·애니메이션 끊김 없음
+- [x] 피격 이미시브 플래시 연출 정상 동작
+
 ---
 
 ## 2026-04
