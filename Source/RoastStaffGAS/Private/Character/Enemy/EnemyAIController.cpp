@@ -6,6 +6,10 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AbilitySystemInterface.h"
 #include "AbilitySystemComponent.h"
+#include "BrainComponent.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "GAS/Tags/RSGameplayTags.h"
 #include "System/LoggingSystem.h"
 #include "Kismet/GameplayStatics.h"
@@ -18,6 +22,8 @@ const FName AEnemyAIController::BBKey_bIsPhase2      = TEXT("bIsPhase2");
 AEnemyAIController::AEnemyAIController()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	// 플레이어 위치 추적은 매 프레임 불필요 — 0.1s 간격으로 충분
+	PrimaryActorTick.TickInterval = 0.1f;
 }
 
 void AEnemyAIController::OnPossess(APawn* InPawn)
@@ -29,12 +35,22 @@ void AEnemyAIController::OnPossess(APawn* InPawn)
 void AEnemyAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
-	//플레이어가 죽거나, 유효하지않으면 false.
-	//플레이어가 유효한 경우 tick으로 위치 추적.
+
 	if (!UpdatePlayerInfo())
 	{
 		return;
+	}
+
+	// 거리 기반 CMC·Anim 틱 간격 조정 — AIC가 0.1s 간격으로 돌기 때문에 부하 없음
+	APawn* ControlledPawn = GetPawn();
+	if (ControlledPawn && CachedPlayerPawn.IsValid())
+	{
+		const float DistToPlayer = FVector::Dist(
+			ControlledPawn->GetActorLocation(),
+			CachedPlayerPawn->GetActorLocation()
+		);
+		
+		AdjustPawnTickRates(ControlledPawn, DistToPlayer);
 	}
 }
 
@@ -110,6 +126,12 @@ void AEnemyAIController::StartAI(UBehaviorTree* BehaviorTree)
 		return;
 	}
 
+	// BT 결정은 0.2s 간격으로 충분 — 서비스·데코레이터 조건 평가 비용 절감
+	if (UBrainComponent* Brain = GetBrainComponent())
+	{
+		Brain->SetComponentTickInterval(0.2f);
+	}
+
 	UBlackboardComponent* BB = GetBlackboardComponent();
 	if (BB)
 	{
@@ -158,4 +180,46 @@ void AEnemyAIController::ResumeAI()
 		Brain->ResumeLogic(TEXT("Boss phase transition complete"));
 	}
 	KHS_DEBUG(TEXT("%s — AI 재개 (페이즈2 활성)."), *GetName());
+}
+
+void AEnemyAIController::AdjustPawnTickRates(APawn* ControlledPawn, float DistToPlayer)
+{
+	ACharacter* EnemyChar = Cast<ACharacter>(ControlledPawn);
+	if (!EnemyChar)
+	{
+		return;
+	}
+
+	// 거리 구간별 틱 간격:
+	//   근거리 (< NearThreshold) : 매 프레임 — 전투 중 이동·애니 끊김 방지
+	//   중거리                   : CMC 30Hz / Anim 20Hz
+	//   원거리 (> FarThreshold)  : CMC 20Hz / Anim 10Hz
+	float NewCMCInterval;
+	float NewAnimInterval;
+
+	if (DistToPlayer < NearThreshold)
+	{
+		NewCMCInterval  = 0.0f;
+		NewAnimInterval = 0.0f;
+	}
+	else if (DistToPlayer < FarThreshold)
+	{
+		NewCMCInterval  = MidCMCTickInterval;
+		NewAnimInterval = MidAnimTickInterval;
+	}
+	else
+	{
+		NewCMCInterval  = FarCMCTickInterval;
+		NewAnimInterval = FarAnimTickInterval;
+	}
+
+	if (UCharacterMovementComponent* MoveComp = EnemyChar->GetCharacterMovement())
+	{
+		MoveComp->SetComponentTickInterval(NewCMCInterval);
+	}
+
+	if (USkeletalMeshComponent* MeshComp = EnemyChar->GetMesh())
+	{
+		MeshComp->SetComponentTickInterval(NewAnimInterval);
+	}
 }

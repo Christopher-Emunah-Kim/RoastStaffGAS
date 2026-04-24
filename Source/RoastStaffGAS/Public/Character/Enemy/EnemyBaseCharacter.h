@@ -131,6 +131,9 @@ private:
 	float FlashIntensity = 3.f;
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|HitReact")
 	float FlashDuration = 1.0f;
+	/** 이미시브 페이드 타이머 간격 (초) — 낮을수록 부드럽지만 GameThread 비용 증가 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|HitReact")
+	float FlashTickInterval = 0.05f;
 
 	// ── 넉다운 설정 ──
 	/** 넉다운 몽타주 — 쓰러지기 + 기립 섹션 포함. BP에서 에너미별 할당 */

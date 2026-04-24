@@ -29,10 +29,6 @@ protected:
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void Tick(float DeltaTime) override;
 	
-private:
-	bool UpdatePlayerInfo();
-	bool IsPlayerDead() const;
-	
 public:
 	void StartAI(UBehaviorTree* BehaviorTree);
 
@@ -47,12 +43,42 @@ public:
 	void ResumeAI();
 
 private:
-	// tick 체크용 캐싱
-	TWeakObjectPtr<APawn> CachedPlayerPawn;
+	bool UpdatePlayerInfo();
+	bool IsPlayerDead() const;
+
+	/**
+	 * 플레이어와의 거리에 따라 CMC·SkeletalMesh 틱 간격 동적 조정.
+	 * AIC Tick(0.1s 간격)에서 호출 — 근거리 전투 품질 유지, 원거리 CPU 절감.
+	 */
+	void AdjustPawnTickRates(APawn* ControlledPawn, float DistToPlayer);
 
 public:
 	// Blackboard 키 이름 상수
 	static const FName BBKey_PlayerLocation;
 	static const FName BBKey_bPlayerDead;
 	static const FName BBKey_bIsPhase2;
+	
+private:
+	// tick 체크용 캐싱
+	TWeakObjectPtr<APawn> CachedPlayerPawn;
+
+	// ── Tick 최적화 파라미터 (BP에서 에너미 종류별 조정 가능) ──────────────────
+	/** 근거리 임계값 (cm) — 이하에서는 CMC·Anim 틱을 매 프레임으로 유지 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|AI|TickOpt")
+	float NearThreshold = 1500.f;
+	/** 원거리 임계값 (cm) — 이상에서는 FarCMC/AnimTickInterval 적용 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|AI|TickOpt")
+	float FarThreshold = 3000.f;
+	/** 중거리 CMC 틱 간격 (초) */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|AI|TickOpt")
+	float MidCMCTickInterval = 0.033f;
+	/** 원거리 CMC 틱 간격 (초) */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|AI|TickOpt")
+	float FarCMCTickInterval = 0.05f;
+	/** 중거리 SkeletalMesh 애니메이션 틱 간격 (초) */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|AI|TickOpt")
+	float MidAnimTickInterval = 0.05f;
+	/** 원거리 SkeletalMesh 애니메이션 틱 간격 (초) */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|AI|TickOpt")
+	float FarAnimTickInterval = 0.1f;
 };

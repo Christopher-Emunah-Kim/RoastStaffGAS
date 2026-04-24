@@ -43,6 +43,9 @@ AEnemyBaseCharacter::AEnemyBaseCharacter()
 	HPBarWidgetComp->SetupAttachment(RootComponent);
 	HPBarWidgetComp->SetWidgetSpace(EWidgetSpace::Screen);  // 항상 카메라를 향함
 	HPBarWidgetComp->SetRelativeLocation(FVector(0.f, 0.f, 90.f));
+
+	// 화면 밖(프러스텀 컬링) 적은 애니메이션 틱 자동 중단 — 렌더링 안 되는 적의 Anim 연산 제거
+	GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
 }
 
 
@@ -478,14 +481,14 @@ void AEnemyBaseCharacter::MaterialEmissiveFlash()
 		FlashTimerHandle,
 		this,
 		&AEnemyBaseCharacter::TickEmissiveFade,
-		0.016f,
+		FlashTickInterval,
 		true
 	);
 }
 
 void AEnemyBaseCharacter::TickEmissiveFade()
 {
-	CurrentFlashIntensity -= FlashIntensity / FlashDuration * 0.016f;
+	CurrentFlashIntensity -= FlashIntensity / FlashDuration * FlashTickInterval;
 
 	if (CurrentFlashIntensity <= 0.f)
 	{
