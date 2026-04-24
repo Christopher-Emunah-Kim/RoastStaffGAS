@@ -14,7 +14,8 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 - date: 2026-04-24
   plan: PLAN_GameMsOpt_v1.0
-  status: PENDING_COMMIT
+  status: COMMITTED
+  commits: ["8b6c5c06f", "70c8790b5", "888c88484", "f55a7967b", "0cad93d20"]
   summary: "opt(game-ms): AIC/BT Tick 간격 + 거리 기반 CMC/Anim + VisibilityBasedAnimTickOption + FlashTimer 최적화"
   files:
     modified:

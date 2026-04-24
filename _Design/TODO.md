@@ -224,6 +224,7 @@
 
 ## COMPLETED_LOG
 <!-- compact 형식: [x] FEATURE명 | 커밋 | 날짜 | 플랜파일 -->
+[x] Game ms 최적화 (AIC/BT/CMC/Anim Tick + LOD + 적 수 조정) | 8b6c5c06f,70c8790b5,888c88484,f55a7967b,0cad93d20 | 2026-04-24 | PLAN_GameMsOpt_v1.0
 [x] 퍼포먼스 최적화 (SkillFX·BT 프리로드 + GC 스파이크 수정) | 15a2e7198,0734f2ab6 | 2026-04-24 | PLAN_AsyncLoadOpt_v1.0
 [x] 아웃게임 3D 로비 + 스테이지 선택 개편 | c6fd4228c,9c6e1a738 | 2026-04-21 | PLAN_OutgameLobby3D_v1.0
 [x] EnemySpawner NavMesh 스폰 위치 버그 수정 + RSGameMode 스트리밍 레벨 대기 | 미커밋(모든 MODULE 완료) | 2026-04-16 | PLAN_EnemySpawnFix_v1.0
