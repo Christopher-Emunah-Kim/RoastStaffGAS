@@ -34,7 +34,7 @@ ARSPlayerCharacter::ARSPlayerCharacter()
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->bUsePawnControlRotation = false;
 	SpringArm->SetRelativeRotation(FRotator(-50.f, 0.f, 0.f));
-	SpringArm->TargetArmLength = 1500.f;
+	SpringArm->TargetArmLength = 1300.f;
 	SpringArm->bDoCollisionTest = false;
 	SpringArm->bInheritYaw = false;
 	SpringArm->bEnableCameraLag = true;
