@@ -23,7 +23,9 @@ if [[ "$FILE_PATH" != *"/Source/"* ]] && [[ "$FILE_PATH" != *"\\Source\\"* ]]; t
     exit 0
 fi
 
-PLAN_DIR="$CLAUDE_PROJECT_DIR/_Design/Plans/active"
+# Windows 경로(D:\...)를 Unix 경로(/d/...)로 변환 후 Plans 디렉토리 설정
+PROJECT_DIR_UNIX=$(cygpath -u "$CLAUDE_PROJECT_DIR" 2>/dev/null || echo "$CLAUDE_PROJECT_DIR")
+PLAN_DIR="$PROJECT_DIR_UNIX/_Design/Plans/active"
 
 # 체크할 플랜 목록 결정
 if [ -n "$CLAUDE_ACTIVE_PLAN" ]; then
@@ -44,12 +46,14 @@ if [ -z "$PLANS_TO_CHECK" ]; then
     exit 0
 fi
 
-# Source/ 이후 상대 경로 추출 (Windows \ 와 Unix / 모두 처리)
-REL_PATH=$(echo "$FILE_PATH" | sed 's/\\/\//g' | grep -oE 'Source/.*$')
-BASENAME=$(basename "$FILE_PATH")
+# Source/ 이후 상대 경로 추출 — Windows 경로를 Unix로 먼저 변환
+FILE_PATH_UNIX=$(cygpath -u "$FILE_PATH" 2>/dev/null || echo "$FILE_PATH")
+REL_PATH=$(echo "$FILE_PATH_UNIX" | grep -oE 'Source/.*$')
+BASENAME=$(basename "$FILE_PATH_UNIX")
 
 # 모든 플랜에서 파일 포함 여부 확인 — 하나라도 있으면 통과
-for PLAN in $PLANS_TO_CHECK; do
+while IFS= read -r PLAN; do
+    [ -z "$PLAN" ] && continue
     if [ -n "$REL_PATH" ]; then
         IN_PLAN=$(grep -F "$REL_PATH" "$PLAN" 2>/dev/null)
         [ -z "$IN_PLAN" ] && IN_PLAN=$(grep -F "$BASENAME" "$PLAN" 2>/dev/null)
@@ -60,9 +64,9 @@ for PLAN in $PLANS_TO_CHECK; do
     if [ -n "$IN_PLAN" ]; then
         exit 0
     fi
-done
+done <<< "$PLANS_TO_CHECK"
 
 # 어느 플랜에도 없음 → 차단
-PLAN_NAMES=$(for P in $PLANS_TO_CHECK; do basename "$P"; done | tr '\n' ', ' | sed 's/,$//')
+PLAN_NAMES=$(while IFS= read -r P; do [ -n "$P" ] && basename "$P"; done <<< "$PLANS_TO_CHECK" | tr '\n' ',' | sed 's/,$//')
 echo "{\"decision\": \"block\", \"reason\": \"⛔ [SCOPE_VIOLATION] '$BASENAME' 은 활성 계획서 [$PLAN_NAMES] 범위 밖입니다. 해당 PLAN의 파일 목록에 추가하거나, /planning으로 범위를 먼저 확정하세요.\"}"
 exit 0

@@ -117,12 +117,12 @@ void APullVortexActor::InitEffect(const FSkillEffectInitData& InitData)
 		}
 	}
 
-#if WITH_EDITOR
-	// PullRadius (파란색) + EffectRadius (빨간색) 시각화
-	const float DbgDuration = InitData.Duration > 0.f ? InitData.Duration : 3.f;
-	DrawDebugSphere(GetWorld(), GetActorLocation(), PullRadius,        24, FColor::Blue, false, DbgDuration);
-	DrawDebugSphere(GetWorld(), GetActorLocation(), CachedEffectRadius, 24, FColor::Red,  false, DbgDuration);
-#endif
+// #if WITH_EDITOR
+// 	// PullRadius (파란색) + EffectRadius (빨간색) 시각화
+// 	const float DbgDuration = InitData.Duration > 0.f ? InitData.Duration : 3.f;
+// 	DrawDebugSphere(GetWorld(), GetActorLocation(), PullRadius,        24, FColor::Blue, false, DbgDuration);
+// 	DrawDebugSphere(GetWorld(), GetActorLocation(), CachedEffectRadius, 24, FColor::Red,  false, DbgDuration);
+// #endif
 
 	KHS_DEBUG(TEXT("PullVortex 초기화 — EffectRadius: %.0f | PullRadius: %.0f | HitCount: %d | Duration: %.1fs | Amount: %.1f"),
 		CachedEffectRadius, PullRadius, HitCount, InitData.Duration, CachedAmount);

@@ -245,12 +245,12 @@ void UGA_CharacterSkill::ExecuteInstantAoE(	const FCharacterSkillExecData& ExecD
 	FRotator FXRotation = AimDir.Rotation();
 	FXRotation.Yaw += 180.f;
 	SpawnSkillFX(ExecData.SkillFX, Center, Radius, ExecData.ElementTag, 0.f, FXRotation);
-
-#if WITH_EDITOR
-	// 실제 충돌 판정 구체 시각화 — FX 크기와 비교용 (에디터 전용)
-	DrawDebugSphere(GetWorld(), Center, Radius, 24, FColor::Red, false, 0.2f);
-	DrawDebugLine(GetWorld(), PlayerLoc, Center, FColor::Yellow, false, 0.2f);
-#endif
+//
+// #if WITH_EDITOR
+// 	// 실제 충돌 판정 구체 시각화 — FX 크기와 비교용 (에디터 전용)
+// 	DrawDebugSphere(GetWorld(), Center, Radius, 24, FColor::Red, false, 0.2f);
+// 	DrawDebugLine(GetWorld(), PlayerLoc, Center, FColor::Yellow, false, 0.2f);
+// #endif
 
 	KHS_INFO(TEXT("InstantAoE 발동 — SkillID: %s | 반경: %.0f"), *ExecData.SkillID.ToString(), Radius);
 
