@@ -4,6 +4,8 @@
 #include "UI/RSHUDWidget.h"
 #include "UI/Ingame/SlotContainerWidget.h"
 #include "UI/Ingame/CharacterStatPopupWidget.h"
+#include "UI/Enemy/BossHPBarWidget.h"
+#include "AbilitySystemComponent.h"
 #include "Components/Button.h"
 
 URSHUDWidget::URSHUDWidget()
@@ -24,6 +26,12 @@ void URSHUDWidget::NativeOnInitialized()
 	{
 		WBP_CharacterStatPopup->SetVisibility(ESlateVisibility::Collapsed);
 	}
+
+	// BossHPBar는 보스 스폰 전까지 숨김
+	if (WBP_BossHPBar)
+	{
+		WBP_BossHPBar->SetVisibility(ESlateVisibility::Collapsed);
+	}
 }
 
 void URSHUDWidget::NativeConstruct()
@@ -34,7 +42,10 @@ void URSHUDWidget::NativeConstruct()
 
 void URSHUDWidget::ToggleStatPopup()
 {
-	if (!WBP_CharacterStatPopup) return;
+	if (!WBP_CharacterStatPopup)
+	{
+		return;
+	}
 
 	if (WBP_CharacterStatPopup->IsOpen())
 	{
@@ -49,4 +60,23 @@ void URSHUDWidget::ToggleStatPopup()
 void URSHUDWidget::OnStatPopupBtnClicked()
 {
 	ToggleStatPopup();
+}
+
+void URSHUDWidget::ShowBossHPBar(UAbilitySystemComponent* InASC, float InPhase2Ratio)
+{
+	if (!ensureMsgf(WBP_BossHPBar, TEXT("RSHUDWidget: WBP_BossHPBar BindWidget 누락. WBP_HUD에 자식 배치 확인 필요.")))
+	{
+		return;
+	}
+
+	WBP_BossHPBar->SetVisibility(ESlateVisibility::Visible);
+	WBP_BossHPBar->BindToASC(InASC, InPhase2Ratio);
+}
+
+void URSHUDWidget::HideBossHPBar()
+{
+	if (WBP_BossHPBar)
+	{
+		WBP_BossHPBar->SetVisibility(ESlateVisibility::Collapsed);
+	}
 }

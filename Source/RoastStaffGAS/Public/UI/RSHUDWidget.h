@@ -9,6 +9,8 @@
 
 class USlotContainerWidget;
 class UCharacterStatPopupWidget;
+class UBossHPBarWidget;
+class UAbilitySystemComponent;
 class UButton;
 
 /**
@@ -31,6 +33,13 @@ public:
 	/** Tab 키 또는 HUD 버튼에서 호출 — 스탯 팝업 열기/닫기 토글 */
 	void ToggleStatPopup();
 
+	/** 보스 스폰 시 EnemySpawner가 호출 — BossHPBar 표시 + ASC 바인딩 */
+	void ShowBossHPBar(UAbilitySystemComponent* InASC, float InPhase2Ratio);
+	/** 보스 사망 폴백 시 EnemySpawner가 호출 — BossHPBar 숨김 */
+	void HideBossHPBar();
+
+	FORCEINLINE UBossHPBarWidget* GetBossHPBar() const { return WBP_BossHPBar; }
+
 private:
 	UFUNCTION()
 	void OnStatPopupBtnClicked();
@@ -42,4 +51,8 @@ private:
 	TObjectPtr<UCharacterStatPopupWidget> WBP_CharacterStatPopup;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> Btn_StatPopup;
+
+	/** 보스 전투 중에만 표시 — 초기 Collapsed, 보스 스폰/사망 시 토글 */
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBossHPBarWidget> WBP_BossHPBar;
 };
