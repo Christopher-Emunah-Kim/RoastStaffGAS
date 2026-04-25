@@ -15,6 +15,7 @@
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
 
+
 ## [FEATURE] 스킬 시스템 아키텍처 개선 | PLAN_SkillSystemArch_v1.0
 > 시작: 2026-04-21 | 기획서: 스킬 시스템 기획 v1.4.md
 > 코드 커밋: 0826c050a / 206cca116 / 6ba8f1487 / eb9fb975a / 23a46d884
@@ -224,6 +225,7 @@
 
 ## COMPLETED_LOG
 <!-- compact 형식: [x] FEATURE명 | 커밋 | 날짜 | 플랜파일 -->
+[x] BossHPBarWidget HUD 자식 편입 리팩토링 | 3ba19c363,72f7479b2,e4ec76175,fec8946ac | 2026-04-26 | PLAN_BossHPBarRefactor_v1.0
 [x] Game ms 최적화 (AIC/BT/CMC/Anim Tick + LOD + 적 수 조정) | 8b6c5c06f,70c8790b5,888c88484,f55a7967b,0cad93d20 | 2026-04-24 | PLAN_GameMsOpt_v1.0
 [x] 퍼포먼스 최적화 (SkillFX·BT 프리로드 + GC 스파이크 수정) | 15a2e7198,0734f2ab6 | 2026-04-24 | PLAN_AsyncLoadOpt_v1.0
 [x] 아웃게임 3D 로비 + 스테이지 선택 개편 | c6fd4228c,9c6e1a738 | 2026-04-21 | PLAN_OutgameLobby3D_v1.0

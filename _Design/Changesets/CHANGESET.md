@@ -12,6 +12,22 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ## PENDING_COMMIT
 
+- date: 2026-04-26
+  plan: PLAN_BossHPBarRefactor_v1.0
+  status: COMMITTED
+  commits: ["3ba19c363", "72f7479b2", "e4ec76175", "fec8946ac", "3a2eef361"]
+  summary: "refactor(boss-hpbar): BossHPBarWidget UMS 의존성 제거 + RSHUDWidget 자식 편입 + 최적화 잔여분"
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/UI/Enemy/BossHPBarWidget.h
+      - Source/RoastStaffGAS/Private/UI/Enemy/BossHPBarWidget.cpp
+      - Source/RoastStaffGAS/Public/UI/RSHUDWidget.h
+      - Source/RoastStaffGAS/Private/UI/RSHUDWidget.cpp
+      - Source/RoastStaffGAS/Public/System/EnemySpawner.h
+      - Source/RoastStaffGAS/Private/System/EnemySpawner.cpp
+      - Content/UI/Ingame/Enemy/WBP_BossHPBar.uasset
+      - Content/UI/Ingame/WBP_HUD.uasset
+
 - date: 2026-04-24
   plan: PLAN_GameMsOpt_v1.0
   status: COMMITTED
