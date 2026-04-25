@@ -14,6 +14,7 @@
 #include "Subsystems/StageManagerSubsystem.h"
 #include "Subsystems/GameDataSubsystem.h"
 #include "Subsystems/UIManagerSubsystem.h"
+#include "UI/RSHUDWidget.h"
 #include "UI/Enemy/BossHPBarWidget.h"
 #include "Data/EnumUITypes.h"
 #include "AbilitySystemInterface.h"
@@ -175,17 +176,16 @@ void AEnemySpawner::InitializeEnemyByType(AEnemyBaseCharacter* Enemy, FName Enem
 		{
 			Boss->InitializeBossParams(StaticData.AttackDamage, ExtData);
 
-			// Boss HP Bar 열기 — UIManagerSettings에 BOSS_HP_BAR 매핑 필요 (에디터)
+			// HUD 위젯을 통해 BossHPBar 표시 — UMS에서 기 오픈된 HUD 위젯 조회
 			GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetWorld()->GetGameInstance())
-			URSBaseWidget* BaseWidget = UMS->OpenUIByID(EUIID::BOSS_HP_BAR);
-			UBossHPBarWidget* BossHPBar = Cast<UBossHPBarWidget>(BaseWidget);
+			URSHUDWidget* HUDWidget = Cast<URSHUDWidget>(UMS->GetWidgetByID(EUIID::HUD));
 
-			if (ensureMsgf(BossHPBar, TEXT("EnemySpawner: BOSS_HP_BAR Cast 실패. UIManagerSettings 매핑 확인 필요.")))
+			if (ensureMsgf(HUDWidget, TEXT("EnemySpawner: HUD 위젯 조회 실패. RSPlayerController::OpenHUDUI 호출 여부 확인 필요.")))
 			{
 				IAbilitySystemInterface* ASCInterface = Cast<IAbilitySystemInterface>(Boss);
 				UAbilitySystemComponent* BossASC = ASCInterface ? ASCInterface->GetAbilitySystemComponent() : nullptr;
-				BossHPBar->BindToASC(BossASC, Boss->GetPhase2HPRatio());
-				CachedBossHPBar = BossHPBar;
+				HUDWidget->ShowBossHPBar(BossASC, Boss->GetPhase2HPRatio());
+				CachedHUDWidget = HUDWidget;
 			}
 
 			Boss->OnBossKilledDel.AddUniqueDynamic(this, &AEnemySpawner::OnBossKilled);
@@ -197,17 +197,24 @@ void AEnemySpawner::InitializeEnemyByType(AEnemyBaseCharacter* Enemy, FName Enem
 
 void AEnemySpawner::OnBossKilled()
 {
-	if (CachedBossHPBar.IsValid() && CachedBossHPBar->IsClosing())
+	if (!CachedHUDWidget.IsValid())
 	{
-		// FadeOut 애니메이션 진행 중 — 완료 시 위젯이 UMS에 자체 정리 요청
-		CachedBossHPBar = nullptr;
+		CachedHUDWidget = nullptr;
 		return;
 	}
 
-	// FadeOut 없는 경우(Anim_FadeOut 미설정) — 즉시 정리
-	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetWorld()->GetGameInstance())
-	UMS->CloseUIByID(EUIID::BOSS_HP_BAR);
-	CachedBossHPBar = nullptr;
+	UBossHPBarWidget* BossHPBar = CachedHUDWidget->GetBossHPBar();
+
+	// FadeOut 애니메이션 진행 중이면 OnFadeOutFinished에서 자체 Collapsed 처리
+	if (BossHPBar && BossHPBar->IsClosing())
+	{
+		CachedHUDWidget = nullptr;
+		return;
+	}
+
+	// Anim_FadeOut 미설정 폴백 — HUD를 통해 즉시 숨김
+	CachedHUDWidget->HideBossHPBar();
+	CachedHUDWidget = nullptr;
 }
 
 FVector AEnemySpawner::CalculateOffScreenSpawnLocation(const FVector& PlayerLocation, int32 MaxAttempts) const

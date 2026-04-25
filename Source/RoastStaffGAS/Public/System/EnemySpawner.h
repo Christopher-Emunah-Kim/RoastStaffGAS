@@ -8,7 +8,7 @@
 
 class AEnemyBaseCharacter;
 class AEnemyProjectile;
-class UBossHPBarWidget;
+class URSHUDWidget;
 class UBehaviorTree;
 
 /**
@@ -69,6 +69,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Spawn")
 	TSubclassOf<AEnemyProjectile> EnemyProjectileClass;
 
-	/** 현재 스폰된 보스의 HP Bar 위젯 — OnBossKilled 폴백 정리용 (UMS가 수명 보장) */
-	TWeakObjectPtr<UBossHPBarWidget> CachedBossHPBar;
+	/** 보스 사망 폴백용 HUD 위젯 약참조 — HideBossHPBar 호출에 사용 */
+	TWeakObjectPtr<URSHUDWidget> CachedHUDWidget;
 };
