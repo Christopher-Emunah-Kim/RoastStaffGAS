@@ -13,7 +13,7 @@ class UAbilitySystemComponent;
 /**
  * UBossHPBarWidget
  *
- * - 보스 스폰 시 UIManagerSubsystem이 PERSISTENT 레이어에 열기
+ * - RSHUDWidget의 자식 위젯으로 배치. 보스 스폰/사망 시 Visibility 토글.
  */
 UCLASS()
 class ROASTSTAFFGAS_API UBossHPBarWidget : public URSBaseWidget
@@ -33,7 +33,7 @@ public:
 	void BindToASC(UAbilitySystemComponent* InASC, float InPhase2Ratio);
 
 	FORCEINLINE bool IsClosing() const { return bIsClosing; }
-	
+
 private:
 	// ── ASC 콜백 ────────────────────────────────────────────────────────────
 	void OnCurrentHPChanged(const FOnAttributeChangeData& Data);
@@ -44,10 +44,10 @@ private:
 	void UpdateGhostBar(float InDeltaTime);
 	/** HP 비율이 Phase2Ratio 이하로 최초 진입 시 호출 */
 	void OnPhase2Entered();
-	/** HP=0 감지 시 FadeOut 시작 (Anim_FadeOut 없으면 즉시 정리) */
+	/** HP=0 감지 시 FadeOut 시작 (Anim_FadeOut 없으면 HUD::HideBossHPBar 폴백) */
 	void TriggerFadeOut();
 
-	/** FadeOut 애니메이션 완료 콜백 — UMS CloseUIByID 호출 */
+	/** FadeOut 애니메이션 완료 콜백 — Visibility Collapsed로 숨김 */
 	UFUNCTION()
 	void OnFadeOutFinished();
 

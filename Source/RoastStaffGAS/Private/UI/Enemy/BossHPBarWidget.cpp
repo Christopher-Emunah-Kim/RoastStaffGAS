@@ -4,15 +4,12 @@
 #include "Components/ProgressBar.h"
 #include "AbilitySystemComponent.h"
 #include "GAS/Attributes/BaseAttributeSet.h"
-#include "Subsystems/UIManagerSubsystem.h"
-#include "Data/EnumUITypes.h"
 #include "System/LoggingSystem.h"
 #include "RoastStaffGAS.h"
 
 UBossHPBarWidget::UBossHPBarWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	UILayer  = EUILayer::PERSISTENT;
 	bIsModal = false;
 }
 
@@ -194,22 +191,21 @@ void UBossHPBarWidget::TriggerFadeOut()
 
 	if (Anim_FadeOut)
 	{
-		// FadeOut 애니메이션 재생 → OnFadeOutFinished에서 UMS 정리
+		// FadeOut 애니메이션 재생 → OnFadeOutFinished에서 Collapsed 처리
 		bIsClosing = true;
 		PlayAnimation(Anim_FadeOut);
 	}
 	else
 	{
-		// 애니메이션 없으면 EnemySpawner::OnBossKilled가 CloseUIByID 처리
+		// 애니메이션 없으면 EnemySpawner::OnBossKilled → HUD::HideBossHPBar 폴백 경로로 숨김
 		KHS_INFO("BossHPBarWidget — Anim_FadeOut 없음. EnemySpawner 폴백 경로로 정리.");
 	}
 }
 
 void UBossHPBarWidget::OnFadeOutFinished()
 {
-	// FadeOut 완료 → UMS에 PERSISTENT 레이어 정리 위임
-	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetWorld()->GetGameInstance());
-	UMS->CloseUIByID(EUIID::BOSS_HP_BAR);
+	// FadeOut 완료 → HUD 자식이므로 Visibility만 숨김 (RemoveFromParent 불필요)
+	SetVisibility(ESlateVisibility::Collapsed);
 }
 
 float UBossHPBarWidget::CalcPercent(float InHP) const
