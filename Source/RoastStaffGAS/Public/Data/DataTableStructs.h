@@ -645,60 +645,80 @@ struct FCharacterSkillStaticData : public FTableRowBase
 	/** 스킬 슬롯 번호 — 1: Q키, 2: E키 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill")
 	int32 SkillSlot = 1;
-	/** 발동 방식 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill")
-	ESkillActivationType ActivationType = ESkillActivationType::InstantAoE;
+
+	// ── 3축 분류 ────────────────────────────────────────────────────────────
+	/** 조준방식 — 스킬 확정까지의 입력 흐름 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Targeting")
+	ESkillTargetingType TargetingType = ESkillTargetingType::Instant;
+	/** 효과 타입 — 스킬 확정 후 실제 결과 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Targeting")
+	ESkillEffectType EffectType = ESkillEffectType::RadialAoE;
+	/** 투사체 이동+착탄 방식 — EffectType == Projectile 시만 유효 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Targeting")
+	EProjectileMoveType ProjectileMoveType = EProjectileMoveType::Linear;
+	/** 투사체 발사 패턴 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Targeting")
+	ESkillSpawnPattern SpawnPattern = ESkillSpawnPattern::Single;
+	/** Burst/Spread/Circle 시 발사 수 (Single이면 미사용) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Targeting")
+	int32 SpawnCount = 1;
+
 	/** 쿨타임 (초). 스킬1: 8~12, 스킬2: 20~30 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill")
 	float Cooldown = 10.f;
-	/** 발동할 GameplayAbility 클래스 경로 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill")
-	TSoftClassPtr<UGameplayAbility> GAClass;
-	/** SpawnPreview 타입 전용 프리뷰 액터 클래스 — 스킬마다 다른 BP_Preview 할당. 다른 타입에서는 미사용 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|SpawnPreview")
-	TSoftClassPtr<ASummonPreviewObject> PreviewActorClass;
-	/** 스킬 슬롯 아이콘 텍스처 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|UI")
-	TSoftObjectPtr<UTexture2D> SkillIcon;
-
-	/** 메인 데미지/효과 GE 클래스. InstantAoE / SpawnPreview / GroundEffect / ProjectileSpawn 에서 사용. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|GE")
-	TSoftClassPtr<UGameplayEffect> SkillGEClass;
-	/** 상태이상 GE 클래스 (선택). 없으면 nullptr. PullVortex 넉다운 등 보조 효과에 사용. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|GE")
-	TSoftClassPtr<UGameplayEffect> StatusGEClass;
-
 	/** 데미지 배율 (기준: 1.0). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Params")
 	float DamageMultiplier = 1.f;
 	/** 효과 반경 (cm). 해당 없으면 0. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Params")
 	float EffectRadius = 0.f;
-	/** 지속 시간 (초). SelfBuff / GroundEffect 등에서 사용. 해당 없으면 0. */
+	/** 지속 시간 (초). SelfBuff / SpawnActor 등에서 사용. 해당 없으면 0. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Params")
 	float Duration = 0.f;
-	/** 스킬 발동 FX 에셋. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Params")
-	TSoftObjectPtr<UNiagaraSystem> SkillFX;
-
-	/** 스킬 효과 FK — DT_Skill_Attack_Common_Params_Data 등 효과 테이블 참조 키.
-	 *  ProjectileSpawn: SkillAttackCommonParams + SkillAttackSpawnParams + (SkillHitTypePierce) 복합 조회.
-	 *  SkillEffectID 미설정 시 GDS 복합 조회 생략. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill")
-	FName SkillEffectID = NAME_None;
-
+	/** 투사체 속도 (cm/s). EffectType == Projectile 시 유효. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Projectile")
+	float ProjectileSpeed = 1200.f;
+	/** 투사체 최대 사거리 (cm). EffectType == Projectile 시 유효. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Projectile")
+	float ProjectileRange = 1500.f;
+	/** Burst 발사 간격 (초). SpawnPattern == Burst 시 유효. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Projectile")
+	float FireInterval = 0.1f;
+	/** 최대 관통 횟수. ProjectileMoveType == Pierce 시 유효. 0 = 비관통 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Projectile")
+	int32 PierceCount = 0;
+	/** 관통마다 적용되는 데미지 감쇠율 (0.0 = 감쇠 없음). ProjectileMoveType == Pierce 시 유효. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Projectile")
+	float DamageDecay = 0.f;
 	/** 속성 태그 — SpawnSkillFX ElementColor 분기용. 없으면 White. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill")
 	FGameplayTag ElementTag;
 
-	/** ProjectileSpawn 전용 — 연속 발사 간격 (초). 무기 스킬 테이블에 없는 캐릭터 스킬 전용 파라미터.
-	 *  단발(ProjectileCount==1)이면 미사용. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Projectile")
-	float FireInterval = 0.f;
-
-	/** GroundEffect / SpawnPreview 확정 시 스폰할 효과 Actor 클래스 (ISkillEffectInterface 구현 BP). */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Effect")
+	// ── 리소스 SoftPtr ────────────────────────────────────────────────────
+	/** 발동할 GameplayAbility 클래스 경로 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Resource")
+	TSoftClassPtr<UGameplayAbility> GAClass;
+	/** 메인 데미지/효과 GE 클래스 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Resource")
+	TSoftClassPtr<UGameplayEffect> SkillGEClass;
+	/** 상태이상 GE 클래스 (선택). 없으면 nullptr. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Resource")
+	TSoftClassPtr<UGameplayEffect> StatusGEClass;
+	/** AimPreview 전용 프리뷰 액터 클래스 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Resource")
+	TSoftClassPtr<ASummonPreviewObject> PreviewActorClass;
+	/** SpawnActor / AimPreview 확정 시 스폰할 효과 Actor (ISkillEffectInterface 구현 BP) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Resource")
 	TSoftClassPtr<AActor> EffectActorClass;
+	/** 투사체 BP 클래스. EffectType == Projectile 시 유효. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Resource")
+	TSoftClassPtr<ABaseProjectile> ProjectileClass;
+	/** 스킬 발동 FX 에셋 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Resource")
+	TSoftObjectPtr<UNiagaraSystem> SkillFX;
+	/** 스킬 슬롯 아이콘 텍스처 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill|Resource")
+	TSoftObjectPtr<UTexture2D> SkillIcon;
 };
 
 // ----------------------------------------------------------------------------

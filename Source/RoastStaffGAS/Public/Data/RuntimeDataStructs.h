@@ -304,99 +304,60 @@ struct FCharacterSkillExecData
 	UPROPERTY(BlueprintReadOnly)
 	FName SkillID;
 	UPROPERTY(BlueprintReadOnly)
-	ESkillActivationType ActivationType = ESkillActivationType::InstantAoE;
-	UPROPERTY(BlueprintReadOnly)
 	float Cooldown = 10.f;
-	/** GA 클래스 (InitializeSkills 시 LoadSynchronous) */
-	UPROPERTY(BlueprintReadOnly)
-	TSoftClassPtr<UGameplayAbility> GAClass;
-	/** SpawnPreview 타입 전용 프리뷰 액터 클래스. 다른 타입에서는 null */
-	UPROPERTY(BlueprintReadOnly)
-	TSoftClassPtr<ASummonPreviewObject> PreviewActorClass;
-	/** 스킬 슬롯 아이콘 텍스처 */
-	UPROPERTY(BlueprintReadOnly)
-	TSoftObjectPtr<UTexture2D> SkillIconSoftRef;
 
-	/** 메인 데미지/효과 GE 클래스. GA에서 LoadSynchronous 후 사용. */
+	// ── 3축 분류 ────────────────────────────────────────────────────────────
 	UPROPERTY(BlueprintReadOnly)
-	TSoftClassPtr<UGameplayEffect> SkillGEClass;
-	/** 상태이상 GE 클래스 (선택). 없으면 nullptr. */
+	ESkillTargetingType TargetingType = ESkillTargetingType::Instant;
 	UPROPERTY(BlueprintReadOnly)
-	TSoftClassPtr<UGameplayEffect> StatusGEClass;
+	ESkillEffectType EffectType = ESkillEffectType::RadialAoE;
+	UPROPERTY(BlueprintReadOnly)
+	EProjectileMoveType ProjectileMoveType = EProjectileMoveType::Linear;
+	UPROPERTY(BlueprintReadOnly)
+	ESkillSpawnPattern SpawnPattern = ESkillSpawnPattern::Single;
+	UPROPERTY(BlueprintReadOnly)
+	int32 SpawnCount = 1;
 
-	/** 데미지 배율 (기준: 1.0) */
+	// ── 수치 파라미터 ────────────────────────────────────────────────────────
 	UPROPERTY(BlueprintReadOnly)
 	float DamageMultiplier = 1.f;
-	/** 효과 반경 (cm). 해당 없으면 0. */
 	UPROPERTY(BlueprintReadOnly)
 	float EffectRadius = 0.f;
-	/** 지속 시간 (초). SelfBuff / GroundEffect 등에서 사용. */
 	UPROPERTY(BlueprintReadOnly)
 	float Duration = 0.f;
-	/** 스킬 발동 FX 에셋. */
 	UPROPERTY(BlueprintReadOnly)
-	TSoftObjectPtr<UNiagaraSystem> SkillFX;
-
-	// ── ProjectileSpawn — SkillEffectID 복합 조회 결과 ─────────────────────
-	// GDS.GetCharacterSkillExecData 내에서 SkillEffectID로 무기 스킬 테이블을 복합 조회하여 채운다.
-	// SkillEffectID == NAME_None이면 아래 필드 미사용 (InstantAoE / SelfBuff / SpawnPreview만 사용).
-
-	/** 속성 태그 — SpawnSkillFX ElementColor 분기용 */
+	float ProjectileSpeed = 1200.f;
+	UPROPERTY(BlueprintReadOnly)
+	float ProjectileRange = 1500.f;
+	UPROPERTY(BlueprintReadOnly)
+	float FireInterval = 0.1f;
+	/** 최대 관통 횟수. ProjectileMoveType == Pierce 시 유효. */
+	UPROPERTY(BlueprintReadOnly)
+	int32 PierceCount = 0;
+	/** 관통마다 데미지 감쇠율 (0.0 = 감쇠 없음). */
+	UPROPERTY(BlueprintReadOnly)
+	float DamageDecay = 0.f;
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag ElementTag;
 
-	/** GroundEffect / SpawnPreview 확정 시 스폰할 효과 Actor 클래스 (ISkillEffectInterface 구현 BP). */
+	// ── 리소스 SoftPtr ────────────────────────────────────────────────────
+	/** GA 클래스 (InitializeSkills 시 LoadSynchronous) */
+	UPROPERTY(BlueprintReadOnly)
+	TSoftClassPtr<UGameplayAbility> GAClass;
+	UPROPERTY(BlueprintReadOnly)
+	TSoftClassPtr<UGameplayEffect> SkillGEClass;
+	UPROPERTY(BlueprintReadOnly)
+	TSoftClassPtr<UGameplayEffect> StatusGEClass;
+	UPROPERTY(BlueprintReadOnly)
+	TSoftClassPtr<ASummonPreviewObject> PreviewActorClass;
 	UPROPERTY(BlueprintReadOnly)
 	TSoftClassPtr<AActor> EffectActorClass;
-
-	/** 스킬 효과 FK */
-	UPROPERTY(BlueprintReadOnly)
-	FName SkillEffectID;
-
-	/** 투사체 클래스 — SkillCommonResourceCache[SkillID].ProjectileClass */
 	UPROPERTY(BlueprintReadOnly)
 	TSoftClassPtr<ABaseProjectile> ProjectileClass;
-
-	/** 기본 데미지 수치 — SkillAttackCommonParamsData.Amount.
-	 *  GA에서 Amount * DamageMultiplier 로 최종 데미지 산출. */
 	UPROPERTY(BlueprintReadOnly)
-	float Amount = 0.f;
-
-	/** 투사체 이동 속도 (cm/s) */
+	TSoftObjectPtr<UNiagaraSystem> SkillFX;
 	UPROPERTY(BlueprintReadOnly)
-	float ProjectileSpeed = 0.f;
-
-	/** 투사체 수명 (초) */
-	UPROPERTY(BlueprintReadOnly)
-	float ProjectileLifetime = 0.f;
-
-	/** 이동 방식 */
-	UPROPERTY(BlueprintReadOnly)
-	EMoveType MoveType = EMoveType::LINEAR;
-
-	/** 타격 방식 */
-	UPROPERTY(BlueprintReadOnly)
-	EHitType HitType = EHitType::SINGLE;
-
-	/** 소환 방식 */
-	UPROPERTY(BlueprintReadOnly)
-	ESpawnPattern SpawnPattern = ESpawnPattern::SINGLE;
-
-	/** 연속 발사 수 */
-	UPROPERTY(BlueprintReadOnly)
-	int32 ProjectileCount = 1;
-
-	/** 연속 발사 간격 (초) — 캐릭터 스킬 전용 */
-	UPROPERTY(BlueprintReadOnly)
-	float FireInterval = 0.f;
-
-	/** 관통 횟수 (0 = 비관통) */
-	UPROPERTY(BlueprintReadOnly)
-	int32 PierceCount = 0;
-
-	/** 관통 데미지 감쇠율 */
-	UPROPERTY(BlueprintReadOnly)
-	float DamageDecay = 0.f;
+	TSoftObjectPtr<UTexture2D> SkillIconSoftRef;
 };
 
 // ----------------------------------------------------------------------------

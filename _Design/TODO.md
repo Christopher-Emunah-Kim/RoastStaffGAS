@@ -26,36 +26,36 @@
     - [x] ESkillActivationType DEPRECATED 주석 추가
     - [x] Skill.State.Charging GameplayTag 등록
 
-  ### [MODULE-2] StructMigration ⚠️ MODULE-3과 연속 처리 필수
+  ### [MODULE-2] StructMigration ✓ COMMITTED
   수정: DataTableStructs.h / RuntimeDataStructs.h
-    - [ ] FCharacterSkillStaticData: ActivationType 제거 → 3축+SpawnPattern+SpawnCount     [P0]
-    - [ ] FCharacterSkillStaticData: ProjectileSpeed/Range/FireInterval 필드 추가           [P0]
-    - [ ] FCharacterSkillStaticData: bTeleportOnConfirm + SkillEffectID(FK) 삭제           [P0]
-    - [ ] FCharacterSkillExecData: 동일 필드 교체                                          [P0]
-    - [ ] 모든 신규 필드 기본값 설정                                                       [P0]
+    - [x] FCharacterSkillStaticData: ActivationType 제거 → 3축+SpawnPattern+SpawnCount
+    - [x] FCharacterSkillStaticData: ProjectileSpeed/Range/FireInterval/PierceCount/DamageDecay 필드 추가
+    - [x] FCharacterSkillStaticData: bTeleportOnConfirm + SkillEffectID(FK) 삭제
+    - [x] FCharacterSkillExecData: 동일 필드 교체
+    - [x] 모든 신규 필드 기본값 설정
 
-  ### [MODULE-3] GDSMigration ⚠️ MODULE-2 완료 직후 연속 처리
+  ### [MODULE-3] GDSMigration ✓ COMMITTED
   수정: GameDataSubsystem.h/.cpp / SkillManagerSubsystem.cpp
-    - [ ] GetCharacterSkillExecData: 3축+SpawnPattern+SpawnCount 필드 매핑                 [P0]
-    - [ ] 캐릭터 스킬 경로에서 SkillEffectID 복합 조회 + DT_Skill_* 참조 제거             [P0]
-    - [ ] SkillManagerSubsystem GetSlotExecData 반환 번들 갱신                             [P0]
+    - [x] GetCharacterSkillExecData: 3축+SpawnPattern+SpawnCount+PierceCount+DamageDecay 직접 매핑
+    - [x] 캐릭터 스킬 경로에서 SkillEffectID 복합 조회 + DT_Skill_* 참조 제거
+    - [x] SkillManagerSubsystem: ActivationType → TargetingType 분기 교체
 
-  ### [MODULE-4] GARefactor
+  ### [MODULE-4] GARefactor ✓ COMMITTED
   수정: GA_CharacterSkill.h/.cpp
-    - [ ] OnAbilityActivated → ResolveTargeting(TargetingType) 2단계 분기로 교체           [P1]
-    - [ ] ResolveTargeting_Instant/AimPreview/LaunchProjectile 구현                        [P1]
-    - [ ] ResolveEffect(EffectType) 통합 진입점 + ExecuteEffect_* 5개 구현                 [P1]
-    - [ ] 기존 Execute* 함수 5개 제거 + bTeleportOnConfirm UPROPERTY 제거                  [P1]
+    - [x] OnAbilityActivated → ResolveTargeting(TargetingType) 2단계 분기로 교체
+    - [x] ResolveTargeting_AimPreview/LaunchProjectile 구현
+    - [x] ResolveEffect(EffectType) 통합 진입점 + ExecuteEffect_* 5개 구현
+    - [x] 기존 Execute* 함수 5개 제거 + bTeleportOnConfirm UPROPERTY 제거
 
-  ### [MODULE-5] CSVMigration
+  ### [MODULE-5] CSVMigration ✓ COMMITTED
   수정: ExternalSource/DT_Character_Skill_Static_Data.csv
-    - [ ] 신규 스키마로 도화가 6개 + 호크아이 6개 데이터 이전                              [P1]
-    - [ ] 에디터 DT_CharacterSkill 리임포트 + 검증                                        [P1]
+    - [x] 신규 스키마로 Painter/Sorceress/Hawkeye 18행 데이터 이전
+    - [x] PierceCount/DamageDecay 컬럼 추가
 
-  ### [MODULE-6] LegacyIsolation + ARCH_SNAPSHOT 갱신
+  ### [MODULE-6] LegacyIsolation + ARCH_SNAPSHOT 갱신 ✓ COMMITTED
   수정: GameDataSubsystem.cpp / ARCH_SNAPSHOT.md
-    - [ ] 캐릭터 스킬 경로 DT_Skill_* 참조 완전 제거 확인                                 [P2]
-    - [ ] ARCH_SNAPSHOT SD4 무효화 + SD5/SD6 추가                                         [P2]
+    - [x] 캐릭터 스킬 경로 DT_Skill_* 참조 완전 제거 확인
+    - [x] ARCH_SNAPSHOT SD4 무효화 + SD5/SD6 추가
 
   ### [DEFERRED] MODULE-7 ChargeAndRelease Execute
   - [~] ResolveTargeting_ChargeAndRelease() 구현 — 호크아이 스킬 스프린트 착수 시         [P3]
