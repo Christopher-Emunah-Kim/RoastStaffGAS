@@ -27,7 +27,11 @@
 #endif
 
 
-void UGA_CharacterSkill::OnAbilityActivated(const FGameplayAbilitySpecHandle Handle,const FGameplayAbilityActorInfo* ActorInfo,const FGameplayAbilityActivationInfo ActivationInfo)
+// ============================================================================
+// OnAbilityActivated
+// ============================================================================
+
+void UGA_CharacterSkill::OnAbilityActivated(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	const URSCharacterSkillData* SkillData = Cast<URSCharacterSkillData>(GetCurrentSourceObject());
 	if (!ensureMsgf(SkillData, TEXT("SourceObject가 URSCharacterSkillData가 아님")))
@@ -40,49 +44,43 @@ void UGA_CharacterSkill::OnAbilityActivated(const FGameplayAbilitySpecHandle Han
 
 	const FCharacterSkillExecData ExecData = SkillMgr->GetSlotExecData(SkillData->SlotIndex);
 
-	switch (ExecData.ActivationType)
+	switch (ExecData.TargetingType)
 	{
-	case ESkillActivationType::InstantAoE:
+	case ESkillTargetingType::Instant:
 		StartSkillWithMontage(ExecData, Handle, ActorInfo, ActivationInfo,
 			[this, ExecData, Handle, ActorInfo, ActivationInfo]()
 			{
-				ExecuteInstantAoE(ExecData, Handle, ActorInfo, ActivationInfo);
+				ResolveEffect(ExecData, Handle, ActorInfo, ActivationInfo, FVector::ZeroVector);
 			});
 		break;
-	case ESkillActivationType::SelfBuff:
+	case ESkillTargetingType::AimPreview:
 		StartSkillWithMontage(ExecData, Handle, ActorInfo, ActivationInfo,
 			[this, ExecData, Handle, ActorInfo, ActivationInfo]()
 			{
-				ExecuteSelfBuff(ExecData, Handle, ActorInfo, ActivationInfo);
+				ResolveTargeting_AimPreview(ExecData, Handle, ActorInfo, ActivationInfo);
 			});
 		break;
-	case ESkillActivationType::SpawnPreview:
+	case ESkillTargetingType::LaunchProjectile:
 		StartSkillWithMontage(ExecData, Handle, ActorInfo, ActivationInfo,
 			[this, ExecData, Handle, ActorInfo, ActivationInfo]()
 			{
-				ExecuteSpawnPreview(ExecData, Handle, ActorInfo, ActivationInfo);
+				ResolveTargeting_LaunchProjectile(ExecData, Handle, ActorInfo, ActivationInfo);
 			});
 		break;
-	case ESkillActivationType::ProjectileSpawn:
-		StartSkillWithMontage(ExecData, Handle, ActorInfo, ActivationInfo,
-			[this, ExecData, Handle, ActorInfo, ActivationInfo]()
-			{
-				ExecuteProjectileSpawn(ExecData, Handle, ActorInfo, ActivationInfo);
-			});
-		break;
-	case ESkillActivationType::GroundEffect:
-		StartSkillWithMontage(ExecData, Handle, ActorInfo, ActivationInfo,
-			[this, ExecData, Handle, ActorInfo, ActivationInfo]()
-			{
-				ExecuteGroundEffect(ExecData, Handle, ActorInfo, ActivationInfo);
-			});
+	case ESkillTargetingType::ChargeAndRelease:
+		KHS_WARN(TEXT("ChargeAndRelease는 DEFERRED — SlotIndex: %d"), SkillData->SlotIndex);
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		break;
 	default:
-		KHS_WARN(TEXT("처리되지 않은 ActivationType — SlotIndex: %d"), SkillData->SlotIndex);
+		KHS_WARN(TEXT("처리되지 않은 TargetingType — SlotIndex: %d"), SkillData->SlotIndex);
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		break;
 	}
 }
+
+// ============================================================================
+// StartSkillWithMontage
+// ============================================================================
 
 void UGA_CharacterSkill::StartSkillWithMontage(
 	const FCharacterSkillExecData& ExecData,
@@ -91,14 +89,12 @@ void UGA_CharacterSkill::StartSkillWithMontage(
 	const FGameplayAbilityActivationInfo ActivationInfo,
 	TFunction<void()> ExecuteFunc)
 {
-	// 몽타주 미할당 시 즉시 발동 (기존 동작 유지)
 	if (!CastingMontage)
 	{
 		ExecuteFunc();
 		return;
 	}
 
-	// 이동 잠금
 	ABaseCharacter* Instigator = const_cast<ABaseCharacter*>(CachedInstigator.Get());
 	if (Instigator)
 	{
@@ -108,31 +104,23 @@ void UGA_CharacterSkill::StartSkillWithMontage(
 		}
 	}
 
-	// 몽타주 재생 태스크
 	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this, NAME_None, CastingMontage, 1.f, NAME_None, true);
 
-	// HitCheck 노티파이 대기 태스크
 	UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
 		this, RSTags::Event_Montage_HitCheck);
 
-	// HitCheck 노티파이 수신 → 실제 효과 발동
 	EventTask->EventReceived.AddDynamic(this, &UGA_CharacterSkill::OnHitCheckReceived);
 
-	// 몽타주 완료 → 이동 복원 + EndAbility
-	// 람다 캡처 불가(AddDynamic) → OnMontageEnded 멤버함수로 위임
 	MontageTask->OnCompleted.AddDynamic(this, &UGA_CharacterSkill::OnCastingMontageEnded);
 	MontageTask->OnCancelled.AddDynamic(this, &UGA_CharacterSkill::OnCastingMontageEnded);
 	MontageTask->OnInterrupted.AddDynamic(this, &UGA_CharacterSkill::OnCastingMontageEnded);
 
-	// ExecuteFunc를 멤버 변수에 캐싱 (노티파이 수신 시 호출)
 	PendingExecuteFunc = MoveTemp(ExecuteFunc);
 	bExecuteFuncCalled = false;
 
 	EventTask->ReadyForActivation();
 	MontageTask->ReadyForActivation();
-
-	KHS_DEBUG(TEXT("스킬 몽타주 시작 — SkillID: %s"), *ExecData.SkillID.ToString());
 }
 
 void UGA_CharacterSkill::OnHitCheckReceived(FGameplayEventData Payload)
@@ -152,7 +140,6 @@ void UGA_CharacterSkill::OnHitCheckReceived(FGameplayEventData Payload)
 
 void UGA_CharacterSkill::OnCastingMontageEnded()
 {
-	// 이동 복원
 	ABaseCharacter* Instigator = const_cast<ABaseCharacter*>(CachedInstigator.Get());
 	if (Instigator)
 	{
@@ -162,13 +149,96 @@ void UGA_CharacterSkill::OnCastingMontageEnded()
 		}
 	}
 
-	// 몽타주 없이 즉시 발동한 경우는 이 콜백이 오지 않으므로 EndAbility는 각 Execute에서 처리
-	// 몽타주 있는 경우: 효과가 HitCheck에서 이미 발동됐으므로 여기서 GA 종료
 	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
-	KHS_DEBUG(TEXT("스킬 몽타주 종료 — 이동 복원 + EndAbility"));
 }
 
-void UGA_CharacterSkill::ExecuteInstantAoE(	const FCharacterSkillExecData& ExecData, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,	const FGameplayAbilityActivationInfo ActivationInfo)
+// ============================================================================
+// ResolveTargeting
+// ============================================================================
+
+void UGA_CharacterSkill::ResolveTargeting_AimPreview(
+	const FCharacterSkillExecData& ExecData,
+	const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
+	const FVector TargetLoc = SkillMgr->GetPendingTargetLocation();
+	ResolveEffect(ExecData, Handle, ActorInfo, ActivationInfo, TargetLoc);
+}
+
+void UGA_CharacterSkill::ResolveTargeting_LaunchProjectile(
+	const FCharacterSkillExecData& ExecData,
+	const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	ResolveEffect(ExecData, Handle, ActorInfo, ActivationInfo, FVector::ZeroVector);
+}
+
+// ============================================================================
+// ResolveEffect
+// ============================================================================
+
+void UGA_CharacterSkill::ResolveEffect(
+	const FCharacterSkillExecData& ExecData,
+	const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo,
+	FVector TargetLocation)
+{
+	switch (ExecData.EffectType)
+	{
+	case ESkillEffectType::RadialAoE:
+	{
+		// Instant + RadialAoE: 에임 방향 기준 중심점 계산
+		if (TargetLocation.IsZero() && CachedInstigator)
+		{
+			const FVector PlayerLoc = CachedInstigator->GetActorLocation();
+			FVector AimDir = CachedInstigator->GetActorForwardVector();
+			if (const ARSPlayerController* PC = Cast<ARSPlayerController>(GetWorld()->GetFirstPlayerController()))
+			{
+				const FVector Dir = (PC->GetCachedAimLocation() - PlayerLoc).GetSafeNormal2D();
+				if (!Dir.IsNearlyZero())
+				{
+					AimDir = Dir;
+				}
+			}
+			TargetLocation = PlayerLoc + AimDir * FMath::Max(1.f, ExecData.EffectRadius);
+		}
+		ExecuteEffect_RadialAoE(ExecData, Handle, ActorInfo, ActivationInfo, TargetLocation);
+		break;
+	}
+	case ESkillEffectType::SelfBuff:
+		ExecuteEffect_SelfBuff(ExecData, Handle, ActorInfo, ActivationInfo);
+		break;
+	case ESkillEffectType::Teleport:
+		ExecuteEffect_Teleport(ExecData, Handle, ActorInfo, ActivationInfo, TargetLocation);
+		break;
+	case ESkillEffectType::SpawnActor:
+		ExecuteEffect_SpawnActor(ExecData, Handle, ActorInfo, ActivationInfo, TargetLocation);
+		break;
+	case ESkillEffectType::Projectile:
+		ExecuteEffect_Projectile(ExecData, Handle, ActorInfo, ActivationInfo);
+		break;
+		
+	default:
+		KHS_WARN(TEXT("처리되지 않은 EffectType — SkillID: %s"), *ExecData.SkillID.ToString());
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		break;
+	}
+}
+
+// ============================================================================
+// ExecuteEffect_*
+// ============================================================================
+
+void UGA_CharacterSkill::ExecuteEffect_RadialAoE(
+	const FCharacterSkillExecData& ExecData,
+	const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo,
+	FVector TargetLocation)
 {
 	if (!CachedInstigator)
 	{
@@ -178,31 +248,14 @@ void UGA_CharacterSkill::ExecuteInstantAoE(	const FCharacterSkillExecData& ExecD
 
 	TSubclassOf<UGameplayEffect> LoadedSkillGE = ExecData.SkillGEClass.LoadSynchronous();
 
-	const FVector PlayerLoc = CachedInstigator->GetActorLocation();
-	const float Radius      = FMath::Max(1.f, ExecData.EffectRadius);
+	const float Radius = FMath::Max(1.f, ExecData.EffectRadius);
 
-	// 플레이어 → 마우스 방향 (수평면)
-	FVector AimDir = CachedInstigator->GetActorForwardVector();
-	if (const ARSPlayerController* PC = Cast<ARSPlayerController>(GetWorld()->GetFirstPlayerController()))
-	{
-		const FVector Dir = (PC->GetCachedAimLocation() - PlayerLoc).GetSafeNormal2D();
-		if (!Dir.IsNearlyZero())
-		{
-			AimDir = Dir;
-		}
-	}
-
-	// 데미지/FX 중심점: 플레이어에서 에임 방향으로 Radius만큼 전진
-	// → 플레이어가 원주 위에 위치, 원이 마우스 방향으로 뻗어나감
-	const FVector Center = PlayerLoc + AimDir * Radius;
-
-	// 범위 내 적 탐색
 	TArray<FOverlapResult> Overlaps;
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(CachedInstigator.Get());
 
-	TRACE_BOOKMARK(TEXT("SkillEffect_AoE_Overlap"));
-	GetWorld()->OverlapMultiByChannel(Overlaps, Center, FQuat::Identity, ECC_Pawn,
+	TRACE_BOOKMARK(TEXT("SkillEffect_AoE_Overlap"))
+	GetWorld()->OverlapMultiByChannel(Overlaps, TargetLocation, FQuat::Identity, ECC_Pawn,
 		FCollisionShape::MakeSphere(Radius), QueryParams);
 
 	UAbilitySystemComponent* OwnerASC = GetOwnerASC();
@@ -224,9 +277,8 @@ void UGA_CharacterSkill::ExecuteInstantAoE(	const FCharacterSkillExecData& ExecD
 		FGameplayEffectContextHandle Context = OwnerASC->MakeEffectContext();
 		Context.AddInstigator(const_cast<ABaseCharacter*>(CachedInstigator.Get()), const_cast<ABaseCharacter*>(CachedInstigator.Get()));
 
-		// Center를 HitResult ImpactPoint로 주입 → EnemyAttributeSet에서 넉백 방향 계산에 사용
 		FHitResult CenterHit;
-		CenterHit.ImpactPoint = Center;
+		CenterHit.ImpactPoint = TargetLocation;
 		Context.AddHitResult(CenterHit, true);
 
 		FGameplayEffectSpecHandle Spec = OwnerASC->MakeOutgoingSpec(LoadedSkillGE, 1, Context);
@@ -236,32 +288,33 @@ void UGA_CharacterSkill::ExecuteInstantAoE(	const FCharacterSkillExecData& ExecD
 		}
 
 		Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_WeaponBaseDamage, GetSkillDamageAmount(ExecData));
-
 		OwnerASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
 	}
 
-	// FX: Center에서 플레이어 → 마우스 방향으로 스폰
-	// FX는 플레이어 → 마우스 방향으로 재생 — AimDir 기준 180도 반전
+	// FX
+	const FVector PlayerLoc = CachedInstigator->GetActorLocation();
+	FVector AimDir = (TargetLocation - PlayerLoc).GetSafeNormal2D();
+	if (AimDir.IsNearlyZero())
+	{
+		AimDir = CachedInstigator->GetActorForwardVector();
+	}
 	FRotator FXRotation = AimDir.Rotation();
 	FXRotation.Yaw += 180.f;
-	SpawnSkillFX(ExecData.SkillFX, Center, Radius, ExecData.ElementTag, 0.f, FXRotation);
-//
-// #if WITH_EDITOR
-// 	// 실제 충돌 판정 구체 시각화 — FX 크기와 비교용 (에디터 전용)
-// 	DrawDebugSphere(GetWorld(), Center, Radius, 24, FColor::Red, false, 0.2f);
-// 	DrawDebugLine(GetWorld(), PlayerLoc, Center, FColor::Yellow, false, 0.2f);
-// #endif
+	SpawnSkillFX(ExecData.SkillFX, TargetLocation, Radius, ExecData.ElementTag, 0.f, FXRotation);
 
-	KHS_INFO(TEXT("InstantAoE 발동 — SkillID: %s | 반경: %.0f"), *ExecData.SkillID.ToString(), Radius);
+	KHS_INFO(TEXT("RadialAoE 발동 — SkillID: %s | 반경: %.0f"), *ExecData.SkillID.ToString(), Radius);
 
-	// 몽타주 없이 즉시 발동한 경우만 여기서 종료 — 몽타주 있는 경우 OnCastingMontageEnded에서 종료
 	if (!CastingMontage)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 	}
 }
 
-void UGA_CharacterSkill::ExecuteSelfBuff(const FCharacterSkillExecData& ExecData, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,	const FGameplayAbilityActivationInfo ActivationInfo)
+void UGA_CharacterSkill::ExecuteEffect_SelfBuff(
+	const FCharacterSkillExecData& ExecData,
+	const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	TSubclassOf<UGameplayEffect> LoadedSkillGE = ExecData.SkillGEClass.LoadSynchronous();
 
@@ -278,13 +331,11 @@ void UGA_CharacterSkill::ExecuteSelfBuff(const FCharacterSkillExecData& ExecData
 		return;
 	}
 
-	// Duration은 GE BP에서 설정 — 여기서는 SetByCaller로 Duration 오버라이드 불필요
 	OwnerASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
 
-	// 버프 오라 FX — 캐릭터 메시에 Attach하여 이동 시 따라다니게 함
 	if (CachedInstigator)
 	{
-		TRACE_BOOKMARK(TEXT("SkillFX_BuffAura_Spawn"));
+		TRACE_BOOKMARK(TEXT("SkillFX_BuffAura_Spawn"))
 		UNiagaraSystem* FX = ExecData.SkillFX.LoadSynchronous();
 		if (FX)
 		{
@@ -302,7 +353,6 @@ void UGA_CharacterSkill::ExecuteSelfBuff(const FCharacterSkillExecData& ExecData
 			{
 				BuffFX->SetVariableFloat(FName(TEXT("Radius")), ExecData.EffectRadius);
 
-				// Duration 후 오라 FX 비활성화
 				TWeakObjectPtr<UNiagaraComponent> WeakFX(BuffFX);
 				FTimerHandle FXHandle;
 				GetWorld()->GetTimerManager().SetTimer(FXHandle, [WeakFX]()
@@ -316,7 +366,7 @@ void UGA_CharacterSkill::ExecuteSelfBuff(const FCharacterSkillExecData& ExecData
 		}
 	}
 
-	KHS_DEBUG(TEXT("SelfBuff 발동 — SkillID: %s | Duration: %.1fs"), *ExecData.SkillID.ToString(), ExecData.Duration);
+	KHS_INFO(TEXT("SelfBuff 발동 — SkillID: %s | Duration: %.1fs"), *ExecData.SkillID.ToString(), ExecData.Duration);
 
 	if (!CastingMontage)
 	{
@@ -324,144 +374,55 @@ void UGA_CharacterSkill::ExecuteSelfBuff(const FCharacterSkillExecData& ExecData
 	}
 }
 
-void UGA_CharacterSkill::ExecuteSpawnPreview(const FCharacterSkillExecData& ExecData, const FGameplayAbilitySpecHandle Handle,	const FGameplayAbilityActorInfo* ActorInfo,	const FGameplayAbilityActivationInfo ActivationInfo)
+void UGA_CharacterSkill::ExecuteEffect_Teleport(
+	const FCharacterSkillExecData& ExecData,
+	const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo,
+	FVector TargetLocation)
 {
-	TSubclassOf<UGameplayEffect> LoadedSkillGE    = ExecData.SkillGEClass.LoadSynchronous();
-	TSubclassOf<UGameplayEffect> LoadedStatusGE   = ExecData.StatusGEClass.LoadSynchronous();
-
-	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
-	const FVector TargetLoc = SkillMgr->GetPendingTargetLocation();
-	const float Radius      = FMath::Max(1.f, ExecData.EffectRadius);
-
-	// AoE 피해 — SkillGEClass 있을 때만 적용 (텔레포트 전용 스킬은 SkillGEClass 없음)
-	// EffectActorClass 있으면 액터가 데미지를 직접 관리 → 즉시 AoE 생략
-	if (LoadedSkillGE && !ExecData.EffectActorClass)
+	if (!CachedInstigator)
 	{
-		TArray<FOverlapResult> Overlaps;
-		FCollisionQueryParams QueryParams;
-		if (CachedInstigator)
-		{
-			QueryParams.AddIgnoredActor(CachedInstigator.Get());
-		}
-
-		GetWorld()->OverlapMultiByChannel(Overlaps, TargetLoc, FQuat::Identity, ECC_Pawn,
-			FCollisionShape::MakeSphere(Radius), QueryParams);
-
-		UAbilitySystemComponent* OwnerASC = GetOwnerASC();
-
-		for (const FOverlapResult& Overlap : Overlaps)
-		{
-			AActor* TargetActor = Overlap.GetActor();
-			if (!TargetActor)
-			{
-				continue;
-			}
-
-			UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
-			if (!TargetASC || !TargetASC->HasMatchingGameplayTag(RSTags::Team_Enemy))
-			{
-				continue;
-			}
-
-			FGameplayEffectContextHandle Context = OwnerASC->MakeEffectContext();
-			Context.AddInstigator(const_cast<ABaseCharacter*>(CachedInstigator.Get()), const_cast<ABaseCharacter*>(CachedInstigator.Get()));
-			FGameplayEffectSpecHandle Spec = OwnerASC->MakeOutgoingSpec(LoadedSkillGE, 1, Context);
-			if (!Spec.IsValid())
-			{
-				continue;
-			}
-
-			Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_WeaponBaseDamage,
-				GetSkillDamageAmount(ExecData));
-
-			OwnerASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
-		}
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
 	}
 
-	// 장판 소환 — EffectActorClass 있을 때만 (SpawnPreview 확정 위치에 즉시 배치)
-	if (ExecData.EffectActorClass)
-	{
-		GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSub)
-		TSubclassOf<AActor> EffectClass;
-		if (LoadRequiredClass(ExecData.EffectActorClass, EffectClass, ExecData.SkillID))
-		{
-			AActor* EffectActor = PoolSub->SpawnPooledActor<AActor>(
-				EffectClass, FTransform(FRotator::ZeroRotator, TargetLoc));
+	const float Radius = FMath::Max(1.f, ExecData.EffectRadius);
+	const FVector DepartureLoc = CachedInstigator->GetActorLocation();
 
-			ISkillEffectInterface* EffectInterface = Cast<ISkillEffectInterface>(EffectActor);
-			if (!EffectInterface)
-			{
-				KHS_WARN(TEXT("SpawnPreview EffectActor가 ISkillEffectInterface를 구현하지 않음 — SkillID: %s"), *ExecData.SkillID.ToString());
-				PoolSub->ReturnToPool(EffectActor);
-			}
-			else
-			{
-				FSkillEffectInitData InitData;
-				InitData.InstigatorASC = GetOwnerASC();
-				InitData.SkillGEClass  = LoadedSkillGE;
-				InitData.StatusGEClass = LoadedStatusGE;
-				InitData.Amount        = GetSkillDamageAmount(ExecData);
-				InitData.EffectRadius  = ExecData.EffectRadius;
-				InitData.Duration      = ExecData.Duration;
-				InitData.SkillFX       = ExecData.SkillFX;
-				InitData.ElementColor  = ResolveElementColor(ExecData.ElementTag);
-				EffectInterface->InitEffect(InitData);
-			}
-		}
+	FRotator FXRotation = FRotator::ZeroRotator;
+	if (const APlayerController* PC = GetWorld()->GetFirstPlayerController())
+	{
+		FXRotation = PC->GetControlRotation();
+		FXRotation.Pitch = 0.f;
+		FXRotation.Roll  = 0.f;
 	}
 
-	// 텔레포트 분기
-	if (bTeleportOnConfirm && CachedInstigator)
+	// 출발지 FX
+	if (FXActorClass)
 	{
-		// 출발지 FX
-		const FVector DepartureLoc = CachedInstigator->GetActorLocation();
-		FRotator FXRotation = FRotator::ZeroRotator;
-		if (const APlayerController* PC = GetWorld()->GetFirstPlayerController())
-		{
-			FXRotation = PC->GetControlRotation();
-			FXRotation.Pitch = 0.f;
-			FXRotation.Roll  = 0.f;
-		}
-
-		if (FXActorClass)
-		{
-			GetWorld()->SpawnActor<AActor>(FXActorClass, DepartureLoc, FRotator::ZeroRotator);
-		}
-		else
-		{
-			SpawnSkillFX(ExecData.SkillFX, DepartureLoc, Radius, ExecData.ElementTag, DESTROY_FX_DELAY, FXRotation);
-		}
-
-		// 텔레포트
-		ABaseCharacter* MutableInstigator = const_cast<ABaseCharacter*>(CachedInstigator.Get());
-		MutableInstigator->SetActorLocation(TargetLoc, false, nullptr, ETeleportType::TeleportPhysics);
-
-		// 도착지 FX
-		if (FXActorClass)
-		{
-			GetWorld()->SpawnActor<AActor>(FXActorClass, TargetLoc, FRotator::ZeroRotator);
-		}
-		else
-		{
-			SpawnSkillFX(ExecData.SkillFX, TargetLoc, Radius, ExecData.ElementTag, DESTROY_FX_DELAY, FXRotation);
-		}
+		GetWorld()->SpawnActor<AActor>(FXActorClass, DepartureLoc, FRotator::ZeroRotator);
 	}
-	else if (!ExecData.EffectActorClass)
+	else
 	{
-		// 텔레포트 없고 장판도 없는 경우 — 목표 위치 FX만 재생
-		if (FXActorClass)
-		{
-			GetWorld()->SpawnActor<AActor>(FXActorClass, TargetLoc, FRotator::ZeroRotator);
-		}
-		else
-		{
-			SpawnSkillFX(ExecData.SkillFX, TargetLoc, Radius, ExecData.ElementTag, DESTROY_FX_DELAY);
-		}
+		SpawnSkillFX(ExecData.SkillFX, DepartureLoc, Radius, ExecData.ElementTag, DESTROY_FX_DELAY, FXRotation);
 	}
-	// EffectActorClass 있는 경우 FX는 EffectActor 내부에서 처리
 
-	KHS_DEBUG(TEXT("SpawnPreview 발동 — SkillID: %s | 위치: %s | Teleport: %s"),
-		*ExecData.SkillID.ToString(), *TargetLoc.ToString(), bTeleportOnConfirm ? TEXT("true") : TEXT("false"));
+	// 텔레포트
+	ABaseCharacter* MutableInstigator = const_cast<ABaseCharacter*>(CachedInstigator.Get());
+	MutableInstigator->SetActorLocation(TargetLocation, false, nullptr, ETeleportType::TeleportPhysics);
+
+	// 도착지 FX
+	if (FXActorClass)
+	{
+		GetWorld()->SpawnActor<AActor>(FXActorClass, TargetLocation, FRotator::ZeroRotator);
+	}
+	else
+	{
+		SpawnSkillFX(ExecData.SkillFX, TargetLocation, Radius, ExecData.ElementTag, DESTROY_FX_DELAY, FXRotation);
+	}
+
+	KHS_INFO(TEXT("Teleport 발동 — SkillID: %s | 위치: %s"), *ExecData.SkillID.ToString(), *TargetLocation.ToString());
 
 	if (!CastingMontage)
 	{
@@ -469,7 +430,75 @@ void UGA_CharacterSkill::ExecuteSpawnPreview(const FCharacterSkillExecData& Exec
 	}
 }
 
-void UGA_CharacterSkill::ExecuteProjectileSpawn(
+void UGA_CharacterSkill::ExecuteEffect_SpawnActor(
+	const FCharacterSkillExecData& ExecData,
+	const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo,
+	FVector TargetLocation)
+{
+	TSubclassOf<AActor> EffectClass;
+	if (!LoadRequiredClass(ExecData.EffectActorClass, EffectClass, ExecData.SkillID))
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	// TargetLocation이 ZeroVector이면 (Instant 경로) 마우스 에임 위치 사용
+	if (TargetLocation.IsZero())
+	{
+		if (const ARSPlayerController* PC = Cast<ARSPlayerController>(GetWorld()->GetFirstPlayerController()))
+		{
+			TargetLocation = PC->GetCachedAimLocation();
+		}
+		else if (CachedInstigator)
+		{
+			TargetLocation = CachedInstigator->GetActorLocation();
+			KHS_WARN(TEXT("ARSPlayerController 캐스트 실패 — 시전자 위치 폴백. SkillID: %s"), *ExecData.SkillID.ToString());
+		}
+	}
+
+	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSub)
+	AActor* EffectActor = PoolSub->SpawnPooledActor<AActor>(
+		EffectClass, FTransform(FRotator::ZeroRotator, TargetLocation));
+
+	if (!EffectActor)
+	{
+		KHS_WARN(TEXT("SpawnActor 스폰 실패 — SkillID: %s"), *ExecData.SkillID.ToString());
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	ISkillEffectInterface* EffectInterface = Cast<ISkillEffectInterface>(EffectActor);
+	if (!EffectInterface)
+	{
+		KHS_WARN(TEXT("EffectActor가 ISkillEffectInterface를 구현하지 않음 — SkillID: %s"), *ExecData.SkillID.ToString());
+		PoolSub->ReturnToPool(EffectActor);
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	FSkillEffectInitData InitData;
+	InitData.InstigatorASC = GetOwnerASC();
+	InitData.SkillGEClass  = ExecData.SkillGEClass.LoadSynchronous();
+	InitData.StatusGEClass = ExecData.StatusGEClass.LoadSynchronous();
+	InitData.Amount        = GetSkillDamageAmount(ExecData);
+	InitData.EffectRadius  = ExecData.EffectRadius;
+	InitData.Duration      = ExecData.Duration;
+	InitData.SkillFX       = ExecData.SkillFX;
+	InitData.ElementColor  = ResolveElementColor(ExecData.ElementTag);
+	EffectInterface->InitEffect(InitData);
+
+	KHS_INFO(TEXT("SpawnActor 발동 — SkillID: %s | 위치: %s"), *ExecData.SkillID.ToString(), *TargetLocation.ToString());
+
+	// SpawnActor는 EffectActor가 독립 수명 관리 — GA 즉시 종료
+	if (!CastingMontage)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+	}
+}
+
+void UGA_CharacterSkill::ExecuteEffect_Projectile(
 	const FCharacterSkillExecData& ExecData,
 	const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo,
@@ -482,10 +511,15 @@ void UGA_CharacterSkill::ExecuteProjectileSpawn(
 		return;
 	}
 
-	if (ExecData.ProjectileCount <= 1)
+	const int32 TotalCount = FMath::Max(1, ExecData.SpawnCount);
+
+	if (TotalCount <= 1 || ExecData.SpawnPattern != ESkillSpawnPattern::Burst)
 	{
-		// 단발 — 즉시 발사 후 종료 (몽타주 없는 경우만)
-		FireOneProjectile(LoadedClass, ExecData);
+		// 단발 or Spread/Circle — 즉시 발사 후 종료
+		FProjectileInitData InitData = BuildProjectileInitData(ExecData, LoadedClass);
+		SpawnProjectiles(LoadedClass, InitData);
+		SpawnSkillFX(ExecData.SkillFX, CachedInstigator ? CachedInstigator->GetActorLocation() : FVector::ZeroVector, ExecData.EffectRadius);
+
 		if (!CastingMontage)
 		{
 			EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
@@ -493,12 +527,14 @@ void UGA_CharacterSkill::ExecuteProjectileSpawn(
 		return;
 	}
 
-	// 연속 발사 (burst) — 첫 발 즉시, 이후 타이머
-	ActiveProjClass      = LoadedClass;
-	CachedProjExecData   = ExecData;
-	RemainingFireCount   = ExecData.ProjectileCount - 1;
+	// Burst — 첫 발 즉시, 이후 타이머
+	ActiveProjClass    = LoadedClass;
+	CachedProjExecData = ExecData;
+	RemainingFireCount = TotalCount - 1;
 
-	FireOneProjectile(LoadedClass, ExecData);
+	FProjectileInitData InitData = BuildProjectileInitData(ExecData, LoadedClass);
+	SpawnProjectiles(LoadedClass, InitData);
+	SpawnSkillFX(ExecData.SkillFX, CachedInstigator ? CachedInstigator->GetActorLocation() : FVector::ZeroVector, ExecData.EffectRadius);
 
 	TWeakObjectPtr<UGA_CharacterSkill> WeakThis(this);
 	GetWorld()->GetTimerManager().SetTimer(
@@ -509,7 +545,13 @@ void UGA_CharacterSkill::ExecuteProjectileSpawn(
 			{
 				return;
 			}
-			WeakThis->FireOneProjectile(WeakThis->ActiveProjClass, WeakThis->CachedProjExecData);
+
+			FProjectileInitData Data = WeakThis->BuildProjectileInitData(WeakThis->CachedProjExecData, WeakThis->ActiveProjClass);
+			
+			WeakThis->SpawnProjectiles(WeakThis->ActiveProjClass, Data);
+			WeakThis->SpawnSkillFX(WeakThis->CachedProjExecData.SkillFX,
+				IsValid(WeakThis->CachedInstigator) ? WeakThis->CachedInstigator->GetActorLocation() : FVector::ZeroVector,
+				WeakThis->CachedProjExecData.EffectRadius);
 			WeakThis->RemainingFireCount--;
 
 			if (WeakThis->RemainingFireCount <= 0)
@@ -527,85 +569,101 @@ void UGA_CharacterSkill::ExecuteProjectileSpawn(
 		true
 	);
 
-	KHS_DEBUG(TEXT("ProjectileSpawn 연속 발사 시작 — SkillID: %s | %d발 × %.2fs"), *ExecData.SkillID.ToString(), ExecData.ProjectileCount, ExecData.FireInterval);
+	KHS_INFO(TEXT("Burst 발사 시작 — SkillID: %s | %d발 × %.2fs"), *ExecData.SkillID.ToString(), TotalCount, ExecData.FireInterval);
 }
 
-void UGA_CharacterSkill::FireOneProjectile(TSubclassOf<ABaseProjectile> ProjClass, const FCharacterSkillExecData& ExecData)
+// ============================================================================
+// 헬퍼
+// ============================================================================
+
+FProjectileInitData UGA_CharacterSkill::BuildProjectileInitData(const FCharacterSkillExecData& ExecData, TSubclassOf<ABaseProjectile> /*ProjClass*/) const
 {
 	FProjectileInitData InitData;
 	InitData.SkillID       = ExecData.SkillID;
-	InitData.SkillEffectID = ExecData.SkillEffectID;
 	InitData.DamageGEClass = ExecData.SkillGEClass.LoadSynchronous();
 	InitData.InstigatorASC = GetOwnerASC();
 	InitData.Amount        = GetSkillDamageAmount(ExecData);
 	InitData.Speed         = ExecData.ProjectileSpeed;
-	InitData.Lifetime      = ExecData.ProjectileLifetime;
-	InitData.SpawnPattern  = ExecData.SpawnPattern;
-	InitData.MoveType      = ExecData.MoveType;
-	InitData.HitType       = ExecData.HitType;
+	InitData.Lifetime      = ExecData.ProjectileRange / FMath::Max(1.f, ExecData.ProjectileSpeed);
 	InitData.SpawnCount    = 1;
-	InitData.PierceCount   = ExecData.PierceCount;
-	InitData.DamageDecay   = ExecData.DamageDecay;
 	InitData.SpreadAngle   = 0.f;
 
-	// HOMING_BOUNCE: 시전자 전방 반구 내 가장 가까운 적을 첫 타겟으로 설정
-	if (ExecData.MoveType == EMoveType::HOMING_BOUNCE && CachedInstigator)
+	// ProjectileMoveType → 기존 EMoveType 매핑 (BaseProjectile 인터페이스 호환)
+	switch (ExecData.ProjectileMoveType)
 	{
-		constexpr float InitSearchRadius = 2000.f;
-		const FVector Origin = CachedInstigator->GetActorLocation();
-		const FVector Forward = CachedInstigator->GetActorForwardVector();
-
-		TArray<FOverlapResult> Overlaps;
-		FCollisionQueryParams QueryParams;
-		QueryParams.AddIgnoredActor(CachedInstigator.Get());
-
-		GetWorld()->OverlapMultiByChannel(Overlaps, Origin, FQuat::Identity,
-			ECC_Pawn, FCollisionShape::MakeSphere(InitSearchRadius), QueryParams);
-
-		float MinDist = FLT_MAX;
-		for (const FOverlapResult& Overlap : Overlaps)
+	case EProjectileMoveType::Linear:
+		InitData.MoveType = EMoveType::LINEAR;
+		InitData.HitType  = EHitType::SINGLE;
+		break;
+	case EProjectileMoveType::Pierce:
+		InitData.MoveType    = EMoveType::LINEAR;
+		InitData.HitType     = EHitType::PIERCE;
+		InitData.PierceCount = FMath::Max(1, ExecData.PierceCount);
+		InitData.DamageDecay = ExecData.DamageDecay;
+		break;
+	case EProjectileMoveType::Homing:
+		InitData.MoveType = EMoveType::HOMING;
+		InitData.HitType  = EHitType::SINGLE;
+		break;
+	case EProjectileMoveType::HomingBounce:
+		InitData.MoveType = EMoveType::HOMING_BOUNCE;
+		InitData.HitType  = EHitType::SINGLE;
+		// 첫 타겟 탐색
+		if (CachedInstigator)
 		{
-			AActor* Candidate = Overlap.GetActor();
-			if (!Candidate)
-			{
-				continue;
-			}
+			constexpr float InitSearchRadius = 2000.f;
+			const FVector Origin  = CachedInstigator->GetActorLocation();
+			const FVector Forward = CachedInstigator->GetActorForwardVector();
 
-			UAbilitySystemComponent* CandidateASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Candidate);
-			if (!CandidateASC || !CandidateASC->HasMatchingGameplayTag(RSTags::Team_Enemy))
-			{
-				continue;
-			}
+			TArray<FOverlapResult> Overlaps;
+			FCollisionQueryParams QueryParams;
+			QueryParams.AddIgnoredActor(CachedInstigator.Get());
+			GetWorld()->OverlapMultiByChannel(Overlaps, Origin, FQuat::Identity,
+				ECC_Pawn, FCollisionShape::MakeSphere(InitSearchRadius), QueryParams);
 
-			// 전방 반구 필터 (내적 > 0 = 시전자 앞쪽)
-			const FVector ToCandidate = (Candidate->GetActorLocation() - Origin).GetSafeNormal();
-			if (FVector::DotProduct(Forward, ToCandidate) <= 0.f)
+			float MinDist = FLT_MAX;
+			for (const FOverlapResult& Overlap : Overlaps)
 			{
-				continue;
+				AActor* Candidate = Overlap.GetActor();
+				if (!Candidate)
+				{
+					continue;
+				}
+				UAbilitySystemComponent* CandASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Candidate);
+				if (!CandASC || !CandASC->HasMatchingGameplayTag(RSTags::Team_Enemy))
+				{
+					continue;
+				}
+				const FVector ToCandidate = (Candidate->GetActorLocation() - Origin).GetSafeNormal();
+				if (FVector::DotProduct(Forward, ToCandidate) <= 0.f)
+				{
+					continue;
+				}
+				const float Dist = FVector::Dist(Origin, Candidate->GetActorLocation());
+				if (Dist < MinDist)
+				{
+					MinDist = Dist;
+					InitData.HomingTarget = Candidate->GetRootComponent();
+				}
 			}
-
-			const float Dist = FVector::Dist(Origin, Candidate->GetActorLocation());
-			if (Dist < MinDist)
+			if (!InitData.HomingTarget.IsValid())
 			{
-				MinDist = Dist;
-				InitData.HomingTarget = Candidate->GetRootComponent();
+				KHS_WARN(TEXT("HOMING_BOUNCE 첫 타겟 없음 — 직선 발사. SkillID: %s"), *ExecData.SkillID.ToString());
 			}
 		}
-
-		if (!InitData.HomingTarget.IsValid())
-		{
-			KHS_WARN(TEXT("HOMING_BOUNCE 첫 타겟 없음 — 직선 발사. SkillID: %s"), *ExecData.SkillID.ToString());
-		}
+		break;
+	case EProjectileMoveType::Explode:
+		InitData.MoveType = EMoveType::LINEAR;
+		InitData.HitType  = EHitType::AREA;
+		break;
+		
+	default:
+		InitData.MoveType = EMoveType::LINEAR;
+		InitData.HitType  = EHitType::SINGLE;
+		break;
 	}
 
-	SpawnProjectiles(ProjClass, InitData);
-
-	if (CachedInstigator)
-	{
-		SpawnSkillFX(ExecData.SkillFX, CachedInstigator->GetActorLocation(), ExecData.EffectRadius);
-	}
-
-	KHS_DEBUG(TEXT("ProjectileSpawn 단발 — SkillID: %s"), *ExecData.SkillID.ToString());
+	return InitData;
 }
 
 FLinearColor UGA_CharacterSkill::ResolveElementColor(FGameplayTag ElementTag)
@@ -632,14 +690,14 @@ FLinearColor UGA_CharacterSkill::ResolveElementColor(FGameplayTag ElementTag)
 void UGA_CharacterSkill::SpawnSkillFX(TSoftObjectPtr<UNiagaraSystem> FXClass, FVector Location, float Radius,
 	FGameplayTag ElementTag, float FXLifetime, FRotator Rotation)
 {
-	TRACE_BOOKMARK(TEXT("SkillFX_SyncLoad"));
+	TRACE_BOOKMARK(TEXT("SkillFX_SyncLoad"))
 	UNiagaraSystem* FX = FXClass.LoadSynchronous();
 	if (!FX)
 	{
 		return;
 	}
 
-	TRACE_BOOKMARK(TEXT("SkillFX_NiagaraSpawn"));
+	TRACE_BOOKMARK(TEXT("SkillFX_NiagaraSpawn"))
 	UNiagaraComponent* NiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
 		GetWorld(), FX, Location, Rotation, FVector(1.f), true, true);
 
@@ -651,7 +709,6 @@ void UGA_CharacterSkill::SpawnSkillFX(TSoftObjectPtr<UNiagaraSystem> FXClass, FV
 	NiagaraComp->SetVariableFloat(FName(TEXT("Radius")), Radius);
 	NiagaraComp->SetVariableLinearColor(FName(TEXT("ElementColor")), ResolveElementColor(ElementTag));
 
-	// FXLifetime: 0 이하면 DESTROY_FX_DELAY 사용 (버스트 FX 기본값)
 	const float ActualLifetime = FXLifetime > 0.f ? FXLifetime : DESTROY_FX_DELAY;
 
 	TWeakObjectPtr<UNiagaraComponent> WeakComp(NiagaraComp);
@@ -665,82 +722,8 @@ void UGA_CharacterSkill::SpawnSkillFX(TSoftObjectPtr<UNiagaraSystem> FXClass, FV
 	}, ActualLifetime, false);
 }
 
-void UGA_CharacterSkill::ExecuteGroundEffect(
-	const FCharacterSkillExecData& ExecData,
-	const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo)
-{
-	TSubclassOf<AActor> EffectClass;
-	if (!LoadRequiredClass(ExecData.EffectActorClass, EffectClass, ExecData.SkillID))
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-
-	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSub)
-	// GroundEffect는 즉발형 — SpawnPreview 플로우를 거치지 않아 PendingTargetLocation이 유효하지 않음.
-	// PlayerController의 현재 마우스 에임 위치를 직접 사용.
-	FVector SpawnLoc = FVector::ZeroVector;
-	if (const ARSPlayerController* PC = Cast<ARSPlayerController>(GetWorld()->GetFirstPlayerController()))
-	{
-		SpawnLoc = PC->GetCachedAimLocation();
-	}
-	else if (CachedInstigator)
-	{
-		SpawnLoc = CachedInstigator->GetActorLocation();
-		KHS_WARN(TEXT("ARSPlayerController 캐스트 실패 — 시전자 위치 폴백. SkillID: %s"), *ExecData.SkillID.ToString());
-	}
-
-	AActor* EffectActor = PoolSub->SpawnPooledActor<AActor>(
-		EffectClass, FTransform(FRotator::ZeroRotator, SpawnLoc));
-
-	if (!EffectActor)
-	{
-		KHS_WARN(TEXT("GroundEffect 스폰 실패 — SkillID: %s"), *ExecData.SkillID.ToString());
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-
-	ISkillEffectInterface* EffectInterface = Cast<ISkillEffectInterface>(EffectActor);
-	if (!EffectInterface)
-	{
-		KHS_WARN(TEXT("GroundEffect Actor가 ISkillEffectInterface를 구현하지 않음 — SkillID: %s"), *ExecData.SkillID.ToString());
-		PoolSub->ReturnToPool(EffectActor);
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-
-	FSkillEffectInitData InitData;
-	InitData.InstigatorASC = GetOwnerASC();
-	InitData.SkillGEClass  = ExecData.SkillGEClass.LoadSynchronous();
-	InitData.StatusGEClass = ExecData.StatusGEClass.LoadSynchronous();
-	InitData.Amount        = GetSkillDamageAmount(ExecData);
-	InitData.EffectRadius  = ExecData.EffectRadius;
-	InitData.Duration      = ExecData.Duration;
-	InitData.SkillFX       = ExecData.SkillFX;
-	InitData.ElementColor  = ResolveElementColor(ExecData.ElementTag);
-	EffectInterface->InitEffect(InitData);
-
-	KHS_DEBUG(TEXT("GroundEffect 발동 — SkillID: %s | 위치: %s | Duration: %.1fs"),
-		*ExecData.SkillID.ToString(), *SpawnLoc.ToString(), ExecData.Duration);
-
-	// 장판 Actor가 독립 수명 관리 — GA는 즉시 종료 (몽타주 없는 경우)
-	if (!CastingMontage)
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-	}
-}
-
 float UGA_CharacterSkill::GetSkillDamageAmount(const FCharacterSkillExecData& ExecData) const
 {
-	if (ExecData.Amount > 0.f)
-	{
-		// 무기 스킬 경로: SkillEffectID → SkillAttackCommonParamsData.Amount
-		return ExecData.Amount * ExecData.DamageMultiplier;
-	}
-
-	// 캐릭터 스킬 경로: SkillEffectID 없음 → 시전자 ATK 어트리뷰트 기반
 	UAbilitySystemComponent* OwnerASC = GetOwnerASC();
 	if (!OwnerASC)
 	{

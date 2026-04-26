@@ -11,6 +11,7 @@ class UNiagaraSystem;
 class ABaseProjectile;
 class UAbilityTask_PlayMontageAndWait;
 class UAbilityTask_WaitGameplayEvent;
+struct FProjectileInitData;
 
 /**
  * UGA_CharacterSkill
@@ -48,112 +49,109 @@ protected:
 	void OnHitCheckReceived(FGameplayEventData Payload);
 
 private:
-	/** InstantAoE: 시전자 위치 기준 구형 범위 내 적에게 GE 적용 */
-	void ExecuteInstantAoE(
+	// ── Targeting 진입점 ──────────────────────────────────────────────────────
+
+	/** AimPreview: 프리뷰 위치를 SkillManagerSubsystem에서 읽어 ResolveEffect 호출 */
+	void ResolveTargeting_AimPreview(
 		const FCharacterSkillExecData& ExecData,
 		const FGameplayAbilitySpecHandle Handle,
 		const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo);
+
+	/** LaunchProjectile: SpawnPattern/SpawnCount 기반 투사체 발사 */
+	void ResolveTargeting_LaunchProjectile(
+		const FCharacterSkillExecData& ExecData,
+		const FGameplayAbilitySpecHandle Handle,
+		const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo);
+
+	// ── Effect 실행 ───────────────────────────────────────────────────────────
+
+	/** EffectType 기반 효과 실행 통합 진입점 */
+	void ResolveEffect(
+		const FCharacterSkillExecData& ExecData,
+		const FGameplayAbilitySpecHandle Handle,
+		const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo,
+		FVector TargetLocation);
+
+	/** RadialAoE: 중심 위치 기준 구형 범위 내 적에게 GE 적용 */
+	void ExecuteEffect_RadialAoE(
+		const FCharacterSkillExecData& ExecData,
+		const FGameplayAbilitySpecHandle Handle,
+		const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo,
+		FVector TargetLocation);
 
 	/** SelfBuff: 시전자 자신에게 지속시간 GE 적용 */
-	void ExecuteSelfBuff(
+	void ExecuteEffect_SelfBuff(
 		const FCharacterSkillExecData& ExecData,
 		const FGameplayAbilitySpecHandle Handle,
 		const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo);
 
-	/** SpawnPreview: SkillManagerSubsystem이 저장한 PendingTargetLocation 기준 AoE 적용 */
-	void ExecuteSpawnPreview(
+	/** Teleport: TargetLocation으로 이동 + 출발/도착 FX */
+	void ExecuteEffect_Teleport(
+		const FCharacterSkillExecData& ExecData,
+		const FGameplayAbilitySpecHandle Handle,
+		const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo,
+		FVector TargetLocation);
+
+	/** SpawnActor: PoolingSubsystem에서 EffectActorClass 꺼내 InitEffect 호출 */
+	void ExecuteEffect_SpawnActor(
+		const FCharacterSkillExecData& ExecData,
+		const FGameplayAbilitySpecHandle Handle,
+		const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo,
+		FVector TargetLocation);
+
+	/** Projectile: 투사체 1발 조립 + SpawnProjectiles 호출 */
+	void ExecuteEffect_Projectile(
 		const FCharacterSkillExecData& ExecData,
 		const FGameplayAbilitySpecHandle Handle,
 		const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo);
 
-	/**
-	 * ProjectileSpawn: 투사체 직접 발사 (단발 or 연속)
-	 * ProjectileCount > 1인 경우 FireInterval 타이머로 연속 발사 후 EndAbility
-	 */
-	void ExecuteProjectileSpawn(
-		const FCharacterSkillExecData& ExecData,
-		const FGameplayAbilitySpecHandle Handle,
-		const FGameplayAbilityActorInfo* ActorInfo,
-		const FGameplayAbilityActivationInfo ActivationInfo);
+	// ── 헬퍼 ──────────────────────────────────────────────────────────────────
 
-	/**
-	 * GroundEffect: PoolingSubsystem에서 AARS_GroundEffectActor를 꺼내
-	 * PendingTargetLocation에 배치 후 즉시 EndAbility.
-	 * 장판 Actor가 독립 수명 타이머로 Duration 후 ReturnToPool.
-	 */
-	void ExecuteGroundEffect(
-		const FCharacterSkillExecData& ExecData,
-		const FGameplayAbilitySpecHandle Handle,
-		const FGameplayAbilityActorInfo* ActorInfo,
-		const FGameplayAbilityActivationInfo ActivationInfo);
+	/** ExecData → FProjectileInitData 조립 (ProjectileMoveType → EMoveType/EHitType 매핑 포함) */
+	FProjectileInitData BuildProjectileInitData(const FCharacterSkillExecData& ExecData, TSubclassOf<ABaseProjectile> ProjClass) const;
 
-	/** 단발 투사체 조립 + SpawnProjectiles 호출 헬퍼 */
-	void FireOneProjectile(TSubclassOf<ABaseProjectile> ProjClass, const FCharacterSkillExecData& ExecData);
-
-	/**
-	 * SetByCaller(Data_WeaponBaseDamage)에 주입할 최종 데미지 수치 산출.
-	 *   - ExecData.Amount > 0 (SkillEffectID 있음): Amount × DamageMultiplier  (무기 스킬 경로)
-	 *   - ExecData.Amount == 0 (SkillEffectID 없음): ATK × DamageMultiplier    (캐릭터 스킬 경로)
-	 */
+	/** ATK × DamageMultiplier로 최종 데미지 산출 (캐릭터 스킬 경로) */
 	float GetSkillDamageAmount(const FCharacterSkillExecData& ExecData) const;
 
 	/**
 	 * FXClass를 Location에 스폰, Radius + ElementColor(ElementTag 기반) 파라미터 주입.
-	 * ElementTag 없으면 White. Niagara FX에 "Radius"(float), "ElementColor"(LinearColor) 파라미터 필수.
 	 * FXLifetime: 0 이하면 DESTROY_FX_DELAY 사용 (기본값).
-	 * Rotation: FX 스폰 방향 (기본값 ZeroRotator).
 	 */
 	void SpawnSkillFX(TSoftObjectPtr<UNiagaraSystem> FXClass, FVector Location, float Radius,
 		FGameplayTag ElementTag = FGameplayTag(), float FXLifetime = 0.f, FRotator Rotation = FRotator::ZeroRotator);
 
 protected:
 	static constexpr float DESTROY_FX_DELAY = 2.0f;
-	
-	/**
-	 * 스킬 시전 몽타주 — 할당 시 몽타주 재생 후 HitCheck 노티파이에서 효과 발동.
-	 * 미할당 시 즉시 발동 (기존 동작 유지).
-	 * BP에서 스킬별로 할당.
-	 */
+
+	/** 스킬 시전 몽타주 — 미할당 시 즉시 발동 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|CharacterSkill")
 	TObjectPtr<UAnimMontage> CastingMontage;
-	/**
-	 * FX Actor 클래스 — 할당 시 SpawnSkillFX 대신 BP 액터를 스폰.
-	 * BP 내부에서 NiagaraComponent 로컬 회전을 자유롭게 설정 가능.
-	 * 미할당 시 기존 SpawnSkillFX(NiagaraSystem 직접 스폰) 동작 유지.
-	 */
+
+	/** FX Actor 클래스 — 할당 시 SpawnSkillFX 대신 BP 액터를 스폰 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|CharacterSkill")
 	TSubclassOf<AActor> FXActorClass;
-	/**
-	 * SpawnPreview 확정 시 캐릭터를 목표 위치로 텔레포트.
-	 * true: 출발지/도착지 FX 포함 텔레포트 (3번 환영의 문 전용).
-	 * false: 텔레포트 없이 목표 위치에 효과만 발동 (기본값).
-	 */
-	UPROPERTY(EditDefaultsOnly, Category = "MY|CharacterSkill")
-	bool bTeleportOnConfirm = false;
-
 
 private:
 	/** ElementTag → FLinearColor 변환. SpawnSkillFX + InitData 조립에서 공통 사용. */
 	static FLinearColor ResolveElementColor(FGameplayTag ElementTag);
 
-	// ── ProjectileSpawn 연속 발사 상태 ──────────────────────────────────────
-	/** 연속 발사 시 캐시된 투사체 클래스 (로드 완료) */
+	// ── LaunchProjectile 연속 발사 상태 ─────────────────────────────────────
 	UPROPERTY()
 	TSubclassOf<ABaseProjectile> ActiveProjClass;
-	/** 연속 발사 시 캐시된 ExecData */
 	UPROPERTY()
 	FCharacterSkillExecData CachedProjExecData;
-	/** 연속 발사 남은 횟수 */
 	int32 RemainingFireCount = 0;
-	/** 연속 발사 간격 타이머 */
 	FTimerHandle MultiFireTimerHandle;
 
 	// ── 몽타주 캐스팅 상태 ────────────────────────────────────────────────────
-	/** HitCheck 노티파이 수신 시 호출할 Execute 함수 (몽타주 있을 때만 사용) */
 	TFunction<void()> PendingExecuteFunc;
-	/** HitCheck 중복 호출 방지 플래그 */
 	bool bExecuteFuncCalled = false;
 };
