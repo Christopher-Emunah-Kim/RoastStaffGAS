@@ -32,6 +32,13 @@ void UGA_Base::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FG
 		CachedInstigator = Cast<ABaseCharacter>(ActorInfo->AvatarActor.Get());
 	}
 
+	// 쿨타임/코스트 원자적 적용 — 실패 시 즉시 취소
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
 	OnAbilityActivated(Handle, ActorInfo, ActivationInfo);
 }
 

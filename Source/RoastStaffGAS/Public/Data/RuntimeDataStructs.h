@@ -275,12 +275,15 @@ struct FSkillEffectInitData
     TSubclassOf<UGameplayEffect> StatusGEClass;
 
     /** 데미지 수치 (ExecData.Amount * ExecData.DamageMultiplier 적용 완료) */
+    UPROPERTY()
     float Amount = 0.f;
 
     /** 효과 반경 (cm). 해당 없으면 0. */
+    UPROPERTY()
     float EffectRadius = 0.f;
 
     /** 지속 시간 (초). 0이면 무한 */
+    UPROPERTY()
     float Duration = 0.f;
 
     /** 발동 FX 에셋 */
@@ -288,6 +291,7 @@ struct FSkillEffectInitData
     TSoftObjectPtr<UNiagaraSystem> SkillFX;
 
     /** 속성 색상 — GA_CharacterSkill::ResolveElementColor 완료 상태. Niagara "ElementColor" 파라미터에 직접 주입. */
+    UPROPERTY()
     FLinearColor ElementColor = FLinearColor::White;
 };
 

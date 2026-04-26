@@ -124,7 +124,7 @@ void APullVortexActor::InitEffect(const FSkillEffectInitData& InitData)
 // 	DrawDebugSphere(GetWorld(), GetActorLocation(), CachedEffectRadius, 24, FColor::Red,  false, DbgDuration);
 // #endif
 
-	KHS_DEBUG(TEXT("PullVortex 초기화 — EffectRadius: %.0f | PullRadius: %.0f | HitCount: %d | Duration: %.1fs | Amount: %.1f"),
+	KHS_INFO(TEXT("PullVortex 초기화 — EffectRadius: %.0f | PullRadius: %.0f | HitCount: %d | Duration: %.1fs | Amount: %.1f"),
 		CachedEffectRadius, PullRadius, HitCount, InitData.Duration, CachedAmount);
 }
 

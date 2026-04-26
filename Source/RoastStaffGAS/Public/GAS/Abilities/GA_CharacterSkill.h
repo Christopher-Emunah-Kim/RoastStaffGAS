@@ -16,7 +16,7 @@ struct FProjectileInitData;
 /**
  * UGA_CharacterSkill
  * 캐릭터 고유 스킬 GA.
- * InstantAoE / SelfBuff / SpawnPreview / ProjectileSpawn 처리.
+ * 3축(TargetingType × EffectType × ProjectileMoveType) 분기 — ResolveTargeting / ResolveEffect 2단계 처리.
  */
 UCLASS()
 class ROASTSTAFFGAS_API UGA_CharacterSkill : public UGA_Base

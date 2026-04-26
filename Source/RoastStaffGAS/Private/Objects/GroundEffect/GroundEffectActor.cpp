@@ -98,7 +98,7 @@ void AGroundEffectActor::InitEffect(const FSkillEffectInitData& InitData)
 	SetActorEnableCollision(true);
 	OverlapSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
-	KHS_DEBUG(TEXT("GroundEffect 초기화 — Radius: %.0f | Duration: %.1fs | Amount: %.1f"),
+	KHS_INFO(TEXT("GroundEffect 초기화 — Radius: %.0f | Duration: %.1fs | Amount: %.1f"),
 		Radius, InitData.Duration, InitData.Amount);
 }
 
@@ -133,7 +133,7 @@ void AGroundEffectActor::ApplyGEToTarget(AActor* TargetActor)
 	Spec.Data->SetByCallerTagMagnitudes.Add(RSTags::Data_WeaponBaseDamage, CachedAmount);
 	CachedInstigatorASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
 
-	KHS_DEBUG(TEXT("GroundEffect GE 적용 — Target: %s | Amount: %.1f"), *TargetActor->GetName(), CachedAmount);
+	KHS_INFO(TEXT("GroundEffect GE 적용 — Target: %s | Amount: %.1f"), *TargetActor->GetName(), CachedAmount);
 }
 
 void AGroundEffectActor::ReturnToPool()
