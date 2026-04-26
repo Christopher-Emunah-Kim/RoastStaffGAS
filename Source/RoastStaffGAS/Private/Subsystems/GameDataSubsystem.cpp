@@ -609,77 +609,29 @@ bool UGameDataSubsystem::GetCharacterSkillExecData(FName CharacterID, int32 Skil
     }
 
     OutData.SkillID           = Found->SkillID;
-    OutData.ActivationType    = Found->ActivationType;
     OutData.Cooldown          = Found->Cooldown;
-    OutData.GAClass           = Found->GAClass;
-    OutData.PreviewActorClass = Found->PreviewActorClass;
-    OutData.SkillIconSoftRef  = Found->SkillIcon;
-    OutData.SkillGEClass      = Found->SkillGEClass;
-    OutData.StatusGEClass     = Found->StatusGEClass;
+    OutData.TargetingType     = Found->TargetingType;
+    OutData.EffectType        = Found->EffectType;
+    OutData.ProjectileMoveType = Found->ProjectileMoveType;
+    OutData.SpawnPattern      = Found->SpawnPattern;
+    OutData.SpawnCount        = FMath::Max(1, Found->SpawnCount);
     OutData.DamageMultiplier  = Found->DamageMultiplier;
     OutData.EffectRadius      = Found->EffectRadius;
     OutData.Duration          = Found->Duration;
-    OutData.SkillFX           = Found->SkillFX;
-    OutData.ElementTag        = Found->ElementTag;
-    OutData.EffectActorClass  = Found->EffectActorClass;
-    OutData.SkillEffectID     = Found->SkillEffectID;
+    OutData.ProjectileSpeed   = Found->ProjectileSpeed;
+    OutData.ProjectileRange   = Found->ProjectileRange;
     OutData.FireInterval      = Found->FireInterval;
-
-    if (Found->SkillEffectID.IsNone())
-    {
-        return true;
-    }
-
-    // ── SkillEffectID 복합 조회 ──────────────────────────────────────────────
-    // ProjectileClass: SkillCommonResourceCache는 SkillID 키 — 캐릭터 스킬 SkillID로 조회
-    if (const FSkillCommonResourceData* ResourceData = SkillCommonResourceCache.Find(Found->SkillID))
-    {
-        OutData.ProjectileClass = ResourceData->ProjectileClass;
-    }
-    else
-    {
-        KHS_WARN(TEXT("SkillCommonResource 미등록 — SkillID: %s (DT_Skill_Common_Resource_Data row 필요)"), *Found->SkillID.ToString());
-    }
-
-    // 공격 공통 파라미터: Speed / Amount / MoveType / HitType / SpawnPattern
-    if (const FSkillAttackCommonParamsData* AttackCommon = SkillAttackCommonParamsCache.Find(Found->SkillEffectID))
-    {
-        OutData.ProjectileSpeed = AttackCommon->Speed;
-        OutData.Amount          = AttackCommon->Amount;
-        OutData.MoveType        = AttackCommon->MoveType;
-        OutData.HitType         = AttackCommon->HitType;
-        OutData.SpawnPattern    = AttackCommon->SpawnType;
-    }
-    else
-    {
-        KHS_WARN(TEXT("SkillAttackCommonParams 미등록 — SkillEffectID: %s"), *Found->SkillEffectID.ToString());
-    }
-
-    // 수명: SkillCommonParamCache (SkillEffectID 키)
-    if (const FSkillCommonParamData* CommonParam = SkillCommonParamCache.Find(Found->SkillEffectID))
-    {
-        OutData.ProjectileLifetime = CommonParam->Lifetime;
-    }
-
-    // 소환 파라미터: ProjectileCount (SpawnCount 재사용)
-    if (const FSkillAttackSpawnParamsData* SpawnParams = SkillAttackSpawnParamsCache.Find(Found->SkillEffectID))
-    {
-        OutData.ProjectileCount = FMath::Max(1, SpawnParams->SpawnCount);
-    }
-
-    // 관통 파라미터: HitType == PIERCE일 때만 의미 있음
-    if (OutData.HitType == EHitType::PIERCE)
-    {
-        if (const FSkillAttackHitTypeParamsPierce* PierceParams = SkillHitTypePierceCache.Find(Found->SkillEffectID))
-        {
-            OutData.PierceCount = PierceParams->PierceCount;
-            OutData.DamageDecay = PierceParams->DamageDecay;
-        }
-        else
-        {
-            KHS_WARN(TEXT("HitType=PIERCE인데 Pierce 파라미터 미등록 — SkillEffectID: %s"), *Found->SkillEffectID.ToString());
-        }
-    }
+    OutData.PierceCount       = Found->PierceCount;
+    OutData.DamageDecay       = Found->DamageDecay;
+    OutData.ElementTag        = Found->ElementTag;
+    OutData.GAClass           = Found->GAClass;
+    OutData.SkillGEClass      = Found->SkillGEClass;
+    OutData.StatusGEClass     = Found->StatusGEClass;
+    OutData.PreviewActorClass = Found->PreviewActorClass;
+    OutData.EffectActorClass  = Found->EffectActorClass;
+    OutData.ProjectileClass   = Found->ProjectileClass;
+    OutData.SkillFX           = Found->SkillFX;
+    OutData.SkillIconSoftRef  = Found->SkillIcon;
 
     return true;
 }

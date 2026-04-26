@@ -138,18 +138,18 @@ void USkillManagerSubsystem::ActivateSkillSlot(int32 SlotIndex)
 		return;
 	}
 
-	const ESkillActivationType Type = Slot.ExecData.ActivationType;
+	const ESkillTargetingType TargetingType = Slot.ExecData.TargetingType;
 
-	if (Type == ESkillActivationType::SpawnPreview)
+	if (TargetingType == ESkillTargetingType::AimPreview)
 	{
 		SpawnPreviewActor(SlotIndex);
 	}
 	else
 	{
-		// InstantAoE / SelfBuff — GA 즉발
+		// Instant / LaunchProjectile — GA 즉발
 		ASC->TryActivateAbility(Slot.Handle, true);
 		StartCooldown(SlotIndex);
-		
+
 		KHS_INFO(TEXT("Slot %d 즉발 — SkillID: %s"), SlotIndex, *Slot.ExecData.SkillID.ToString());
 	}
 }
