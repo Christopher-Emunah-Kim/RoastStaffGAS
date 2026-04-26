@@ -17,14 +17,14 @@
 ## [FEATURE] SkillActivationType 2축 분리 리팩터링 + DT_CharacterSkill 통폐합 | PLAN_SkillActivationRefactor_v1.0
 > 시작: 2026-04-26 | 기획서: 스킬 시스템 기획 v1.4.md / Temp_변경스킬계획.md
 
-  ### [MODULE-1] EnumRefactor
+  ### [MODULE-1] EnumRefactor ✓ COMMITTED
   수정: EnumTypes.h / RSGameplayTags.h / DefaultGameplayTags.ini
-    - [ ] ESkillTargetingType 추가 (Instant/AimPreview/LaunchProjectile/ChargeAndRelease)  [P0]
-    - [ ] ESkillEffectType 추가 (RadialAoE/SelfBuff/Teleport/SpawnActor/Projectile)        [P0]
-    - [ ] EProjectileMoveType 추가 (Linear/Pierce/Homing/HomingBounce/Explode)             [P0]
-    - [ ] ESkillSpawnPattern 추가 (Single/Burst/Spread/Circle)                             [P0]
-    - [ ] ESkillActivationType DEPRECATED 주석 추가                                        [P0]
-    - [ ] Skill.State.Charging GameplayTag 등록                                            [P0]
+    - [x] ESkillTargetingType 추가 (Instant/AimPreview/LaunchProjectile/ChargeAndRelease)
+    - [x] ESkillEffectType 추가 (RadialAoE/SelfBuff/Teleport/SpawnActor/Projectile)
+    - [x] EProjectileMoveType 추가 (Linear/Pierce/Homing/HomingBounce/Explode)
+    - [x] ESkillSpawnPattern 추가 (Single/Burst/Spread/Circle)
+    - [x] ESkillActivationType DEPRECATED 주석 추가
+    - [x] Skill.State.Charging GameplayTag 등록
 
   ### [MODULE-2] StructMigration ⚠️ MODULE-3과 연속 처리 필수
   수정: DataTableStructs.h / RuntimeDataStructs.h

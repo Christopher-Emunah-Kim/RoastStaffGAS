@@ -13,6 +13,29 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 ## PENDING_COMMIT
 
 - date: 2026-04-26
+  plan: PLAN_SkillActivationRefactor_v1.0
+  status: PENDING_COMMIT
+  summary: "refactor(skill): ESkillActivationType 3축 분리 + GA 2단계 재편 + DT 통폐합 + Pierce BUG_FIX"
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Data/EnumTypes.h
+      - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
+      - Source/RoastStaffGAS/Public/Data/RuntimeDataStructs.h
+      - Source/RoastStaffGAS/Public/GAS/Tags/RSGameplayTags.h
+      - Source/RoastStaffGAS/Private/GAS/Tags/RSGameplayTags.cpp
+      - Source/RoastStaffGAS/Public/GAS/Abilities/GA_CharacterSkill.h
+      - Source/RoastStaffGAS/Private/GAS/Abilities/GA_CharacterSkill.cpp
+      - Source/RoastStaffGAS/Private/Subsystems/GameDataSubsystem.cpp
+      - Source/RoastStaffGAS/Private/Subsystems/SkillManagerSubsystem.cpp
+      - Config/DefaultGame.ini
+      - ExternalSource/DT_Character_Skill_Static_Data.csv
+      - Content/Data/Skill/Character/DT_Character_Skill_Static_Data.uasset
+      - _Design/References/ARCH_SNAPSHOT.md
+      - _Design/Learning/KnowledgeGaps.md
+      - _Design/Portfolio/DEVLOG.md
+      - .claude/settings.local.json
+
+- date: 2026-04-26
   plan: PLAN_BossHPBarRefactor_v1.0
   status: COMMITTED
   commits: ["3ba19c363", "72f7479b2", "e4ec76175", "fec8946ac", "3a2eef361"]

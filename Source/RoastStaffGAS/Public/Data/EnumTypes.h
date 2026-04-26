@@ -125,7 +125,11 @@ enum class EStageNodeState : uint8
 	LOCKED     UMETA(DisplayName = "Locked"),      // 해금 조건 미충족
 };
 
-/** 캐릭터 고유 스킬 발동 방식 */
+/**
+ * 캐릭터 고유 스킬 발동 방식
+ * @deprecated PLAN_SkillActivationRefactor — ESkillTargetingType + ESkillEffectType으로 대체.
+ *             무기 스킬 격리 완료 후 삭제 예정.
+ */
 UENUM(BlueprintType)
 enum class ESkillActivationType : uint8
 {
@@ -134,6 +138,48 @@ enum class ESkillActivationType : uint8
 	SelfBuff        UMETA(DisplayName = "SelfBuff"),        // 자가 버프 — 자신에게 즉시 GE 적용
 	ProjectileSpawn UMETA(DisplayName = "ProjectileSpawn"), // 투사체 직접 발사 — ProjectileCount × FireInterval
 	GroundEffect    UMETA(DisplayName = "GroundEffect"),    // 장판 배치 — ARS_GroundEffectActor 스폰
+};
+
+/** 조준방식 — 스킬 확정까지의 입력 흐름 */
+UENUM(BlueprintType)
+enum class ESkillTargetingType : uint8
+{
+	Instant           UMETA(DisplayName = "Instant"),           // 즉시 발동 (위치 지정 없음)
+	AimPreview        UMETA(DisplayName = "AimPreview"),        // 프리뷰 위치 지정 후 확정
+	LaunchProjectile  UMETA(DisplayName = "LaunchProjectile"),  // 투사체 발사
+	ChargeAndRelease  UMETA(DisplayName = "ChargeAndRelease"),  // 차징 후 발사 [Stub — DEFERRED]
+};
+
+/** 효과 타입 — 스킬 확정 후 실제 결과 */
+UENUM(BlueprintType)
+enum class ESkillEffectType : uint8
+{
+	RadialAoE   UMETA(DisplayName = "RadialAoE"),   // 범위 GE
+	SelfBuff    UMETA(DisplayName = "SelfBuff"),    // 자신 GE
+	Teleport    UMETA(DisplayName = "Teleport"),    // 확정 위치로 이동
+	SpawnActor  UMETA(DisplayName = "SpawnActor"),  // EffectActorClass 스폰 + InitEffect
+	Projectile  UMETA(DisplayName = "Projectile"),  // 투사체 (ProjectileMoveType으로 세분화)
+};
+
+/** 투사체 이동+착탄 방식 — EffectType == Projectile 시만 유효 */
+UENUM(BlueprintType)
+enum class EProjectileMoveType : uint8
+{
+	Linear       UMETA(DisplayName = "Linear"),       // 직선
+	Pierce       UMETA(DisplayName = "Pierce"),       // 직선 관통
+	Homing       UMETA(DisplayName = "Homing"),       // 유도
+	HomingBounce UMETA(DisplayName = "HomingBounce"), // 유도 + 바운스
+	Explode      UMETA(DisplayName = "Explode"),      // 착탄 폭발 AoE
+};
+
+/** 투사체 발사 패턴 */
+UENUM(BlueprintType)
+enum class ESkillSpawnPattern : uint8
+{
+	Single  UMETA(DisplayName = "Single"),  // 단발
+	Burst   UMETA(DisplayName = "Burst"),   // 순차 연속 (FireInterval 간격)
+	Spread  UMETA(DisplayName = "Spread"),  // 동시 부채꼴
+	Circle  UMETA(DisplayName = "Circle"),  // 동시 원형
 };
 
 /** 레벨업 카드 타입 */
