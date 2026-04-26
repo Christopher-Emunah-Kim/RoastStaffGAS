@@ -39,6 +39,36 @@ GA Execute 함수가 `ResolveTargeting(TargetingType) → ResolveEffect(EffectTy
 
 **관련 파일**
 `EnumTypes.h` / `DataTableStructs.h` / `RuntimeDataStructs.h` / `GA_CharacterSkill.h/.cpp` / `GameDataSubsystem.cpp`
+
+---
+
+## [2026-04-26] BUG_FIX — Pierce 투사체 첫 타격 즉시 소멸
+
+**UE_Ver**: 5.4
+**Knowledge_Risk**: LOW
+
+**상황**
+`ESkillActivationType` → 3축 리팩터링 과정에서 `GA_CharacterSkill`의 투사체 조립 함수(`BuildProjectileInitData`)를 신규 작성. 도화가 4번 범가르기(Pierce 타입)가 관통하지 않고 첫 타격 후 즉시 소멸하는 버그 발생.
+
+**문제·과제**
+`BaseProjectile::HandlePierceHit`의 종료 조건이 `PierceHitCount >= PierceCount`인데, `FProjectileInitData.PierceCount` 기본값이 0. 첫 타격 시 `PierceHitCount`가 1이 되는 순간 `1 >= 0` 조건 성립 → 즉시 `ReturnToPool`. 원인은 `BuildProjectileInitData`에서 `PierceCount` / `DamageDecay` 필드를 `ExecData`로부터 주입하는 코드가 누락된 것.
+
+**검토한 선택지**
+- A안: `constexpr int DEFAULT_PIERCE_COUNT = 10`을 헤더에 두고 Pierce 타입 기본값으로 하드코딩
+- B안: `FCharacterSkillStaticData` / `FCharacterSkillExecData`에 `PierceCount` / `DamageDecay` 필드 추가 + CSV 컬럼화
+
+**결정**
+B안 채택. 호크아이 래피드샷도 Pierce 타입이고 스킬마다 관통 횟수가 다를 수 있음. 하드코딩은 데이터 드리븐 원칙 위반. CSV 컬럼 추가 비용이 낮아 B안이 명확히 우위.
+
+**결과**
+`BuildProjectileInitData`에서 `InitData.PierceCount = FMath::Max(1, ExecData.PierceCount)` 주입. Pierce 스킬 3종(도화가04, 호크아이01, 호크아이06)에 `PierceCount=10` 설정.
+
+**포트폴리오 포인트**
+리팩터링 중 데이터 흐름 단절 버그 진단 — `FProjectileInitData` 기본값 함정을 추적하고, 즉각 수정보다 데이터 드리븐 원칙을 우선해 필드를 확장한 판단.
+
+**관련 파일**
+`DataTableStructs.h` / `RuntimeDataStructs.h` / `GameDataSubsystem.cpp` / `GA_CharacterSkill.cpp` / `BaseProjectile.cpp:416`
+
 | `BUG_FIX` | 비자명한 버그 — 원인 진단 과정이 핵심 |
 | `OPT` | 성능·메모리 최적화 — 측정 가능한 개선 |
 | `REFACTOR` | 구조 개선 — 기능 변화 없이 설계 품질 향상 |

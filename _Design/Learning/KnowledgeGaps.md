@@ -41,6 +41,8 @@
 | OnBeginOverlap 다중 컴포넌트 중복 발화 — 에너미의 캡슐+스켈메시 등 다수 컴포넌트가 Pawn 채널에 응답하면 동일 액터에 대해 이벤트가 여러 번 발생. 진입 직후 이미 처리된 액터인지 체크하는 중복 방어 필수 | UE5 충돌 이벤트 | 1 | 2026-04-22 | 🟡 학습중 | SkillSystemArch |
 | IgnoreActorWhenMoving 한계 — 이후 이동 sweep만 차단. 같은 프레임에 이미 발생한 OnBeginOverlap 이벤트 중복은 막지 못함. 이벤트 핸들러 내부에서 별도 guard 필요 | UE5 충돌 시스템 | 1 | 2026-04-22 | 🟡 학습중 | SkillSystemArch |
 | GAS MakeEffectContext Instigator 세팅 구조 — MakeEffectContext()는 InstigatorASC 기반으로 Instigator 자동 세팅. 이후 AddInstigator(null, null) 호출 시 null로 덮어써져 ExecCalc의 SourceASC 조회 실패 → 데미지 0 | GAS ExecCalc | 1 | 2026-04-22 | 🟡 학습중 | SkillSystemArch |
+| C++ 람다 + TFunction — 캡처 방식(값/참조), TFunction 저장, MoveTemp로 소유권 이전, WeakThis 패턴 | C++ 함수 객체 | 1 | 2026-04-26 | 🟡 학습중 | SkillActivationRefactor |
+| UAbilityTask_PlayMontageAndWait / WaitGameplayEvent — GAS AbilityTask 생명주기, AnimNotify_SendGameplayEvent 연결 구조 | GAS AbilityTask | 1 | 2026-04-26 | 🟡 학습중 | SkillActivationRefactor |
 
 ---
 
