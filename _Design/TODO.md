@@ -14,56 +14,6 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
-## [FEATURE] SkillActivationType 2축 분리 리팩터링 + DT_CharacterSkill 통폐합 | PLAN_SkillActivationRefactor_v1.0
-> 시작: 2026-04-26 | 기획서: 스킬 시스템 기획 v1.4.md / Temp_변경스킬계획.md
-
-  ### [MODULE-1] EnumRefactor ✓ COMMITTED
-  수정: EnumTypes.h / RSGameplayTags.h / DefaultGameplayTags.ini
-    - [x] ESkillTargetingType 추가 (Instant/AimPreview/LaunchProjectile/ChargeAndRelease)
-    - [x] ESkillEffectType 추가 (RadialAoE/SelfBuff/Teleport/SpawnActor/Projectile)
-    - [x] EProjectileMoveType 추가 (Linear/Pierce/Homing/HomingBounce/Explode)
-    - [x] ESkillSpawnPattern 추가 (Single/Burst/Spread/Circle)
-    - [x] ESkillActivationType DEPRECATED 주석 추가
-    - [x] Skill.State.Charging GameplayTag 등록
-
-  ### [MODULE-2] StructMigration ✓ COMMITTED
-  수정: DataTableStructs.h / RuntimeDataStructs.h
-    - [x] FCharacterSkillStaticData: ActivationType 제거 → 3축+SpawnPattern+SpawnCount
-    - [x] FCharacterSkillStaticData: ProjectileSpeed/Range/FireInterval/PierceCount/DamageDecay 필드 추가
-    - [x] FCharacterSkillStaticData: bTeleportOnConfirm + SkillEffectID(FK) 삭제
-    - [x] FCharacterSkillExecData: 동일 필드 교체
-    - [x] 모든 신규 필드 기본값 설정
-
-  ### [MODULE-3] GDSMigration ✓ COMMITTED
-  수정: GameDataSubsystem.h/.cpp / SkillManagerSubsystem.cpp
-    - [x] GetCharacterSkillExecData: 3축+SpawnPattern+SpawnCount+PierceCount+DamageDecay 직접 매핑
-    - [x] 캐릭터 스킬 경로에서 SkillEffectID 복합 조회 + DT_Skill_* 참조 제거
-    - [x] SkillManagerSubsystem: ActivationType → TargetingType 분기 교체
-
-  ### [MODULE-4] GARefactor ✓ COMMITTED
-  수정: GA_CharacterSkill.h/.cpp
-    - [x] OnAbilityActivated → ResolveTargeting(TargetingType) 2단계 분기로 교체
-    - [x] ResolveTargeting_AimPreview/LaunchProjectile 구현
-    - [x] ResolveEffect(EffectType) 통합 진입점 + ExecuteEffect_* 5개 구현
-    - [x] 기존 Execute* 함수 5개 제거 + bTeleportOnConfirm UPROPERTY 제거
-
-  ### [MODULE-5] CSVMigration ✓ COMMITTED
-  수정: ExternalSource/DT_Character_Skill_Static_Data.csv
-    - [x] 신규 스키마로 Painter/Sorceress/Hawkeye 18행 데이터 이전
-    - [x] PierceCount/DamageDecay 컬럼 추가
-
-  ### [MODULE-6] LegacyIsolation + ARCH_SNAPSHOT 갱신 ✓ COMMITTED
-  수정: GameDataSubsystem.cpp / ARCH_SNAPSHOT.md
-    - [x] 캐릭터 스킬 경로 DT_Skill_* 참조 완전 제거 확인
-    - [x] ARCH_SNAPSHOT SD4 무효화 + SD5/SD6 추가
-
-  ### [DEFERRED] MODULE-7 ChargeAndRelease Execute
-  - [~] ResolveTargeting_ChargeAndRelease() 구현 — 호크아이 스킬 스프린트 착수 시         [P3]
-
-  ### [OPEN] SR + 학습 리포트 — CombatInfra + SkillSystemArch + 리팩터링 합산      [P1]
-  - [ ] 리팩터링 완료 후 @senior-reviewer 실행
-  - [ ] @learning-coach 실행
-
 ---
 
 ## NEXT_SESSION
@@ -117,6 +67,8 @@
 
 ## COMPLETED_LOG
 <!-- compact 형식: [x] FEATURE명 | 커밋 | 날짜 | 플랜파일 -->
+[x] SR + 학습 리포트 (CombatInfra+SkillSystemArch+SkillActivationRefactor 합산) + SR_Fix | b69e4b867,ceca6206e | 2026-04-26 | PLAN_SR_Fix_v1.0
+[x] SkillActivationType 3축 분리 리팩터링 + DT_CharacterSkill 통폐합 + Pierce BUG_FIX | 73b04c3b7,d7d0e50b5,691f6e1ef,eea16f8d6,93b86a62e,83b270b00 | 2026-04-26 | PLAN_SkillActivationRefactor_v1.0
 [x] BossHPBarWidget HUD 자식 편입 리팩터링 | 3ba19c363,72f7479b2,e4ec76175,fec8946ac | 2026-04-26 | PLAN_BossHPBarRefactor_v1.0
 [x] Game ms 최적화 (AIC/BT/CMC/Anim Tick + LOD + 적 수 조정) | 8b6c5c06f,70c8790b5,888c88484,f55a7967b,0cad93d20 | 2026-04-24 | PLAN_GameMsOpt_v1.0
 [x] 퍼포먼스 최적화 (SkillFX·BT 프리로드 + GC 스파이크 수정) | 15a2e7198,0734f2ab6 | 2026-04-24 | PLAN_AsyncLoadOpt_v1.0

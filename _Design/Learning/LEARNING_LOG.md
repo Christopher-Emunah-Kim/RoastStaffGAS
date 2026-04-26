@@ -1,3 +1,11 @@
+## 2026-04-26 — SkillActivationRefactor + CombatInfra + SkillSystemArch
+keywords: [CommitAbility, KHS_DEBUG-recurring, hardcoding-5th-recurrence, UPROPERTY-GC-RESOLVED, EndAbility-RESOLVED, ISkillEffectInterface, GET_WORLD_SUBSYSTEM-semicolon]
+status:   🔴미숙 (CommitAbility NEW, KHS_DEBUG 3회차, 하드코딩 5회차) | 🟢개선됨 (UPROPERTY GC, EndAbility 경로)
+score:    정합:5 GAS:3 메모리:5 OOP:5 컨벤션:3 /5
+report:   _Design/Learning/reports/LR_SkillRefactor_v1.md
+
+---
+
 ## 2026-04-15 — PassiveSlotUI
 keywords: [ensureMsgf-nullptr-guard, include-path-case-sensitivity, LoadSynchronous-UPROPERTY-GC, UpdateSlot-icon-null-defense, NativeOnInitialized, UPROPERTY-GC-tracking]
 status:   🟡심화필요 (UPROPERTY/NativeOnInitialized RESOLVED, ensureMsgf/include 신규 진입)

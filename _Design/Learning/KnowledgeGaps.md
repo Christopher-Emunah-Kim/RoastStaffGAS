@@ -22,7 +22,7 @@
 | BTService — Blackboard 주기적 갱신 역할 | UE AI 패턴 | 1 | 2026-04-07 | 🟡 학습중 | MODULE-7 |
 | NodeMemory — uint8* 버퍼 / GetInstanceMemorySize 패턴 | UE AI 패턴 | 1 | 2026-04-07 | ✅ 확인됨 | MODULE-7 |
 | AutoPossessAI — 4가지 값의 의미 (Disabled/PlacedInWorld/Spawned/PlacedInWorldOrSpawned) | UE AI 아키텍처 | 2 | 2026-04-07 | 🔴 미숙 | MODULE-7 / MODULE-7-debug |
-| KHS_* 로그 레벨 매핑 — KHS_DEBUG=Verbose 에디터 필터링됨, 진단 시 KHS_INFO 사용 | UE 로깅 시스템 | 2 | 2026-04-07 | 🔴 미숙 | MODULE-7 / MODULE-7-debug |
+| KHS_* 로그 레벨 매핑 — KHS_DEBUG=Verbose 에디터 필터링됨, 진단 시 KHS_INFO 사용 | UE 로깅 시스템 | 3 | 2026-04-26 | 🔴 미숙 | MODULE-7 / MODULE-7-debug / SkillRefactor |
 | Instigator pattern — SetInstigator(Owner) + IgnoreActorWhenMoving으로 자기 충돌 방지 | UE 투사체 패턴 | 1 | 2026-04-07 | 🟡 학습중 | MODULE-7-debug |
 | FTransform constructor Scale trap — FTransform(Rot, Loc) 기본 Scale=(1,1,1) BP Scale 덮어씀 | UE5 스폰 패턴 | 1 | 2026-04-07 | 🟡 학습중 | MODULE-7-debug |
 | TWeakObjectPtr lambda capture — 레벨 전환 시 dangling this 방지 | C++ 메모리 안전 | 1 | 2026-04-07 | 🟡 학습중 | MODULE-7-debug |
@@ -43,6 +43,7 @@
 | GAS MakeEffectContext Instigator 세팅 구조 — MakeEffectContext()는 InstigatorASC 기반으로 Instigator 자동 세팅. 이후 AddInstigator(null, null) 호출 시 null로 덮어써져 ExecCalc의 SourceASC 조회 실패 → 데미지 0 | GAS ExecCalc | 1 | 2026-04-22 | 🟡 학습중 | SkillSystemArch |
 | C++ 람다 + TFunction — 캡처 방식(값/참조), TFunction 저장, MoveTemp로 소유권 이전, WeakThis 패턴 | C++ 함수 객체 | 1 | 2026-04-26 | 🟡 학습중 | SkillActivationRefactor |
 | UAbilityTask_PlayMontageAndWait / WaitGameplayEvent — GAS AbilityTask 생명주기, AnimNotify_SendGameplayEvent 연결 구조 | GAS AbilityTask | 1 | 2026-04-26 | 🟡 학습중 | SkillActivationRefactor |
+| CommitAbility — Cost/Cooldown 원자적 처리, ActivateAbility 내 호출 위치, 실패 시 EndAbility 패턴 | GAS 어빌리티 생명주기 | 1 | 2026-04-26 | 🟡 학습중 | SkillRefactor (HIGH-1 신규 발견) |
 
 ---
 
