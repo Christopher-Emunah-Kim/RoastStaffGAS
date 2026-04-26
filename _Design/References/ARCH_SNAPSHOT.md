@@ -78,7 +78,9 @@
 | SD1 | 무기 슬롯 수 SLOT_COUNT=2 | 3→2 축소. 캐릭터 스킬 슬롯 2개와 역할 분리 | 기획 변경 시만 |
 | SD2 | SpawnPreview 액터 클래스 — DT_CharacterSkill 스킬별 지정 | GameMode 단일 클래스 폐기. `FCharacterSkillStaticData.PreviewActorClass`로 스킬마다 다른 BP_Preview 할당 | - |
 | SD3 | EWeaponBaseType + FString EvolutionTag 병행 | BaseType 제거 시 기존 BP 참조 전부 교체 비용 큼 | 진화 시스템 본격 착수 시 |
-| SD4 | DT_CharacterSkill = 에디터 직접 편집 전용 | TArray<FCharacterSkillLevelData> 중첩 → CSV 임포트 불가 구조 | - |
+| SD4 | ~~DT_CharacterSkill = 에디터 직접 편집 전용~~ **무효화** | PLAN_SkillActivationRefactor — CSV 임포트 가능 단일 완결 구조로 전환 (2026-04-26) | - |
+| SD5 | ESkillActivationType DEPRECATED — ESkillTargetingType × ESkillEffectType × EProjectileMoveType 3축으로 분리 | 조준방식과 효과타입 혼합 → 독립 분리. 무기 스킬 격리 완료 후 삭제 예정 | - |
+| SD6 | DT_CharacterSkill 단일 완결 구조 확정 | 무기 스킬 분산 테이블(DT_Skill_*) 참조 캐릭터 스킬 경로에서 완전 제거. 캐릭터 스킬은 DT_CharacterSkill 1개 테이블로 완결 | - |
 
 ---
 
