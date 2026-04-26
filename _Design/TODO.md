@@ -14,18 +14,51 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
-## [FEATURE] SkillActivationType 리팩터링 — TargetingType × EffectType 2축 분리 | PLAN 수립 필요
-> 트리거: 도화가 스킬 6개 완료됨 → 착수 조건 충족
-> 현재 문제:
->   - ActivationType 하나가 조준방식+효과방식을 동시에 담아 Execute 함수 분기 지옥
->   - SpawnPreview 안에 Teleport / AoE / SpawnActor 분기 혼재
->   - 스킬 데이터가 DT_CharacterSkill / DT_Skill_Common_Resource / DT_Skill_Attack_* 등 5개 테이블 분산
->   - FSkillCommonResourceData ↔ FCharacterSkillStaticData 중복 컬럼 (GAClass/SkillGEClass/SkillIcon 등)
->   - GA도 GA_CharacterSkill_SelfBuff / GA_CharacterSkill_SpawnProjectile 등 분기별 공용 GA 혼재
+## [FEATURE] SkillActivationType 2축 분리 리팩터링 + DT_CharacterSkill 통폐합 | PLAN_SkillActivationRefactor_v1.0
+> 시작: 2026-04-26 | 기획서: 스킬 시스템 기획 v1.4.md / Temp_변경스킬계획.md
 
-  - [ ] /planning 으로 PLAN 수립                                                   [P0]
-  - [~] 도화가 스킬 2번(해그리기) — SkillActivationType 리팩터링에 포함            [P1]
-  - [~] 도화가 스킬 4번(범가르기) — SkillActivationType 리팩터링에 포함            [P1]
+  ### [MODULE-1] EnumRefactor
+  수정: EnumTypes.h / RSGameplayTags.h / DefaultGameplayTags.ini
+    - [ ] ESkillTargetingType 추가 (Instant/AimPreview/LaunchProjectile/ChargeAndRelease)  [P0]
+    - [ ] ESkillEffectType 추가 (RadialAoE/SelfBuff/Teleport/SpawnActor/Projectile)        [P0]
+    - [ ] EProjectileMoveType 추가 (Linear/Pierce/Homing/HomingBounce/Explode)             [P0]
+    - [ ] ESkillSpawnPattern 추가 (Single/Burst/Spread/Circle)                             [P0]
+    - [ ] ESkillActivationType DEPRECATED 주석 추가                                        [P0]
+    - [ ] Skill.State.Charging GameplayTag 등록                                            [P0]
+
+  ### [MODULE-2] StructMigration ⚠️ MODULE-3과 연속 처리 필수
+  수정: DataTableStructs.h / RuntimeDataStructs.h
+    - [ ] FCharacterSkillStaticData: ActivationType 제거 → 3축+SpawnPattern+SpawnCount     [P0]
+    - [ ] FCharacterSkillStaticData: ProjectileSpeed/Range/FireInterval 필드 추가           [P0]
+    - [ ] FCharacterSkillStaticData: bTeleportOnConfirm + SkillEffectID(FK) 삭제           [P0]
+    - [ ] FCharacterSkillExecData: 동일 필드 교체                                          [P0]
+    - [ ] 모든 신규 필드 기본값 설정                                                       [P0]
+
+  ### [MODULE-3] GDSMigration ⚠️ MODULE-2 완료 직후 연속 처리
+  수정: GameDataSubsystem.h/.cpp / SkillManagerSubsystem.cpp
+    - [ ] GetCharacterSkillExecData: 3축+SpawnPattern+SpawnCount 필드 매핑                 [P0]
+    - [ ] 캐릭터 스킬 경로에서 SkillEffectID 복합 조회 + DT_Skill_* 참조 제거             [P0]
+    - [ ] SkillManagerSubsystem GetSlotExecData 반환 번들 갱신                             [P0]
+
+  ### [MODULE-4] GARefactor
+  수정: GA_CharacterSkill.h/.cpp
+    - [ ] OnAbilityActivated → ResolveTargeting(TargetingType) 2단계 분기로 교체           [P1]
+    - [ ] ResolveTargeting_Instant/AimPreview/LaunchProjectile 구현                        [P1]
+    - [ ] ResolveEffect(EffectType) 통합 진입점 + ExecuteEffect_* 5개 구현                 [P1]
+    - [ ] 기존 Execute* 함수 5개 제거 + bTeleportOnConfirm UPROPERTY 제거                  [P1]
+
+  ### [MODULE-5] CSVMigration
+  수정: ExternalSource/DT_Character_Skill_Static_Data.csv
+    - [ ] 신규 스키마로 도화가 6개 + 호크아이 6개 데이터 이전                              [P1]
+    - [ ] 에디터 DT_CharacterSkill 리임포트 + 검증                                        [P1]
+
+  ### [MODULE-6] LegacyIsolation + ARCH_SNAPSHOT 갱신
+  수정: GameDataSubsystem.cpp / ARCH_SNAPSHOT.md
+    - [ ] 캐릭터 스킬 경로 DT_Skill_* 참조 완전 제거 확인                                 [P2]
+    - [ ] ARCH_SNAPSHOT SD4 무효화 + SD5/SD6 추가                                         [P2]
+
+  ### [DEFERRED] MODULE-7 ChargeAndRelease Execute
+  - [~] ResolveTargeting_ChargeAndRelease() 구현 — 호크아이 스킬 스프린트 착수 시         [P3]
 
   ### [OPEN] SR + 학습 리포트 — CombatInfra + SkillSystemArch + 리팩터링 합산      [P1]
   - [ ] 리팩터링 완료 후 @senior-reviewer 실행

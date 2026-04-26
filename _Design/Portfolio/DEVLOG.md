@@ -12,6 +12,33 @@
 | 타입 | 의미 |
 |------|------|
 | `ARCH` | 구조/설계 결정 — 클래스 책임 분리, 시스템 경계 |
+
+---
+
+## [2026-04-26] ARCH — 스킬 발동 타입 2축 분리 및 DT 통폐합 설계 결정
+
+**상황**
+캐릭터 스킬 시스템이 성장하면서 `ESkillActivationType` 단일 Enum이 조준방식과 효과방식을 동시에 표현하게 됨. `ExecuteSpawnPreview` 함수 하나가 텔레포트 / 범위 피해 / 장판 Actor 스폰을 `if/else` 체인으로 처리하고, `bTeleportOnConfirm` 같은 BP 플래그로 땜질하는 상황까지 진행됨. 또한 캐릭터 스킬 데이터가 5개 테이블에 분산되어 GDS가 `SkillEffectID` FK로 복합 조회하는 구조.
+
+**문제·과제**
+새 캐릭터(호크아이) 스킬 6개를 추가하기 전, 같은 패턴이 반복되면 Execute 분기가 통제 불가능해지는 시점이 예측됨. 특히 `SpawnPreview + 텔레포트` / `SpawnPreview + 장판` / `SpawnPreview + 범위AoE` 처럼 동일 조준방식에서 결과만 다른 스킬들이 늘어날수록 타입 폭발 문제 발생.
+
+**검토한 선택지**
+- A안: 2축 분리 (TargetingType × EffectType) + DT 통폐합 — 근본 해결, 리팩터링 비용 높음
+- B안: GA 분리 유지 + DT 중복 컬럼만 정리 — 범위 작지만 소서리스/호크아이 추가 시 동일 문제 재발
+- SoftPtr 리소스 전용 DT 분리 (`DT_CharacterSkill_Resource`) — 스킬 30개+ 시점에 유효하나 지금은 오버엔지니어링
+
+**결정**
+A안 채택. 3축(`ESkillTargetingType` × `ESkillEffectType` × `EProjectileMoveType`) + `ESkillSpawnPattern` 추가. DT_CharacterSkill 단일 완결 구조(스탯 그룹 / SoftPtr 리소스 그룹 주석 구분). 무기 스킬 분산 테이블은 무기 스킬 전용으로 격리 유지. SoftPtr 분리는 스킬 30개+ 시점에 재검토.
+
+**결과**
+GA Execute 함수가 `ResolveTargeting(TargetingType) → ResolveEffect(EffectType)` 2단계 분기로 단순화. 새 스킬 추가 시 C++ 신규 타입 없이 DT 데이터만으로 처리 가능한 구조 확보.
+
+**포트폴리오 포인트**
+단순 기능 추가가 아닌 확장성 문제를 선제적으로 감지하고, 새 캐릭터 착수 전 리팩터링 시점을 선택한 설계 판단. "같은 동작방식에서 다른 결과를 내는 것마다 타입을 만드는 것이 잘못된 설계"라는 원칙을 실제 코드 구조에 적용.
+
+**관련 파일**
+`EnumTypes.h` / `DataTableStructs.h` / `RuntimeDataStructs.h` / `GA_CharacterSkill.h/.cpp` / `GameDataSubsystem.cpp`
 | `BUG_FIX` | 비자명한 버그 — 원인 진단 과정이 핵심 |
 | `OPT` | 성능·메모리 최적화 — 측정 가능한 개선 |
 | `REFACTOR` | 구조 개선 — 기능 변화 없이 설계 품질 향상 |
