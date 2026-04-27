@@ -12,6 +12,18 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ## PENDING_COMMIT
 
+- date: 2026-04-27
+  plan: PLAN_Hawkeye_Skills_v1.0
+  status: PENDING_COMMIT
+  summary: "feat(hawkeye): DT 스키마 신규 필드 4개 + GA 헬퍼 protected 이동 + StartLerpMove 구현"
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
+      - Source/RoastStaffGAS/Public/Data/RuntimeDataStructs.h
+      - Source/RoastStaffGAS/Private/Subsystems/GameDataSubsystem.cpp
+      - Source/RoastStaffGAS/Public/GAS/Abilities/GA_CharacterSkill.h
+      - Source/RoastStaffGAS/Private/GAS/Abilities/GA_CharacterSkill.cpp
+
 - date: 2026-04-26
   plan: PLAN_SkillActivationRefactor_v1.0
   status: COMMITTED

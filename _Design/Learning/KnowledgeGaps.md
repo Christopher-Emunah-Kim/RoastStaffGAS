@@ -42,6 +42,7 @@
 | IgnoreActorWhenMoving 한계 — 이후 이동 sweep만 차단. 같은 프레임에 이미 발생한 OnBeginOverlap 이벤트 중복은 막지 못함. 이벤트 핸들러 내부에서 별도 guard 필요 | UE5 충돌 시스템 | 1 | 2026-04-22 | 🟡 학습중 | SkillSystemArch |
 | GAS MakeEffectContext Instigator 세팅 구조 — MakeEffectContext()는 InstigatorASC 기반으로 Instigator 자동 세팅. 이후 AddInstigator(null, null) 호출 시 null로 덮어써져 ExecCalc의 SourceASC 조회 실패 → 데미지 0 | GAS ExecCalc | 1 | 2026-04-22 | 🟡 학습중 | SkillSystemArch |
 | C++ 람다 + TFunction — 캡처 방식(값/참조), TFunction 저장, MoveTemp로 소유권 이전, WeakThis 패턴 | C++ 함수 객체 | 1 | 2026-04-26 | 🟡 학습중 | SkillActivationRefactor |
+| 콜백 패턴 / OCP — TFunction 콜백으로 완료 후 동작을 외부 주입. 헬퍼 수정 없이 새 동작 추가 가능. OCP보다 "관심사 분리 + 재사용" 관점이 핵심 | C++ 설계 패턴 | 1 | 2026-04-27 | 🟡 학습중 | Hawkeye MODULE-1 |
 | UAbilityTask_PlayMontageAndWait / WaitGameplayEvent — GAS AbilityTask 생명주기, AnimNotify_SendGameplayEvent 연결 구조 | GAS AbilityTask | 1 | 2026-04-26 | 🟡 학습중 | SkillActivationRefactor |
 | CommitAbility — Cost/Cooldown 원자적 처리, ActivateAbility 내 호출 위치, 실패 시 EndAbility 패턴 | GAS 어빌리티 생명주기 | 1 | 2026-04-26 | 🟡 학습중 | SkillRefactor (HIGH-1 신규 발견) |
 

@@ -17,19 +17,22 @@
 ## [FEATURE] 호크아이 스킬 6종 구현 | PLAN_Hawkeye_Skills_v1.0
 > 시작: 2026-04-27 | 기획서: Temp_변경스킬계획.md
 
-  ### [MODULE-1] DT 스키마 + GA 헬퍼 접근 지정자 정리
-  수정: Data/RuntimeDataStructs.h, GAS/Abilities/GA_CharacterSkill.h
-    - [ ] FCharacterSkillExecData 신규 필드 13개 추가                          [P0]
-    - [ ] GA_CharacterSkill private→protected 헬퍼 이동 (4종)                  [P0]
-    - [ ] StartLerpMove 헬퍼 + LerpTimerHandle 선언                             [P0]
-    - [ ] 풀 PreWarm 등록: ChainTrapVortexActor(2) / AutomatonActor(2)          [P0]
+  ### [MODULE-1] DT 스키마 + GA 헬퍼 접근 지정자 정리 ✓ DONE 2026-04-27
+  수정: DataTableStructs.h / RuntimeDataStructs.h / GameDataSubsystem.cpp / GA_CharacterSkill.h/.cpp
+    - [x] FCharacterSkillExecData 신규 필드 4개 추가 (BackstepDistance/ZOffset/MaxChargeTime/PerfectZoneBonus)
+    - [x] GA_CharacterSkill private→protected 헬퍼 이동 (BuildProjectileInitData/GetSkillDamageAmount/SpawnSkillFX)
+    - [x] StartLerpMove 구현 + LerpTimerHandle/상태변수 선언
+    - [x] LerpDuration constexpr 추가 (풀 PreWarm → DT EffectActorClass로 자동 처리, C++ 불필요)
 
-  ### [MODULE-2] 백스텝샷 — Lerp이동 헬퍼
-  수정: GAS/Abilities/GA_CharacterSkill.cpp
-    - [ ] NearestEnemy 탐색 + BackstepDir 계산 + StartLerpMove 호출             [P0]
-    - [ ] StartLerpMove 구현 (완료 콜백 → SelfBuff → EndAbility)               [P0]
-    - [ ] DisableMovement / RestoreMovement 쌍 처리                             [P0]
-    - [ ] OnCancelled 경로: ClearTimer + RestoreMovement + EndAbility           [P0]
+  ### [MODULE-2] 백스텝샷 — Lerp이동 헬퍼 ✓ DONE 2026-04-27
+  수정: GAS/Abilities/GA_CharacterSkill.h/.cpp
+    - [x] NearestEnemy 탐색 + BackstepDir 계산 + StartLerpMove 호출
+    - [x] StartLerpMove 구현 (완료 콜백 → SelfBuff → EndAbility)
+    - [x] DisableMovement / RestoreMovement 쌍 처리
+    - [x] OnCancelled 경로: EndAbility override → ClearTimer + RestoreMovement
+  BUG (집PC에서 수정):
+    - [ ] Lerp 이동이 프레임 끊김처럼 보임 — SetActorLocation 타이머 방식 재검토 (LaunchCharacter or SetActorLocation 매 틱) [P0]
+    - [ ] BP 투사체 NiagaraComp가 발사 방향과 무관하게 회전 — BP 설정 문제 (bRotationFollowsVelocity or NiagaraComp 로컬 회전 확인) [P1]
 
   ### [MODULE-3] 버스트애로우 — GroundEffectActor 재활용
   에디터 작업:

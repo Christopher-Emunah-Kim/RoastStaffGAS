@@ -15,6 +15,26 @@
 
 ---
 
+## [2026-04-27] PATTERN — GA Lerp 이동 중 외부 취소 방어 패턴
+
+**상황**: BackstepShot GA가 `DisableMovement` 후 0.016s 루프 타이머로 Lerp 이동을 수행하는 중, 피격·CC 등으로 GA가 외부에서 강제 종료될 수 있음.
+
+**문제·과제**: Lerp 완료 콜백에서만 `RestoreMovement`를 호출하면, GA가 취소될 때 타이머는 정리되지만 이동 잠금이 영구 유지되어 캐릭터가 조작 불능 상태가 됨.
+
+**검토한 선택지**:
+- A) `OnCancelled` 델리게이트 별도 바인딩 — 취소 경로만 커버, 정상 종료 경로와 중복 처리 발생
+- B) `EndAbility` override — 취소/정상 모든 경로가 단일 진입점 통과 (채택)
+
+**결정**: `EndAbility` override에 `bLerpInProgress` 플래그 체크를 추가. 플래그가 true이면 타이머 강제 정리 + `RestoreMovement` 보장 후 `Super::EndAbility` 호출. 정상 완료 경로(콜백)는 `bLerpInProgress = false` 설정 후 `EndAbility`를 호출하므로 override 내부 정리 로직이 실행되지 않음.
+
+**결과**: 피격·CC·몽타주 중단 등 어떤 경로로 GA가 종료되더라도 `DisableMovement` 고착 버그 방지. 타이머 기반 비동기 동작을 가진 GA의 방어 패턴으로 정착.
+
+**포트폴리오 포인트**: GAS EndAbility override를 이용한 비동기 상태 정리 패턴 — 타이머+이동잠금이 항상 쌍으로 해제되는 구조를 단일 진입점으로 보장.
+
+**관련 파일**: `GA_CharacterSkill.h/.cpp`
+
+---
+
 ## [2026-04-26] ARCH — 스킬 발동 타입 2축 분리 및 DT 통폐합 설계 결정
 
 **상황**

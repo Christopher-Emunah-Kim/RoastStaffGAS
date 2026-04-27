@@ -22,7 +22,9 @@ new_files:
 
 modified_files:
   - Source/RoastStaffGAS/Public/Data/EnumTypes.h              # ESkillSpawnPattern 없음 — Circle 재활용으로 결정
+  - Source/RoastStaffGAS/Public/Data/DataTableStructs.h       # FCharacterSkillStaticData 신규 필드 (DT 임포트 구조체)
   - Source/RoastStaffGAS/Public/Data/RuntimeDataStructs.h     # FCharacterSkillExecData 신규 필드
+  - Source/RoastStaffGAS/Private/Subsystems/GameDataSubsystem.cpp  # GetCharacterSkillExecData 매핑 추가
   - Source/RoastStaffGAS/Public/GAS/Abilities/GA_CharacterSkill.h   # private→protected + LerpMove 헬퍼
   - Source/RoastStaffGAS/Private/GAS/Abilities/GA_CharacterSkill.cpp
   - Source/RoastStaffGAS/Public/UI/RSHUDWidget.h              # ChargeGauge BindWidget + API
@@ -189,24 +191,22 @@ GE: GE_Hawkeye_Snipe (SetByCaller 데미지)
 | 컬럼명 | 타입 | 대상 스킬 | 기본값 | 설명 |
 |--------|------|----------|--------|------|
 | BackstepDistance | float | 백스텝샷 | 3000 | 백스텝 이동 거리 (cm) |
-| LerpDuration | float | 백스텝샷 | 1.0 | Lerp 이동 소요 시간 (초) |
-| SpeedBuffDuration | float | 백스텝샷 | 10.0 | 이속 버프 지속 시간 (초) |
 | ZOffset | float | 애로우레인 | 800 | 화살 스폰 높이 오프셋 (cm) |
-| SpawnCountMin | int32 | 애로우레인 | 15 | 최소 스폰 수 |
-| SpawnCountMax | int32 | 애로우레인 | 20 | 최대 스폰 수 |
-| AutomatonFireInterval | float | 오토마톤 | 1.0 | 자율 발사 간격 (초) |
-| AutomatonHealInterval | float | 오토마톤 | 2.0 | 힐 GE 적용 간격 (초) |
-| AutomatonLifetime | float | 오토마톤 | 8.0 | Actor 생존 시간 (초) |
 | MaxChargeTime | float | 스나이프 | 3.0 | 최대 차징 시간 (초) |
-| DamageMultiplierMin | float | 스나이프 | 0.5 | 최소 차징 데미지 배율 |
-| DamageMultiplierMax | float | 스나이프 | 2.0 | 최대 차징 데미지 배율 |
 | PerfectZoneBonus | float | 스나이프 | 1.5 | 퍼펙트 존(80~100%) 추가 배율 |
 
 기존 재활용:
-- EffectRadius → 체인트랩 PullRadius / 애로우레인 낙하 반경 (컬럼 추가 없음)
-- Duration → 체인트랩 기절 시간
+- EffectRadius → 체인트랩 PullRadius / 애로우레인 낙하 반경
+- Duration → 백스텝샷 SpeedBuffDuration / 체인트랩 기절 시간 / 오토마톤 Lifetime
+- SpawnCount → 애로우레인 스폰 수 / 오토마톤 Spread 발수
+- DamageMultiplier → 스나이프 DamageMultiplierMin
 - PierceCount → 스나이프 관통 수
-- SpawnCount → 오토마톤 Spread 발수 (EditDefaultsOnly 또는 재활용)
+
+constexpr 헤더 멤버 (DT 제외):
+- GA_CharacterSkill.h:        LerpDuration = 1.0f          (백스텝샷 Lerp 이동 시간)
+- GA_CharacterSkill_Charge.h: DamageMultiplierMax = 2.0f   (스나이프 최대 차징 배율)
+- AutomatonActor.h:           AutomatonFireInterval = 1.0f  (자율 발사 간격)
+                              AutomatonHealInterval = 2.0f  (힐 GE 적용 간격)
 
 ## FLOW
 
