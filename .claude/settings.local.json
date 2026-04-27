@@ -80,7 +80,13 @@
       "Bash(mkdir -p \"_Design/Plans/completed\")",
       "Bash(mv \"_Design/Plans/active/PLAN_BossHPBarRefactor_v1.0.md\" \"_Design/Plans/completed/PLAN_BossHPBarRefactor_v1.0.md\")",
       "Bash(mv \"_Design/Plans/active/PLAN_SkillSystemArch_v1.0.md\" \"_Design/Plans/completed/PLAN_SkillSystemArch_v1.0.md\")",
-      "Edit"
+      "Edit",
+      "WebFetch(domain:namu.wiki)",
+      "WebFetch(domain:lostark.inven.co.kr)",
+      "WebFetch(domain:vortexgaming.io)",
+      "WebFetch(domain:www.gamemeca.com)",
+      "WebFetch(domain:v.daum.net)",
+      "WebFetch(domain:www.oslink.io)"
     ],
     "deny": [],
     "ask": []

@@ -14,7 +14,8 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 - date: 2026-04-26
   plan: PLAN_SkillActivationRefactor_v1.0
-  status: PENDING_COMMIT
+  status: COMMITTED
+  commits: ["73b04c3b7", "d7d0e50b5", "691f6e1ef", "eea16f8d6", "93b86a62e", "83b270b00"]
   summary: "refactor(skill): ESkillActivationType 3축 분리 + GA 2단계 재편 + DT 통폐합 + Pierce BUG_FIX"
   files:
     modified:

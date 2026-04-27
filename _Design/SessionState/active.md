@@ -2,7 +2,7 @@
 > PreCompact 훅이 자동 갱신. 압축 후 컨텍스트 복원에 사용.
 
 ## Current Task
-[PLAN] SkillActivationType 2축 분리 리팩터링 + DT_CharacterSkill 통폐합
+(없음 — 세션 시작 시 업데이트)
 
 ## Progress
 ### PLAN_CombatInfra_v1.0

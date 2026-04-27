@@ -14,6 +14,75 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
+## [FEATURE] 호크아이 스킬 6종 구현 | PLAN_Hawkeye_Skills_v1.0
+> 시작: 2026-04-27 | 기획서: Temp_변경스킬계획.md
+
+  ### [MODULE-1] DT 스키마 + GA 헬퍼 접근 지정자 정리
+  수정: Data/RuntimeDataStructs.h, GAS/Abilities/GA_CharacterSkill.h
+    - [ ] FCharacterSkillExecData 신규 필드 13개 추가                          [P0]
+    - [ ] GA_CharacterSkill private→protected 헬퍼 이동 (4종)                  [P0]
+    - [ ] StartLerpMove 헬퍼 + LerpTimerHandle 선언                             [P0]
+    - [ ] 풀 PreWarm 등록: ChainTrapVortexActor(2) / AutomatonActor(2)          [P0]
+
+  ### [MODULE-2] 백스텝샷 — Lerp이동 헬퍼
+  수정: GAS/Abilities/GA_CharacterSkill.cpp
+    - [ ] NearestEnemy 탐색 + BackstepDir 계산 + StartLerpMove 호출             [P0]
+    - [ ] StartLerpMove 구현 (완료 콜백 → SelfBuff → EndAbility)               [P0]
+    - [ ] DisableMovement / RestoreMovement 쌍 처리                             [P0]
+    - [ ] OnCancelled 경로: ClearTimer + RestoreMovement + EndAbility           [P0]
+
+  ### [MODULE-3] 버스트애로우 — GroundEffectActor 재활용
+  에디터 작업:
+    - [ ] BP_GroundEffectActor_BurstArrow 생성 (즉발 AoE + 넉다운 GE)          [P1]
+    - [ ] DT_CharacterSkill 버스트애로우 행 추가                                [P1]
+    - [ ] 버스트애로우 몽타주 AnimNotify HitCheck 세팅                          [P1]
+
+  ### [MODULE-4] 체인트랩 — ChainTrapVortexActor
+  신규: Objects/GroundEffect/ChainTrapVortexActor.h/.cpp
+    - [ ] IPoolableInterface + ISkillEffectInterface 구현                       [P0]
+    - [ ] InitEffect(): Overlap 수집 + PullTimerHandle 시작                     [P0]
+    - [ ] PullTick(): Collision off + 거리비례 Lerp 수렴 이동                   [P0]
+    - [ ] DurationTimer 만료: Collision 복원 + GE Apply + 머티리얼 플래시       [P0]
+    - [ ] OnPoolDeactivate(): 타이머 ClearTimer + 상태 리셋                     [P0]
+
+  ### [MODULE-5] 애로우레인 — RandomRadius 낙하 패턴
+  수정: GAS/Abilities/GA_CharacterSkill.cpp
+    - [ ] Circle+ZOffset 분기: RandPointInCircle 인라인 스폰 루프               [P1]
+    - [ ] 60도 고정 하향 발사 방향 계산                                         [P1]
+    - [ ] StatusGEClass → OnHit Apply (이속감소)                                [P1]
+
+  ### [MODULE-6] 오토마톤 — AutomatonActor
+  신규: Objects/AutomatonActor.h/.cpp
+    - [ ] IPoolableInterface + ISkillEffectInterface + UPROPERTY ASC 강참조     [P1]
+    - [ ] InitEffect(): FireTimer + HealTimer + LifetimeTimer                   [P1]
+    - [ ] FireTick(): Forward Spread 5발 PoolingSubsystem 스폰                  [P1]
+    - [ ] HealTick(): InstigatorASC GE Apply                                    [P1]
+    - [ ] OnPoolDeactivate(): 전체 ClearTimer + 리셋                            [P1]
+
+  ### [MODULE-7] 스나이프 C++ — GA_CharacterSkill_Charge
+  신규: GAS/Abilities/GA_CharacterSkill_Charge.h/.cpp
+    - [ ] OnAbilityActivated override (ChargeAndRelease 전용)                   [P1]
+    - [ ] State.Charging 태그 관리 + ChargeTimeoutHandle                        [P1]
+    - [ ] WaitGameplayEvent(Tag_ChargeRelease) AbilityTask                      [P1]
+    - [ ] OnChargeReleased(): 퍼펙트 존 판정 → 배율 → 발사 → EndAbility        [P1]
+    - [ ] OnCancelled: HideGauge + RemoveTag + EndAbility                       [P1]
+    - [ ] ARSPlayerController: Input Released → SendGameplayEventToActor        [P1]
+
+  ### [MODULE-8] 스나이프 UI — ChargeGaugeWidget
+  신규: UI/InGame/ChargeGaugeWidget.h/.cpp
+  수정: UI/RSHUDWidget.h/.cpp
+    - [ ] UChargeGaugeWidget: ProgressBar + 퍼펙트 존 오버레이                  [P1]
+    - [ ] ShowGauge / HideGauge / UpdateGaugeFill 구현                          [P1]
+    - [ ] Ratio >= 0.8f → TintColor 변경                                        [P1]
+    - [ ] RSHUDWidget: BindWidget + ShowChargeGauge/HideChargeGauge API         [P1]
+
+  ### [MODULE-9] 에디터 작업 — DT 행 + GE BP 7종
+    - [ ] DT_CharacterSkill 호크아이 6개 행 입력 (신규 컬럼 13개)              [P2]
+    - [ ] GE Blueprint 7종 생성                                                 [P2]
+    - [ ] BP_GA_Hawkeye_Skill1~6 생성                                           [P2]
+    - [ ] 풀 PreWarm GameMode 등록 확인                                         [P2]
+    - [ ] 몽타주 AnimNotify HitCheck 세팅 (버스트애로우, 애로우레인)            [P2]
+
 ---
 
 ## NEXT_SESSION
