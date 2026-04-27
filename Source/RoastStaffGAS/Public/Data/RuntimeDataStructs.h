@@ -344,6 +344,20 @@ struct FCharacterSkillExecData
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag ElementTag;
 
+	// ── 호크아이 스킬 파라미터 ───────────────────────────────────────────────
+	/** 백스텝샷: 후방 이동 거리 (cm). */
+	UPROPERTY(BlueprintReadOnly)
+	float BackstepDistance = 0.f;
+	/** 애로우레인: 화살 스폰 기준 높이 오프셋 (cm). */
+	UPROPERTY(BlueprintReadOnly)
+	float ZOffset = 0.f;
+	/** 스나이프: 최대 차징 시간 (초). */
+	UPROPERTY(BlueprintReadOnly)
+	float MaxChargeTime = 3.f;
+	/** 스나이프: 퍼펙트 존(80~100%) 돌입 시 추가 데미지 배율. */
+	UPROPERTY(BlueprintReadOnly)
+	float PerfectZoneBonus = 1.5f;
+
 	// ── 리소스 SoftPtr ────────────────────────────────────────────────────
 	/** GA 클래스 (InitializeSkills 시 LoadSynchronous) */
 	UPROPERTY(BlueprintReadOnly)

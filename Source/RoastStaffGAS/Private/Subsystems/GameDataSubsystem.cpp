@@ -624,6 +624,10 @@ bool UGameDataSubsystem::GetCharacterSkillExecData(FName CharacterID, int32 Skil
     OutData.PierceCount       = Found->PierceCount;
     OutData.DamageDecay       = Found->DamageDecay;
     OutData.ElementTag        = Found->ElementTag;
+    OutData.BackstepDistance  = Found->BackstepDistance;
+    OutData.ZOffset           = Found->ZOffset;
+    OutData.MaxChargeTime     = Found->MaxChargeTime;
+    OutData.PerfectZoneBonus  = Found->PerfectZoneBonus;
     OutData.GAClass           = Found->GAClass;
     OutData.SkillGEClass      = Found->SkillGEClass;
     OutData.StatusGEClass     = Found->StatusGEClass;
