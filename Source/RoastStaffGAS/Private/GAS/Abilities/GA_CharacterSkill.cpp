@@ -79,6 +79,36 @@ void UGA_CharacterSkill::OnAbilityActivated(const FGameplayAbilitySpecHandle Han
 }
 
 // ============================================================================
+// EndAbility — Lerp 취소 경로 정리
+// ============================================================================
+
+void UGA_CharacterSkill::EndAbility(
+	const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo,
+	bool bReplicateEndAbility,
+	bool bWasCancelled)
+{
+	if (bLerpInProgress)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(LerpTimerHandle);
+		LerpOnComplete = nullptr;
+		bLerpInProgress = false;
+
+		// 이동 잠금 해제 — GA 취소 시 캐릭터가 영구 고정되지 않도록
+		if (ABaseCharacter* Instigator = const_cast<ABaseCharacter*>(CachedInstigator.Get()))
+		{
+			if (UCharacterMovementComponent* MoveComp = Instigator->FindComponentByClass<UCharacterMovementComponent>())
+			{
+				MoveComp->SetMovementMode(EMovementMode::MOVE_Walking);
+			}
+		}
+	}
+
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+// ============================================================================
 // StartSkillWithMontage
 // ============================================================================
 
@@ -140,6 +170,12 @@ void UGA_CharacterSkill::OnHitCheckReceived(FGameplayEventData Payload)
 
 void UGA_CharacterSkill::OnCastingMontageEnded()
 {
+	// 백스텝샷 Lerp 진행 중이면 이동 복원 + EndAbility를 lerp 콜백에 위임
+	if (bLerpInProgress)
+	{
+		return;
+	}
+
 	ABaseCharacter* Instigator = const_cast<ABaseCharacter*>(CachedInstigator.Get());
 	if (Instigator)
 	{
@@ -219,7 +255,15 @@ void UGA_CharacterSkill::ResolveEffect(
 		ExecuteEffect_SpawnActor(ExecData, Handle, ActorInfo, ActivationInfo, TargetLocation);
 		break;
 	case ESkillEffectType::Projectile:
-		ExecuteEffect_Projectile(ExecData, Handle, ActorInfo, ActivationInfo);
+		// BackstepDistance > 0 이면 백스텝샷 전용 경로 — 후방이동+SelfBuff가 EndAbility 담당
+		if (ExecData.BackstepDistance > 0.f)
+		{
+			ExecuteEffect_BackstepShot(ExecData, Handle, ActorInfo, ActivationInfo);
+		}
+		else
+		{
+			ExecuteEffect_Projectile(ExecData, Handle, ActorInfo, ActivationInfo);
+		}
 		break;
 		
 	default:
@@ -742,4 +786,197 @@ float UGA_CharacterSkill::GetSkillDamageAmount(const FCharacterSkillExecData& Ex
 	}
 
 	return ATK * ExecData.DamageMultiplier;
+}
+
+// ── 백스텝샷 ─────────────────────────────────────────────────────────────────
+
+AActor* UGA_CharacterSkill::FindNearestEnemy(FVector PlayerLoc, float SearchRadius) const
+{
+	TArray<FOverlapResult> Overlaps;
+	FCollisionQueryParams QueryParams;
+	if (CachedInstigator)
+	{
+		QueryParams.AddIgnoredActor(CachedInstigator.Get());
+	}
+
+	GetWorld()->OverlapMultiByChannel(Overlaps, PlayerLoc, FQuat::Identity,
+		ECC_Pawn, FCollisionShape::MakeSphere(FMath::Max(1.f, SearchRadius)), QueryParams);
+
+	AActor* Nearest = nullptr;
+	float MinDistSq = FLT_MAX;
+
+	for (const FOverlapResult& Overlap : Overlaps)
+	{
+		AActor* Candidate = Overlap.GetActor();
+		if (!Candidate)
+		{
+			continue;
+		}
+
+		UAbilitySystemComponent* CandASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Candidate);
+		if (!CandASC || !CandASC->HasMatchingGameplayTag(RSTags::Team_Enemy))
+		{
+			continue;
+		}
+
+		const float DistSq = FVector::DistSquared(PlayerLoc, Candidate->GetActorLocation());
+		if (DistSq < MinDistSq)
+		{
+			MinDistSq = DistSq;
+			Nearest = Candidate;
+		}
+	}
+
+	return Nearest;
+}
+
+void UGA_CharacterSkill::ExecuteEffect_BackstepShot(
+	const FCharacterSkillExecData& ExecData,
+	const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	if (!CachedInstigator)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	const FVector PlayerLoc = CachedInstigator->GetActorLocation();
+
+	// 1. 가장 가까운 적 탐색 → 발사 방향 / 백스텝 방향 결정
+	AActor* NearestEnemy = FindNearestEnemy(PlayerLoc, ExecData.EffectRadius);
+
+	FVector FireDir;
+	FVector BackstepDir;
+
+	if (NearestEnemy)
+	{
+		FireDir    = (NearestEnemy->GetActorLocation() - PlayerLoc).GetSafeNormal2D();
+		BackstepDir = -FireDir;
+	}
+	else
+	{
+		KHS_WARN(TEXT("범위 내 적 없음 — Forward 발사 + 제자리 버프. SkillID: %s"), *ExecData.SkillID.ToString());
+		FireDir    = CachedInstigator->GetActorForwardVector();
+		BackstepDir = -FireDir;
+	}
+
+	// 2. 투사체 발사 (적 방향 직접 스폰)
+	TSubclassOf<ABaseProjectile> LoadedClass = ExecData.ProjectileClass.LoadSynchronous();
+	if (LoadedClass)
+	{
+		FProjectileInitData InitData = BuildProjectileInitData(ExecData, LoadedClass);
+		const FVector SpawnLoc = PlayerLoc + FireDir * SPAWN_OFFSET;
+		const FRotator SpawnRot = FireDir.ToOrientationRotator();
+
+		GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys)
+		ABaseProjectile* Projectile = PoolSys->SpawnPooledActor<ABaseProjectile>(
+			LoadedClass, FTransform(SpawnRot, SpawnLoc));
+
+		if (Projectile)
+		{
+			Projectile->SetOwner(const_cast<ABaseCharacter*>(CachedInstigator.Get()));
+			Projectile->SetInstigator(const_cast<ABaseCharacter*>(CachedInstigator.Get()));
+			Projectile->InitProjectile(InitData);
+		}
+		else
+		{
+			KHS_WARN(TEXT("투사체 스폰 실패. SkillID: %s"), *ExecData.SkillID.ToString());
+		}
+	}
+	else
+	{
+		KHS_WARN(TEXT("ProjectileClass 로드 실패. SkillID: %s"), *ExecData.SkillID.ToString());
+	}
+
+	// 3. 이동 잠금 + 후방 Lerp 이동
+	ABaseCharacter* MutableInstigator = const_cast<ABaseCharacter*>(CachedInstigator.Get());
+	if (UCharacterMovementComponent* MoveComp = MutableInstigator->FindComponentByClass<UCharacterMovementComponent>())
+	{
+		MoveComp->DisableMovement();
+	}
+
+	const FVector BackstepDest = PlayerLoc + BackstepDir * ExecData.BackstepDistance;
+	bLerpInProgress = true;
+
+	TWeakObjectPtr<UGA_CharacterSkill> WeakThis(this);
+	StartLerpMove(BackstepDest, [WeakThis, ExecData, Handle, ActorInfo, ActivationInfo]()
+	{
+		if (!WeakThis.IsValid())
+		{
+			return;
+		}
+
+		// 이동 복원
+		if (ABaseCharacter* Instigator = const_cast<ABaseCharacter*>(WeakThis->CachedInstigator.Get()))
+		{
+			if (UCharacterMovementComponent* MoveComp = Instigator->FindComponentByClass<UCharacterMovementComponent>())
+			{
+				MoveComp->SetMovementMode(EMovementMode::MOVE_Walking);
+			}
+		}
+
+		// 이속 버프 (Duration 재활용: SpeedBuffDuration)
+		WeakThis->bLerpInProgress = false;
+		WeakThis->ExecuteEffect_SelfBuff(ExecData, Handle, ActorInfo, ActivationInfo);
+
+		if (WeakThis->IsActive())
+		{
+			WeakThis->EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		}
+	});
+
+	KHS_INFO(TEXT("BackstepShot 발동 — SkillID: %s | 후방거리: %.0f"), *ExecData.SkillID.ToString(), ExecData.BackstepDistance);
+}
+
+// ── 백스텝샷 Lerp 이동 ───────────────────────────────────────────────────────
+
+void UGA_CharacterSkill::StartLerpMove(FVector TargetLocation, TFunction<void()> OnComplete)
+{
+	AActor* AvatarActor = GetAvatarActorFromActorInfo();
+	if (!AvatarActor)
+	{
+		KHS_WARN(TEXT("AvatarActor 없음 — 이동 취소"));
+		if (OnComplete)
+		{
+			OnComplete();
+		}
+		return;
+	}
+
+	LerpStartLocation  = AvatarActor->GetActorLocation();
+	LerpTargetLocation = TargetLocation;
+	LerpElapsed        = 0.f;
+	LerpOnComplete     = MoveTemp(OnComplete);
+
+	constexpr float TickInterval = 0.016f; // ~60fps
+	
+	GetWorld()->GetTimerManager().SetTimer(
+		LerpTimerHandle,
+		[this]()
+		{
+			AActor* Actor = GetAvatarActorFromActorInfo();
+			if (!Actor)
+			{
+				GetWorld()->GetTimerManager().ClearTimer(LerpTimerHandle);
+				return;
+			}
+
+			LerpElapsed += 0.016f;
+			const float Alpha = FMath::Clamp(LerpElapsed / LerpDuration, 0.f, 1.f);
+			Actor->SetActorLocation(FMath::Lerp(LerpStartLocation, LerpTargetLocation, Alpha));
+
+			if (Alpha >= 1.f)
+			{
+				GetWorld()->GetTimerManager().ClearTimer(LerpTimerHandle);
+				if (LerpOnComplete)
+				{
+					LerpOnComplete();
+				}
+			}
+		},
+		TickInterval,
+		/*bLoop=*/true
+	);
 }
