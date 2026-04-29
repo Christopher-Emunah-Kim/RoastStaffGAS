@@ -30,8 +30,8 @@
     - [x] StartLerpMove 구현 (완료 콜백 → SelfBuff → EndAbility)
     - [x] DisableMovement / RestoreMovement 쌍 처리
     - [x] OnCancelled 경로: EndAbility override → ClearTimer + RestoreMovement
-  BUG (집PC에서 수정):
-    - [ ] Lerp 이동이 프레임 끊김처럼 보임 — SetActorLocation 타이머 방식 재검토 (LaunchCharacter or SetActorLocation 매 틱) [P0]
+  BUG:
+    - [x] Lerp 이동 끊김 + 느린 스르르 느낌 — Lerp 타이머 방식 전체 제거 → LaunchCharacter 교체 (휙 물리 이동)
     - [ ] BP 투사체 NiagaraComp가 발사 방향과 무관하게 회전 — BP 설정 문제 (bRotationFollowsVelocity or NiagaraComp 로컬 회전 확인) [P1]
 
   ### [MODULE-3] 버스트애로우 — GroundEffectActor 재활용

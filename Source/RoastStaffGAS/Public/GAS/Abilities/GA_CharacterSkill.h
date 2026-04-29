@@ -29,14 +29,6 @@ protected:
 		const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo) override;
 
-	/** Lerp 진행 중 외부 취소(피격 CC 등) 시 타이머 정리 + 이동 복원 보장 */
-	virtual void EndAbility(
-		const FGameplayAbilitySpecHandle Handle,
-		const FGameplayAbilityActorInfo* ActorInfo,
-		const FGameplayAbilityActivationInfo ActivationInfo,
-		bool bReplicateEndAbility,
-		bool bWasCancelled) override;
-	
 
 private:
 	// ── Targeting 진입점 ──────────────────────────────────────────────────────
@@ -149,13 +141,10 @@ private:
 	/** ElementTag → FLinearColor 변환. SpawnSkillFX + InitData 조립에서 공통 사용. */
 	static FLinearColor ResolveElementColor(FGameplayTag ElementTag);
 
-	/** 시전자를 TargetLocation까지 LerpDuration 동안 Lerp 이동. */
-	void StartLerpMove(FVector TargetLocation, TFunction<void()> OnComplete);
-
 protected:
 	static constexpr float DESTROY_FX_DELAY = 2.0f;
-	/** 백스텝샷 Lerp 이동 소요 시간 (초). DT 불필요 — 연출 고정값. */
-	static constexpr float LerpDuration = 1.0f;
+	/** 백스텝샷: LaunchCharacter 속도 계산 기준 시간 (초). 연출 고정값. */
+	static constexpr float BACKSTEP_DURATION = 0.2f;
 
 	/** 스킬 시전 몽타주 — 미할당 시 즉시 발동 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|CharacterSkill")
@@ -165,15 +154,6 @@ protected:
 	TSubclassOf<AActor> FXActorClass;
 	
 private:
-	// ── 백스텝샷 Lerp 이동 상태 ──────────────────────────────────────────────
-	FTimerHandle LerpTimerHandle;
-	FVector LerpStartLocation;
-	FVector LerpTargetLocation;
-	float LerpElapsed = 0.f;
-	TFunction<void()> LerpOnComplete;
-	/** true 동안 OnCastingMontageEnded가 EndAbility를 건너뜀 — lerp 콜백이 종료 처리. */
-	bool bLerpInProgress = false;
-
 	// ── LaunchProjectile 연속 발사 상태 ─────────────────────────────────────
 	UPROPERTY()
 	TSubclassOf<ABaseProjectile> ActiveProjClass;
