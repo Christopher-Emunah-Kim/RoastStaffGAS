@@ -12,6 +12,8 @@ class UCharacterStatPopupWidget;
 class UBossHPBarWidget;
 class UAbilitySystemComponent;
 class UButton;
+class UImage;
+class UWidgetAnimation;
 
 /**
  *
@@ -40,6 +42,9 @@ public:
 
 	FORCEINLINE UBossHPBarWidget* GetBossHPBar() const { return WBP_BossHPBar; }
 
+	/** 플레이어 피격 시 호출 — 데미지 인디케이터 애니메이션 재생 */
+	void FlashDamageIndicator();
+
 private:
 	UFUNCTION()
 	void OnStatPopupBtnClicked();
@@ -55,4 +60,12 @@ private:
 	/** 보스 전투 중에만 표시 — 초기 Collapsed, 보스 스폰/사망 시 토글 */
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBossHPBarWidget> WBP_BossHPBar;
+
+	/** 피격 시 Fade Out 비네트 이미지 */
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> Img_DamageVignette;
+
+	/** WBP에서 정의한 Fade Out 애니메이션 */
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	TObjectPtr<UWidgetAnimation> Anim_DamageFlash;
 };

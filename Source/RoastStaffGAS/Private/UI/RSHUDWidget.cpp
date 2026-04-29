@@ -7,6 +7,9 @@
 #include "UI/Enemy/BossHPBarWidget.h"
 #include "AbilitySystemComponent.h"
 #include "Components/Button.h"
+#include "Components/Image.h"
+#include "Animation/WidgetAnimation.h"
+#include "System/LoggingSystem.h"
 
 URSHUDWidget::URSHUDWidget()
 {
@@ -79,4 +82,17 @@ void URSHUDWidget::HideBossHPBar()
 	{
 		WBP_BossHPBar->SetVisibility(ESlateVisibility::Collapsed);
 	}
+}
+
+void URSHUDWidget::FlashDamageIndicator()
+{
+	if (!Anim_DamageFlash)
+	{
+		KHS_WARN(TEXT("Anim_DamageFlash 미할당 — WBP_HUD에 애니메이션 생성 필요"));
+		return;
+	}
+
+	// 재생 중이면 처음부터 다시 재생 (연속 피격 대응)
+	StopAnimation(Anim_DamageFlash);
+	PlayAnimation(Anim_DamageFlash);
 }

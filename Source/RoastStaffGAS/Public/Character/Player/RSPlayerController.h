@@ -35,6 +35,8 @@ public:
 	void SpawnFloatingDamage(FVector WorldPos, float Damage);
 	/** 애니메이션 완료 후 위젯을 풀에 반납 */
 	void ReturnFloatingDamageToPool(UFloatingDamageWidget* Widget);
+	/** 플레이어 피격 시 HUD 데미지 인디케이터 재생 */
+	void FlashHUDDamageIndicator();
 	
 	FORCEINLINE TSubclassOf<UFloatingDamageWidget> GetFloatingDamageWidgetClass() const { return FloatingDamageWidgetClass; }
 	FORCEINLINE FVector GetCachedAimLocation() const { return CachedAimLocation; }

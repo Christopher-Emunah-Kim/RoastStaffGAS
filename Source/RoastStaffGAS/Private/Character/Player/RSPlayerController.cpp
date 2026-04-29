@@ -480,3 +480,17 @@ void ARSPlayerController::ReturnFloatingDamageToPool(UFloatingDamageWidget* Widg
 	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys)
 	PoolSys->ReturnWidgetToPool(Widget);
 }
+
+void ARSPlayerController::FlashHUDDamageIndicator()
+{
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance())
+
+	URSHUDWidget* HUD = Cast<URSHUDWidget>(UMS->GetWidgetByID(EUIID::HUD));
+	if (!HUD)
+	{
+		KHS_WARN(TEXT("FlashHUDDamageIndicator: HUD Widget 없음"));
+		return;
+	}
+
+	HUD->FlashDamageIndicator();
+}

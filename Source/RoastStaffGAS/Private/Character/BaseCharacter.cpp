@@ -85,6 +85,11 @@ void ABaseCharacter::OnCurrentHPChangedForDamage(const FOnAttributeChangeData& D
 
 	const FVector WorldPos = GetActorLocation() + FVector(0.f, 0.f, DamageWidgetZOffset);
 	PC->SpawnFloatingDamage(WorldPos, Damage);
+
+	if (IsPlayerControlled())
+	{
+		PC->FlashHUDDamageIndicator();
+	}
 }
 
 void ABaseCharacter::BindAttributeDelegates()
