@@ -850,6 +850,13 @@ void UGA_CharacterSkill::ExecuteEffect_BackstepShot(
 
 	// 3. 후방 LaunchCharacter + 즉시 SelfBuff
 	ABaseCharacter* MutableInstigator = const_cast<ABaseCharacter*>(CachedInstigator.Get());
+
+	// DisableMovement 상태에서는 LaunchCharacter가 무시됨 — 발사 직전 복원
+	if (UCharacterMovementComponent* MoveComp = MutableInstigator->FindComponentByClass<UCharacterMovementComponent>())
+	{
+		MoveComp->SetMovementMode(MOVE_Falling);
+	}
+
 	// BackstepDistance를 BackstepDuration 안에 주파할 속도 계산
 	const FVector LaunchVelocity = BackstepDir * (ExecData.BackstepDistance / BACKSTEP_DURATION);
 	MutableInstigator->LaunchCharacter(LaunchVelocity, /*bXYOverride=*/true, /*bZOverride=*/true);
