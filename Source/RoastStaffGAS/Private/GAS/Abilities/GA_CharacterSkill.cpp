@@ -220,8 +220,18 @@ void UGA_CharacterSkill::ResolveEffect(
 		ExecuteEffect_Teleport(ExecData, Handle, ActorInfo, ActivationInfo, TargetLocation);
 		break;
 	case ESkillEffectType::SpawnActor:
+	{
+		// Instant 경로 (TargetLocation 미지정): 캐릭터 전방 300cm 고정 스폰
+		// AimPreview 경로는 TargetLocation이 이미 설정됨
+		if (TargetLocation.IsZero() && CachedInstigator)
+		{
+			constexpr float AutomatonSpawnOffset = 300.f;
+			TargetLocation = CachedInstigator->GetActorLocation()
+				+ CachedInstigator->GetActorForwardVector() * AutomatonSpawnOffset;
+		}
 		ExecuteEffect_SpawnActor(ExecData, Handle, ActorInfo, ActivationInfo, TargetLocation);
 		break;
+	}
 	case ESkillEffectType::Projectile:
 		// BackstepDistance > 0 이면 백스텝샷 전용 경로 — 후방이동+SelfBuff가 EndAbility 담당
 		if (ExecData.BackstepDistance > 0.f)
@@ -491,14 +501,19 @@ void UGA_CharacterSkill::ExecuteEffect_SpawnActor(
 	}
 
 	FSkillEffectInitData InitData;
-	InitData.InstigatorASC = GetOwnerASC();
-	InitData.SkillGEClass  = ExecData.SkillGEClass.LoadSynchronous();
-	InitData.StatusGEClass = ExecData.StatusGEClass.LoadSynchronous();
-	InitData.Amount        = GetSkillDamageAmount(ExecData);
-	InitData.EffectRadius  = ExecData.EffectRadius;
-	InitData.Duration      = ExecData.Duration;
-	InitData.SkillFX       = ExecData.SkillFX;
-	InitData.ElementColor  = ResolveElementColor(ExecData.ElementTag);
+	InitData.InstigatorASC     = GetOwnerASC();
+	InitData.SkillGEClass      = ExecData.SkillGEClass.LoadSynchronous();
+	InitData.StatusGEClass     = ExecData.StatusGEClass.LoadSynchronous();
+	InitData.Amount            = GetSkillDamageAmount(ExecData);
+	InitData.EffectRadius      = ExecData.EffectRadius;
+	InitData.Duration          = ExecData.Duration;
+	InitData.SkillFX           = ExecData.SkillFX;
+	InitData.ElementColor      = ResolveElementColor(ExecData.ElementTag);
+	InitData.SpawnCount        = ExecData.SpawnCount;
+	if (CachedInstigator)
+	{
+		InitData.InstigatorForward = CachedInstigator->GetActorForwardVector();
+	}
 	EffectInterface->InitEffect(InitData);
 
 	KHS_INFO(TEXT("SpawnActor 발동 — SkillID: %s | 위치: %s"), *ExecData.SkillID.ToString(), *TargetLocation.ToString());

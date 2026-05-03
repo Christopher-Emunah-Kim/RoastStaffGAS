@@ -293,6 +293,14 @@ struct FSkillEffectInitData
     /** 속성 색상 — GA_CharacterSkill::ResolveElementColor 완료 상태. Niagara "ElementColor" 파라미터에 직접 주입. */
     UPROPERTY()
     FLinearColor ElementColor = FLinearColor::White;
+
+    /** 시전자 Forward 벡터 — 오토마톤 등 초기 발사 방향 기준. 미사용 Actor는 무시. */
+    UPROPERTY()
+    FVector InstigatorForward = FVector::ForwardVector;
+
+    /** 스폰 카운트 — 오토마톤 Spread 발수 등. 미사용 Actor는 무시. */
+    UPROPERTY()
+    int32 SpawnCount = 1;
 };
 
 // ----------------------------------------------------------------------------
