@@ -2,7 +2,7 @@
 > PreCompact 훅이 자동 갱신. 압축 후 컨텍스트 복원에 사용.
 
 ## Current Task
-(없음 — 세션 시작 시 업데이트)
+(없음 — 세션 종료)
 
 ## Progress
 ### PLAN_Hawkeye_Skills_v1.0
@@ -13,8 +13,8 @@
   - fbafe9985 feat(chain-trap)
   - 3ddca93d1 fix(backstep): DisableMovement+LaunchCharacter 충돌 버그
   - 718aca3ac data(hawkeye): DT + 에셋 + 몽타주
-- [ ] MODULE-5: 애로우레인 (P1)
-- [ ] MODULE-6: 오토마톤 (P1)
+- [x] MODULE-5: 애로우레인 (7baba80e8, 7a75bde6a) 2026-05-04
+- [x] MODULE-6: 오토마톤 (8adcab3e1, 50bcf157e) 2026-05-04
 - [ ] MODULE-7/8: 스나이프 충전샷 + ChargeGaugeWidget (P1)
 - [ ] MODULE-9: 에디터 작업 DT 행 + GE BP (P2)
 
@@ -41,8 +41,8 @@
 (없음 — 모두 커밋 완료)
 
 ## Next Session 추천
-- MODULE-5 애로우레인(RandomRadius 낙하 패턴) 또는 MODULE-7 스나이프(ChargeAndRelease) 중 선택
-- 에디터: GE_Hawkeye_ChainTrap_Damage 신규 생성 필요 (GE_Stun에서 RS_DamageExecCalc 분리)
+- MODULE-7: 스나이프 C++ — GA_CharacterSkill_Charge + ARSPlayerController Input Released 바인딩
+- MODULE-8: ChargeGaugeWidget + RSHUDWidget ShowChargeGauge/HideChargeGauge API
 
 ## Open Questions
 - BP 투사체 NiagaraComp 회전 — bRotationFollowsVelocity or NiagaraComp 로컬 회전 미확인 [P1]

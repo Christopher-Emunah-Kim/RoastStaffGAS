@@ -59,19 +59,20 @@
     - [x] GetCharacterSkillExecData 매핑 추가
     - [x] CharacterSkillSlotWidget Txt_SkillName BindWidget + UpdateSlot SetText
 
-  ### [MODULE-5] 애로우레인 — RandomRadius 낙하 패턴
+  ### [MODULE-5] 애로우레인 — RandomRadius 낙하 패턴 ✓ COMMITTED 7baba80e8 2026-05-04
   수정: GAS/Abilities/GA_CharacterSkill.cpp
-    - [>] Circle+ZOffset 분기: RandPointInCircle 인라인 스폰 루프               [P1]
-    - [>] 60도 고정 하향 발사 방향 계산                                         [P1]
-    - [>] StatusGEClass → OnHit Apply (이속감소)                                [P1]
+    - [x] Circle+ZOffset 분기: RandPointInCircle 인라인 스폰 루프
+    - [x] 60도 고정 하향 발사 방향 계산 (전방벡터 스냅, 전방 400cm + ZOffset 상공)
+    - [x] StatusGEClass → OnHit Apply (이속감소)
+    - [x] bUseRootMotion EditDefaultsOnly + StartSkillWithMontage bLockMovement 파라미터
 
-  ### [MODULE-6] 오토마톤 — AutomatonActor
+  ### [MODULE-6] 오토마톤 — AutomatonActor ✓ COMMITTED 8adcab3e1 2026-05-04
   신규: Objects/AutomatonActor.h/.cpp
-    - [ ] IPoolableInterface + ISkillEffectInterface + UPROPERTY ASC 강참조     [P1]
-    - [ ] InitEffect(): FireTimer + HealTimer + LifetimeTimer                   [P1]
-    - [ ] FireTick(): Forward Spread 5발 PoolingSubsystem 스폰                  [P1]
-    - [ ] HealTick(): InstigatorASC GE Apply                                    [P1]
-    - [ ] OnPoolDeactivate(): 전체 ClearTimer + 리셋                            [P1]
+    - [x] IPoolableInterface + ISkillEffectInterface + UPROPERTY ASC 강참조
+    - [x] InitEffect(): FireTimer + HealTimer + LifetimeTimer
+    - [x] FireTick(): Forward Spread 5발 PoolingSubsystem 스폰
+    - [x] HealTick(): InstigatorASC GE Apply
+    - [x] OnPoolDeactivate(): 전체 ClearTimer + 리셋
 
   ### [MODULE-7] 스나이프 C++ — GA_CharacterSkill_Charge
   신규: GAS/Abilities/GA_CharacterSkill_Charge.h/.cpp

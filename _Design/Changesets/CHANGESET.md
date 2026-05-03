@@ -13,6 +13,51 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 ## PENDING_COMMIT
 
 - date: 2026-05-04
+  plan: PLAN_Hawkeye_Skills_v1.0 MODULE-6
+  status: COMMITTED
+  commits: ["8adcab3e1", "50bcf157e"]
+  summary: "feat(automaton): AutomatonActor C++ 구현 + 에디터 에셋"
+  files:
+    created:
+      - Source/RoastStaffGAS/Public/Objects/AutomatonActor.h
+      - Source/RoastStaffGAS/Private/Objects/AutomatonActor.cpp
+      - Content/Blueprint/Objects/SummonObjects/BP_AutomatonActor.uasset
+      - Content/Blueprint/Objects/Projectiles/CharacterSkill/BP_Projectile_Automaton.uasset
+      - Content/GAS/GA/Character/HawkEye/GA_CharacterSkill_HawkEye05.uasset
+      - Content/Animation/Character/Hawkeye/AM_HawkEye_Skill05.uasset
+    modified:
+      - Source/RoastStaffGAS/Public/Data/RuntimeDataStructs.h
+      - Source/RoastStaffGAS/Private/GAS/Abilities/GA_CharacterSkill.cpp
+      - Content/Data/Skill/Character/DT_Character_Skill_Static_Data.uasset
+      - Content/Assets/LootandPickupVFXPack/LootVFX/Glows/RingsTheme/NS_RingsGlow01_Once.uasset
+
+- date: 2026-05-04
+  plan: PLAN_Hawkeye_Skills_v1.0 MODULE-5
+  status: COMMITTED
+  commits: ["7baba80e8", "7a75bde6a"]
+  summary: "feat(hawkeye): 애로우레인 C++ + bUseRootMotion + 에디터 에셋 + GE 경로 정리"
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/GAS/Abilities/GA_CharacterSkill.h
+      - Source/RoastStaffGAS/Private/GAS/Abilities/GA_CharacterSkill.cpp
+      - ExternalSource/DT_Character_Skill_Static_Data.csv
+      - Content/Data/Skill/Character/DT_Character_Skill_Static_Data.uasset
+      - Content/GAS/GA/Character/HawkEye/GA_CharacterSkill_HawkEye02.uasset
+      - Content/GAS/GA/Character/HawkEye/GA_CharacterSkill_HawkEye03.uasset
+      - Content/GAS/GA/Character/Painter/GA_CharacterSkill_Painter01.uasset
+      - Content/GAS/GA/Character/GA_CharacterSkill_SpawnProjectile.uasset
+      - Content/Blueprint/Core/BP_RSGameMode.uasset
+    created:
+      - Content/Animation/Character/Hawkeye/AM_HawkEye_Skill04.uasset
+      - Content/Blueprint/Objects/Projectiles/CharacterSkill/BP_Projectile_HawkEye04.uasset
+      - Content/GAS/GA/Character/HawkEye/GA_CharacterSkill_HawkEye04.uasset
+      - Content/GAS/GE/Skill/GE_Slow.uasset
+      - Content/GAS/GE/Skill/GE_AutomatonHeal.uasset
+    renamed:
+      - Content/GAS/GE/GE_Stun.uasset → Content/GAS/GE/Skill/GE_Stun.uasset
+      - Content/GAS/GE/GE_Damage_KnockDown.uasset → Content/GAS/GE/Skill/GE_Damage_KnockDown.uasset
+
+- date: 2026-05-04
   plan: PLAN_Hawkeye_Skills_v1.0 skill-slot-name
   status: COMMITTED
   commits: ["51beed498"]
