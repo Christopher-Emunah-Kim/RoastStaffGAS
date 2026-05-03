@@ -15,6 +15,66 @@
 
 ---
 
+## [2026-05-03] BUG_FIX — DisableMovement + LaunchCharacter 충돌: 몽타주 세팅 후 백스텝샷 이동 불가
+
+**상황**: 호크아이 BackstepShot GA가 `LaunchCharacter`로 뒤로 날아가는 동작을 구현. 몽타주 없이 테스트할 때는 정상 동작했으나, CastingMontage를 세팅하자 캐릭터가 전혀 날아가지 않음.
+
+**문제·과제**: `StartSkillWithMontage`가 내부적으로 `UCharacterMovementComponent::DisableMovement()`를 호출함. UE5의 `LaunchCharacter`는 MovementMode가 `MOVE_None`(DisableMovement 상태)일 때 속도 설정 자체를 무시하는 조건이 있음. 몽타주 없이 테스트할 때는 이 경로를 거치지 않아 버그가 숨어있었음.
+
+**검토한 선택지**:
+- A) `StartSkillWithMontage`에서 DisableMovement 호출 제거 — 몽타주 재생 중 이동 가능해져 다른 스킬에 영향
+- B) `ExecuteEffect_BackstepShot` 내부, `LaunchCharacter` 직전에 `SetMovementMode(MOVE_Falling)` 복원 (채택)
+
+**결정**: B안 채택. 복원 대상을 MOVE_Falling으로 지정 — MOVE_Walking은 지면 스냅이 발생해 발사 직후 즉시 고정될 수 있음. LaunchCharacter 이후 착지 시 CMC가 자동으로 MOVE_Walking 복원.
+
+**결과**: CastingMontage 유무에 관계없이 BackstepShot 이동 정상 동작. DisableMovement는 몽타주 재생 중 일반 이동 차단 용도로 유지됨.
+
+**포트폴리오 포인트**: UE5 CharacterMovementComponent의 비문서적 동작 — DisableMovement(MOVE_None) 상태에서 LaunchCharacter가 무시됨. 독립적으로 설계된 두 시스템(몽타주 캐스팅 잠금 / 물리 발사)의 상태 충돌을 진단한 케이스.
+
+**관련 파일**: `GA_CharacterSkill.cpp` `ExecuteEffect_BackstepShot`
+
+---
+
+## [2026-05-03] PATTERN — SpawnFX 재생 완료 후 게임플레이 효과 시작: EditDefaultsOnly 딜레이 타이머
+
+**상황**: ChainTrap 스킬의 `BP_ChainTrapActor`에서 소환 FX(SpawnFX)가 시각적으로 완성된 시점에 실제 수렴 Pull 효과가 시작되어야 연출이 자연스러움. FX 재생 중에 적이 끌려오면 "아직 뭔가 나오는 중인데 이미 끌려감" 어색함이 발생.
+
+**문제·과제**: FX와 게임플레이 타이밍을 동기화하는 방법 선택.
+
+**검토한 선택지**:
+- A) `UNiagaraComponent::OnSystemFinished` 콜백 — 정확하지만 루핑 Niagara 시스템에서는 OnSystemFinished가 발동하지 않음
+- B) `SpawnFXDuration` EditDefaultsOnly 딜레이 타이머 — BP에서 FX 재생 시간과 일치시키는 명시적 계약 (채택)
+
+**결정**: B안 채택. `SpawnFXDuration = 2.0f` 기본값을 `EditDefaultsOnly`로 노출해 BP에서 FX 타이밍에 맞게 조정 가능. SpawnFXDelayHandle 타이머 만료 후 PullTimerHandle + DurationTimerHandle 동시 시작.
+
+**결과**: SpawnFX 재생 2초 후 수렴 시작 → Duration 만료 시 BurstFX + 데미지/기절 GE Apply. 연출 타이밍이 FX와 자연스럽게 일치.
+
+**포트폴리오 포인트**: Niagara 이벤트 콜백의 한계(루핑 FX)를 파악하고 BP-exposed 딜레이 타이머로 대체하는 패턴. `SpawnFXDuration`이 FX 재생 시간의 "명시적 계약"이 되어 디자이너가 C++ 없이 타이밍 조정 가능.
+
+**관련 파일**: `ChainTrapVortexActor.h/.cpp`
+
+---
+
+## [2026-05-03] ARCH — GAS ExecCalc + Duration GE 혼재 금지: 데미지·기절 GE 분리
+
+**상황**: ChainTrap 스킬의 기절 GE(`GE_Stun`, Duration 타입)에 `RS_DamageExecCalc`를 붙여서 기절과 데미지를 하나의 GE로 처리하려 했음. 테스트에서 데미지가 들어가지 않아 원인 분석.
+
+**문제·과제**: `RS_DamageExecCalc`가 Duration GE에서 왜 동작하지 않는지, 그리고 동작한다 해도 안전한지 검증.
+
+**검토한 선택지**:
+- A) Duration GE에 ExecCalc 유지 — UE5는 Duration GE의 ExecCalc를 Instant로 1회 실행하지만 SetByCaller 읽기 타이밍·다중 Apply 시 중복 데미지 위험
+- B) Instant GE(데미지) + Duration GE(기절 태그) 분리 (채택)
+
+**결정**: B안 채택. `GE_Hawkeye_ChainTrap_Damage`(Instant + ExecCalc + SetByCaller)와 `GE_Hawkeye_ChainTrap_Stun`(Duration, CC.Stun 태그 부여만)으로 분리. `ApplyEffectsToTargets`에서 데미지 먼저, 기절 나중 순서로 Apply.
+
+**결과**: 데미지와 기절이 독립적으로 명확히 동작. GE_Stun은 다른 스킬에서도 재사용 가능한 범용 CC GE로 정착.
+
+**포트폴리오 포인트**: GAS ExecCalc 설계 원칙 확립 — "ExecCalc는 Instant Policy GE에만". Duration GE에 ExecCalc를 혼재하면 다중 Apply 시 의도치 않은 반복 데미지 위험이 있음을 실제 케이스로 검증.
+
+**관련 파일**: `ChainTrapVortexActor.cpp` `ApplyEffectsToTargets` / `GE_Hawkeye_ChainTrap_Damage` / `GE_Stun`
+
+---
+
 ## [2026-04-27] PATTERN — GA Lerp 이동 중 외부 취소 방어 패턴
 
 **상황**: BackstepShot GA가 `DisableMovement` 후 0.016s 루프 타이머로 Lerp 이동을 수행하는 중, 피격·CC 등으로 GA가 외부에서 강제 종료될 수 있음.

@@ -15,6 +15,7 @@
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
 
+
 ## [FEATURE] 호크아이 스킬 6종 구현 | PLAN_Hawkeye_Skills_v1.0
 > 시작: 2026-04-27 | 기획서: Temp_변경스킬계획.md
 
@@ -35,19 +36,22 @@
     - [x] Lerp 이동 끊김 + 느린 스르르 느낌 — Lerp 타이머 방식 전체 제거 → LaunchCharacter 교체 (휙 물리 이동)
     - [ ] BP 투사체 NiagaraComp가 발사 방향과 무관하게 회전 — BP 설정 문제 (bRotationFollowsVelocity or NiagaraComp 로컬 회전 확인) [P1]
 
-  ### [MODULE-3] 버스트애로우 — GroundEffectActor 재활용
+  ### [MODULE-3] 버스트애로우 — RadialAoE (AimPreview) ✓ DONE 2026-04-30
+  C++ 신규: Animation/AN_HitCheck.h/.cpp
   에디터 작업:
-    - [ ] BP_GroundEffectActor_BurstArrow 생성 (즉발 AoE + 넉다운 GE)          [P1]
-    - [ ] DT_CharacterSkill 버스트애로우 행 추가                                [P1]
-    - [ ] 버스트애로우 몽타주 AnimNotify HitCheck 세팅                          [P1]
+    - [x] AN_HitCheck 공용 AnimNotify C++ 구현 (155ec828a)
+    - [x] GA_CharacterSkill_HawkEye02 BP 생성 (AimPreview + RadialAoE) (f77f5da8c)
+    - [x] BP_HawkEye_BurstArrow GroundEffect BP 생성 (f77f5da8c)
+    - [x] DT 버스트애로우 행 추가 (EffectRadius=120, DamageMultiplier=4.3) (f77f5da8c)
+    - [x] 버스트애로우 몽타주 AN_HitCheck 노티파이 세팅 (f77f5da8c)
 
-  ### [MODULE-4] 체인트랩 — ChainTrapVortexActor
+  ### [MODULE-4] 체인트랩 — ChainTrapVortexActor ✓ COMMITTED fbafe9985 2026-05-03
   신규: Objects/GroundEffect/ChainTrapVortexActor.h/.cpp
-    - [>] IPoolableInterface + ISkillEffectInterface 구현                       [P0]
-    - [ ] InitEffect(): Overlap 수집 + PullTimerHandle 시작                     [P0]
-    - [ ] PullTick(): Collision off + 거리비례 Lerp 수렴 이동                   [P0]
-    - [ ] DurationTimer 만료: Collision 복원 + GE Apply + 머티리얼 플래시       [P0]
-    - [ ] OnPoolDeactivate(): 타이머 ClearTimer + 상태 리셋                     [P0]
+    - [x] IPoolableInterface + ISkillEffectInterface 구현
+    - [x] InitEffect(): SpawnFXDuration 딜레이 후 PullTimer + DurationTimer 시작
+    - [x] PullTick(): ECC_Pawn Overlap, LaunchCharacter Z=0 바닥뚫림 방지
+    - [x] OnDurationExpired: BurstFX + Instant데미지GE + Duration기절GE Apply
+    - [x] OnPoolDeactivate(): 타이머 ClearTimer + 상태 리셋
 
   ### [MODULE-5] 애로우레인 — RandomRadius 낙하 패턴
   수정: GAS/Abilities/GA_CharacterSkill.cpp
@@ -140,6 +144,7 @@
 
 ## COMPLETED_LOG
 <!-- compact 형식: [x] FEATURE명 | 커밋 | 날짜 | 플랜파일 -->
+[x] 캐릭터 메시 인게임 연동 | 3624c6080 | 2026-05-03 | PLAN_CharacterMeshApply_v1.0
 [x] 데미지 인디케이터 HUD 비네트 | 621229423,b05088290,402fa1e55 | 2026-04-29 | PLAN_DamageIndicator_v1.0
 [x] SR + 학습 리포트 (CombatInfra+SkillSystemArch+SkillActivationRefactor 합산) + SR_Fix | b69e4b867,ceca6206e | 2026-04-26 | PLAN_SR_Fix_v1.0
 [x] SkillActivationType 3축 분리 리팩터링 + DT_CharacterSkill 통폐합 + Pierce BUG_FIX | 73b04c3b7,d7d0e50b5,691f6e1ef,eea16f8d6,93b86a62e,83b270b00 | 2026-04-26 | PLAN_SkillActivationRefactor_v1.0

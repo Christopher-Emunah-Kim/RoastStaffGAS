@@ -12,6 +12,59 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ## PENDING_COMMIT
 
+- date: 2026-05-03
+  plan: PLAN_Hawkeye_Skills_v1.0 MODULE-4 + PLAN_CharacterMeshApply_v1.0
+  status: COMMITTED
+  commits: ["fbafe9985", "3ddca93d1", "3624c6080", "718aca3ac"]
+  summary: "feat(chain-trap): ChainTrapVortexActor + fix(backstep) + feat(character-mesh) + data(hawkeye)"
+  files:
+    created:
+      - Source/RoastStaffGAS/Public/Objects/GroundEffect/ChainTrapVortexActor.h
+      - Source/RoastStaffGAS/Private/Objects/GroundEffect/ChainTrapVortexActor.cpp
+      - Content/Animation/Character/Hawkeye/AM_HawkEye_Skill01.uasset
+      - Content/Animation/Character/Hawkeye/AM_HawkEye_Skill02.uasset
+      - Content/Animation/Character/Hawkeye/AM_HawkEye_Skill03.uasset
+      - Content/Blueprint/Objects/GroundedEffectActor/BP_ChainTrapActor.uasset
+      - Content/GAS/GA/Character/HawkEye/GA_CharacterSkill_HawkEye03.uasset
+      - Content/GAS/GE/GE_Stun.uasset
+      - Content/Assets/Free_Magic/VFX_Niagara/NS_Free_Magic_Circle3_Once.uasset
+      - _Design/Plans/active/PLAN_CharacterMeshApply_v1.0.md
+    modified:
+      - Source/RoastStaffGAS/Public/Core/RSGameMode.h
+      - Source/RoastStaffGAS/Private/Core/RSGameMode.cpp
+      - Source/RoastStaffGAS/Private/GAS/Abilities/GA_CharacterSkill.cpp
+      - ExternalSource/DT_Character_Skill_Static_Data.csv
+      - ExternalSource/DT_Character_Static_Data.csv
+      - Content/Data/Character/DT_Character_Static_Data.uasset
+      - Content/Data/Skill/Character/DT_Character_Skill_Static_Data.uasset
+      - Content/GAS/GA/Character/HawkEye/GA_CharacterSkill_HawkEye01.uasset
+      - Content/GAS/GA/Character/HawkEye/GA_CharacterSkill_HawkEye02.uasset
+      - Content/Blueprint/Character/BP_RSPlayer.uasset
+    deleted:
+      - Content/Animation/Character/Hawkeye/AM_HawkEye_BurstArrow.uasset
+
+- date: 2026-04-30
+  plan: PLAN_Hawkeye_Skills_v1.0
+  status: COMMITTED
+  commits: ["155ec828a", "f77f5da8c", "d48c1d4a3", "f0c987c38"]
+  summary: "feat(hawkeye): AN_HitCheck AnimNotify + 버스트애로우 MODULE-3 완료"
+  files:
+    created:
+      - Source/RoastStaffGAS/Public/Animation/AN_HitCheck.h
+      - Source/RoastStaffGAS/Private/Animation/AN_HitCheck.cpp
+      - Content/Animation/Character/Hawkeye/AM_HawkEye_BurstArrow.uasset
+      - Content/GAS/GA/Character/HawkEye/GA_CharacterSkill_HawkEye02.uasset
+      - Content/Blueprint/Objects/GroundedEffectActor/BP_HawkEye_BurstArrow.uasset
+      - Content/FX/Skill/HawkEye/ (FX 3종)
+    modified:
+      - Content/Assets/Archer/Animation/Sequence/02_Attack/07_Skill_Attack/AS_Skill_01_Seq.uasset
+      - Content/Blueprint/Character/BP_RSPlayer.uasset
+      - Content/Template/Characters/Mannequins/Anims/Unarmed/ABP_Unarmed.uasset
+      - ExternalSource/DT_Character_Skill_Static_Data.csv
+      - Content/Data/Skill/Character/DT_Character_Skill_Static_Data.uasset
+      - Source/RoastStaffGAS/Private/Character/Player/RSPlayerCharacter.cpp
+      - Source/RoastStaffGAS/Private/Core/Transition/RSTransitionGameMode.cpp
+
 - date: 2026-04-29
   plan: PLAN_DamageIndicator_v1.0
   status: COMMITTED
