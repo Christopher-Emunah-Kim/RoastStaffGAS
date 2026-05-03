@@ -5,49 +5,44 @@
 (없음 — 세션 시작 시 업데이트)
 
 ## Progress
-### PLAN_CombatInfra_v1.0
-- [x] PLAN
-- [x] CODE (MODULE-1~CC + 스킬점검 ✓)
-- [x] COMMIT (a7aff1033, 5ebab5d7d, b17d85a38, e958af9fc, 516e2b78e)
-- [ ] SR / LEARN — PLAN_SkillSystemArch 이후로 연기
+### PLAN_Hawkeye_Skills_v1.0
+- [x] MODULE-1: DT 스키마 + GA 헬퍼 (2026-04-27)
+- [x] MODULE-2: 백스텝샷 LaunchCharacter (2026-04-27)
+- [x] MODULE-3: 버스트애로우 RadialAoE (2026-04-30)
+- [x] MODULE-4: 체인트랩 ChainTrapVortexActor (2026-05-03)
+  - fbafe9985 feat(chain-trap)
+  - 3ddca93d1 fix(backstep): DisableMovement+LaunchCharacter 충돌 버그
+  - 718aca3ac data(hawkeye): DT + 에셋 + 몽타주
+- [ ] MODULE-5: 애로우레인 (P1)
+- [ ] MODULE-6: 오토마톤 (P1)
+- [ ] MODULE-7/8: 스나이프 충전샷 + ChargeGaugeWidget (P1)
+- [ ] MODULE-9: 에디터 작업 DT 행 + GE BP (P2)
 
-### PLAN_OutgameLobby3D_v1.0
-- [x] PLAN
-- [x] CODE
-- [x] COMMIT (c6fd4228c, 9c6e1a738, 810436c81, a35bfc02b, 3a0265743)
-
-### PLAN_SkillSystemArch_v1.0
-- [x] PLAN (2026-04-21)
-- [x] CODE (MODULE-1~6 ✓)
-- [x] COMMIT (c74c3f3a3, 11407aa16, 9654d150e, 52a2610a4, 3e9b82688, ee0b6c1b2)
-- [ ] 에디터 작업 (내일):
-  - DT_CharacterSkill 각 스킬 행 SkillGEClass 열 GE 클래스 할당
-  - BP_PullVortexActor 생성 + 도화가 5번 DT EffectActorClass 할당
-  - 기존 스킬 + 도화가 5번 스킬 테스트
-- [ ] SR / LEARN — 에디터 작업 + 테스트 완료 후
+### PLAN_CharacterMeshApply_v1.0
+- [x] PLAN + CODE + COMMIT (3624c6080) — completed 이동 완료
 
 ## Key Decisions
-### CombatInfra
-- EnemySpawner: NavMesh 투영 + LineTrace 바닥 검증 + Z ±150 QueryExtent 제한
-- MODULE-3: ProjectileSpawn — SkillEffectID FK + GDS 복합 조회 (DRY)
-- CC 시스템: GE GrantedTags (CC.Knockdown/Stun/Blind) → PostGameplayEffectExecute 분기
-- SpawnPreview: bTeleportOnConfirm 플래그 + 스킬별 GA BP 분리 (Painter03/05)
-  → EditDefaultsOnly는 BP 클래스 단위 공유 — 동작이 다른 스킬은 BP 분리 필수
+### ChainTrapVortexActor (2026-05-03)
+- SpawnFX 타이밍: OnSystemFinished 콜백 대신 SpawnFXDuration EditDefaultsOnly 딜레이 타이머
+  → 루핑 FX 지원, 디자이너가 BP에서 직접 조정 가능
+- 데미지+기절 GE 분리: Duration GE에 ExecCalc 혼재 금지 원칙 확립
+  → GE_Hawkeye_ChainTrap_Damage(Instant) + GE_Stun(Duration) 분리
+- PullTick: LaunchCharacter bZOverride=true, Z=0으로 바닥 뚫림 방지
 
-### OutgameLobby3D
-- LobbyCharInfoPanel: BindWidget + Show/Hide 패턴
-- 아웃라인: CustomStencil 이진 마스크 (PostProcess)
+### BackstepShot 버그 (2026-05-03)
+- StartSkillWithMontage → DisableMovement → LaunchCharacter 무시
+- 해결: ExecuteEffect_BackstepShot에서 LaunchCharacter 직전 SetMovementMode(MOVE_Falling)
 
-### SkillSystemArch (2026-04-21)
-- FCharacterSkillLevelData 삭제: 스킬레벨 시스템 미구현 — 필드 평탄화
-- PullVortex 파라미터: EditDefaultsOnly on Actor BP (DT 컬럼화는 P3 TODO)
-- SkillGEClass → DT_CharacterSkill 컬럼 이전 (MODULE-4 완료 후 에디터 할당)
-- EffectActorClass 타입: TSoftClassPtr<AActor>로 확장 완료 (DataTableStructs + RuntimeDataStructs 모두)
-- SD4 갱신 필요: DT_CharacterSkill이 TArray 제거로 이제 CSV 임포트 가능
+### ApplyCharacterMesh (2026-05-03)
+- DT_CharacterStatic Mesh/AnimBP SoftPtr → LoadSynchronous → GetMesh() 적용
+- InitializePlayer: ApplyCharacterStats → ApplyCharacterMesh → InitDefaultWeapon 순서
 
 ## Files In Progress
 (없음 — 모두 커밋 완료)
 
+## Next Session 추천
+- MODULE-5 애로우레인(RandomRadius 낙하 패턴) 또는 MODULE-7 스나이프(ChargeAndRelease) 중 선택
+- 에디터: GE_Hawkeye_ChainTrap_Damage 신규 생성 필요 (GE_Stun에서 RS_DamageExecCalc 분리)
+
 ## Open Questions
-- SM_Res_Sto_Chest_Wood_Worn_08.uasset (127MB) → .gitignore 처리 완료, 로컬에만 보관
-- 클린 빌드 미완료 — 다음 세션 에디터 작업 전 확인 권장
+- BP 투사체 NiagaraComp 회전 — bRotationFollowsVelocity or NiagaraComp 로컬 회전 미확인 [P1]

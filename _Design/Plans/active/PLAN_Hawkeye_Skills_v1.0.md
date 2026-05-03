@@ -31,6 +31,8 @@ modified_files:
   - Source/RoastStaffGAS/Private/GAS/Abilities/GA_CharacterSkill.cpp
   - Source/RoastStaffGAS/Public/UI/RSHUDWidget.h              # ChargeGauge BindWidget + API
   - Source/RoastStaffGAS/Private/UI/RSHUDWidget.cpp
+  - Source/RoastStaffGAS/Public/UI/InGame/CharacterSkillSlotWidget.h   # Txt_SkillName BindWidget 추가
+  - Source/RoastStaffGAS/Private/UI/InGame/CharacterSkillSlotWidget.cpp # UpdateSlot 스킬 이름 SetText
 
 new_datatables:
   - DT_CharacterSkill 호크아이 행 6개 추가

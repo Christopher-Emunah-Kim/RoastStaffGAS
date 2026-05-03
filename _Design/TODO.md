@@ -53,11 +53,17 @@
     - [x] OnDurationExpired: BurstFX + Instant데미지GE + Duration기절GE Apply
     - [x] OnPoolDeactivate(): 타이머 ClearTimer + 상태 리셋
 
+  ### [+] 스킬 슬롯 DisplayName 표시 ✓ COMMITTED 51beed498 2026-05-04
+  수정: DataTableStructs.h / RuntimeDataStructs.h / GameDataSubsystem.cpp / CharacterSkillSlotWidget.h/.cpp
+    - [x] FCharacterSkillStaticData / FCharacterSkillExecData FText DisplayName 추가
+    - [x] GetCharacterSkillExecData 매핑 추가
+    - [x] CharacterSkillSlotWidget Txt_SkillName BindWidget + UpdateSlot SetText
+
   ### [MODULE-5] 애로우레인 — RandomRadius 낙하 패턴
   수정: GAS/Abilities/GA_CharacterSkill.cpp
-    - [ ] Circle+ZOffset 분기: RandPointInCircle 인라인 스폰 루프               [P1]
-    - [ ] 60도 고정 하향 발사 방향 계산                                         [P1]
-    - [ ] StatusGEClass → OnHit Apply (이속감소)                                [P1]
+    - [>] Circle+ZOffset 분기: RandPointInCircle 인라인 스폰 루프               [P1]
+    - [>] 60도 고정 하향 발사 방향 계산                                         [P1]
+    - [>] StatusGEClass → OnHit Apply (이속감소)                                [P1]
 
   ### [MODULE-6] 오토마톤 — AutomatonActor
   신규: Objects/AutomatonActor.h/.cpp

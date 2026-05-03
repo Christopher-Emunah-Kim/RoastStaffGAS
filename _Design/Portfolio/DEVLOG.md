@@ -15,6 +15,26 @@
 
 ---
 
+## [2026-05-04] PATTERN — 루트 모션 허용 여부를 GA BP에서 제어: bUseRootMotion EditDefaultsOnly
+
+**상황**: 애로우레인 스킬은 몽타주에 루트 모션(점프 이동)이 포함되어 캐릭터 캡슐이 실제로 이동해야 하는 연출이 필요. 그런데 `StartSkillWithMontage`는 모든 스킬에 일괄 `DisableMovement()`를 적용하는 구조였음.
+
+**문제·과제**: UE5에서 루트 모션과 `DisableMovement()`를 동시에 적용하면 루트 모션이 무시됨 — 메시는 공중으로 날아가지만 캡슐(콜리전)은 제자리에 고정. 몽타주 종료 후 메시가 캡슐 위치로 순간이동하는 시각적 결함 발생.
+
+**검토한 선택지**:
+- A) DT에 `bUseRootMotion` 컬럼 추가 — 스킬별 DT 행에서 제어. 범용적이나 DT 오염 + 매핑 추가 비용.
+- B) GA Blueprint에 `EditDefaultsOnly bool bUseRootMotion` 멤버 추가 — GA BP 단위로 디자이너가 직접 제어. DT 무관, 코드 변경 최소.
+
+**결정**: B 채택. `GA_CharacterSkill`에 `UPROPERTY(EditDefaultsOnly)` 멤버 추가. `OnAbilityActivated`에서 `!bUseRootMotion`을 `bLockMovement`로 전달 — `true`이면 `DisableMovement()` 생략하여 루트 모션이 캡슐까지 이동시키도록 허용.
+
+**결과**: 애로우레인 GA BP에서 체크박스 하나로 제어. 다른 스킬은 기본값 `false` 유지로 기존 동작 완전 보존.
+
+**포트폴리오 포인트**: UE5 루트 모션과 CharacterMovement `DisableMovement()`의 충돌 관계 이해. 설계 계층(DT/GA BP/코드) 중 적절한 책임 위치 판단 — 연출 제어는 디자이너 영역(GA BP)에 위임.
+
+**관련 파일**: `GA_CharacterSkill.h/.cpp`
+
+---
+
 ## [2026-05-03] BUG_FIX — DisableMovement + LaunchCharacter 충돌: 몽타주 세팅 후 백스텝샷 이동 불가
 
 **상황**: 호크아이 BackstepShot GA가 `LaunchCharacter`로 뒤로 날아가는 동작을 구현. 몽타주 없이 테스트할 때는 정상 동작했으나, CastingMontage를 세팅하자 캐릭터가 전혀 날아가지 않음.

@@ -12,6 +12,22 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ## PENDING_COMMIT
 
+- date: 2026-05-04
+  plan: PLAN_Hawkeye_Skills_v1.0 skill-slot-name
+  status: COMMITTED
+  commits: ["51beed498"]
+  summary: "feat(skill-slot-name): 캐릭터 스킬 슬롯 DisplayName 표시"
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
+      - Source/RoastStaffGAS/Public/Data/RuntimeDataStructs.h
+      - Source/RoastStaffGAS/Private/Subsystems/GameDataSubsystem.cpp
+      - Source/RoastStaffGAS/Public/UI/InGame/CharacterSkillSlotWidget.h
+      - Source/RoastStaffGAS/Private/UI/InGame/CharacterSkillSlotWidget.cpp
+      - ExternalSource/DT_Character_Skill_Static_Data.csv
+      - Content/Data/Skill/Character/DT_Character_Skill_Static_Data.uasset
+      - Content/UI/Ingame/SkillSlot/WBP_CharacterSkillSlot.uasset
+
 - date: 2026-05-03
   plan: PLAN_Hawkeye_Skills_v1.0 MODULE-4 + PLAN_CharacterMeshApply_v1.0
   status: COMMITTED
