@@ -11,6 +11,8 @@ designs: [Temp_변경스킬계획.md]
 ## SCOPE
 ```yaml
 new_files:
+  - Source/RoastStaffGAS/Public/Animation/AN_HitCheck.h
+  - Source/RoastStaffGAS/Private/Animation/AN_HitCheck.cpp
   - Source/RoastStaffGAS/Public/GAS/Abilities/GA_CharacterSkill_Charge.h
   - Source/RoastStaffGAS/Private/GAS/Abilities/GA_CharacterSkill_Charge.cpp
   - Source/RoastStaffGAS/Public/Objects/GroundEffect/ChainTrapVortexActor.h
@@ -87,15 +89,14 @@ GE: GE_Hawkeye_BackstepExplosion (적) / GE_Hawkeye_SpeedBuff (플레이어)
 
 ### Skill 2 — 버스트애로우
 ```yaml
-TargetingType: Instant
-EffectType:    SpawnActor (GroundEffectActor 재활용)
+TargetingType: AimPreview  # 플레이어가 원하는 위치에 프리뷰 원 놓고 확정
+EffectType:    RadialAoE   # GA가 직접 SphereOverlap → GE Apply 처리
 스펙:
-  - 몽타주 재생 → HitCheck 노티파이 → ExecuteEffect_SpawnActor
-  - 가장 가까운 적 위치에 GroundEffectActor 스폰 (반경 120)
-  - 즉발 AoE — Overlap 후 즉시 GE Apply + 넉다운(LaunchCharacter 방향 방사)
-  - GroundEffectActor Duration=0 (즉발 후 즉시 풀 반환)
+  - 스킬 버튼 → 프리뷰 원 표시 → 확정 클릭 → 몽타주 재생 → HitCheck 노티파이 → ExecuteEffect_RadialAoE
+  - 확정 위치 기준 반경 120 즉발 AoE
+  - GE GrantedTags: CC.Knockdown → EnemyAttributeSet이 ApplyKnockdown() 자동 호출
 피해: ATK * 430% / 최대 8마리 / 전원 넉다운
-GE: GE_Hawkeye_BurstArrow (데미지 + 넉다운 GE)
+GE: GE_Hawkeye_BurstArrow (데미지 + CC.Knockdown GrantedTag)
 ```
 
 ### Skill 3 — 체인트랩

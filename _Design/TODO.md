@@ -14,25 +14,6 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
-## [FEATURE] 데미지 인디케이터 HUD 비네트 | PLAN_DamageIndicator_v1.0
-> 시작: 2026-04-29 | 기획서: 없음 (HUD 보완)
-
-  ### [MODULE-1] RSPlayerController — FlashHUDDamageIndicator 추가
-  수정: Character/Player/RSPlayerController.h / .cpp
-    - [x] RSHUDWidget: Img_DamageVignette + Anim_DamageFlash BindWidget + FlashDamageIndicator() 구현
-    - [x] RSPlayerController.h: FlashHUDDamageIndicator() 선언
-    - [x] RSPlayerController.cpp: FlashHUDDamageIndicator() 구현
-
-  ### [MODULE-2] BaseCharacter — IsPlayerControlled 체크 + Flash 호출
-  수정: Character/BaseCharacter.cpp
-    - [x] OnCurrentHPChangedForDamage: IsPlayerControlled() + PC->FlashHUDDamageIndicator()
-
-  ### [MODULE-3] WBP_HUD 에디터 작업
-    - [ ] Img_DamageVignette Image 배치 (전체화면 앵커, 최상단 레이어)        [P0]
-    - [ ] Anim_DamageFlash 생성 (0.0s Opacity=1.0 → 0.5s Opacity=0.0)       [P0]
-    - [ ] PIE 피격 테스트                                                     [P0]
-
----
 
 ## [FEATURE] 호크아이 스킬 6종 구현 | PLAN_Hawkeye_Skills_v1.0
 > 시작: 2026-04-27 | 기획서: Temp_변경스킬계획.md
@@ -62,7 +43,7 @@
 
   ### [MODULE-4] 체인트랩 — ChainTrapVortexActor
   신규: Objects/GroundEffect/ChainTrapVortexActor.h/.cpp
-    - [ ] IPoolableInterface + ISkillEffectInterface 구현                       [P0]
+    - [>] IPoolableInterface + ISkillEffectInterface 구현                       [P0]
     - [ ] InitEffect(): Overlap 수집 + PullTimerHandle 시작                     [P0]
     - [ ] PullTick(): Collision off + 거리비례 Lerp 수렴 이동                   [P0]
     - [ ] DurationTimer 만료: Collision 복원 + GE Apply + 머티리얼 플래시       [P0]
@@ -159,6 +140,7 @@
 
 ## COMPLETED_LOG
 <!-- compact 형식: [x] FEATURE명 | 커밋 | 날짜 | 플랜파일 -->
+[x] 데미지 인디케이터 HUD 비네트 | 621229423,b05088290,402fa1e55 | 2026-04-29 | PLAN_DamageIndicator_v1.0
 [x] SR + 학습 리포트 (CombatInfra+SkillSystemArch+SkillActivationRefactor 합산) + SR_Fix | b69e4b867,ceca6206e | 2026-04-26 | PLAN_SR_Fix_v1.0
 [x] SkillActivationType 3축 분리 리팩터링 + DT_CharacterSkill 통폐합 + Pierce BUG_FIX | 73b04c3b7,d7d0e50b5,691f6e1ef,eea16f8d6,93b86a62e,83b270b00 | 2026-04-26 | PLAN_SkillActivationRefactor_v1.0
 [x] BossHPBarWidget HUD 자식 편입 리팩터링 | 3ba19c363,72f7479b2,e4ec76175,fec8946ac | 2026-04-26 | PLAN_BossHPBarRefactor_v1.0

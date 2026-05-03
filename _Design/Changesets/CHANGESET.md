@@ -12,6 +12,24 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ## PENDING_COMMIT
 
+- date: 2026-04-29
+  plan: PLAN_DamageIndicator_v1.0
+  status: COMMITTED
+  commits: ["621229423", "b05088290", "402fa1e55"]
+  summary: "feat(damage-indicator): HUD 피격 비네트 인디케이터 구현 + WBP_HUD 에셋"
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/UI/RSHUDWidget.h
+      - Source/RoastStaffGAS/Private/UI/RSHUDWidget.cpp
+      - Source/RoastStaffGAS/Public/Character/Player/RSPlayerController.h
+      - Source/RoastStaffGAS/Private/Character/Player/RSPlayerController.cpp
+      - Source/RoastStaffGAS/Private/Character/BaseCharacter.cpp
+      - Content/UI/Ingame/WBP_HUD.uasset
+      - Content/Data/Skill/Character/DT_Character_Skill_Static_Data.uasset
+    new:
+      - Content/Assets/etc/Material/M_UI_DamageIndicator.uasset
+      - _Design/Plans/active/PLAN_DamageIndicator_v1.0.md
+
 - date: 2026-04-27
   plan: PLAN_Hawkeye_Skills_v1.0
   status: COMMITTED
