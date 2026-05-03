@@ -50,6 +50,7 @@ ARSPlayerCharacter::ARSPlayerCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 640.0f, 0.0f);
 	GetCharacterMovement()->bConstrainToPlane = true;
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;
+	GetCharacterMovement()->bAllowPhysicsRotationDuringAnimRootMotion = true;
 	
 	EquipmentComp = CreateDefaultSubobject<UEquipmentComponent>(TEXT("EquipmentComp"));
 }

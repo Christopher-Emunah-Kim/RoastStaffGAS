@@ -74,7 +74,9 @@ void ARSTransitionGameMode::PreloadAssetsAsync()
 	// 비동기 로드 완료 후 StartLevelStreaming 호출
 	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
 	StreamableHandle = Streamable.RequestAsyncLoad(
-		PreloadPaths, FStreamableDelegate::CreateUObject(this, &ARSTransitionGameMode::StartLevelStreaming)
+		/*로드할 에셋 목록*/ PreloadPaths, 
+		/*비동기 로드 완료 콜백 등록*/FStreamableDelegate::CreateUObject(this, 
+			&ARSTransitionGameMode::StartLevelStreaming)
 	);
 }
 
