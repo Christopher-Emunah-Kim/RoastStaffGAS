@@ -51,21 +51,24 @@ void UGA_CharacterSkill::OnAbilityActivated(const FGameplayAbilitySpecHandle Han
 			[this, ExecData, Handle, ActorInfo, ActivationInfo]()
 			{
 				ResolveEffect(ExecData, Handle, ActorInfo, ActivationInfo, FVector::ZeroVector);
-			});
+			},
+			!bUseRootMotion);
 		break;
 	case ESkillTargetingType::AimPreview:
 		StartSkillWithMontage(ExecData, Handle, ActorInfo, ActivationInfo,
 			[this, ExecData, Handle, ActorInfo, ActivationInfo]()
 			{
 				ResolveTargeting_AimPreview(ExecData, Handle, ActorInfo, ActivationInfo);
-			});
+			},
+			!bUseRootMotion);
 		break;
 	case ESkillTargetingType::LaunchProjectile:
 		StartSkillWithMontage(ExecData, Handle, ActorInfo, ActivationInfo,
 			[this, ExecData, Handle, ActorInfo, ActivationInfo]()
 			{
 				ResolveTargeting_LaunchProjectile(ExecData, Handle, ActorInfo, ActivationInfo);
-			});
+			},
+			!bUseRootMotion);
 		break;
 	case ESkillTargetingType::ChargeAndRelease:
 		KHS_WARN(TEXT("ChargeAndRelease는 DEFERRED — SlotIndex: %d"), SkillData->SlotIndex);
@@ -87,7 +90,8 @@ void UGA_CharacterSkill::StartSkillWithMontage(
 	const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo,
-	TFunction<void()> ExecuteFunc)
+	TFunction<void()> ExecuteFunc,
+	bool bLockMovement)
 {
 	if (!CastingMontage)
 	{
@@ -96,7 +100,7 @@ void UGA_CharacterSkill::StartSkillWithMontage(
 	}
 
 	ABaseCharacter* Instigator = const_cast<ABaseCharacter*>(CachedInstigator.Get());
-	if (Instigator)
+	if (bLockMovement && Instigator)
 	{
 		if (UCharacterMovementComponent* MoveComp = Instigator->FindComponentByClass<UCharacterMovementComponent>())
 		{
@@ -519,6 +523,13 @@ void UGA_CharacterSkill::ExecuteEffect_Projectile(
 		return;
 	}
 
+	// 애로우레인: Circle 패턴 + ZOffset > 0 조합 감지 → 전용 경로
+	if (ExecData.SpawnPattern == ESkillSpawnPattern::Circle && ExecData.ZOffset > 0.f)
+	{
+		ExecuteEffect_ArrowRain(ExecData, Handle, ActorInfo, ActivationInfo, LoadedClass);
+		return;
+	}
+
 	const int32 TotalCount = FMath::Max(1, ExecData.SpawnCount);
 
 	if (TotalCount <= 1 || ExecData.SpawnPattern != ESkillSpawnPattern::Burst)
@@ -864,5 +875,73 @@ void UGA_CharacterSkill::ExecuteEffect_BackstepShot(
 	ExecuteEffect_SelfBuff(ExecData, Handle, ActorInfo, ActivationInfo);
 
 	KHS_INFO(TEXT("BackstepShot 발동 — SkillID: %s | 후방거리: %.0f"), *ExecData.SkillID.ToString(), ExecData.BackstepDistance);
+}
+
+// ── 애로우레인 ────────────────────────────────────────────────────────────────
+
+void UGA_CharacterSkill::ExecuteEffect_ArrowRain(
+	const FCharacterSkillExecData& ExecData,
+	const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo,
+	TSubclassOf<ABaseProjectile> LoadedClass)
+{
+	if (!CachedInstigator)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	// 발사 시점 캐릭터 방향 스냅 — 이후 캐릭터 회전과 무관하게 고정
+	const FVector Forward = CachedInstigator->GetActorForwardVector();
+	const FVector Right   = CachedInstigator->GetActorRightVector();
+
+	// 스폰 기준점: 전방 400cm + 공중 ZOffset 높이
+	const FVector Origin = CachedInstigator->GetActorLocation()
+		+ Forward * -200.f
+		+ FVector(0.f, 0.f, ExecData.ZOffset);
+
+	// 전방 기준 60도 하향 발사 방향 (Right 축 기준 회전 → 캐릭터 전방 추종)
+	const FVector FireDir = FVector::DownVector.RotateAngleAxis(-60.f, Right).GetSafeNormal();
+	const FRotator FireRotation = FireDir.ToOrientationRotator();
+
+	const int32 Count = FMath::Max(1, ExecData.SpawnCount);
+	const float Radius = FMath::Max(1.f, ExecData.EffectRadius);
+
+	FProjectileInitData InitData = BuildProjectileInitData(ExecData, LoadedClass);
+	// StatusGEClass 이속감소 GE — BaseProjectile::ApplyMultipleEffectsToTarget이 OnHit 시 자동 Apply
+	InitData.StatusGEClass = ExecData.StatusGEClass.LoadSynchronous();
+	InitData.SpawnCount    = 1;
+
+	GET_WORLD_SUBSYSTEM(UPoolingSubsystem, PoolSys)
+
+	for (int32 i = 0; i < Count; ++i)
+	{
+		// 반경 내 랜덤 XY 오프셋 — 각 화살 독립
+		const FVector2D RandOffset = FMath::RandPointInCircle(Radius);
+		const FVector SpawnLoc = Origin + FVector(RandOffset.X, RandOffset.Y, 0.f);
+
+		ABaseProjectile* Projectile = PoolSys->SpawnPooledActor<ABaseProjectile>(
+			LoadedClass, FTransform(FireRotation, SpawnLoc));
+
+		if (!Projectile)
+		{
+			KHS_WARN(TEXT("ArrowRain 투사체 스폰 실패 — 인덱스: %d"), i);
+			continue;
+		}
+
+		Projectile->SetOwner(const_cast<ABaseCharacter*>(CachedInstigator.Get()));
+		Projectile->SetInstigator(const_cast<ABaseCharacter*>(CachedInstigator.Get()));
+		Projectile->InitProjectile(InitData);
+	}
+
+	SpawnSkillFX(ExecData.SkillFX, CachedInstigator->GetActorLocation(), Radius, ExecData.ElementTag);
+
+	KHS_INFO(TEXT("ArrowRain 발동 — SkillID: %s | %d발 | 반경: %.0f"), *ExecData.SkillID.ToString(), Count, Radius);
+
+	if (!CastingMontage)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+	}
 }
 

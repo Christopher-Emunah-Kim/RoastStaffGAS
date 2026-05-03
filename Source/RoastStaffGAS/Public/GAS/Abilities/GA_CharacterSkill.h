@@ -100,20 +100,30 @@ private:
 		const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo);
 
+	/** 애로우레인: ZOffset 높이 기준 랜덤 원형 분산 + 60도 하향 발사 */
+	void ExecuteEffect_ArrowRain(
+		const FCharacterSkillExecData& ExecData,
+		const FGameplayAbilitySpecHandle Handle,
+		const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo,
+		TSubclassOf<ABaseProjectile> LoadedClass);
+
 	/** PlayerLoc 기준 SearchRadius 내 가장 가까운 적 반환. 없으면 nullptr. */
 	AActor* FindNearestEnemy(FVector PlayerLoc, float SearchRadius) const;
 
 protected:
 	/**
-	 * 몽타주가 할당된 경우: 몽타주 재생 + 이동 잠금 → HitCheck 노티파이 대기 → Execute
+	 * 몽타주가 할당된 경우: 몽타주 재생 → HitCheck 노티파이 대기 → Execute
 	 * 몽타주 없는 경우: 즉시 Execute
+	 * bUseRootMotion=true: DisableMovement 생략 — 루트 모션이 캡슐까지 이동시키도록 허용
 	 */
 	void StartSkillWithMontage(
 		const FCharacterSkillExecData& ExecData,
 		const FGameplayAbilitySpecHandle Handle,
 		const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo,
-		TFunction<void()> ExecuteFunc);
+		TFunction<void()> ExecuteFunc,
+		bool bLockMovement = true);
 
 	/** AbilityTask_PlayMontageAndWait 완료/취소/중단 콜백 — 이동 복원 + EndAbility */
 	UFUNCTION()
@@ -152,6 +162,9 @@ protected:
 	/** FX Actor 클래스 — 할당 시 SpawnSkillFX 대신 BP 액터를 스폰 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|CharacterSkill")
 	TSubclassOf<AActor> FXActorClass;
+	/** true: 몽타주 재생 중 이동 잠금 생략 — 루트 모션으로 캡슐이 이동해야 하는 스킬에 사용 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|CharacterSkill")
+	bool bUseRootMotion = false;
 	
 private:
 	// ── LaunchProjectile 연속 발사 상태 ─────────────────────────────────────
