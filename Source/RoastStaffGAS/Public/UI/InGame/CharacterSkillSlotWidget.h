@@ -40,6 +40,8 @@ private:
 	TObjectPtr<UImage> Img_CooldownOverlay;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> Txt_CooldownRemaining;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> Txt_SkillName;
 
 	UPROPERTY()
 	TObjectPtr<UMaterialInstanceDynamic> CooldownMID;

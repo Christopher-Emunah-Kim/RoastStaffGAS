@@ -25,6 +25,12 @@ void UCharacterSkillSlotWidget::UpdateSlot(const FSkillSlotState* SlotState)
 
 	SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 
+	// 스킬 이름
+	if (Txt_SkillName)
+	{
+		Txt_SkillName->SetText(SlotState->ExecData.DisplayName);
+	}
+
 	// 스킬 아이콘
 	if (!SlotState->ExecData.SkillIconSoftRef.IsNull())
 	{
@@ -60,6 +66,7 @@ void UCharacterSkillSlotWidget::NativeConstruct()
 	ensureMsgf(Img_SkillIcon, TEXT("Img_SkillIcon BindWidget 누락 — SlotIndex %d"), SlotIndex);
 	ensureMsgf(Img_CooldownOverlay, TEXT("Img_CooldownOverlay BindWidget 누락 — SlotIndex %d"), SlotIndex);
 	ensureMsgf(Txt_CooldownRemaining, TEXT("Txt_CooldownRemaining BindWidget 누락 — SlotIndex %d"), SlotIndex);
+	ensureMsgf(Txt_SkillName, TEXT("Txt_SkillName BindWidget 누락 — SlotIndex %d"), SlotIndex);
 
 	if (Img_CooldownOverlay)
 	{

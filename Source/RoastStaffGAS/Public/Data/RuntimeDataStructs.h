@@ -308,6 +308,8 @@ struct FCharacterSkillExecData
 	UPROPERTY(BlueprintReadOnly)
 	FName SkillID;
 	UPROPERTY(BlueprintReadOnly)
+	FText DisplayName = FText::GetEmpty();
+	UPROPERTY(BlueprintReadOnly)
 	float Cooldown = 10.f;
 
 	// ── 3축 분류 ────────────────────────────────────────────────────────────

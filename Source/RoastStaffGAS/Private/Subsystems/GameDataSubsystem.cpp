@@ -609,6 +609,7 @@ bool UGameDataSubsystem::GetCharacterSkillExecData(FName CharacterID, int32 Skil
     }
 
     OutData.SkillID           = Found->SkillID;
+    OutData.DisplayName       = Found->DisplayName;
     OutData.Cooldown          = Found->Cooldown;
     OutData.TargetingType     = Found->TargetingType;
     OutData.EffectType        = Found->EffectType;

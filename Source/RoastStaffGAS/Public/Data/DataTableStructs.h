@@ -639,6 +639,9 @@ struct FCharacterSkillStaticData : public FTableRowBase
 	/** PK */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill")
 	FName SkillID;
+	/** 스킬 표시 이름 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill")
+	FText DisplayName = FText::GetEmpty();
 	/** 이 스킬을 보유한 캐릭터 ID (DT_CharacterStatic FK) */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterSkill")
 	FName OwnerCharacterID;
