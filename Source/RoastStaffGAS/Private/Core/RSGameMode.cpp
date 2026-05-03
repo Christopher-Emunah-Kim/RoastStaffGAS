@@ -17,6 +17,7 @@
 #include "UI/Transition/RSLoadingWidget.h"
 #include "Data/EnumUITypes.h"
 #include "Character/Player/RSPlayerState.h"
+#include "Character/Player/RSPlayerCharacter.h"
 #include "Character/Enemy/EnemyBaseCharacter.h"
 #include "Objects/Projectile/EnemyProjectile.h"
 #include "Objects/Projectile/BaseProjectile.h"
@@ -133,6 +134,7 @@ void ARSGameMode::InitializePlayer(FName CharID)
 	}
 
 	PS->ApplyCharacterStats(CharID);
+	ApplyCharacterMesh(CharID);
 	InitDefaultWeapon(CharID);
 }
 
@@ -400,6 +402,76 @@ void ARSGameMode::InitDefaultWeapon(FName CharID)
 
 	KHS_INFO(TEXT("DefaultWeapon 장착 완료 — CharID: %s / WeaponID: %s"),
 		*CharID.ToString(), *CharData.DefaultWeaponID.ToString());
+}
+
+void ARSGameMode::ApplyCharacterMesh(FName CharID)
+{
+	if (CharID.IsNone())
+	{
+		KHS_WARN(TEXT("CharID가 NAME_None. 메시 적용 건너뜀."));
+		return;
+	}
+
+	GET_GI_SUBSYSTEM(UGameDataSubsystem, GDS)
+
+	FCharacterStaticData CharData;
+	if (!GDS->GetCharacterStaticData(CharID, CharData))
+	{
+		KHS_WARN(TEXT("CharID [%s] 데이터 조회 실패. 메시 적용 건너뜀."), *CharID.ToString());
+		return;
+	}
+
+	if (CharData.Mesh.IsNull())
+	{
+		KHS_WARN(TEXT("CharID [%s] Mesh가 null. 메시 적용 건너뜀."), *CharID.ToString());
+		return;
+	}
+
+	if (CharData.AnimBP.IsNull())
+	{
+		KHS_WARN(TEXT("CharID [%s] AnimBP가 null. 메시 적용 건너뜀."), *CharID.ToString());
+		return;
+	}
+
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (!PC)
+	{
+		KHS_WARN(TEXT("PlayerController를 찾지 못했습니다. 메시 적용 건너뜀."));
+		return;
+	}
+
+	ARSPlayerCharacter* PlayerChar = PC->GetPawn<ARSPlayerCharacter>();
+	if (!PlayerChar)
+	{
+		KHS_WARN(TEXT("PlayerCharacter를 찾지 못했습니다. 메시 적용 건너뜀."));
+		return;
+	}
+
+	USkeletalMeshComponent* MeshComp = PlayerChar->GetMesh();
+	if (!MeshComp)
+	{
+		KHS_WARN(TEXT("SkeletalMeshComponent가 null. 메시 적용 건너뜀."));
+		return;
+	}
+
+	USkeletalMesh* LoadedMesh = CharData.Mesh.LoadSynchronous();
+	if (!LoadedMesh)
+	{
+		KHS_WARN(TEXT("CharID [%s] Mesh 동기 로드 실패."), *CharID.ToString());
+		return;
+	}
+
+	TSubclassOf<UAnimInstance> LoadedAnimBP = CharData.AnimBP.LoadSynchronous();
+	if (!LoadedAnimBP)
+	{
+		KHS_WARN(TEXT("CharID [%s] AnimBP 동기 로드 실패."), *CharID.ToString());
+		return;
+	}
+
+	MeshComp->SetSkeletalMesh(LoadedMesh);
+	MeshComp->SetAnimInstanceClass(LoadedAnimBP);
+
+	KHS_INFO(TEXT("캐릭터 메시 적용 완료 — CharID: %s"), *CharID.ToString());
 }
 
 void ARSGameMode::CheckStageClearCondition()

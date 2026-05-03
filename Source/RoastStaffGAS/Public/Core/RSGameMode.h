@@ -49,6 +49,7 @@ private:
 	void UpdatePreWarmProgress();
 	void StartStageFlow();
 	void InitDefaultWeapon(FName CharID);
+	void ApplyCharacterMesh(FName CharID);
 
 	/** EUIID::LOADING 위젯 조회 헬퍼 — nullptr 가능 */
 	URSLoadingWidget* GetLoadingWidget() const;
