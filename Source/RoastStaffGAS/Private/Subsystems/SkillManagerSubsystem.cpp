@@ -140,7 +140,9 @@ void USkillManagerSubsystem::ActivateSkillSlot(int32 SlotIndex)
 
 	const ESkillTargetingType TargetingType = Slot.ExecData.TargetingType;
 
-	if (TargetingType == ESkillTargetingType::AimPreview)
+	// AimPreview + ChargeAndRelease 모두 프리뷰 → 확정(LMB) → GA 발동 경로
+	if (TargetingType == ESkillTargetingType::AimPreview
+		|| TargetingType == ESkillTargetingType::ChargeAndRelease)
 	{
 		SpawnPreviewActor(SlotIndex);
 	}

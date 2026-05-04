@@ -90,6 +90,8 @@ private:
 	void OnSkill6(const FInputActionValue& Value);
 	/** RMB — 스킬 프리뷰 취소 */
 	void OnSkillCancel(const FInputActionValue& Value);
+	/** LMB Released — State.Charging 태그 보유 시 ChargeRelease 이벤트 송신 */
+	void OnChargeInputReleased(const FInputActionValue& Value);
 	/** Tab — 캐릭터 스탯 팝업 토글 */
 	void OnStatPopupToggle(const FInputActionValue& Value);
 

@@ -22,6 +22,9 @@
 #include "UI/WeaponReplaceWidget.h"
 #include "Data/EnumUITypes.h"
 #include "Data/RuntimeDataStructs.h"
+#include "GAS/Tags/RSGameplayTags.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 
 
 
@@ -119,6 +122,9 @@ void ARSPlayerController::SetupInputComponent()
 
 	EIC->BindAction(IA_Move,   ETriggerEvent::Triggered, this, &ARSPlayerController::OnMove);
 	EIC->BindAction(IA_Attack, ETriggerEvent::Started,   this, &ARSPlayerController::OnConfirm);
+	// Completed: Hold 후 뗄 때 / Canceled: 짧은 클릭 후 뗄 때 — 둘 다 바인딩해 LMB 해제를 확실히 포착
+	EIC->BindAction(IA_Attack, ETriggerEvent::Completed, this, &ARSPlayerController::OnChargeInputReleased);
+	EIC->BindAction(IA_Attack, ETriggerEvent::Canceled,  this, &ARSPlayerController::OnChargeInputReleased);
 	EIC->BindAction(IA_Skill1, ETriggerEvent::Started, this, &ARSPlayerController::OnSkill1);
 	EIC->BindAction(IA_Skill2, ETriggerEvent::Started, this, &ARSPlayerController::OnSkill2);
 	EIC->BindAction(IA_Skill3, ETriggerEvent::Started, this, &ARSPlayerController::OnSkill3);
@@ -257,6 +263,29 @@ void ARSPlayerController::OnConfirm(const FInputActionValue& Value)
 	GET_WORLD_SUBSYSTEM(USkillManagerSubsystem, SkillMgr)
 	SkillMgr->ConfirmSkillPreview(CachedAimLocation);
 	// 프리뷰 비활성 시 → 무입력 (무기 자동발사 전환으로 수동 공격 없음)
+}
+
+void ARSPlayerController::OnChargeInputReleased(const FInputActionValue& Value)
+{
+	// State.Charging 태그가 없으면 일반 LMB 해제 — 무시
+	APawn* ControlledPawn = GetPawn();
+	if (!ControlledPawn)
+	{
+		return;
+	}
+
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(ControlledPawn);
+	if (!ASC || !ASC->HasMatchingGameplayTag(RSTags::Skill_State_Charging))
+	{
+		return;
+	}
+
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+		ControlledPawn,
+		RSTags::Skill_Event_ChargeRelease,
+		FGameplayEventData());
+
+	KHS_INFO(TEXT("ChargeRelease 이벤트 송신 — Pawn: %s"), *ControlledPawn->GetName());
 }
 
 void ARSPlayerController::OnSkill1(const FInputActionValue& Value)

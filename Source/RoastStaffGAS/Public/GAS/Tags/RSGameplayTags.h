@@ -142,8 +142,10 @@ namespace RSTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Skill_Character_Slot2);
 	// 스킬 프리뷰 활성 상태 — ASC에 부여/제거로 IsPreviewActive() 대체 가능
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Skill_Character_Preview_Active);
-	// 차징 중 상태 — ChargeAndRelease TargetingType 전용 [DEFERRED]
+	// 차징 중 상태 — ChargeAndRelease TargetingType 전용
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Skill_State_Charging);
+	// 차징 해제 이벤트 — PC::OnChargeInputReleased → GA::WaitGameplayEvent
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Skill_Event_ChargeRelease);
 
 	//===============================================
 	// 패시브 태그 (Passive.*)

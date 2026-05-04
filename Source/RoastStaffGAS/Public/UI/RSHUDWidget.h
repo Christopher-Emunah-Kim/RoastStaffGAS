@@ -10,6 +10,7 @@
 class USlotContainerWidget;
 class UCharacterStatPopupWidget;
 class UBossHPBarWidget;
+class UChargeGaugeWidget;
 class UAbilitySystemComponent;
 class UButton;
 class UImage;
@@ -45,6 +46,11 @@ public:
 	/** 플레이어 피격 시 호출 — 데미지 인디케이터 애니메이션 재생 */
 	void FlashDamageIndicator();
 
+	/** 스나이프 차징 시작 시 WBP_ChargeGauge 표시 */
+	void ShowChargeGauge(float MaxChargeTime);
+	/** 스나이프 차징 종료/취소 시 WBP_ChargeGauge 숨김 */
+	void HideChargeGauge();
+
 private:
 	UFUNCTION()
 	void OnStatPopupBtnClicked();
@@ -68,4 +74,8 @@ private:
 	/** WBP에서 정의한 Fade Out 애니메이션 */
 	UPROPERTY(meta = (BindWidgetAnim), Transient)
 	TObjectPtr<UWidgetAnimation> Anim_DamageFlash;
+
+	/** 스나이프 차징 중에만 표시 — 초기 Collapsed */
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UChargeGaugeWidget> WBP_ChargeGauge;
 };

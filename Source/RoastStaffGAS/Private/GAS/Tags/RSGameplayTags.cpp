@@ -54,6 +54,7 @@ namespace RSTags
 	UE_DEFINE_GAMEPLAY_TAG(Skill_Character_Slot2, "Skill.Character.Slot2");
 	UE_DEFINE_GAMEPLAY_TAG(Skill_Character_Preview_Active, "Skill.Character.Preview.Active");
 	UE_DEFINE_GAMEPLAY_TAG(Skill_State_Charging, "Skill.State.Charging");
+	UE_DEFINE_GAMEPLAY_TAG(Skill_Event_ChargeRelease, "Skill.Event.ChargeRelease");
 
 	//패시브 태그
 	UE_DEFINE_GAMEPLAY_TAG(Passive_SlotFull, "Passive.SlotFull");

@@ -4,6 +4,7 @@
 #include "UI/RSHUDWidget.h"
 #include "UI/Ingame/SlotContainerWidget.h"
 #include "UI/Ingame/CharacterStatPopupWidget.h"
+#include "UI/InGame/ChargeGaugeWidget.h"
 #include "UI/Enemy/BossHPBarWidget.h"
 #include "AbilitySystemComponent.h"
 #include "Components/Button.h"
@@ -34,6 +35,12 @@ void URSHUDWidget::NativeOnInitialized()
 	if (WBP_BossHPBar)
 	{
 		WBP_BossHPBar->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	// 차징 게이지는 스나이프 스킬 발동 전까지 숨김
+	if (WBP_ChargeGauge)
+	{
+		WBP_ChargeGauge->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
 
@@ -81,6 +88,24 @@ void URSHUDWidget::HideBossHPBar()
 	if (WBP_BossHPBar)
 	{
 		WBP_BossHPBar->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+void URSHUDWidget::ShowChargeGauge(float MaxChargeTime)
+{
+	if (!ensureMsgf(WBP_ChargeGauge, TEXT("RSHUDWidget: WBP_ChargeGauge BindWidget 누락. WBP_HUD에 자식 배치 확인 필요.")))
+	{
+		return;
+	}
+
+	WBP_ChargeGauge->ShowGauge(MaxChargeTime);
+}
+
+void URSHUDWidget::HideChargeGauge()
+{
+	if (WBP_ChargeGauge)
+	{
+		WBP_ChargeGauge->HideGauge();
 	}
 }
 
