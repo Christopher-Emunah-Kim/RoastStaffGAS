@@ -15,6 +15,26 @@
 
 ---
 
+## [2026-05-04] ARCH — ChargeAndRelease GA: 몽타주 섹션 점프 + AbilityTask 이벤트 대기 2단계 구조
+
+**상황**: 스나이프 스킬은 "버튼 누름 → 차징 루프 → 버튼 해제 → 발사"의 2단계 흐름. 기존 GA 구조(StartSkillWithMontage → HitCheck → EndAbility 단선)와 맞지 않음.
+
+**문제·과제**: 차징 중 몽타주는 Loop 섹션을 반복해야 하고, 해제 시점에 "Shoot" 섹션으로 점프 후 투사체 스폰이 이뤄져야 함. 입력 해제 이벤트(IA_Attack Completed/Canceled)를 GA 내부에서 어떻게 수신하느냐가 핵심.
+
+**검토한 선택지**:
+- A) GA 내부에서 IA_Attack 입력 직접 바인딩 — GA와 입력 시스템 직결. 입력 취소·능력 취소 중복 처리 복잡.
+- B) PlayerController가 IA_Attack 해제 이벤트를 수신 → `SendGameplayEventToActor`(Tag_ChargeRelease) → GA 내부 `AbilityTask_WaitGameplayEvent`로 수신 (채택)
+
+**결정**: B 채택. PC가 입력 브릿지, GA가 게임플레이 이벤트 구독. `CancelAbility` override에서 `CleanupCharging`(태그 제거 + 게이지 숨김 + 타이머 클리어)을 보장해 강제 취소 경로도 방어.
+
+**결과**: PC는 입력만 번역, GA는 게임플레이 상태만 관리. AbilityTask_WaitGameplayEvent + 타임아웃 타이머 병행으로 해제 없이도 MaxChargeTime 후 자동 발사.
+
+**포트폴리오 포인트**: GAS 이벤트 버스를 입력-GA 간 디커플링에 활용하는 패턴. PC↔GA 의존 제거로 캐릭터 교체 시 GA 재사용 가능. AbilityTask + 타임아웃 병행으로 해제 누락 엣지 케이스까지 방어.
+
+**관련 파일**: `GA_CharacterSkill_Charge.h/.cpp` `RSPlayerController.cpp`
+
+---
+
 ## [2026-05-04] PATTERN — 루트 모션 허용 여부를 GA BP에서 제어: bUseRootMotion EditDefaultsOnly
 
 **상황**: 애로우레인 스킬은 몽타주에 루트 모션(점프 이동)이 포함되어 캐릭터 캡슐이 실제로 이동해야 하는 연출이 필요. 그런데 `StartSkillWithMontage`는 모든 스킬에 일괄 `DisableMovement()`를 적용하는 구조였음.

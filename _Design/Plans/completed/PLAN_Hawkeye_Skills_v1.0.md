@@ -23,13 +23,16 @@ new_files:
   - Source/RoastStaffGAS/Private/UI/InGame/ChargeGaugeWidget.cpp
 
 modified_files:
+  - Source/RoastStaffGAS/Public/GAS/Tags/RSGameplayTags.h     # Skill_Event_ChargeRelease 태그 추가
+  - Source/RoastStaffGAS/Private/GAS/Tags/RSGameplayTags.cpp  # Skill_Event_ChargeRelease 태그 정의
   - Source/RoastStaffGAS/Public/Data/EnumTypes.h              # ESkillSpawnPattern 없음 — Circle 재활용으로 결정
   - Source/RoastStaffGAS/Public/Data/DataTableStructs.h       # FCharacterSkillStaticData 신규 필드 (DT 임포트 구조체)
   - Source/RoastStaffGAS/Public/Data/RuntimeDataStructs.h     # FCharacterSkillExecData 신규 필드
   - Source/RoastStaffGAS/Private/Subsystems/GameDataSubsystem.cpp  # GetCharacterSkillExecData 매핑 추가
   - Source/RoastStaffGAS/Public/GAS/Abilities/GA_CharacterSkill.h   # private→protected + LerpMove 헬퍼
   - Source/RoastStaffGAS/Private/GAS/Abilities/GA_CharacterSkill.cpp
-  - Source/RoastStaffGAS/Public/UI/RSHUDWidget.h              # ChargeGauge BindWidget + API
+  - Source/RoastStaffGAS/Public/UI/RSHUDWidget.h              # ChargeGauge BindWidget + API (스텁 M7, 실구현 M8)
+  - Source/RoastStaffGAS/Private/UI/RSHUDWidget.cpp           # ShowChargeGauge/HideChargeGauge 스텁 → M8 실구현
   - Source/RoastStaffGAS/Private/UI/RSHUDWidget.cpp
   - Source/RoastStaffGAS/Public/UI/InGame/CharacterSkillSlotWidget.h   # Txt_SkillName BindWidget 추가
   - Source/RoastStaffGAS/Private/UI/InGame/CharacterSkillSlotWidget.cpp # UpdateSlot 스킬 이름 SetText
@@ -155,22 +158,26 @@ GE: GE_Hawkeye_AutomatonHeal (SetByCaller Instant 힐)
 
 ### Skill 6 — 스나이프
 ```yaml
-TargetingType: ChargeAndRelease (Stub 완성)
+TargetingType: AimPreview → ChargeAndRelease (2단계 복합)
 EffectType:    Projectile (Pierce)
 GA:            GA_CharacterSkill_Charge (신규 서브클래스)
 스펙:
-  - 키 누름 → ActivateAbility:
+  - 스킬 버튼(Skill6) → 프리뷰 원 표시 (AimPreview와 동일 경로)
+  - LMB 누름 → ConfirmSkillPreview → GA 발동 → ActivateAbility:
+      PendingTargetLocation(프리뷰 확정 위치) 캐싱 → CachedTargetLocation
       State.Charging 태그 AddLooseGameplayTag
       ChargeStartTime 기록
-      URSHUDWidget::ShowChargeGauge(MaxChargeTime) 호출 (PC → HUD)
+      URSHUDWidget::ShowChargeGauge(MaxChargeTime) 호출
       ChargeTimeoutHandle(MaxChargeTime) — 만료 시 자동 발사
       WaitGameplayEvent(Tag_ChargeRelease) AbilityTask 설정
-  - 키 해제 → ARSPlayerController::OnChargeReleased → SendGameplayEventToActor(Tag_ChargeRelease)
+  - LMB 해제 → ARSPlayerController::OnChargeInputReleased
+      State.Charging 태그 확인 → 있으면 SendGameplayEventToActor(Tag_ChargeRelease)
+      State.Charging 없으면 무시 (기존 LMB 동작 영향 없음)
   - OnChargeReleased():
       ElapsedRatio = Clamp((Now - ChargeStartTime) / MaxChargeTime, 0, 1)
       DamageMultiplier = Lerp(DamageMultiplierMin, DamageMultiplierMax, ElapsedRatio)  — DT값
       if (ElapsedRatio >= 0.8f): DamageMultiplier *= PerfectZoneBonus  — DT값
-      FireSnipeProjectile(DamageMultiplier) → LRPierceProjectile (PierceCount=8)
+      FireSnipeProjectile(CachedTargetLocation, DamageMultiplier) → LRPierceProjectile (PierceCount=8)
       URSHUDWidget::HideChargeGauge()
       RemoveLooseGameplayTag(State.Charging)
       EndAbility
@@ -250,21 +257,31 @@ OnAbilityActivated (Instant + SpawnActor)
 
 ### 스나이프
 ```
-키 누름 → OnAbilityActivated
-    │
-    ├─ AddLooseGameplayTag(State.Charging)
-    ├─ ShowChargeGauge(MaxChargeTime)
-    ├─ WaitGameplayEvent(Tag_ChargeRelease) ──→ OnChargeReleased()
-    └─ ChargeTimeoutHandle(MaxChargeTime) ──→ OnChargeReleased() (자동 발사)
+[Skill6 버튼] → SkillMgr::ActivateSkillSlot(5)
+    └─ TargetingType == ChargeAndRelease → SpawnPreviewActor(5) [AimPreview 동일 경로]
+          ActivePreviewSlot = 5, Skill_Character_Preview_Active 태그 부여
 
-키 해제 → ARSPlayerController::OnChargeInputReleased
-    └─ SendGameplayEventToActor(Tag_ChargeRelease)
+[LMB 누름] → PC::OnConfirm → SkillMgr::ConfirmSkillPreview(CachedAimLocation)
+    ├─ PendingTargetLocation = CachedAimLocation
+    ├─ DestroyPreviewActor()
+    ├─ Preview_Active 태그 제거
+    └─ ASC::TryActivateAbility → GA_CharacterSkill_Charge::OnAbilityActivated()
+          ├─ CachedTargetLocation = SkillMgr::GetPendingTargetLocation()
+          ├─ AddLooseGameplayTag(State.Charging)
+          ├─ ShowChargeGauge(MaxChargeTime)
+          ├─ WaitGameplayEvent(Tag_ChargeRelease) ──→ OnChargeReleased()
+          └─ ChargeTimeoutHandle(MaxChargeTime)  ──→ OnChargeReleased() (자동 발사)
+
+[LMB 해제] → PC::OnChargeInputReleased
+    └─ ASC::HasMatchingGameplayTag(State.Charging) 확인
+          있으면 → SendGameplayEventToActor(Tag_ChargeRelease)
+          없으면 → 무시 (프리뷰 없이 LMB 해제 / RMB 취소 후 해제 등)
 
 OnChargeReleased():
     ElapsedRatio = Clamp(Elapsed / MaxChargeTime, 0, 1)
     DamageMultiplier = Lerp(Min, Max, ElapsedRatio)
     if Ratio >= 0.8 → *= PerfectZoneBonus
-    FireSnipeProjectile → LRPierceProjectile
+    FireSnipeProjectile(CachedTargetLocation) → LRPierceProjectile
     HideChargeGauge()
     RemoveTag(State.Charging)
     EndAbility()
@@ -345,12 +362,17 @@ OnChargeReleased():
 신규: GAS/Abilities/GA_CharacterSkill_Charge.h/.cpp
   - GA_CharacterSkill 상속
   - OnAbilityActivated override (ChargeAndRelease 전용)
+  - CachedTargetLocation: SkillMgr::GetPendingTargetLocation() 수신 후 저장
   - State.Charging 태그 관리
   - WaitGameplayEvent(Tag_ChargeRelease) AbilityTask
-  - OnChargeReleased(): ElapsedRatio → DamageMultiplier → 퍼펙트 존 → 발사
+  - OnChargeReleased(): ElapsedRatio → DamageMultiplier → 퍼펙트 존 → CachedTargetLocation 방향 발사
   - OnCancelled 경로: HideChargeGauge + RemoveTag + EndAbility
-수정: ARSPlayerController
-  - Enhanced Input Released 바인딩 → SendGameplayEventToActor(Tag_ChargeRelease)
+수정: Subsystems/SkillManagerSubsystem.cpp
+  - ActivateSkillSlot(): ChargeAndRelease 타입도 AimPreview와 동일하게 SpawnPreviewActor 경로로 분기
+수정: ARSPlayerController.h/.cpp
+  - IA_Attack(LMB) Released 이벤트 추가 바인딩 → OnChargeInputReleased()
+  - OnChargeInputReleased(): ASC의 State.Charging 태그 보유 시만 SendGameplayEventToActor(Tag_ChargeRelease)
+  - IA_Skill6 Released 바인딩 불필요 (추가하지 않음)
 신규 GE (에디터): GE_Hawkeye_Snipe
 ```
 
@@ -400,6 +422,9 @@ OnChargeReleased():
 | 스나이프 — GA 취소(피격) | OnCancelled: HideGauge + RemoveTag(State.Charging) + EndAbility | 게이지 UI 잔존 방지 |
 | 스나이프 — MaxChargeTime 만료 | ChargeTimeoutHandle → OnChargeReleased() (자동 발사) | 입력 누락 대비 |
 | 스나이프 — 0% 충전 즉시 해제 | DamageMultiplierMin 적용 (0 차단) | 무효 발사 방지 |
+| 스나이프 — 프리뷰 중 RMB 취소 후 LMB 해제 | CancelSkillPreview → GA 미발동 → State.Charging 없음 → OnChargeInputReleased 무시 | 태그 선행 확인으로 오발사 차단 |
+| 스나이프 — 차징 중 다른 스킬 버튼 입력 | State.Charging ActivationBlockedTags로 타 스킬 GA 발동 차단 | ASC 태그 기반 차단, 별도 코드 불필요 |
+| 스나이프 — 프리뷰 없이 LMB 해제 | State.Charging 없음 → OnChargeInputReleased 무시, 기존 OnConfirm(Started)은 IsPreviewActive() false → 무입력 | 일반 LMB 동작 영향 없음 |
 
 ## REVIEW_NOTES
 ```
@@ -414,6 +439,15 @@ Gemini 반영:
   [반영] AutomatonActor InstigatorASC UPROPERTY() 강참조 명시
   [반영] 풀 PreWarm 수량 → M9 에디터 작업에 추가
   [반영] 스나이프 취소 경로 → OnCancelled 처리 명시
+설계 변경 (2026-05-04):
+  [변경] 스나이프 TargetingType: ChargeAndRelease 단독 → AimPreview+ChargeAndRelease 2단계 복합
+    - Skill6 버튼: 프리뷰 진입 (SpawnPreviewActor)
+    - LMB 누름(ConfirmSkillPreview): GA 발동 + 차징 시작
+    - LMB 해제(IA_Attack Released): State.Charging 확인 후 SendGameplayEvent
+  [변경] SkillManagerSubsystem::ActivateSkillSlot: ChargeAndRelease → AimPreview 경로 분기 추가
+  [변경] ARSPlayerController: IA_Skill6 Released 제거 → IA_Attack Released 추가
+  [추가] GA_CharacterSkill_Charge: CachedTargetLocation 멤버 (PendingTargetLocation 저장)
+
 기획서 미정 (에디터 단계 결정):
   - 차징 게이지 위젯 화면 앵커 위치
   - 스나이프 차징 중 이동 가능 여부 (현재: DisableMovement 적용 안 함)

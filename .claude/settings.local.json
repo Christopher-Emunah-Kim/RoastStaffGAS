@@ -86,7 +86,10 @@
       "WebFetch(domain:vortexgaming.io)",
       "WebFetch(domain:www.gamemeca.com)",
       "WebFetch(domain:v.daum.net)",
-      "WebFetch(domain:www.oslink.io)"
+      "WebFetch(domain:www.oslink.io)",
+      "Bash(Get-ChildItem -Path \"D:\\\\EPIC GAMES\\\\Projects\\\\RoastStaffGAS\\\\Source\\\\RoastStaffGAS\\\\Public\\\\UI\" -Recurse)",
+      "Bash(Select-Object FullName)",
+      "Bash(Format-Table -AutoSize)"
     ],
     "deny": [],
     "ask": []

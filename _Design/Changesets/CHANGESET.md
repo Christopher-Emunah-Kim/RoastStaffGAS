@@ -13,6 +13,53 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 ## PENDING_COMMIT
 
 - date: 2026-05-04
+  plan: PLAN_Hawkeye_Skills_v1.0 MODULE-7
+  status: COMMITTED
+  commits: ["4efe08474"]
+  summary: "feat(snipe): GA_CharacterSkill_Charge + PC LMB 브릿지 + SkillMgr ChargeAndRelease"
+  files:
+    created:
+      - Source/RoastStaffGAS/Public/GAS/Abilities/GA_CharacterSkill_Charge.h
+      - Source/RoastStaffGAS/Private/GAS/Abilities/GA_CharacterSkill_Charge.cpp
+    modified:
+      - Source/RoastStaffGAS/Public/GAS/Tags/RSGameplayTags.h
+      - Source/RoastStaffGAS/Private/GAS/Tags/RSGameplayTags.cpp
+      - Source/RoastStaffGAS/Private/Subsystems/SkillManagerSubsystem.cpp
+      - Source/RoastStaffGAS/Public/Character/Player/RSPlayerController.h
+      - Source/RoastStaffGAS/Private/Character/Player/RSPlayerController.cpp
+      - Source/RoastStaffGAS/Public/UI/RSHUDWidget.h
+      - Source/RoastStaffGAS/Private/UI/RSHUDWidget.cpp
+
+- date: 2026-05-04
+  plan: PLAN_Hawkeye_Skills_v1.0 MODULE-8
+  status: COMMITTED
+  commits: ["0eac6728c"]
+  summary: "feat(charge-gauge): ChargeGaugeWidget + RSHUDWidget 실구현"
+  files:
+    created:
+      - Source/RoastStaffGAS/Public/UI/InGame/ChargeGaugeWidget.h
+      - Source/RoastStaffGAS/Private/UI/InGame/ChargeGaugeWidget.cpp
+      - Content/UI/Ingame/Player/WBP_ChargeGuage.uasset
+    modified:
+      - Content/UI/Ingame/WBP_HUD.uasset
+
+- date: 2026-05-04
+  plan: PLAN_Hawkeye_Skills_v1.0 MODULE-9
+  status: COMMITTED
+  commits: ["ca97eb737"]
+  summary: "data(hawkeye): 스나이프 DT 행 + GE BP + 에디터 에셋"
+  files:
+    created:
+      - Content/Animation/Character/Hawkeye/AM_HawkEye_Skill06.uasset
+      - Content/Blueprint/Objects/Projectiles/CharacterSkill/BP_Projectile_HawkEye06.uasset
+      - Content/GAS/GA/Character/HawkEye/GA_CharacterSkill_HawkEye06.uasset
+    modified:
+      - Content/Data/Skill/Character/DT_Character_Skill_Static_Data.uasset
+      - ExternalSource/DT_Character_Skill_Static_Data.csv
+      - Content/Input/IA_Attack.uasset
+      - Content/Data/Enemy/DT_Enemy_Static_Data.uasset
+
+- date: 2026-05-04
   plan: PLAN_Hawkeye_Skills_v1.0 MODULE-6
   status: COMMITTED
   commits: ["8adcab3e1", "50bcf157e"]

@@ -14,90 +14,6 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
-
-
-## [FEATURE] 호크아이 스킬 6종 구현 | PLAN_Hawkeye_Skills_v1.0
-> 시작: 2026-04-27 | 기획서: Temp_변경스킬계획.md
-
-  ### [MODULE-1] DT 스키마 + GA 헬퍼 접근 지정자 정리 ✓ DONE 2026-04-27
-  수정: DataTableStructs.h / RuntimeDataStructs.h / GameDataSubsystem.cpp / GA_CharacterSkill.h/.cpp
-    - [x] FCharacterSkillExecData 신규 필드 4개 추가 (BackstepDistance/ZOffset/MaxChargeTime/PerfectZoneBonus)
-    - [x] GA_CharacterSkill private→protected 헬퍼 이동 (BuildProjectileInitData/GetSkillDamageAmount/SpawnSkillFX)
-    - [x] StartLerpMove 구현 + LerpTimerHandle/상태변수 선언
-    - [x] LerpDuration constexpr 추가 (풀 PreWarm → DT EffectActorClass로 자동 처리, C++ 불필요)
-
-  ### [MODULE-2] 백스텝샷 — Lerp이동 헬퍼 ✓ DONE 2026-04-27
-  수정: GAS/Abilities/GA_CharacterSkill.h/.cpp
-    - [x] NearestEnemy 탐색 + BackstepDir 계산 + StartLerpMove 호출
-    - [x] StartLerpMove 구현 (완료 콜백 → SelfBuff → EndAbility)
-    - [x] DisableMovement / RestoreMovement 쌍 처리
-    - [x] OnCancelled 경로: EndAbility override → ClearTimer + RestoreMovement
-  BUG:
-    - [x] Lerp 이동 끊김 + 느린 스르르 느낌 — Lerp 타이머 방식 전체 제거 → LaunchCharacter 교체 (휙 물리 이동)
-    - [ ] BP 투사체 NiagaraComp가 발사 방향과 무관하게 회전 — BP 설정 문제 (bRotationFollowsVelocity or NiagaraComp 로컬 회전 확인) [P1]
-
-  ### [MODULE-3] 버스트애로우 — RadialAoE (AimPreview) ✓ DONE 2026-04-30
-  C++ 신규: Animation/AN_HitCheck.h/.cpp
-  에디터 작업:
-    - [x] AN_HitCheck 공용 AnimNotify C++ 구현 (155ec828a)
-    - [x] GA_CharacterSkill_HawkEye02 BP 생성 (AimPreview + RadialAoE) (f77f5da8c)
-    - [x] BP_HawkEye_BurstArrow GroundEffect BP 생성 (f77f5da8c)
-    - [x] DT 버스트애로우 행 추가 (EffectRadius=120, DamageMultiplier=4.3) (f77f5da8c)
-    - [x] 버스트애로우 몽타주 AN_HitCheck 노티파이 세팅 (f77f5da8c)
-
-  ### [MODULE-4] 체인트랩 — ChainTrapVortexActor ✓ COMMITTED fbafe9985 2026-05-03
-  신규: Objects/GroundEffect/ChainTrapVortexActor.h/.cpp
-    - [x] IPoolableInterface + ISkillEffectInterface 구현
-    - [x] InitEffect(): SpawnFXDuration 딜레이 후 PullTimer + DurationTimer 시작
-    - [x] PullTick(): ECC_Pawn Overlap, LaunchCharacter Z=0 바닥뚫림 방지
-    - [x] OnDurationExpired: BurstFX + Instant데미지GE + Duration기절GE Apply
-    - [x] OnPoolDeactivate(): 타이머 ClearTimer + 상태 리셋
-
-  ### [+] 스킬 슬롯 DisplayName 표시 ✓ COMMITTED 51beed498 2026-05-04
-  수정: DataTableStructs.h / RuntimeDataStructs.h / GameDataSubsystem.cpp / CharacterSkillSlotWidget.h/.cpp
-    - [x] FCharacterSkillStaticData / FCharacterSkillExecData FText DisplayName 추가
-    - [x] GetCharacterSkillExecData 매핑 추가
-    - [x] CharacterSkillSlotWidget Txt_SkillName BindWidget + UpdateSlot SetText
-
-  ### [MODULE-5] 애로우레인 — RandomRadius 낙하 패턴 ✓ COMMITTED 7baba80e8 2026-05-04
-  수정: GAS/Abilities/GA_CharacterSkill.cpp
-    - [x] Circle+ZOffset 분기: RandPointInCircle 인라인 스폰 루프
-    - [x] 60도 고정 하향 발사 방향 계산 (전방벡터 스냅, 전방 400cm + ZOffset 상공)
-    - [x] StatusGEClass → OnHit Apply (이속감소)
-    - [x] bUseRootMotion EditDefaultsOnly + StartSkillWithMontage bLockMovement 파라미터
-
-  ### [MODULE-6] 오토마톤 — AutomatonActor ✓ COMMITTED 8adcab3e1 2026-05-04
-  신규: Objects/AutomatonActor.h/.cpp
-    - [x] IPoolableInterface + ISkillEffectInterface + UPROPERTY ASC 강참조
-    - [x] InitEffect(): FireTimer + HealTimer + LifetimeTimer
-    - [x] FireTick(): Forward Spread 5발 PoolingSubsystem 스폰
-    - [x] HealTick(): InstigatorASC GE Apply
-    - [x] OnPoolDeactivate(): 전체 ClearTimer + 리셋
-
-  ### [MODULE-7] 스나이프 C++ — GA_CharacterSkill_Charge
-  신규: GAS/Abilities/GA_CharacterSkill_Charge.h/.cpp
-    - [ ] OnAbilityActivated override (ChargeAndRelease 전용)                   [P1]
-    - [ ] State.Charging 태그 관리 + ChargeTimeoutHandle                        [P1]
-    - [ ] WaitGameplayEvent(Tag_ChargeRelease) AbilityTask                      [P1]
-    - [ ] OnChargeReleased(): 퍼펙트 존 판정 → 배율 → 발사 → EndAbility        [P1]
-    - [ ] OnCancelled: HideGauge + RemoveTag + EndAbility                       [P1]
-    - [ ] ARSPlayerController: Input Released → SendGameplayEventToActor        [P1]
-
-  ### [MODULE-8] 스나이프 UI — ChargeGaugeWidget
-  신규: UI/InGame/ChargeGaugeWidget.h/.cpp
-  수정: UI/RSHUDWidget.h/.cpp
-    - [ ] UChargeGaugeWidget: ProgressBar + 퍼펙트 존 오버레이                  [P1]
-    - [ ] ShowGauge / HideGauge / UpdateGaugeFill 구현                          [P1]
-    - [ ] Ratio >= 0.8f → TintColor 변경                                        [P1]
-    - [ ] RSHUDWidget: BindWidget + ShowChargeGauge/HideChargeGauge API         [P1]
-
-  ### [MODULE-9] 에디터 작업 — DT 행 + GE BP 7종
-    - [ ] DT_CharacterSkill 호크아이 6개 행 입력 (신규 컬럼 13개)              [P2]
-    - [ ] GE Blueprint 7종 생성                                                 [P2]
-    - [ ] BP_GA_Hawkeye_Skill1~6 생성                                           [P2]
-    - [ ] 풀 PreWarm GameMode 등록 확인                                         [P2]
-    - [ ] 몽타주 AnimNotify HitCheck 세팅 (버스트애로우, 애로우레인)            [P2]
-
 ---
 
 ## NEXT_SESSION
@@ -143,14 +59,15 @@
 [~] PullVortex 파라미터 DT 컬럼화 검토 — EditDefaultsOnly 현행 유지. 스킬 파라미터 통합 후 재검토 | [P3]
 [~] 도화가 1번 흩뿌리기 — 몽타주 연출 보강 후 재점검 | [P2]
 [~] HawkGauge 시스템 + 호크샷 — 게이지 전용 Attribute + UI 추가 비용. 3번째 캐릭터(호크아이) 때 처리 | [P3]
-[~] ChargeAndRelease 타입 (스나이프) — 신규 타입 + 전용 HUD 오버레이. 난이도 높음 | [P3]
-[~] 호크아이 스킬 전체 — 3번째 캐릭터. P2 도화가, P3 소서리스 완료 후 | [P4]
+[x] ChargeAndRelease 타입 (스나이프) — MODULE-7~8 완료 (4efe08474, 0eac6728c)
+[x] 호크아이 스킬 전체 — MODULE-1~9 완료 (PLAN_Hawkeye_Skills_v1.0)
 [~] 캐릭터/무기 해금 연결 — 해금 시스템 삭제로 불필요해짐. 방향 전환 시 재검토 | [HOLD]
 
 ---
 
 ## COMPLETED_LOG
 <!-- compact 형식: [x] FEATURE명 | 커밋 | 날짜 | 플랜파일 -->
+[x] 호크아이 스킬 6종 구현 (MODULE-1~9) | 4efe08474,0eac6728c,ca97eb737 | 2026-05-04 | PLAN_Hawkeye_Skills_v1.0
 [x] 캐릭터 메시 인게임 연동 | 3624c6080 | 2026-05-03 | PLAN_CharacterMeshApply_v1.0
 [x] 데미지 인디케이터 HUD 비네트 | 621229423,b05088290,402fa1e55 | 2026-04-29 | PLAN_DamageIndicator_v1.0
 [x] SR + 학습 리포트 (CombatInfra+SkillSystemArch+SkillActivationRefactor 합산) + SR_Fix | b69e4b867,ceca6206e | 2026-04-26 | PLAN_SR_Fix_v1.0
