@@ -12,6 +12,39 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 
 ## PENDING_COMMIT
 
+- date: 2026-05-06
+  plan: PLAN_EnemyHitMontage_v1.0
+  status: COMMITTED
+  commits: ["6c2406d1a", "1f8fa07f9"]
+  summary: "fix(ga): GA 좀비 상태 수정 + feat(enemy): HitMontage data-driven 피격 몽타주 재생"
+  files:
+    modified:
+      - Source/RoastStaffGAS/Private/GAS/Abilities/GA_CharacterSkill.cpp
+      - Source/RoastStaffGAS/Public/Data/DataTableStructs.h
+      - Source/RoastStaffGAS/Public/Character/Enemy/EnemyBaseCharacter.h
+      - Source/RoastStaffGAS/Private/Character/Enemy/EnemyBaseCharacter.cpp
+      - Source/RoastStaffGAS/Public/Character/Enemy/EnemyAIController.h
+      - Source/RoastStaffGAS/Public/Character/Enemy/MeleeEnemy.h/.cpp
+      - Source/RoastStaffGAS/Public/Character/Enemy/RangedEnemy.h/.cpp
+      - Source/RoastStaffGAS/Public/Character/Enemy/EliteEnemy.h/.cpp
+      - Source/RoastStaffGAS/Public/Character/Enemy/BossEnemy.h/.cpp
+      - Content/Data/Enemy/DT_Enemy_Static_Data.uasset
+      - Content/Data/Enemy/DT_Enemy_ExtData.uasset
+      - ExternalSource/DT_Enemy_Static_Data.csv
+      - ExternalSource/DT_Enemy_ExtData.csv
+      - Content/Blueprint/Enemy/{Melee,Ranged,Elite,Boss}/*.uasset
+      - Content/Assets/HFLizardCreatures/**/*.uasset
+
+- date: 2026-05-06
+  plan: PLAN_EnemyHitMontage_v1.0 (hotfix)
+  status: COMMITTED
+  commits: ["eb929aa3c"]
+  summary: "fix(pooling): 오토마톤 투사체 PreWarm 누락 수정"
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Objects/AutomatonActor.h
+      - Source/RoastStaffGAS/Private/Core/RSGameMode.cpp
+
 - date: 2026-05-04
   plan: PLAN_Hawkeye_Skills_v1.0 MODULE-7
   status: COMMITTED

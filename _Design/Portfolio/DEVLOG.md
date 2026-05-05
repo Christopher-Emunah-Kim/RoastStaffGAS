@@ -15,6 +15,26 @@
 
 ---
 
+## [2026-05-06] BUG_FIX — GAS InstancedPerActor + CastingMontage: OnBlendOut 누락으로 GA 좀비 상태
+
+**상황**: 스킬 1~6번 정상 작동하다가 플레이 중반부터 특정 스킬만 쿨타임은 시작되는데 실제 GA 발동·애니메이션 재생이 안 되는 현상 재현. 처음엔 잘 되다가 "중간부터" 안 된다는 점이 핵심 단서.
+
+**문제·과제**: `TryActivateAbility` 반환값 추적 → FAIL 확인. `GA_Base.CommitAbility` 실패 로그 없음 → `ActivateAbility` 진입 자체 안 됨. 원인: `AbilityTask_PlayMontageAndWait`에 `OnBlendOut` 콜백 미등록. 몽타주 블렌드 아웃 구간 진입 시 `OnCompleted`/`OnCancelled`/`OnInterrupted` 중 아무것도 발화하지 않는 케이스가 존재 → `EndAbility` 미호출 → GA IsActive 상태 유지(좀비) → 이후 `TryActivateAbility`가 GAS 내부에서 재발동 차단.
+
+**검토한 선택지**:
+- A) `OnBlendOut`에 동일 콜백 바인딩 — 블렌드 아웃 시점에도 `EndAbility` 보장. `OnCompleted`와 이중 발화되지만 GAS 내부에서 중복 `EndAbility` 방어하므로 안전. (채택)
+- B) `CastingMontage` null로 비우기 — 몽타주 없이 즉발로 변경. 연출 포기 필요.
+
+**결정**: A 채택. `OnBlendOut.AddDynamic(this, &UGA_CharacterSkill::OnCastingMontageEnded)` 한 줄 추가.
+
+**결과**: FAIL 로그 소멸. 모든 스킬 반복 사용 시 GA 정상 재발동 확인.
+
+**포트폴리오 포인트**: GAS `InstancedPerActor` 정책에서 `EndAbility` 누락이 재발동을 영구 차단하는 패턴. `TryActivateAbility` 반환값 로깅으로 `CommitAbility` 실패 vs `TryActivate` 단계 구분하여 원인을 좁힌 디버깅 프로세스. `AbilityTask_PlayMontageAndWait`의 `OnBlendOut`은 `OnCompleted`와 별개 이벤트임을 실전에서 확인.
+
+**관련 파일**: `GA_CharacterSkill.cpp`
+
+---
+
 ## [2026-05-04] ARCH — ChargeAndRelease GA: 몽타주 섹션 점프 + AbilityTask 이벤트 대기 2단계 구조
 
 **상황**: 스나이프 스킬은 "버튼 누름 → 차징 루프 → 버튼 해제 → 발사"의 2단계 흐름. 기존 GA 구조(StartSkillWithMontage → HitCheck → EndAbility 단선)와 맞지 않음.

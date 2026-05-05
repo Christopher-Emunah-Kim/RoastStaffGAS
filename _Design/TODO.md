@@ -14,6 +14,7 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
+
 ---
 
 ## NEXT_SESSION
@@ -61,12 +62,14 @@
 [~] HawkGauge 시스템 + 호크샷 — 게이지 전용 Attribute + UI 추가 비용. 3번째 캐릭터(호크아이) 때 처리 | [P3]
 [x] ChargeAndRelease 타입 (스나이프) — MODULE-7~8 완료 (4efe08474, 0eac6728c)
 [x] 호크아이 스킬 전체 — MODULE-1~9 완료 (PLAN_Hawkeye_Skills_v1.0)
+[x] BP 투사체 NiagaraComp 회전 버그 — 다른 방향으로 완료 처리 (2026-05-05)
 [~] 캐릭터/무기 해금 연결 — 해금 시스템 삭제로 불필요해짐. 방향 전환 시 재검토 | [HOLD]
 
 ---
 
 ## COMPLETED_LOG
 <!-- compact 형식: [x] FEATURE명 | 커밋 | 날짜 | 플랜파일 -->
+[x] 적 피격 애니메이션 HitMontage + GA 좀비 버그 픽스 | 6c2406d1a,1f8fa07f9 | 2026-05-06 | PLAN_EnemyHitMontage_v1.0
 [x] 호크아이 스킬 6종 구현 (MODULE-1~9) | 4efe08474,0eac6728c,ca97eb737 | 2026-05-04 | PLAN_Hawkeye_Skills_v1.0
 [x] 캐릭터 메시 인게임 연동 | 3624c6080 | 2026-05-03 | PLAN_CharacterMeshApply_v1.0
 [x] 데미지 인디케이터 HUD 비네트 | 621229423,b05088290,402fa1e55 | 2026-04-29 | PLAN_DamageIndicator_v1.0

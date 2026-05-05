@@ -2,7 +2,7 @@
 > PreCompact 훅이 자동 갱신. 압축 후 컨텍스트 복원에 사용.
 
 ## Current Task
-(없음 — 세션 완료)
+(없음 — 세션 시작 시 업데이트)
 
 ## Progress
 ### PLAN_Hawkeye_Skills_v1.0 ✓ 전체 완료
