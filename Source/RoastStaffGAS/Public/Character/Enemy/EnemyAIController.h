@@ -65,10 +65,10 @@ private:
 	// ── Tick 최적화 파라미터 (BP에서 에너미 종류별 조정 가능) ──────────────────
 	/** 근거리 임계값 (cm) — 이하에서는 CMC·Anim 틱을 매 프레임으로 유지 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|AI|TickOpt")
-	float NearThreshold = 1500.f;
+	float NearThreshold = 3000.f;
 	/** 원거리 임계값 (cm) — 이상에서는 FarCMC/AnimTickInterval 적용 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|AI|TickOpt")
-	float FarThreshold = 3000.f;
+	float FarThreshold = 5000.f;
 	/** 중거리 CMC 틱 간격 (초) */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|AI|TickOpt")
 	float MidCMCTickInterval = 0.033f;
@@ -80,5 +80,5 @@ private:
 	float MidAnimTickInterval = 0.05f;
 	/** 원거리 SkeletalMesh 애니메이션 틱 간격 (초) */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|AI|TickOpt")
-	float FarAnimTickInterval = 0.1f;
+	float FarAnimTickInterval = 0.05f;
 };

@@ -30,4 +30,8 @@ public:
 	FORCEINLINE float GetPreferredRange()  const { return PreferredRange; }
 	FORCEINLINE float GetMaxAttackRange()  const { return MaxAttackRange; }
 
+private:
+	/** 투사체 발사 몽타주 — BP에서 할당. 미할당 시 생략 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Attack")
+	TObjectPtr<UAnimMontage> AttackMontage;
 };

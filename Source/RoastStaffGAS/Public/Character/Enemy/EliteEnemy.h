@@ -56,6 +56,14 @@ private:
 	void ApplyChargeDamage(AActor* Target);
 
 private:
+	// ── 공격 몽타주 ─────────────────────────────────────────────────────
+	/** 투사체 발사 몽타주 — BP에서 할당. 미할당 시 생략 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Attack")
+	TObjectPtr<UAnimMontage> ProjectileMontage;
+	/** 근접 돌진 몽타주 — BP에서 할당. 미할당 시 생략 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Attack")
+	TObjectPtr<UAnimMontage> ChargeMontage;
+
 	// ── 근접 돌진 파라미터 ────────────────────────────────────────────────
 	/** 돌진 시 속도 배율 — BP에서 조정 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Elite")

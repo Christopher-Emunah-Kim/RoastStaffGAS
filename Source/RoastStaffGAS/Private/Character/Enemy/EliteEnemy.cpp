@@ -54,6 +54,11 @@ void AEliteEnemy::FireProjectile()
 		return;
 	}
 
+	if (ProjectileMontage)
+	{
+		PlayAnimMontage(ProjectileMontage);
+	}
+
 	const FVector Direction = (PC->GetPawn()->GetActorLocation() - GetActorLocation()).GetSafeNormal();
 	LaunchEnemyProjectile(Direction, AttackDamage);
 }
@@ -70,6 +75,11 @@ void AEliteEnemy::MeleeCharge()
 	}
 
 	bIsCharging = true;
+
+	if (ChargeMontage)
+	{
+		PlayAnimMontage(ChargeMontage);
+	}
 
 	// 이동 속도 부스트
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())

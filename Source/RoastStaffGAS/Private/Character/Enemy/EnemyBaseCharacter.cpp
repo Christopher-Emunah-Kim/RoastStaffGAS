@@ -355,24 +355,30 @@ void AEnemyBaseCharacter::LaunchEnemyProjectile(const FVector& Direction, float 
 
 void AEnemyBaseCharacter::ApplyHitReact(FVector ImpactDir)
 {
+	// 피격 몽타주 — 연속 피격 시 처음부터 재시작
+	if (HitMontage)
+	{
+		PlayAnimMontage(HitMontage);
+	}
+
 	// 넉백 — 공격자 방향으로 밀어냄
 	LaunchCharacter(ImpactDir * KnockbackForce, true, true);
 
-	// 히트스탑 — 이 에너미만 순간 정지 
-	CustomTimeDilation = 0.0f;
-	TWeakObjectPtr<AEnemyBaseCharacter> WeakThis(this);
-	GetWorldTimerManager().SetTimer(
-		HitstopTimerHandle,
-		[WeakThis]()
-		{
-			if (WeakThis.IsValid())
-			{
-				WeakThis->CustomTimeDilation = 1.0f;
-			}
-		},
-		HitstopDuration,
-		false
-	);
+	// [히트스탑 주석처리 — 몽타주 재생 테스트 후 제거 여부 결정]
+	// CustomTimeDilation = 0.0f;
+	// TWeakObjectPtr<AEnemyBaseCharacter> WeakThis(this);
+	// GetWorldTimerManager().SetTimer(
+	// 	HitstopTimerHandle,
+	// 	[WeakThis]()
+	// 	{
+	// 		if (WeakThis.IsValid())
+	// 		{
+	// 			WeakThis->CustomTimeDilation = 1.0f;
+	// 		}
+	// 	},
+	// 	HitstopDuration,
+	// 	false
+	// );
 
 	// 이미시브 플래시
 	MaterialEmissiveFlash();

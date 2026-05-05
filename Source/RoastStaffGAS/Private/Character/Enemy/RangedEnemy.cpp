@@ -38,6 +38,11 @@ void ARangedEnemy::FireProjectile()
 		return;
 	}
 
+	if (AttackMontage)
+	{
+		PlayAnimMontage(AttackMontage);
+	}
+
 	const FVector Direction = (PC->GetPawn()->GetActorLocation() - GetActorLocation()).GetSafeNormal();
 	LaunchEnemyProjectile(Direction, AttackDamage);
 }

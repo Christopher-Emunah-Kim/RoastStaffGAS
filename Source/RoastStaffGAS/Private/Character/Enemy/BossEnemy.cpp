@@ -171,6 +171,11 @@ void ABossEnemy::ExecuteShockwave()
 		return;
 	}
 
+	if (ShockwaveMontage)
+	{
+		PlayAnimMontage(ShockwaveMontage);
+	}
+
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();
 	if (!PC || !PC->GetPawn())
 	{
@@ -223,6 +228,11 @@ void ABossEnemy::ApplyShockwaveDamage(AActor* Target)
 
 void ABossEnemy::FireSpreadProjectile()
 {
+	if (SpreadProjectileMontage)
+	{
+		PlayAnimMontage(SpreadProjectileMontage);
+	}
+
 	const float DamageWithMult = AttackDamage * Phase2DamageMult;
 
 	for (int32 i = 0; i < 8; ++i)

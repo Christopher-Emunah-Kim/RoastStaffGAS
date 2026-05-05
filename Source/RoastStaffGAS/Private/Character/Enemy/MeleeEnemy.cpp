@@ -114,6 +114,11 @@ void AMeleeEnemy::TryAttack(AActor* Target)
 		return;
 	}
 
+	if (AttackMontage)
+	{
+		PlayAnimMontage(AttackMontage);
+	}
+
 	// GE 스펙 생성 후 플레이어 ASC에 적용
 	FGameplayEffectContextHandle ContextHandle = SourceASC->MakeEffectContext();
 	ContextHandle.AddSourceObject(this);

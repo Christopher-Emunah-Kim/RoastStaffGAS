@@ -91,6 +91,14 @@ private:
 	UPROPERTY()
 	TObjectPtr<UAnimMontage> LoadedTransitionMontage;
 
+	// ── 공격 몽타주 ─────────────────────────────────────────────────────
+	/** Shockwave 발동 몽타주 — BP에서 할당. 미할당 시 생략 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Attack")
+	TObjectPtr<UAnimMontage> ShockwaveMontage;
+	/** Phase2 방사형 투사체 발사 몽타주 — BP에서 할당. 미할당 시 생략 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Attack")
+	TObjectPtr<UAnimMontage> SpreadProjectileMontage;
+
 	/** 연출 없을 때 사용할 기본 전환 대기 시간 */
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Boss")
 	float DefaultTransitionDuration = 2.f;

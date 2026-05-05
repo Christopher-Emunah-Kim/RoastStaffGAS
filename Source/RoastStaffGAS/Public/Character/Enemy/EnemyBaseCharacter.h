@@ -123,6 +123,9 @@ private:
 	float DeathPoolReturnDelay = 2.f;
 
 	// ── 피격 반응 설정 (BP에서 에너미 종류별 조정 가능) ──
+	/** 피격 몽타주 — BP에서 에너미별 할당. 미할당 시 생략 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|HitReact")
+	TObjectPtr<UAnimMontage> HitMontage;
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|HitReact")
 	float KnockbackForce = 500.f;
 	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|HitReact")

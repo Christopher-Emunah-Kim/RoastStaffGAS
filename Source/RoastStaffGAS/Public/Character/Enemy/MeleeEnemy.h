@@ -43,6 +43,10 @@ public:
 	void InitializeMeleeParams(float InAttackDamage, float InAttackCooldown, float InAttackRange);
 	
 private:
+	/** 근접 공격 몽타주 — BP에서 할당. 미할당 시 생략 */
+	UPROPERTY(EditDefaultsOnly, Category = "MY|Enemy|Attack")
+	TObjectPtr<UAnimMontage> AttackMontage;
+
 	// 공격 범위 콜라이더
 	UPROPERTY(VisibleAnywhere, Category = "MY|Enemy|Attack")
 	TObjectPtr<USphereComponent> AttackRangeSphere;
