@@ -35,6 +35,8 @@ public:
 	// ── ISkillEffectInterface ───────────────────────────────────────────────
 	virtual void InitEffect(const FSkillEffectInitData& InitData) override;
 
+	TSubclassOf<ABaseProjectile> GetProjectileClass() const { return ProjectileClass; }
+
 private:
 	/** 가장 가까운 적 탐색 → Actor 회전 업데이트 */
 	void TargetUpdateTick();

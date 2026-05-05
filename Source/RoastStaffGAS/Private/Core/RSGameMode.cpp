@@ -21,6 +21,7 @@
 #include "Character/Enemy/EnemyBaseCharacter.h"
 #include "Objects/Projectile/EnemyProjectile.h"
 #include "Objects/Projectile/BaseProjectile.h"
+#include "Objects/AutomatonActor.h"
 #include "Core/RSGameInstance.h"
 #include "Data/DataTableStructs.h"
 #include "Data/RuntimeDataStructs.h"
@@ -261,6 +262,15 @@ TArray<FPoolPreWarmRequest> ARSGameMode::BuildPreWarmList(AEnemySpawner* Spawner
 				if (TSubclassOf<AActor> EffectClass = SkillData.EffectActorClass.LoadSynchronous())
 				{
 					PreWarmList.Add(MakeActorRequest(EffectClass, SkillEffectActorPoolCount));
+
+					// EffectActor가 내부에서 투사체를 스폰하는 경우 (e.g. AutomatonActor) 해당 투사체도 PreWarm
+					if (const AAutomatonActor* CDO = Cast<AAutomatonActor>(EffectClass->GetDefaultObject()))
+					{
+						if (TSubclassOf<ABaseProjectile> ProjClass = CDO->GetProjectileClass())
+						{
+							PreWarmList.Add(MakeActorRequest(ProjClass, SkillProjectilePoolCount));
+						}
+					}
 				}
 			}
 
