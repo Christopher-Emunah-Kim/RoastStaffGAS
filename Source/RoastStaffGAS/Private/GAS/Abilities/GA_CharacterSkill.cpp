@@ -117,6 +117,7 @@ void UGA_CharacterSkill::StartSkillWithMontage(
 	EventTask->EventReceived.AddDynamic(this, &UGA_CharacterSkill::OnHitCheckReceived);
 
 	MontageTask->OnCompleted.AddDynamic(this, &UGA_CharacterSkill::OnCastingMontageEnded);
+	MontageTask->OnBlendOut.AddDynamic(this, &UGA_CharacterSkill::OnCastingMontageEnded);
 	MontageTask->OnCancelled.AddDynamic(this, &UGA_CharacterSkill::OnCastingMontageEnded);
 	MontageTask->OnInterrupted.AddDynamic(this, &UGA_CharacterSkill::OnCastingMontageEnded);
 
