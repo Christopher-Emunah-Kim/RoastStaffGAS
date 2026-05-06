@@ -14,6 +14,28 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
+## [BUGFIX] WeaponSelectWidget 일시정지 버그 수정 | PLAN_PauseBugFix_v1.0
+> 시작: 2026-05-06 | 기획서: 없음
+
+  ### MODULE-1 RSBaseWidget bPausesGame 필드 추가
+  수정: Source/RoastStaffGAS/Public/UI/RSBaseWidget.h
+    - [ ] bPausesGame = false 추가 (EditDefaultsOnly, bIsModal 아래)                [P0]
+
+  ### MODULE-2 UIManagerSubsystem::IsAnyPausingUIOpen 구현
+  수정: Public/Subsystems/UIManagerSubsystem.h / Private/Subsystems/UIManagerSubsystem.cpp
+    - [ ] IsAnyPausingUIOpen() const 선언 + PopupUIStack 순회 구현                   [P0]
+
+  ### MODULE-3 RSPlayerController::PlayerTick 조건 추가
+  수정: Private/Character/Player/RSPlayerController.cpp
+    - [ ] IsAnyPausingUIOpen() true면 return (HandleMouseAim 스킵)                   [P0]
+
+  ### MODULE-4 SlotWidget NativeTick 쿨타임 조건 추가
+  수정: Private/UI/InGame/WeaponSlotWidget.cpp / CharacterSkillSlotWidget.cpp
+    - [ ] IsAnyPausingUIOpen() true면 UpdateCooldown() 스킵 (2개 파일)               [P0]
+
+  ### MODULE-5 에디터 bPausesGame 설정
+    - [ ] WBP_LevelUpWeaponSelectWidget — bPausesGame = true                          [P0]
+    - [ ] WBP_WeaponReplaceWidget — bPausesGame = true                                [P0]
 
 ---
 

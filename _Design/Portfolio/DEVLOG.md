@@ -15,6 +15,27 @@
 
 ---
 
+## [2026-05-06] ARCH — UI 일시정지 상태 판별: bPausesGame 플래그 + IsAnyPausingUIOpen 패턴
+
+**상황**: WeaponSelectWidget(레벨업/무기교체 UI) 열림 중 `TimeDilation=0`으로 게임을 멈췄지만, SlotWidget 쿨타임 타이머 감소와 캐릭터 마우스 에임 회전이 계속되는 버그 발견.
+
+**문제·과제**: `NativeTick`의 `InDeltaTime`은 Slate 프레임 시간 기준이라 `TimeDilation` 영향을 받지 않음. `PlayerTick` 역시 `TimeDilation=0`과 무관하게 매 프레임 실행됨. "일시정지 중인가"를 각 소비자(PC, SlotWidget)가 어떻게 판별할 것인가가 설계 과제.
+
+**검토한 선택지**:
+- A) `PlayerController`에 `bIsUIOpen` 멤버 변수 추가 — PC가 UI 상태를 직접 추적. 단, PC가 이미 `OnCardPoolReady`/`OnWeaponSlotFull`로 UI 오픈을 알고 있어 중복 관리가 되고, UI 종류가 늘면 동기화 버그 온상이 됨.
+- B) `UIManagerSubsystem`에 `EUIID` 목록 하드코딩 — 단순하지만 UI 추가 시 코드 수정 필요. 확장성 없음.
+- C) `RSBaseWidget`에 `bPausesGame` 플래그 추가 + UMS `IsAnyPausingUIOpen()` 쿼리 — 기존 `bIsModal` 패턴과 동일 구조. WBP에서 BP 체크박스 하나로 선언적 설정, 코드 변경 없이 확장 가능.
+
+**결정**: C안 채택. 상태의 단일 진실 공급원은 UMS, 의도 선언은 WBP에서. `IsAnyPausingUIOpen()`은 `PopupUIStack.ContainsByPredicate`로 구현해 `bIsModal` 판별 패턴과 완전히 동일한 형태.
+
+**결과**: 일시정지 UI 열림 중 쿨타임 타이머 동결 + 캐릭터 회전 중단 정상 동작 확인.
+
+**포트폴리오 포인트**: UI 상태를 소비자(PC, Widget)가 직접 추적하지 않고 중앙 시스템(UMS)에 쿼리하는 패턴. `TimeDilation`과 Slate `InDeltaTime`이 독립된 시간 흐름임을 실전에서 확인. `bIsModal`과 동일 구조로 일관성 있는 확장성 확보.
+
+**관련 파일**: `RSBaseWidget.h`, `UIManagerSubsystem.h/.cpp`, `RSPlayerController.cpp`, `WeaponSlotWidget.cpp`, `CharacterSkillSlotWidget.cpp`
+
+---
+
 ## [2026-05-06] BUG_FIX — GAS InstancedPerActor + CastingMontage: OnBlendOut 누락으로 GA 좀비 상태
 
 **상황**: 스킬 1~6번 정상 작동하다가 플레이 중반부터 특정 스킬만 쿨타임은 시작되는데 실제 GA 발동·애니메이션 재생이 안 되는 현상 재현. 처음엔 잘 되다가 "중간부터" 안 된다는 점이 핵심 단서.
