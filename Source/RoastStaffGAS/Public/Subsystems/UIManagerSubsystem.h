@@ -92,6 +92,9 @@ public:
 	FORCEINLINE bool HasOpenPopupUI()    const { return PopupUIStack.Num() > 0; }
 	FORCEINLINE int  GetPopupStackSize() const { return PopupUIStack.Num(); }
 
+	/** PopupUIStack 중 bPausesGame=true인 열린 위젯이 하나라도 있으면 true */
+	bool IsAnyPausingUIOpen() const;
+
 	
 
 private:

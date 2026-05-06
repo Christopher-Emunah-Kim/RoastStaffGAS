@@ -1,10 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UI/InGame/CharacterSkillSlotWidget.h"
+
+#include "RoastStaffGAS.h"
 #include "Subsystems/SkillManagerSubsystem.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
 #include "System/LoggingSystem.h"
+#include "Subsystems/UIManagerSubsystem.h"
 
 const FName UCharacterSkillSlotWidget::CooldownPercentParam = FName("Percent");
 
@@ -105,5 +108,12 @@ void UCharacterSkillSlotWidget::UpdateCooldown(float InDeltaTime)
 void UCharacterSkillSlotWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetWorld()->GetGameInstance())
+	if (UMS->IsAnyPausingUIOpen())
+	{
+		return;
+	}
+
 	UpdateCooldown(InDeltaTime);
 }

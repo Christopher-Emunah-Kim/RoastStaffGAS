@@ -62,4 +62,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	bool bIsModal = false;
 
+	/** true면 이 위젯이 열려있는 동안 게임이 일시정지 상태여야 함 */
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	bool bPausesGame = false;
+
 };

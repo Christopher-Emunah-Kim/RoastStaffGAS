@@ -52,5 +52,5 @@ private:
 	TObjectPtr<AActor> CharacterCameraRef;
 	/** SetViewTargetWithBlend 블렌드 시간 (초) */
 	UPROPERTY(EditDefaultsOnly, Category = "Lobby")
-	float CameraBlendTime = 1.2f;
+	float CameraBlendTime = 0.8f;
 };

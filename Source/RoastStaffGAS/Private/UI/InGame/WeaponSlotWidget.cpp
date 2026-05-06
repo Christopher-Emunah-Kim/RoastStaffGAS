@@ -1,10 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UI/Ingame/WeaponSlotWidget.h"
+
+#include "RoastStaffGAS.h"
 #include "Data/RuntimeDataStructs.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
 #include "System/LoggingSystem.h"
+#include "Subsystems/UIManagerSubsystem.h"
 
 const FName UWeaponSlotWidget::CooldownPercentParam = FName("Percent");
 
@@ -102,5 +105,12 @@ void UWeaponSlotWidget::UpdateCooldown(float InDeltaTime)
 void UWeaponSlotWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetWorld()->GetGameInstance())
+	if (UMS->IsAnyPausingUIOpen())
+	{
+		return;
+	}
+
 	UpdateCooldown(InDeltaTime);
 }

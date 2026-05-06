@@ -447,6 +447,14 @@ void UUIManagerSubsystem::ResetAllUIStates()
 	}
 }
 
+bool UUIManagerSubsystem::IsAnyPausingUIOpen() const
+{
+	return PopupUIStack.ContainsByPredicate([](const URSBaseWidget* W)
+	{
+		return W && W->IsOpen() && W->bPausesGame;
+	});
+}
+
 URSBaseWidget* UUIManagerSubsystem::GetWidgetByID(EUIID ID) const
 {
 	const URSBaseWidget* const* Found = CachedWidgetsByID.Find(static_cast<uint8>(ID));

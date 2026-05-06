@@ -89,7 +89,14 @@
       "WebFetch(domain:www.oslink.io)",
       "Bash(Get-ChildItem -Path \"D:\\\\EPIC GAMES\\\\Projects\\\\RoastStaffGAS\\\\Source\\\\RoastStaffGAS\\\\Public\\\\UI\" -Recurse)",
       "Bash(Select-Object FullName)",
-      "Bash(Format-Table -AutoSize)"
+      "Bash(Format-Table -AutoSize)",
+      "Bash(mkdir -p \"D:/EPIC GAMES/Projects/RoastStaffGAS/_Design/Plans/completed\")",
+      "Bash(mv \"D:/EPIC GAMES/Projects/RoastStaffGAS/_Design/Plans/active/PLAN_DamageIndicator_v1.0.md\" \"D:/EPIC GAMES/Projects/RoastStaffGAS/_Design/Plans/completed/\")",
+      "Bash(mv \"D:/EPIC GAMES/Projects/RoastStaffGAS/_Design/Plans/active/PLAN_SR_Fix_v1.0.md\" \"D:/EPIC GAMES/Projects/RoastStaffGAS/_Design/Plans/completed/\")",
+      "Bash(mv \"_Design/Plans/active/PLAN_EnemyHitMontage_v1.0.md\" \"_Design/Plans/completed/PLAN_EnemyHitMontage_v1.0.md\")",
+      "Bash(git diff *)",
+      "Bash(Get-ChildItem -Path \"D:\\\\EPIC GAMES\\\\Projects\\\\RoastStaffGAS\\\\Source\" -Directory)",
+      "Bash(Select-Object Name)"
     ],
     "deny": [],
     "ask": []

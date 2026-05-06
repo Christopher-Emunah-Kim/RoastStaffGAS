@@ -138,6 +138,13 @@ void ARSPlayerController::SetupInputComponent()
 void ARSPlayerController::PlayerTick(float DeltaTime)
 {
 	Super::PlayerTick(DeltaTime);
+
+	GET_GI_SUBSYSTEM_FROM(UUIManagerSubsystem, UMS, GetGameInstance())
+	if (UMS->IsAnyPausingUIOpen())
+	{
+		return;
+	}
+
 	// 쿼터뷰 — 마우스 커서 방향으로 캐릭터 회전 / 마우스 좌표 캐싱
 	if (!HandleMouseAim())
 	{
