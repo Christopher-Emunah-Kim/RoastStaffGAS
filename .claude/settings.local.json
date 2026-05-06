@@ -96,7 +96,8 @@
       "Bash(mv \"_Design/Plans/active/PLAN_EnemyHitMontage_v1.0.md\" \"_Design/Plans/completed/PLAN_EnemyHitMontage_v1.0.md\")",
       "Bash(git diff *)",
       "Bash(Get-ChildItem -Path \"D:\\\\EPIC GAMES\\\\Projects\\\\RoastStaffGAS\\\\Source\" -Directory)",
-      "Bash(Select-Object Name)"
+      "Bash(Select-Object Name)",
+      "Bash(Get-ChildItem -Path \"D:\\\\EPIC GAMES\\\\Projects\\\\RoastStaffGAS\" -Recurse -Filter \"RSPlayerCharacter.h\")"
     ],
     "deny": [],
     "ask": []

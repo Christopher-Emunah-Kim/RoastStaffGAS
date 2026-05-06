@@ -35,6 +35,7 @@ public:
 	//PlayerCharacter::InitializeAbilitySystem()에서 호출
 	void InitializeAbilitySystem(AActor* AvatarActor);  //Owner = PlayerState, Avatar = PlayerCharacter
 	// DT_Character에서 가져온 실제 스탯을 ASC에 적용 — RSGameMode::BeginPlay에서 호출
+	UFUNCTION(BlueprintCallable)
 	void ApplyCharacterStats(FName CharID);
 
 protected:

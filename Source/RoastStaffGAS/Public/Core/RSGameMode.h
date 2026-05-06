@@ -34,7 +34,8 @@ protected:
 public:
 	/** 플레이어 사망 시 외부(RSPlayerCharacter)에서 호출 */
 	void OnStageFailed();
-	
+	UFUNCTION(BlueprintCallable)
+	void ApplyCharacterMesh(FName CharID);
 private:
 	// ── 초기화 흐름 ──────────────────────────────────────────────────────────
 	void InitializePlayer(FName CharID);
@@ -49,7 +50,6 @@ private:
 	void UpdatePreWarmProgress();
 	void StartStageFlow();
 	void InitDefaultWeapon(FName CharID);
-	void ApplyCharacterMesh(FName CharID);
 
 	/** EUIID::LOADING 위젯 조회 헬퍼 — nullptr 가능 */
 	URSLoadingWidget* GetLoadingWidget() const;
