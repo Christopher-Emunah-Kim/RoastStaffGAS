@@ -13,6 +13,15 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 ## PENDING_COMMIT
 
 - date: 2026-05-06
+  plan: ad-hoc (Painter06 HomingBounce)
+  status: COMMITTED
+  commits: ["0cbfc7167", "a44116c67"]
+  summary: "fix(painter06): HomingBounce Lifetime 연장 — 유도 전 소멸 수정"
+  files:
+    modified:
+      - ExternalSource/DT_Character_Skill_Static_Data.csv
+
+- date: 2026-05-06
   plan: PLAN_LevelUpSubsystemReinit_v1.0
   status: COMMITTED
   commits: ["6aaad8f19", "467f7f0c3", "314359656", "3df788e94"]

@@ -68,6 +68,7 @@
 ---
 
 ## COMPLETED_LOG
+[x] Painter06 HomingBounce Lifetime 연장 — 유도 전 소멸 수정 | 0cbfc7167 | 2026-05-06 | ad-hoc
 [x] LevelUpSubsystem 재초기화 버그픽스 (EXP 구독 누락) | 6aaad8f19 | 2026-05-06 | PLAN_LevelUpSubsystemReinit_v1.0
 [x] PullVortexActor FX 스폰 Z 오프셋 보정 | 467f7f0c3 | 2026-05-06 | PLAN_PullVortexFXZOffset_v1.0
 [x] WeaponSelectWidget 일시정지 버그 수정 (bPausesGame + IsAnyPausingUIOpen) | b32c3208e,64962955c | 2026-05-06 | PLAN_PauseBugFix_v1.0
