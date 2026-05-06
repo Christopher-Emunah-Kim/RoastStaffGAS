@@ -68,6 +68,7 @@
 ---
 
 ## COMPLETED_LOG
+[x] 적 피격 애니메이션 HitMontage + 공격 몽타주 + ABP 에셋 | 6c2406d1a,1f8fa07f9,bd76571ee | 2026-05-06 | PLAN_EnemyHitMontage_v1.0
 <!-- compact 형식: [x] FEATURE명 | 커밋 | 날짜 | 플랜파일 -->
 [x] 적 피격 애니메이션 HitMontage + GA 좀비 버그 픽스 | 6c2406d1a,1f8fa07f9 | 2026-05-06 | PLAN_EnemyHitMontage_v1.0
 [x] 호크아이 스킬 6종 구현 (MODULE-1~9) | 4efe08474,0eac6728c,ca97eb737 | 2026-05-04 | PLAN_Hawkeye_Skills_v1.0

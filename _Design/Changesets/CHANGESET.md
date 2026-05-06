@@ -15,8 +15,8 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 - date: 2026-05-06
   plan: PLAN_EnemyHitMontage_v1.0
   status: COMMITTED
-  commits: ["6c2406d1a", "1f8fa07f9"]
-  summary: "fix(ga): GA 좀비 상태 수정 + feat(enemy): HitMontage data-driven 피격 몽타주 재생"
+  commits: ["6c2406d1a", "1f8fa07f9", "bd76571ee", "2e1ff5447"]
+  summary: "fix(ga): GA 좀비 상태 수정 + feat(enemy): HitMontage/AttackMontage + ABP 에셋"
   files:
     modified:
       - Source/RoastStaffGAS/Private/GAS/Abilities/GA_CharacterSkill.cpp
