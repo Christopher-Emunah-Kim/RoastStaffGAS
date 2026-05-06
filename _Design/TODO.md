@@ -14,28 +14,29 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
-## [BUGFIX] WeaponSelectWidget 일시정지 버그 수정 | PLAN_PauseBugFix_v1.0
-> 시작: 2026-05-06 | 기획서: 없음
+## [BUGFIX] LevelUpSubsystem 재초기화 — 로비→스테이지 재진입 시 EXP 구독 누락 | PLAN_LevelUpSubsystemReinit_v1.0
+> 시작: 2026-05-06 | 기획서: 없음 (버그픽스)
 
-  ### MODULE-1 RSBaseWidget bPausesGame 필드 추가
-  수정: Source/RoastStaffGAS/Public/UI/RSBaseWidget.h
-    - [ ] bPausesGame = false 추가 (EditDefaultsOnly, bIsModal 아래)                [P0]
+  ### [MODULE-1] LevelUpSubsystem Deinitialize 구현
+  수정: Source/RoastStaffGAS/Public/Subsystems/LevelUpSubsystem.h
+  수정: Source/RoastStaffGAS/Private/Subsystems/LevelUpSubsystem.cpp
+    - [x] DeinitializeSubsystem() 선언 추가 (LevelUpSubsystem.h)            [P0]
+    - [x] DeinitializeSubsystem() 구현 — RemoveDynamic + 상태 리셋           [P0]
 
-  ### MODULE-2 UIManagerSubsystem::IsAnyPausingUIOpen 구현
-  수정: Public/Subsystems/UIManagerSubsystem.h / Private/Subsystems/UIManagerSubsystem.cpp
-    - [ ] IsAnyPausingUIOpen() const 선언 + PopupUIStack 순회 구현                   [P0]
+  ### [MODULE-2] RSGameMode 호출 추가
+  수정: Source/RoastStaffGAS/Private/Core/RSGameMode.cpp
+    - [x] OnResultConfirmed() — LevelUpSys->DeinitializeSubsystem() 추가     [P0]
 
-  ### MODULE-3 RSPlayerController::PlayerTick 조건 추가
-  수정: Private/Character/Player/RSPlayerController.cpp
-    - [ ] IsAnyPausingUIOpen() true면 return (HandleMouseAim 스킵)                   [P0]
+## [BUGFIX] PullVortexActor FX 스폰 Z 오프셋 | PLAN_PullVortexFXZOffset_v1.0
+> 시작: 2026-05-06 | 기획서: 없음 (버그픽스)
 
-  ### MODULE-4 SlotWidget NativeTick 쿨타임 조건 추가
-  수정: Private/UI/InGame/WeaponSlotWidget.cpp / CharacterSkillSlotWidget.cpp
-    - [ ] IsAnyPausingUIOpen() true면 UpdateCooldown() 스킵 (2개 파일)               [P0]
+  ### [MODULE-1] FXSpawnZOffset 프로퍼티 추가
+  수정: Source/RoastStaffGAS/Public/Objects/GroundEffect/PullVortexActor.h
+    - [x] FXSpawnZOffset (float, 30.f, EditDefaultsOnly) UPROPERTY 추가   [P0]
 
-  ### MODULE-5 에디터 bPausesGame 설정
-    - [ ] WBP_LevelUpWeaponSelectWidget — bPausesGame = true                          [P0]
-    - [ ] WBP_WeaponReplaceWidget — bPausesGame = true                                [P0]
+  ### [MODULE-2] SpawnSystemAttached RelativeLocation 수정
+  수정: Source/RoastStaffGAS/Private/Objects/GroundEffect/PullVortexActor.cpp
+    - [x] SpawnSystemAttached RelativeLocation: ZeroVector → FVector(0,0,FXSpawnZOffset)   [P0]
 
 ---
 
@@ -90,6 +91,7 @@
 ---
 
 ## COMPLETED_LOG
+[x] WeaponSelectWidget 일시정지 버그 수정 (bPausesGame + IsAnyPausingUIOpen) | b32c3208e,64962955c | 2026-05-06 | PLAN_PauseBugFix_v1.0
 [x] 적 피격 애니메이션 HitMontage + 공격 몽타주 + ABP 에셋 | 6c2406d1a,1f8fa07f9,bd76571ee | 2026-05-06 | PLAN_EnemyHitMontage_v1.0
 <!-- compact 형식: [x] FEATURE명 | 커밋 | 날짜 | 플랜파일 -->
 [x] 적 피격 애니메이션 HitMontage + GA 좀비 버그 픽스 | 6c2406d1a,1f8fa07f9 | 2026-05-06 | PLAN_EnemyHitMontage_v1.0

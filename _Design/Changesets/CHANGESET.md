@@ -13,6 +13,24 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 ## PENDING_COMMIT
 
 - date: 2026-05-06
+  plan: PLAN_PauseBugFix_v1.0
+  status: COMMITTED
+  commits: ["b32c3208e", "64962955c"]
+  summary: "fix(ui-pause): TimeDilation 중 쿨타임·회전 버그 수정 + docs"
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/UI/RSBaseWidget.h
+      - Source/RoastStaffGAS/Public/Subsystems/UIManagerSubsystem.h
+      - Source/RoastStaffGAS/Private/Subsystems/UIManagerSubsystem.cpp
+      - Source/RoastStaffGAS/Private/Character/Player/RSPlayerController.cpp
+      - Source/RoastStaffGAS/Private/UI/InGame/WeaponSlotWidget.cpp
+      - Source/RoastStaffGAS/Private/UI/InGame/CharacterSkillSlotWidget.cpp
+      - Content/UI/Ingame/Levelup/WBP_LevelUpWeaponSelect.uasset
+      - Content/UI/Ingame/Levelup/WBP_WeaponReplaceUI.uasset
+    created:
+      - _Design/Plans/active/PLAN_PauseBugFix_v1.0.md
+
+- date: 2026-05-06
   plan: PLAN_EnemyHitMontage_v1.0
   status: COMMITTED
   commits: ["6c2406d1a", "1f8fa07f9", "bd76571ee", "2e1ff5447"]
