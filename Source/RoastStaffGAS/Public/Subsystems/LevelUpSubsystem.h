@@ -22,6 +22,8 @@ class ROASTSTAFFGAS_API ULevelUpSubsystem : public UGameInstanceSubsystem
 public:
 	/** PlayerCharacter::InitializeAbilitySystem()에서 호출 */
 	void InitializeSubsystem(UAbilitySystemComponent* InASC,UPlayerAttributeSet* InAttributeSet,TSubclassOf<UGameplayEffect> InAddEXPEffectClass);
+	/** RSGameMode::OnResultConfirmed()에서 호출 — 로비 복귀 전 구독 해제 + 상태 리셋 */
+	void DeinitializeSubsystem();
 	
 	UFUNCTION(BlueprintCallable, Category = "MY|LevelUp")
 	void AddEXP(float Amount);

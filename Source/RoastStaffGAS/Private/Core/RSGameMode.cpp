@@ -12,6 +12,7 @@
 #include "Subsystems/SaveGameSubsystem.h"
 #include "Subsystems/GameDataSubsystem.h"
 #include "Subsystems/EquipmentSubsystem.h"
+#include "Subsystems/LevelUpSubsystem.h"
 #include "Subsystems/UIManagerSubsystem.h"
 #include "UI/InGame/RSStageResultWidget.h"
 #include "UI/Transition/RSLoadingWidget.h"
@@ -622,6 +623,9 @@ void ARSGameMode::OnResultConfirmed()
 	// 레벨 전환 전 타이머 전량 정리 — SetGamePaused(false) 이전에 실행해야 함
 	GET_GI_SUBSYSTEM(UEquipmentSubsystem, EquipSys)
 	EquipSys->DeinitializeSubsystem();
+
+	GET_GI_SUBSYSTEM(ULevelUpSubsystem, LevelUpSys)
+	LevelUpSys->DeinitializeSubsystem();
 
 	UGameplayStatics::SetGamePaused(GetWorld(), false);
 

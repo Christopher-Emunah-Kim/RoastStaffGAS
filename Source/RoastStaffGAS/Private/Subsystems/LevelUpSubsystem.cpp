@@ -49,6 +49,22 @@ void ULevelUpSubsystem::InitializeSubsystem(UAbilitySystemComponent* InASC,	UPla
 	KHS_INFO(TEXT("LevelUpSubsystem 초기화 완료"));
 }
 
+void ULevelUpSubsystem::DeinitializeSubsystem()
+{
+	if (AttributeSet)
+	{
+		AttributeSet->OnEXPChangedDel.RemoveDynamic(this, &ULevelUpSubsystem::OnEXPChanged);
+	}
+
+	ASC               = nullptr;
+	AttributeSet      = nullptr;
+	AddEXPEffectClass = nullptr;
+	bIsInitialized    = false;
+	bIsLevelingUp     = false;
+
+	KHS_INFO(TEXT("LevelUpSubsystem 해제 완료."));
+}
+
 void ULevelUpSubsystem::OnEnemyKilled(FName InEnemyID)
 {
 	if (!bIsInitialized)
