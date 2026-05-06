@@ -13,6 +13,19 @@ compact 방법: COMMITTED 항목 → 별도 확인 없이 제거 (Plans/complete
 ## PENDING_COMMIT
 
 - date: 2026-05-06
+  plan: PLAN_LevelUpSubsystemReinit_v1.0
+  status: COMMITTED
+  commits: ["6aaad8f19", "467f7f0c3", "314359656", "3df788e94"]
+  summary: "fix(levelup): EXP 구독 누락 수정 + fix(vortex): FX Z오프셋 + chore: 에디터 에셋"
+  files:
+    modified:
+      - Source/RoastStaffGAS/Public/Subsystems/LevelUpSubsystem.h
+      - Source/RoastStaffGAS/Private/Subsystems/LevelUpSubsystem.cpp
+      - Source/RoastStaffGAS/Private/Core/RSGameMode.cpp
+      - Source/RoastStaffGAS/Public/Objects/GroundEffect/PullVortexActor.h
+      - Source/RoastStaffGAS/Private/Objects/GroundEffect/PullVortexActor.cpp
+
+- date: 2026-05-06
   plan: PLAN_PauseBugFix_v1.0
   status: COMMITTED
   commits: ["b32c3208e", "64962955c"]

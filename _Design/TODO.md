@@ -14,29 +14,6 @@
 ## ACTIVE_WORK
 <!-- 진행 중. 완료 FEATURE는 COMPLETED_LOG로 압축 이동 -->
 
-## [BUGFIX] LevelUpSubsystem 재초기화 — 로비→스테이지 재진입 시 EXP 구독 누락 | PLAN_LevelUpSubsystemReinit_v1.0
-> 시작: 2026-05-06 | 기획서: 없음 (버그픽스)
-
-  ### [MODULE-1] LevelUpSubsystem Deinitialize 구현
-  수정: Source/RoastStaffGAS/Public/Subsystems/LevelUpSubsystem.h
-  수정: Source/RoastStaffGAS/Private/Subsystems/LevelUpSubsystem.cpp
-    - [x] DeinitializeSubsystem() 선언 추가 (LevelUpSubsystem.h)            [P0]
-    - [x] DeinitializeSubsystem() 구현 — RemoveDynamic + 상태 리셋           [P0]
-
-  ### [MODULE-2] RSGameMode 호출 추가
-  수정: Source/RoastStaffGAS/Private/Core/RSGameMode.cpp
-    - [x] OnResultConfirmed() — LevelUpSys->DeinitializeSubsystem() 추가     [P0]
-
-## [BUGFIX] PullVortexActor FX 스폰 Z 오프셋 | PLAN_PullVortexFXZOffset_v1.0
-> 시작: 2026-05-06 | 기획서: 없음 (버그픽스)
-
-  ### [MODULE-1] FXSpawnZOffset 프로퍼티 추가
-  수정: Source/RoastStaffGAS/Public/Objects/GroundEffect/PullVortexActor.h
-    - [x] FXSpawnZOffset (float, 30.f, EditDefaultsOnly) UPROPERTY 추가   [P0]
-
-  ### [MODULE-2] SpawnSystemAttached RelativeLocation 수정
-  수정: Source/RoastStaffGAS/Private/Objects/GroundEffect/PullVortexActor.cpp
-    - [x] SpawnSystemAttached RelativeLocation: ZeroVector → FVector(0,0,FXSpawnZOffset)   [P0]
 
 ---
 
@@ -91,6 +68,8 @@
 ---
 
 ## COMPLETED_LOG
+[x] LevelUpSubsystem 재초기화 버그픽스 (EXP 구독 누락) | 6aaad8f19 | 2026-05-06 | PLAN_LevelUpSubsystemReinit_v1.0
+[x] PullVortexActor FX 스폰 Z 오프셋 보정 | 467f7f0c3 | 2026-05-06 | PLAN_PullVortexFXZOffset_v1.0
 [x] WeaponSelectWidget 일시정지 버그 수정 (bPausesGame + IsAnyPausingUIOpen) | b32c3208e,64962955c | 2026-05-06 | PLAN_PauseBugFix_v1.0
 [x] 적 피격 애니메이션 HitMontage + 공격 몽타주 + ABP 에셋 | 6c2406d1a,1f8fa07f9,bd76571ee | 2026-05-06 | PLAN_EnemyHitMontage_v1.0
 <!-- compact 형식: [x] FEATURE명 | 커밋 | 날짜 | 플랜파일 -->
