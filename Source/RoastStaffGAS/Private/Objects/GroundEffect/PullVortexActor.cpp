@@ -107,7 +107,7 @@ void APullVortexActor::InitEffect(const FSkillEffectInitData& InitData)
 	{
 		SpawnedFXComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
 			FX, GetRootComponent(), NAME_None,
-			FVector::ZeroVector, FRotator::ZeroRotator,
+			FVector(0.f, 0.f, FXSpawnZOffset), FRotator::ZeroRotator,
 			EAttachLocation::SnapToTarget, true);
 
 		if (SpawnedFXComp)

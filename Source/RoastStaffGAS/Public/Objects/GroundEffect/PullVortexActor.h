@@ -78,6 +78,10 @@ protected:
 	/** 마지막 히트 시 바깥 방향 날리기 세기 (cm/s). */
 	UPROPERTY(EditDefaultsOnly, Category = "PullVortex")
 	float KnockbackStrength = 1200.f;
+
+	/** FX 스폰 Z 오프셋 (cm). 지형 표면에 FX가 묻히는 현상 방지. BP에서 튜닝 가능. */
+	UPROPERTY(EditDefaultsOnly, Category = "PullVortex")
+	float FXSpawnZOffset = 30.f;
 	
 private:
 	// ── 런타임 캐시 ─────────────────────────────────────────────────────────
